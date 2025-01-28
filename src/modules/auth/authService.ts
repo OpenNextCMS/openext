@@ -1,9 +1,11 @@
 import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 import type { RegisterInput } from './authValidation';
 import mongoose from 'mongoose';
 import { IUser } from '@/models/User';
 
 export class AuthService {
+  private static JWT_SECRET = process.env.JWT_SECRET
   static async register(
     data: RegisterInput,
     UserModel: mongoose.Model<IUser>
@@ -50,5 +52,54 @@ export class AuthService {
         isRegistration: user.isRegistration, // Include registration status in response
       },
     };
+  }
+  static async login(
+    email: string,
+    password: string,
+    UserModel: mongoose.Model<IUser>
+  ) {
+    try {
+      // Find user by email
+      const user = await UserModel.findOne({ email });
+      
+      if (!user) {
+        return { error: 'User not found' };
+      }
+
+      // Verify password
+      const isValidPassword = await bcrypt.compare(password, user.password);
+      
+      if (!isValidPassword) {
+        return { error: 'Invalid password' };
+      }
+
+      // Generate JWT token
+      const token = jwt.sign(
+        {
+          userId: user._id,
+          email: user.email,
+          username: user.username,
+          siteTitle: user.siteTitle
+        },
+        AuthService.JWT_SECRET,
+        { expiresIn: '24h' }
+      );
+
+      return {
+        success: true,
+        token,
+        user: {
+          _id: user._id,
+          name: user.name,
+          username: user.username,
+          email: user.email,
+          siteTitle: user.siteTitle,
+          phoneNumber: user.phoneNumber
+        }
+      };
+    } catch (error) {
+      console.error('Auth service error:', error);
+      return { error: 'Login failed' };
+    }
   }
 }
