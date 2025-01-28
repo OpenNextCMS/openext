@@ -15,14 +15,26 @@ export default function MongoDBSetup() {
   const [cluster, setCluster] = useState('');
   // const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [currentLanguage, setCurrentLanguage] = useState('en');
+  const [currentLanguage, setCurrentLanguage] = useState();
   const [t, setT] = useState(translations.en); // Default to English
   const router = useRouter();
 
   useEffect(() => {
+    // Load language settings
     const langFromCookie = Cookies.get('selectedLanguage') || 'en';
     setCurrentLanguage(langFromCookie);
     setT(translations[langFromCookie as keyof typeof translations]);
+
+    // Load MongoDB credentials from localStorage if they exist
+    const savedUsername = localStorage.getItem('MONGODB_USERNAME');
+    const savedPassword = localStorage.getItem('MONGODB_PASSWORD');
+    const savedHost = localStorage.getItem('MONGODB_HOST');
+    const savedCluster = localStorage.getItem('MONGODB_CLUSTER');
+
+    if (savedUsername) setUsername(savedUsername);
+    if (savedPassword) setPassword(savedPassword);
+    if (savedHost) setHost(savedHost);
+    if (savedCluster) setCluster(savedCluster);
   }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {

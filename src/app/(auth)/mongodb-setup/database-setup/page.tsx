@@ -16,6 +16,13 @@ export default function DatabaseSetup() {
   useEffect(() => {
     const langFromCookie = Cookies.get('selectedLanguage') || 'en';
     setT(translations[langFromCookie as keyof typeof translations]);
+
+    // Load database names from localStorage if they exist
+    const savedUserDbName = localStorage.getItem('USER_DB_NAME');
+    const savedPageDbName = localStorage.getItem('PAGE_DB_NAME');
+
+    if (savedUserDbName) setUserDbName(savedUserDbName);
+    if (savedPageDbName) setPageDbName(savedPageDbName);
   }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
