@@ -98,8 +98,8 @@ export class AuthService {
         }
       };
     } catch (error) {
-      console.error('Auth service error:', error);
-      return { error: 'Login failed' };
+      console.log('Auth service error:', error);
+       
     }
   }
 }

@@ -2,27 +2,31 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Cookies from "js-cookie"; // Import js-cookie
 import * as translations from "../../../../public/locales/translations";
 
 export default function LanguagePage() {
   const router = useRouter();
   const [selectedLanguage, setSelectedLanguage] = useState<string>("");
 
+  // Extract language names from translations
   const languages = Object.entries(translations.languageNames).map(([code, name]) => ({
     code,
-    name
+    name,
   }));
 
   useEffect(() => {
-    const storedLanguage = localStorage.getItem("selectedLanguage");
+    // Retrieve selected language from cookies
+    const storedLanguage = Cookies.get("selectedLanguage");
     if (storedLanguage) {
       setSelectedLanguage(storedLanguage);
     }
   }, []);
 
   const handleLanguageSelection = (languageCode: string) => {
+    // Update selected language and store in cookies
     setSelectedLanguage(languageCode);
-    localStorage.setItem("selectedLanguage", languageCode);
+    Cookies.set("selectedLanguage", languageCode, { expires: 7 }); // Expires in 7 days
     router.push("/mongodb-setup");
   };
 

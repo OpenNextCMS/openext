@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import mongoose from 'mongoose';
 import fs from 'fs/promises';
 import path from 'path';
+import crypto from 'crypto';
 import { MasterDb } from '@/models/MasterDb';
 import { handleError } from '@/utils/errorHandler'; // Import error handler
 import { handleSuccess } from '@/utils/successHandler'; // Import success handler
@@ -42,7 +43,11 @@ export async function POST(req: NextRequest) {
       await fs.writeFile(envPath, '');
     }
 
+    // Generate a random JWT secret
+    const jwtSecret = crypto.randomBytes(32).toString('hex');
+
     const envContent = `
+    JWT_SECRET=${jwtSecret}
 MONGODB_USERNAME=${username}
 MONGODB_PASSWORD=${password}
 MONGODB_HOST=${host}
@@ -54,7 +59,7 @@ PAGE_DB_NAME=${pageDbName}
 
     // Set cookie to indicate that database setup is completed
     const response = handleSuccess(true, 'Databases setup successful and credentials stored');
-    response.cookies.set('dbSetupCompleted', 'true', { path: '/' });
+    response.cookies.set('isRegistrationComplete', 'true', { path: '/' });
 
     return response;
   } catch (error) {

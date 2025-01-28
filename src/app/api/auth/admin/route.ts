@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
     console.log('Auth data:', authData);
 
     if ('error' in authData) {
-      console.error('Registration error:', authData.error);
+     
       return new Response(
         JSON.stringify({ success: false, message: authData.error, registration: 'failed' }),
         { status: 400 }
@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
       { status: 201 }
     );
   } catch (error: any) {
-    console.error('Error during registration:', error);
+    
     return new Response(
       JSON.stringify({
         success: false,

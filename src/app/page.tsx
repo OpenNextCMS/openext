@@ -1,21 +1,21 @@
-// src/app/page.tsx
 'use client';
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-
+import Cookies from 'js-cookie';
 
 export default function Home() {
-  // const router = useRouter();
-  // // const authService = AuthService.getInstance();
+  const router = useRouter();
 
-  // // useEffect(() => {
-  // //   if (authService.isRegistrationComplete()) {
-  // //     router.push('/login');
-  // //   } else {
-  // //     router.push('/language');
-  // //   }
-  // }, []);
+  useEffect(() => {
+    const isRegistrationComplete = Cookies.get('isRegistrationComplete');
+    
+    if (isRegistrationComplete === 'true') {
+      router.push('/login');
+    } else {
+      router.push('/language');
+    }
+  }, [router]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-100">
