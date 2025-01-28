@@ -7,7 +7,7 @@ export interface IUser extends mongoose.Document {
   name: string;
   email: string;
   password: string;
-  phoneNumber?: string;
+  phoneNumber?: string | null; // Allow phoneNumber to be null
 }
 
 const userSchema = new mongoose.Schema({
@@ -17,8 +17,10 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   phoneNumber: { type: String },
+  isRegistration: { type: Boolean, default: false }, // Add registration field
 }, {
   timestamps: true
 });
 
-export const User = mongoose.models.User || mongoose.model<IUser>('User', userSchema);
+export default mongoose.models.User || mongoose.model<IUser>('User', userSchema);
+export { userSchema };

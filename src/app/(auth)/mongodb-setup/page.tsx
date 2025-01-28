@@ -1,167 +1,172 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { MongoDBConfig } from "@/types";
-import { MongoDBService } from "@/lib/mongodb";
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { handleError } from '@/utils/errorHandler'; // Import error handler
+import { handleSuccess } from '@/utils/successHandler'; // Import success handler
+// import { useLanguage } from '@/app/services/languageService';
+// import { translations } from '@/app/locales/translations';
 
-export default function MongoDBSetupPage() {
+export default function MongoDBSetup() {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [host, setHost] = useState('');
+  const [cluster, setCluster] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-  const mongoDBService = MongoDBService.getInstance();
-  const [config, setConfig] = useState<MongoDBConfig>({
-    username: "",
-    password: "",
-    host: "",
-    clusterName: "",
-  });
-  const [connectionStatus, setConnectionStatus] = useState<
-    "idle" | "testing" | "success" | "error"
-  >("idle");
-  const [errorMessage, setErrorMessage] = useState<string>("");
+  // const { currentLanguage } = useLanguage();
 
-  useEffect(() => {
-    const storedConfig = mongoDBService.getConfiguration();
-    if (storedConfig) {
-      setConfig(storedConfig);
-    }
-  }, []);
+  // const languageCode = currentLanguage?.code || 'en'; // Ensure currentLanguage is not null
+  // const t = translations[languageCode as keyof typeof translations]?.mongodbSetup || translations['en'].mongodbSetup;
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setConfig((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setConnectionStatus("testing");
-    setErrorMessage("");
+    setIsLoading(true);
+
+    const mongodbUrl = `mongodb+srv://${username}:${password}@${cluster}.${host}.mongodb.net/?retryWrites=true&w=majority&appName=${cluster}`;
 
     try {
-      mongoDBService.setConfiguration(config);
-      const connectionResult = await mongoDBService.testConnection();
+      const response = await fetch('/api/auth/verify-mongodb', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ mongodbUrl }),
+      });
 
-      if (connectionResult) {
-        setConnectionStatus("success");
-        setTimeout(() => router.push("/db-name"), 1500);
-      } else {
-        setConnectionStatus("error");
-        const error = mongoDBService.getConnectionError();
-        setErrorMessage(error || "Connection failed");
+      const data = await response.json().catch(() => {
+        throw new SyntaxError('Invalid JSON response');
+      });
+
+      if (!response.ok) {
+        throw new Error(data.message || t.generalError);
       }
-    } catch (error) {
-      setConnectionStatus("error");
-      setErrorMessage("An unexpected error occurred");
-      console.error("Connection test failed", error);
+
+      if (data.success) {
+        localStorage.setItem('MONGODB_USERNAME', username);
+        localStorage.setItem('MONGODB_PASSWORD', password);
+        localStorage.setItem('MONGODB_HOST', host);
+        localStorage.setItem('MONGODB_CLUSTER', cluster);
+        handleSuccess(true, null, 'MongoDB connection successful. Redirecting to database setup...');
+        router.push('/mongodb-setup/database-setup');
+      } else {
+        throw new Error(data.message || t.generalError);
+      }
+    } catch (err) {
+      console.error('MongoDB setup error:', err);
+      if (err instanceof SyntaxError) {
+        console.error('Response was not valid JSON:', err);
+        handleError(new Error('Invalid response from server'), 'Invalid response from server');
+      } else {
+        handleError(err, err instanceof Error ? err.message : t.generalError || 'An unexpected error occurred');
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        <h1 className="text-2xl font-bold mb-6 text-center">
-          MongoDB Configuration
-        </h1>
-        <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 w-full py-2">
+      <div className="w-full max-w-2xl mx-auto p-6 bg-white rounded-xl shadow-lg">
         <div>
-            <label
-              htmlFor="username"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Username
-            </label>
-            <input
-              type="text"
-              id="username"
-              name="username"
-              value={config.username}
-              onChange={handleInputChange}
-              required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              placeholder="MongoDB Username"
-            />
+          <h2 className="mt-2 text-center text-3xl font-extrabold text-gray-900">title</h2>
+        </div>
+        <div className="mt-4 p-6 bg-gray-100 rounded-md">
+          <h3 className="text-lg font-semibold mb-4">MongoDB Connection URL Example:</h3>
+          <div className="bg-white p-4 rounded-md shadow-sm overflow-x-auto">
+            <code className="text-sm">
+              <span className="text-gray-600">mongodb+srv://</span>
+              <span className="text-green-600">username</span>
+              <span className="text-gray-600">:</span>
+              <span className="text-red-600">&lt;db_password&gt;</span>
+              <span className="text-gray-600">@</span>
+              <span className="text-purple-600">cluster0</span>
+              <span className="text-gray-600">.</span>
+              <span className="text-orange-600">5s78g</span>
+              <span className="text-gray-600">.mongodb.net/?retryWrites=true&w=majority</span>
+              <span className="text-gray-600">appName=</span>
+              <span className="text-purple-600">ClusterName</span>
+            </code>
           </div>
-          <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Password
-            </label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              value={config.password}
-              onChange={handleInputChange}
-              required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              placeholder="MongoDB Password"
-            />
-          </div>
-          <div>
-            <label
-              htmlFor="host"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Host
-            </label>
-            <input
-              type="text"
-              id="host"
-              name="host"
-              value={config.host}
-              onChange={handleInputChange}
-              required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              placeholder="MongoDB Host"
-            />
-          </div>
-          <div>
-            <label
-              htmlFor="clusterName"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Cluster Name
-            </label>
-            <input
-              type="text"
-              id="clusterName"
-              name="clusterName"
-              value={config.clusterName}
-              onChange={handleInputChange}
-              required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              placeholder="MongoDB Cluster Name"
-            />
-          </div>
-          
-          <button
-            type="submit"
-            disabled={connectionStatus === "testing"}
-            className={`w-full py-2 px-4 rounded-md transition-colors duration-300 ${
-              connectionStatus === "testing"
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-blue-500 text-white hover:bg-blue-600"
-            } ${connectionStatus === "success" ? "bg-green-500" : ""} ${
-              connectionStatus === "error" ? "bg-red-500" : ""
-            }`}
-          >
-            {connectionStatus === "testing" && "Testing Connection..."}
-            {connectionStatus === "idle" && "Test Connection"}
-            {connectionStatus === "success" && "Connection Successful!"}
-            {connectionStatus === "error" && "Connection Failed"}
-          </button>
-
-          {connectionStatus === "error" && errorMessage && (
-            <div className="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
-              <p className="text-sm">{errorMessage}</p>
+          <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
+            <div className="flex items-center">
+              <div className="w-3 h-3 bg-green-600 rounded-full mr-2"></div>
+              <span>Username</span>
             </div>
-          )}
+            <div className="flex items-center">
+              <div className="w-3 h-3 bg-red-600 rounded-full mr-2"></div>
+              <span>Password</span>
+            </div>
+            <div className="flex items-center">
+              <div className="w-3 h-3 bg-purple-600 rounded-full mr-2"></div>
+              <span>Cluster</span>
+            </div>
+            <div className="flex items-center">
+              <div className="w-3 h-3 bg-orange-600 rounded-full mr-2"></div>
+              <span>Host</span>
+            </div>
+          </div>
+          <p className="text-xs mt-4">
+            <strong>Note:</strong> The host is the part after the cluster name and before &quot;.mongodb.net&quot;
+          </p>
+        </div>
+        <form className="mt-8 grid grid-cols-2 gap-4" onSubmit={handleSubmit}>
+          <div>
+            <input
+              label="Username"
+              name="username"
+              type="text"
+              required
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="username"
+            />
+          </div>
+          <div>
+            <input
+              label="Password"
+              name="password"
+              type="password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="<db_password>"
+            />
+          </div>
+          <div>
+            <input
+              label="Cluster"
+              name="cluster"
+              type="text"
+              required
+              value={cluster}
+              onChange={(e) => setCluster(e.target.value)}
+              placeholder="cluster0"
+            />
+          </div>
+          <div>
+            <input
+              label="Host"
+              name="host"
+              type="text"
+              required
+              value={host}
+              onChange={(e) => setHost(e.target.value)}
+              placeholder="5s78g"
+            />
+          </div>
+          <div className="col-span-2">
+            <button
+              type="submit"
+              isLoading={isLoading}
+              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-1 focus:ring-offset-2 focus:ring-indigo-500 focus:border-indigo-500"
+            >
+              submit
+            </button>
+          </div>
         </form>
       </div>
     </div>
   );
 }
+
