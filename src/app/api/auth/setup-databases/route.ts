@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
 
   const { username, password, host, cluster } = mongodbCredentials;
   const masterDbUrl = `mongodb+srv://${username}:${password}@${cluster}.${host}.mongodb.net/master?retryWrites=true&w=majority&appName=${cluster}`;
-
+  const masterDbUri = `mongodb+srv://${username}:${password}@${cluster}.${host}.mongodb.net/?retryWrites=true&w=majority&appName=${cluster}`;
   try {
     // Connect to the master database
     await mongoose.connect(masterDbUrl);
@@ -25,12 +25,12 @@ export async function POST(req: NextRequest) {
     const userDb = mongoose.connection.useDb(userDbName);
     const pageDb = mongoose.connection.useDb(pageDbName);
 
-    // Create collections in the user and page databases
+    // Create collections in the page database only
     await userDb.createCollection('users');
     await pageDb.createCollection('pages');
 
-    // Store the database names in the master database
-    const masterDb = new MasterDb({ userDbName, pageDbName });
+    // Store the database names and URI in the master database
+    const masterDb = new MasterDb({ userDbName, pageDbName, mongodbUri: masterDbUri });
     await masterDb.save();
 
     // Write the MongoDB credentials to the .env.local file

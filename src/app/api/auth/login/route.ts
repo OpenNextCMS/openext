@@ -23,17 +23,17 @@ export async function POST(request: Request) {
     }
 
     // Get request body
-    const { email, password: userPassword } = await request.json();
+    const { identifier, password: userPassword } = await request.json();
 
-    if (!email || !userPassword) {
+    if (!identifier || !userPassword) {
       return NextResponse.json(
-        { error: 'Email and password are required' },
+        { error: 'Identifier and password are required' },
         { status: 400 }
       );
     }
 
     // Attempt login using AuthService
-    const result = await AuthService.login(email, userPassword, User);
+    const result = await AuthService.login(identifier, userPassword, User);
 
     if (result.error) {
       return NextResponse.json(
