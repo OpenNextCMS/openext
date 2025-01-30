@@ -17,6 +17,8 @@ export const en = {
       siteTitlePlaceholder: "Enter your site title",
       usernamePlaceholder: "Choose a username",
       passwordPlaceholder: "Create a password",
+      namePlaceholder: "Enter your name",
+      emailPlaceholder: "Enter your email",
       phoneNoPlaceholder: "Enter your phone number",
       togglePasswordVisibility: "Toggle password visibility",
       registering: "Registering...",
