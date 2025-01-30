@@ -54,21 +54,23 @@ export class AuthService {
     };
   }
   static async login(
-    email: string,
+    identifier: string,
     password: string,
     UserModel: mongoose.Model<IUser>
   ) {
     try {
-      // Find user by email
-      const user = await UserModel.findOne({ email });
-      
+      // Find user by email or username
+      const user = await UserModel.findOne({
+        $or: [{ email: identifier }, { username: identifier }],
+      });
+
       if (!user) {
         return { error: 'User not found' };
       }
 
       // Verify password
       const isValidPassword = await bcrypt.compare(password, user.password);
-      
+
       if (!isValidPassword) {
         return { error: 'Invalid password' };
       }
@@ -79,7 +81,7 @@ export class AuthService {
           userId: user._id,
           email: user.email,
           username: user.username,
-          siteTitle: user.siteTitle
+          siteTitle: user.siteTitle,
         },
         AuthService.JWT_SECRET,
         { expiresIn: '24h' }
@@ -94,12 +96,11 @@ export class AuthService {
           username: user.username,
           email: user.email,
           siteTitle: user.siteTitle,
-          phoneNumber: user.phoneNumber
-        }
+          phoneNumber: user.phoneNumber,
+        },
       };
     } catch (error) {
       console.log('Auth service error:', error);
-       
     }
   }
 }
