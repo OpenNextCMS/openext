@@ -138,6 +138,7 @@ export default function MongoDBSetup() {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               placeholder={t.mongodbSetup.usernamePlaceholder}
+              className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
             />
           </div>
           <div className="relative">
@@ -148,7 +149,7 @@ export default function MongoDBSetup() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder={t.mongodbSetup.passwordPlaceholder}
-              className="block w-full rounded-md border-gray-300 shadow-sm px-4 py-2 bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:outline-none transition duration-150 ease-in-out text-sm pr-10"
+              className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
             />
             <button
               type="button"
@@ -168,6 +169,7 @@ export default function MongoDBSetup() {
               value={cluster}
               onChange={(e) => setCluster(e.target.value)}
               placeholder={t.mongodbSetup.clusterPlaceholder}
+              className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
             />
           </div>
           <div>
@@ -179,6 +181,7 @@ export default function MongoDBSetup() {
               value={host}
               onChange={(e) => setHost(e.target.value)}
               placeholder={t.mongodbSetup.hostPlaceholder}
+              className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
             />
           </div>
           <div className="col-span-2">

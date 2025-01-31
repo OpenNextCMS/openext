@@ -39,6 +39,7 @@
     "i18next-resources-to-backend": "^1.2.1",
     "js-cookie": "^3.0.5",
     "jsonwebtoken": "^9.0.2",
+    "jwt-decode": "^4.0.0",
     "lucide-react": "^0.471.0",
     "mongodb": "^6.12.0",
     "mongoose": "^8.9.4",
@@ -53,6 +54,7 @@
     "react-i18next": "^15.4.0",
     "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7",
+    "uuid": "^11.0.5",
     "zod": "^3.24.1",
     "zustand": "^5.0.3"
   },
