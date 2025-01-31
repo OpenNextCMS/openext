@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 // List of restricted pages
-const restrictedRoutes = ['/admin', '/db-name', '/mongodb-setup', '/language','/mongodb-setup/database-setup',];
+const restrictedRoutes = ['/admin', '/db-name', '/mongodb-setup', '/language','/mongodb-setup/database-setup'];
 
 export function middleware(request: NextRequest) {
   const isRegistration = request.cookies.get('isRegistrationComplete')?.value;
@@ -33,6 +33,5 @@ export const config = {
     '/mongodb-setup',
     '/language',
     '/mongodb-setup/database-setup',
-    '/dashboard', // Include other pages as needed
   ],
 };
