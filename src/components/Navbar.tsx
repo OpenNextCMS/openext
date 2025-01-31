@@ -22,6 +22,11 @@ export default function Navbar({ user }: { user: { name: string; email: string }
     router.push('/login');
   };
 
+  const navigateTo = (path: string) => {
+    router.push(path);
+    setIsDropdownOpen(false);
+  };
+
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const avatar = localStorage.getItem('avatarUrl');
@@ -60,17 +65,17 @@ export default function Navbar({ user }: { user: { name: string; email: string }
                 
                 <div className="p-2 space-y-1">
                 <button 
-                    onClick={() => {
-                      router.push('/dashboard/profile');
-                      setIsDropdownOpen(false);
-                    }}
+                    onClick={() => navigateTo('/dashboard/profile')}
                     className="flex items-center gap-3 w-full p-2 rounded-lg hover:bg-gray-50"
                   >
                     <User className="w-4 h-4 text-gray-600" />
                     <span className="text-gray-700">Profile</span>
                   </button>
                   
-                  <button className="flex items-center gap-3 w-full p-2 rounded-lg hover:bg-gray-50">
+                  <button 
+                    onClick={() => navigateTo('/dashboard/settings')}
+                    className="flex items-center gap-3 w-full p-2 rounded-lg hover:bg-gray-50"
+                  >
                     <Settings className="w-4 h-4 text-gray-600" />
                     <span className="text-gray-700">Settings</span>
                   </button>

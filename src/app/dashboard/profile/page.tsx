@@ -8,6 +8,7 @@ import { Globe, Mail } from "lucide-react";
 import { ProfileUploader } from '@/components/ProfileUploader';
 import { useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
+import { handleSuccess } from '@/utils/successHandler';
 
 const languages = [
   { label: "English", value: "en" },
@@ -25,9 +26,9 @@ const formSchema = z.object({
   nickname: z.string().min(2).max(50),
   displayName: z.string().min(2).max(50),
   email: z.string().email(),
-  website: z.string().url().optional(),
-  bio: z.string().max(500).optional(),
-  newPassword: z.string().min(8).max(50).optional(),
+  website: z.string().url().optional().or(z.literal('')),
+  bio: z.string().max(500).optional().or(z.literal('')),
+  newPassword: z.string().min(8).max(50).optional().or(z.literal(''))
 });
 
 export default function ProfilePage() {
@@ -51,51 +52,59 @@ export default function ProfilePage() {
 
   useEffect(() => {
     const fetchUserData = async () => {
-      const token = Cookies.get('token');
-      if (token) {
-        const response = await fetch('/api/profile', {
-          headers: {
-            'Authorization': `Bearer ${token}`
+      try {
+        const response = await fetch('/api/profile');
+        const result = await response.json();
+        
+        console.log('API Response:', result); // For debugging
+
+        if (result.success && result.data) {
+          // Set user data
+          if (result.data.user) {
+            setValue('username', result.data.user.username || '');
+            setValue('email', result.data.user.email || '');
           }
-        });
-        const data = await response.json();
-        if (data.success) {
-          setValue('username', data.user.username);
-          setValue('email', data.user.email);
-          setValue('language', data.profile.language);
-          setValue('firstName', data.profile.firstName);
-          setValue('lastName', data.profile.lastName);
-          setValue('nickname', data.profile.nickname);
-          setValue('displayName', data.profile.displayName);
-          setValue('website', data.profile.website);
-          setValue('bio', data.profile.bio);
+          
+          // Set profile data if it exists
+          if (result.data.profile) {
+            setValue('language', result.data.profile.language || 'en');
+            setValue('firstName', result.data.profile.firstName || '');
+            setValue('lastName', result.data.profile.lastName || '');
+            setValue('nickname', result.data.profile.nickname || '');
+            setValue('displayName', result.data.profile.displayName || '');
+            setValue('website', result.data.profile.website || '');
+            setValue('bio', result.data.profile.bio || '');
+          }
+        } else {
+          console.error('Failed to fetch profile data:', result.message);
         }
+      } catch (error) {
+        console.error('Error fetching profile:', error);
       }
     };
 
     fetchUserData();
-
-    if (typeof window !== 'undefined') {
-      setAvatarUrl(localStorage.getItem('avatarUrl'));
-    }
   }, [setValue]);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      const token = Cookies.get('token');
       const response = await fetch('/api/profile', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(values),
       });
-
-      if (response.ok) {
+  
+      const result = await response.json();
+  
+      if (result.success) {
         console.log('Profile saved successfully');
+        handleSuccess(true, null, 'Profile updated successfully')
+        // You could add a success notification here
       } else {
-        console.error('Failed to save profile');
+        console.error('Failed to save profile:', result.message);
+        // You could add an error notification here
       }
     } catch (error) {
       console.error('Error saving profile:', error);
