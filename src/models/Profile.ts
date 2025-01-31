@@ -2,7 +2,6 @@ import mongoose from 'mongoose';
 
 export interface IProfile extends mongoose.Document {
   userId: mongoose.Schema.Types.ObjectId;
-  language: string;
   firstName: string;
   lastName: string;
   nickname: string;
@@ -13,7 +12,6 @@ export interface IProfile extends mongoose.Document {
 
 const profileSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  language: { type: String, required: true },
   firstName: { type: String, required: true },
   lastName: { type: String, required: true },
   nickname: { type: String, required: true },

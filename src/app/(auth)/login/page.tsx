@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { translations } from '../../../../public/locales/translations';
 import Cookies from 'js-cookie';
 import { Eye, EyeOff } from 'lucide-react';
+import {handleError} from '@/utils/errorHandler';
+import {handleSuccess} from '@/utils/successHandler'
 
 export default function LoginPage() {
   const router = useRouter();
@@ -55,7 +57,7 @@ export default function LoginPage() {
         throw new Error(data.error || t.login.validationError);
       }
 
-      
+      handleSuccess(true,null,'Login Successfull');
       router.push('/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : t.login.generalError);

@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { User, Settings, LogOut } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
+import { useAvatar } from '@/context/AvatarContext';
 // import { AuthService } from '@/modules/auth/authService';
 // import mongoose from 'mongoose';
 // import { IUser } from '@/models/User';
@@ -13,27 +14,23 @@ import Cookies from 'js-cookie';
 export default function Navbar({ user }: { user: { name: string; email: string } | null }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const { avatarUrl } = useAvatar();
+  // const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const router = useRouter();
 
-  const handleLogout = () => {
-    Cookies.remove('token', { path: '/' });
-    console.log('Token removed'); // Debug log
-    router.push('/login');
-  };
 
   const navigateTo = (path: string) => {
     router.push(path);
     setIsDropdownOpen(false);
   };
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const avatar = localStorage.getItem('avatarUrl');
-      console.log('Avatar URL from localStorage:', avatar); // Debug log
-      setAvatarUrl(avatar);
-    }
-  }, []);
+  // useEffect(() => {
+  //   if (typeof window !== 'undefined') {
+  //     const avatar = localStorage.getItem('avatarUrl');
+  //     console.log('Avatar URL from localStorage:', avatar); // Debug log
+  //     setAvatarUrl(avatar);
+  //   }
+  // }, []);
 
   return (
     <nav className="bg-white border-b shadow-sm fixed top-0 right-0 left-64 z-10">
@@ -78,14 +75,6 @@ export default function Navbar({ user }: { user: { name: string; email: string }
                   >
                     <Settings className="w-4 h-4 text-gray-600" />
                     <span className="text-gray-700">Settings</span>
-                  </button>
-
-                  <button 
-                    onClick={handleLogout}
-                    className="flex items-center gap-3 w-full p-2 rounded-lg hover:bg-gray-50"
-                  >
-                    <LogOut className="w-4 h-4 text-gray-600" />
-                    <span className="text-gray-700">Logout</span>
                   </button>
                 </div>
               </div>

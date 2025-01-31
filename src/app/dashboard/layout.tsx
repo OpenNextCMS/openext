@@ -5,6 +5,8 @@ import {jwtDecode} from 'jwt-decode';
 import mongoose from 'mongoose';
 import { IUser } from '@/models/User';
 import { AuthService } from '@/modules/auth/authService';
+import { AvatarProvider } from '@/context/AvatarContext';
+import { redirect } from 'next/navigation';
 
 export default async function DashboardLayout({
   children,
@@ -14,6 +16,11 @@ export default async function DashboardLayout({
   const cookieStore = await cookies();
   const token = cookieStore.get('token')?.value;
   let user = null;
+
+  if (!token) {
+    // Redirect to login if token is missing
+    redirect('/login');
+  }
 
   if (token) {
     const decodedToken: any = jwtDecode(token);
@@ -41,6 +48,7 @@ export default async function DashboardLayout({
   }
 
   return (
+    <AvatarProvider>
     <div className="flex min-h-screen">
       <Sidebar />
       
@@ -51,5 +59,6 @@ export default async function DashboardLayout({
         </main>
       </div>
     </div>
+    </AvatarProvider>
   );
 }

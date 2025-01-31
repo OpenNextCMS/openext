@@ -23,8 +23,6 @@ export async function GET(req: NextRequest) {
         settings: settings ? {
           tagline: settings.tagline,
           siteIcon: settings.siteIcon,
-          siteAddress: settings.siteAddress,
-          adminEmail: settings.adminEmail,
           newUserRole: settings.newUserRole,
           language: settings.language,
           timeZone: settings.timeZone,

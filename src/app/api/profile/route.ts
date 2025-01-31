@@ -22,7 +22,6 @@ export async function GET(req: NextRequest) {
           email: user.email
         },
         profile: profile ? {
-          language: profile.language || 'en',
           firstName: profile.firstName || '',
           lastName: profile.lastName || '',
           nickname: profile.nickname || '',
