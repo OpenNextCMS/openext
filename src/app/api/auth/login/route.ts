@@ -4,6 +4,9 @@ import { NextResponse } from 'next/server';
 import mongoose from 'mongoose';
 import { AuthService } from '@/modules/auth/authService';
 import User from '@/models/User';
+import dotenv from 'dotenv';
+
+dotenv.config({ path: '.env.local' });
 
 export async function POST(request: Request) {
   try {
@@ -60,7 +63,6 @@ export async function POST(request: Request) {
     return response;
 
   } catch (error) {
-    
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

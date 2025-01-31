@@ -3,9 +3,12 @@ import jwt from 'jsonwebtoken';
 import type { RegisterInput } from './authValidation';
 import mongoose from 'mongoose';
 import { IUser } from '@/models/User';
+import dotenv from 'dotenv';
+
+dotenv.config({ path: '.env.local' });
 
 export class AuthService {
-  private static JWT_SECRET = process.env.JWT_SECRET
+  private static JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
   static async register(
     data: RegisterInput,
     UserModel: mongoose.Model<IUser>
@@ -101,6 +104,29 @@ export class AuthService {
       };
     } catch (error) {
       console.log('Auth service error:', error);
+    }
+  }
+
+  static async getUserByEmail(email: string, UserModel: mongoose.Model<IUser>) {
+    try {
+      const user = await UserModel.findOne({ email });
+      if (!user) {
+        return { error: 'User not found' };
+      }
+      return {
+        success: true,
+        user: {
+          _id: user._id,
+          name: user.name,
+          username: user.username,
+          email: user.email,
+          siteTitle: user.siteTitle,
+          phoneNumber: user.phoneNumber,
+        },
+      };
+    } catch (error) {
+      console.log('Auth service error:', error);
+      return { error: 'Error fetching user' };
     }
   }
 }
