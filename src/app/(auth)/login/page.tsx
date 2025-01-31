@@ -10,7 +10,6 @@ export default function LoginPage() {
   const router = useRouter();
   const [t, setT] = useState(translations.en);
   const [showPassword, setShowPassword] = useState(false);
-  
   const [credentials, setCredentials] = useState({
     identifier: '',
     password: ''
@@ -21,6 +20,14 @@ export default function LoginPage() {
   useEffect(() => {
     const langFromCookie = Cookies.get('selectedLanguage') || 'en';
     setT(translations[langFromCookie as keyof typeof translations]);
+  }, []);
+
+  useEffect(() => {
+    const hasRefreshed = sessionStorage.getItem('hasRefreshed');
+    if (!hasRefreshed) {
+      sessionStorage.setItem('hasRefreshed', 'true');
+      window.location.reload();
+    }
   }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
