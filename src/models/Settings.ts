@@ -5,7 +5,6 @@ export interface ISettings extends mongoose.Document {
   userId: mongoose.Schema.Types.ObjectId;
   tagline?: string;
   siteIcon?: string;
-  siteAddress?: string;
   adminEmail: string;
   newUserRole: string;
   language: string;
@@ -18,7 +17,6 @@ const settingsSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   tagline: String,
   siteIcon: String,
-  siteAddress: String,
   adminEmail: { type: String, required: true },
   newUserRole: { type: String, required: true, default: 'Subscriber' },
   language: { type: String, required: true, default: 'en' },

@@ -9,17 +9,10 @@ import { ProfileUploader } from '@/components/ProfileUploader';
 import { useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
 import { handleSuccess } from '@/utils/successHandler';
-
-const languages = [
-  { label: "English", value: "en" },
-  { label: "Spanish", value: "es" },
-  { label: "French", value: "fr" },
-  { label: "German", value: "de" },
-  { label: "Portuguese", value: "pt" },
-] as const;
+import { useAvatar } from '@/context/AvatarContext';
+import { translations } from '../../../../public/locales/translations';
 
 const formSchema = z.object({
-  language: z.string(),
   username: z.string().min(2).max(50),
   firstName: z.string().min(2).max(50),
   lastName: z.string().min(2).max(50),
@@ -32,11 +25,10 @@ const formSchema = z.object({
 });
 
 export default function ProfilePage() {
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const { avatarUrl, setAvatarUrl } = useAvatar();
   const { register, handleSubmit, formState: { errors }, setValue } = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      language: "en",
       username: "",
       firstName: "",
       lastName: "",
@@ -49,6 +41,12 @@ export default function ProfilePage() {
     },
   });
   const router = useRouter();
+  const [t, setT] = useState(translations.en);
+
+  useEffect(() => {
+    const langFromCookie = Cookies.get('selectedLanguage') || 'en';
+    setT(translations[langFromCookie as keyof typeof translations]);
+  }, []);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -67,7 +65,6 @@ export default function ProfilePage() {
           
           // Set profile data if it exists
           if (result.data.profile) {
-            setValue('language', result.data.profile.language || 'en');
             setValue('firstName', result.data.profile.firstName || '');
             setValue('lastName', result.data.profile.lastName || '');
             setValue('nickname', result.data.profile.nickname || '');
@@ -113,12 +110,12 @@ export default function ProfilePage() {
 
   return (
     <div className="max-w-8xl mx-auto">
-      <h1 className="text-3xl font-bold text-gray-800 mb-2">Profile Settings</h1>
-      <p className="text-gray-600 mb-8">Manage your profile information and account settings</p>
+      <h1 className="text-3xl font-bold text-gray-800 mb-2">{t.profile.title}</h1>
+      <p className="text-gray-600 mb-8">{t.profile.subtitle}</p>
 
       {/* Profile Picture Section */}
       <div className="mb-8 pb-8 border-b">
-        <h2 className="text-xl font-semibold text-gray-800 mb-4">Profile Picture</h2>
+        <h2 className="text-xl font-semibold text-gray-800 mb-4">{t.profile.profilePicture}</h2>
         <ProfileUploader 
           avatarUrl={avatarUrl}
           onUpload={(url) => setAvatarUrl(url)}
@@ -128,52 +125,50 @@ export default function ProfilePage() {
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
         {/* Personal Information Section */}
         <div className="mb-8 pb-8 border-b">
-          <h2 className="text-xl font-semibold text-gray-800 mb-6">Personal Information</h2>
+          <h2 className="text-xl font-semibold text-gray-800 mb-6">{t.profile.personalInfo}</h2>
           <div className="space-y-6">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">Language</label>
-                <select
-                  {...register('language')}
-                  className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                >
-                  {languages.map((lang) => (
-                    <option key={lang.value} value={lang.value}>
-                      {lang.label}
-                    </option>
-                  ))}
-                </select>
-                {errors.language && <span className="text-red-500 text-sm">{errors.language.message?.toString()}</span>}
-              </div>
-
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">Username</label>
+                <label className="block text-sm font-medium text-gray-700">{t.profile.username}</label>
                 <input
                   {...register('username')}
                   className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="johndoe"
+                  placeholder={t.profile.username}
                 />
                 {errors.username && <span className="text-red-500 text-sm">{errors.username.message?.toString()}</span>}
               </div>
+
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  {t.profile.nickname}
+                </label>
+                <input
+                  {...register('nickname')}
+                  className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder={t.profile.nickname}
+                />
+                {errors.nickname && <span className="text-red-500 text-sm">{errors.nickname.message?.toString()}</span>}
+              </div>
+
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">First Name</label>
+                <label className="block text-sm font-medium text-gray-700">{t.profile.firstName}</label>
                 <input
                   {...register('firstName')}
                   className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="John"
+                  placeholder={t.profile.firstName}
                 />
                 {errors.firstName && <span className="text-red-500 text-sm">{errors.firstName.message?.toString()}</span>}
               </div>
 
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">Last Name</label>
+                <label className="block text-sm font-medium text-gray-700">{t.profile.lastName}</label>
                 <input
                   {...register('lastName')}
                   className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Doe"
+                  placeholder={t.profile.lastName}
                 />
                 {errors.lastName && <span className="text-red-500 text-sm">{errors.lastName.message?.toString()}</span>}
               </div>
@@ -181,24 +176,11 @@ export default function ProfilePage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">
-                  Nickname <span className="text-red-500">*</span>
-                </label>
-                <input
-                  {...register('nickname')}
-                  required
-                  className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Johnny"
-                />
-                {errors.nickname && <span className="text-red-500 text-sm">{errors.nickname.message?.toString()}</span>}
-              </div>
-
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">Display Name</label>
+                <label className="block text-sm font-medium text-gray-700">{t.profile.displayName}</label>
                 <input
                   {...register('displayName')}
                   className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="John Doe"
+                  placeholder={t.profile.displayName}
                 />
                 {errors.displayName && <span className="text-red-500 text-sm">{errors.displayName.message?.toString()}</span>}
               </div>
@@ -208,40 +190,40 @@ export default function ProfilePage() {
 
         {/* Contact Information Section */}
         <div className="mb-8 pb-8 border-b">
-          <h2 className="text-xl font-semibold text-gray-800 mb-6">Contact Information</h2>
+          <h2 className="text-xl font-semibold text-gray-800 mb-6">{t.profile.contactInfo}</h2>
           <div className="space-y-6">
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">Email</label>
+              <label className="block text-sm font-medium text-gray-700">{t.profile.email}</label>
               <div className="relative">
                 <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <input
                   {...register('email')}
                   className="w-full pl-10 p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="john@example.com"
+                  placeholder={t.profile.email}
                 />
               </div>
               {errors.email && <span className="text-red-500 text-sm">{errors.email.message?.toString()}</span>}
             </div>
 
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">Website</label>
+              <label className="block text-sm font-medium text-gray-700">{t.profile.website}</label>
               <div className="relative">
                 <Globe className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <input
                   {...register('website')}
                   className="w-full pl-10 p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="https://example.com"
+                  placeholder={t.profile.website}
                 />
               </div>
               {errors.website && <span className="text-red-500 text-sm">{errors.website.message?.toString()}</span>}
             </div>
 
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">Bio</label>
+              <label className="block text-sm font-medium text-gray-700">{t.profile.bio}</label>
               <textarea
                 {...register('bio')}
                 className="w-full p-2 border rounded-md h-32 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Tell us a little bit about yourself"
+                placeholder={t.profile.bioPlaceholder}
               />
               {errors.bio && <span className="text-red-500 text-sm">{errors.bio.message?.toString()}</span>}
             </div>
@@ -250,17 +232,17 @@ export default function ProfilePage() {
 
         {/* Account Management Section */}
         <div className="mb-8">
-          <h2 className="text-xl font-semibold text-gray-800 mb-6">Account Management</h2>
+          <h2 className="text-xl font-semibold text-gray-800 mb-6">{t.profile.accountManagement}</h2>
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">New Password</label>
+            <label className="block text-sm font-medium text-gray-700">{t.profile.newPassword}</label>
             <input
               type="password"
               {...register('newPassword')}
               className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Enter new password"
+              placeholder={t.profile.newPasswordPlaceholder}
             />
             <p className="text-gray-500 text-sm mt-1">
-              Leave blank if you don't want to change your password
+              {t.profile.passwordNote}
             </p>
             {errors.newPassword && <span className="text-red-500 text-sm">{errors.newPassword.message?.toString()}</span>}
           </div>
@@ -271,7 +253,7 @@ export default function ProfilePage() {
             type="submit"
             className="px-6 py-2 bg-gray-900 text-white rounded-md hover:bg-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2"
           >
-            Save Changes
+            {t.profile.saveChanges}
           </button>
         </div>
       </form>

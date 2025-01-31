@@ -7,7 +7,7 @@ import { translations } from '../../../../../public/locales/translations';
 import Cookies from 'js-cookie';
 
 export default function DatabaseSetup() {
-  const [userDbName, setUserDbName] = useState('user');
+  const [userDbName, setUserDbName] = useState('users');
   const [pageDbName, setPageDbName] = useState('pages');
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();

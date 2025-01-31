@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { LayoutDashboard, FileText, LogOut, ChevronDown } from 'lucide-react';
 import { useState } from 'react';
+import { handleSuccess } from '@/utils/successHandler';
 
 export default function Sidebar() {
   const [isPagesOpen, setIsPagesOpen] = useState(false);
@@ -14,7 +15,7 @@ export default function Sidebar() {
       const response = await fetch('/api/logout', { method: 'GET' });
 
       if (response.ok) {
-        // Redirect to login page after logout
+        handleSuccess(true,null,'Logout Successfull')
         router.push('/login');
       } else {
         console.error('Logout failed');
