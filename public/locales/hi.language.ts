@@ -95,7 +95,7 @@ export const hi = {
     saveChanges: "परिवर्तन सहेजें",
   },
   profileSettings: {
-    title: "प्रोफ़ाइल सेटिंग्स",
+    title: "सेटिंग्स",
     subtitle: "अपनी प्रोफ़ाइल जानकारी और खाता सेटिंग्स प्रबंधित करें",
     profilePicture: "प्रोफ़ाइल चित्र",
     siteInformation: "साइट जानकारी",

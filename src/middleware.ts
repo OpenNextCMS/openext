@@ -26,10 +26,10 @@ export function middleware(request: NextRequest) {
   }
 
   // Redirect unauthorized users without a token to login
-  if (restrictedRoutes.includes(currentPath) || currentPath.startsWith('/dashboard')) {
-    const loginUrl = new URL('/login', request.url);
-    return NextResponse.redirect(loginUrl);
-  }
+  // if (restrictedRoutes.includes(currentPath) || currentPath.startsWith('/dashboard')) {
+  //   const loginUrl = new URL('/login', request.url);
+  //   return NextResponse.redirect(loginUrl);
+  // }
 
   return NextResponse.next();
 }

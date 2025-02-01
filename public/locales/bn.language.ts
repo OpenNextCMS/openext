@@ -95,7 +95,7 @@ export const bn = {
     saveChanges: "পরিবর্তনগুলি সংরক্ষণ করুন",
   },
   profileSettings: {
-    title: "প্রোফাইল সেটিংস",
+    title: "সেটিংস",
     subtitle: "আপনার প্রোফাইল তথ্য এবং অ্যাকাউন্ট সেটিংস পরিচালনা করুন",
     profilePicture: "প্রোফাইল ছবি",
     siteInformation: "সাইট তথ্য",

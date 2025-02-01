@@ -95,7 +95,7 @@ export const kn = {
     saveChanges: "ಬದಲಾವಣೆಗಳನ್ನು ಉಳಿಸಿ",
   },
   profileSettings: {
-    title: "ಪ್ರೊಫೈಲ್ ಸೆಟ್ಟಿಂಗ್‌ಗಳು",
+    title: "ಸೆಟ್ಟಿಂಗ್‌ಗಳು",
     subtitle: "ನಿಮ್ಮ ಪ್ರೊಫೈಲ್ ಮಾಹಿತಿ ಮತ್ತು ಖಾತೆ ಸೆಟ್ಟಿಂಗ್‌ಗಳನ್ನು ನಿರ್ವಹಿಸಿ",
     profilePicture: "ಪ್ರೊಫೈಲ್ ಚಿತ್ರ",
     siteInformation: "ಸೈಟ್ ಮಾಹಿತಿ",

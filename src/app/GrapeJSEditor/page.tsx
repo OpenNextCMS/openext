@@ -119,16 +119,27 @@ const GrapeJSEditor: React.FC = () => {
         },
       };
 
-      console.log('Sending data:', pageData); // Debug log
-
-      const response = await fetch("/api/pages/create", {
-        method: "POST",
+      // First try to update
+      let response = await fetch("/api/pages/create", {
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(pageData),
         credentials: 'include',
       });
+
+      // If page doesn't exist, create new one
+      if (response.status === 404) {
+        response = await fetch("/api/pages/create", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(pageData),
+          credentials: 'include',
+        });
+      }
 
       const data = await response.json();
 

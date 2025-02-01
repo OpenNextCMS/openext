@@ -95,7 +95,7 @@ export const mr = {
     saveChanges: "बदल जतन करा",
   },
   profileSettings: {
-    title: "प्रोफाइल सेटिंग्ज",
+    title: "सेटिंग्ज",
     subtitle: "आपली प्रोफाइल माहिती आणि खाते सेटिंग्ज व्यवस्थापित करा",
     profilePicture: "प्रोफाइल चित्र",
     siteInformation: "साइट माहिती",

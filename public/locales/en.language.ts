@@ -97,7 +97,7 @@ export const en = {
       saveChanges: "Save Changes",
     },
     profileSettings: {
-      title: "Profile Settings",
+      title: "Settings",
       subtitle: "Manage your profile information and account settings",
       profilePicture: "Profile Picture",
       siteInformation: "Site Information",
