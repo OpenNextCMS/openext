@@ -95,7 +95,7 @@ export const ne = {
     saveChanges: "परिवर्तनहरू सुरक्षित गर्नुहोस्",
   },
   profileSettings: {
-    title: "प्रोफाइल सेटिङहरू",
+    title: "सेटिङहरू",
     subtitle: "आफ्नो प्रोफाइल जानकारी र खाता सेटिङहरू व्यवस्थापन गर्नुहोस्",
     profilePicture: "प्रोफाइल तस्वीर",
     siteInformation: "साइट जानकारी",

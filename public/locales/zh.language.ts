@@ -95,7 +95,7 @@ export const zh = {
     saveChanges: "保存更改",
   },
   profileSettings: {
-    title: "个人资料设置",
+    title: "设置",
     subtitle: "管理您的个人资料信息和账户设置",
     profilePicture: "头像",
     siteInformation: "网站信息",

@@ -95,7 +95,7 @@ export const ru = {
     saveChanges: "Сохранить изменения",
   },
   profileSettings: {
-    title: "Настройки профиля",
+    title: "Настройки",
     subtitle: "Управление информацией профиля и настройками учетной записи",
     profilePicture: "Фотография профиля",
     siteInformation: "Информация о сайте",

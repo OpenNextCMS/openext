@@ -95,7 +95,7 @@ export const ta = {
     saveChanges: "மாற்றங்களைச் சேமிக்கவும்",
   },
   profileSettings: {
-    title: "சுயவிவர அமைப்புகள்",
+    title: "அமைப்புகள்",
     subtitle: "உங்கள் சுயவிவர தகவல் மற்றும் கணக்கு அமைப்புகளை நிர்வகிக்கவும்",
     profilePicture: "சுயவிவரப் படம்",
     siteInformation: "தள தகவல்",

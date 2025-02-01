@@ -95,7 +95,7 @@ export const ar = {
     saveChanges: "حفظ التغييرات",
   },
   profileSettings: {
-    title: "إعدادات الملف الشخصي",
+    title: "حساب تعريفي",
     subtitle: "إدارة معلومات ملفك الشخصي وإعدادات الحساب",
     profilePicture: "صورة الملف الشخصي",
     siteInformation: "معلومات الموقع",
