@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { LayoutDashboard, FileText, LogOut, ChevronDown } from 'lucide-react';
+import { LayoutDashboard, FileText, LogOut, ChevronDown, List, PlusCircle } from 'lucide-react';
 import { useState } from 'react';
 import { handleSuccess } from '@/utils/successHandler';
 
@@ -29,7 +29,12 @@ export default function Sidebar() {
     <div className="h-screen w-64 border-r bg-white fixed top-0 left-0">
       <div className="p-6 flex justify-center items-center">
         <LayoutDashboard className="mr-2 h-6 w-6" />
-        <h2 className="text-2xl font-bold text-gray-800">Dashboard</h2>
+        <h2 
+          className="text-2xl font-bold text-gray-800 cursor-pointer"
+          onClick={() => router.push('/dashboard')}
+        >
+          Dashboard
+        </h2>
       </div>
       
       <nav className="mt-6">
@@ -49,8 +54,16 @@ export default function Sidebar() {
 
             {isPagesOpen && (
               <div className="ml-10 mt-1 space-y-2">
-                <div className="p-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg">
-                  Coming Soon
+                <div className="flex items-center space-x-2 p-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg">
+                  <List className="w-4 h-4" />
+                  <span>All Pages</span>
+                </div>
+                <div 
+                  className="flex items-center space-x-2 p-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg"
+                  onClick={() => router.push('/GrapeJSEditor')}
+                >
+                  <PlusCircle className="w-4 h-4" />
+                  <span>Add Pages</span>
                 </div>
               </div>
             )}

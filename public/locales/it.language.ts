@@ -95,7 +95,7 @@ export const it = {
     saveChanges: "Salva Modifiche",
   },
   profileSettings: {
-    title: "Impostazioni profilo",
+    title: "Impostazioni",
     subtitle: "Gestisci le informazioni del tuo profilo e le impostazioni dell'account",
     profilePicture: "Immagine del profilo",
     siteInformation: "Informazioni sul sito",

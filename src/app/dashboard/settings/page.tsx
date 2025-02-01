@@ -128,6 +128,7 @@ export default function SettingsPage() {
   
       if (result.success) {
         handleSuccess(true, null, 'Settings updated successfully');
+        window.location.reload();
       } else {
         console.error('Failed to save settings:', result.message);
       }

@@ -18,11 +18,23 @@ export default function Navbar({ user }: { user: { name: string; email: string }
   // const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const router = useRouter();
 
-
   const navigateTo = (path: string) => {
     router.push(path);
     setIsDropdownOpen(false);
   };
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [dropdownRef]);
 
   // useEffect(() => {
   //   if (typeof window !== 'undefined') {
