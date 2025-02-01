@@ -83,7 +83,8 @@ const RegisterForm = () => {
         if (!response.ok) throw new Error(result.message || 'Registration failed');
 
         if (result.success) {
-          handleSuccess(true, null, 'Registration successful. Redirecting to login...');
+          handleSuccess(true, null, 'Registration successful');
+          alert('Please restart the server to complete the setup. Click OK to proceed to login.');
           router.push('/login');
         } else {
           throw new Error(result.message || 'Registration failed');
