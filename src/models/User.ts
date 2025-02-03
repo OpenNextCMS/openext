@@ -17,7 +17,6 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   phoneNumber: { type: String },
-  isRegistration: { type: Boolean, default: false }, // Add registration field
 }, {
   timestamps: true
 });

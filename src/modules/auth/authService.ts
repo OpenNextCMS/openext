@@ -41,7 +41,7 @@ export class AuthService {
     const user = await UserModel.create({
       ...data,
       password: hashedPassword,
-      isRegistration: true, // Store registration status
+      phoneNumber: data.phoneNo,
     });
 
     return {
@@ -52,7 +52,7 @@ export class AuthService {
         username: user.username,
         email: user.email,
         siteTitle: user.siteTitle,
-        isRegistration: user.isRegistration, // Include registration status in response
+        phoneNumber: user.phoneNumber,
       },
     };
   }

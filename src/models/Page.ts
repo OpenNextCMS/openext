@@ -1,5 +1,19 @@
 import mongoose from 'mongoose';
 
+export interface IPage extends mongoose.Document {
+  siteName: string;
+  pageName: string;
+  createdBy: mongoose.Types.ObjectId;
+  data: {
+    html: string;
+    css: string;
+    components: mongoose.Schema.Types.Mixed;
+    styles: mongoose.Schema.Types.Mixed;
+  };
+  isPublished: boolean;
+  lastModified: Date;
+}
+
 const pageSchema = new mongoose.Schema({
   siteName: {
     type: String,
@@ -50,6 +64,7 @@ const pageSchema = new mongoose.Schema({
 pageSchema.index({ siteName: 1, createdBy: 1 });
 pageSchema.index({ pageName: 1, createdBy: 1 });
 
-const Page = mongoose.models.Page || mongoose.model('Page', pageSchema);
+const Page = mongoose.models.Page || mongoose.model<IPage>('Page', pageSchema);
 
 export default Page;
+export { pageSchema, IPage };
