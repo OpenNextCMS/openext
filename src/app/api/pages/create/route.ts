@@ -10,7 +10,7 @@ import PageService from '@/modules/page/pageService';
 export async function POST(req: NextRequest) {
   try {
     // Get token from cookies instead of header
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const token = cookieStore.get('token');
 
     if (!token) {
@@ -114,6 +114,73 @@ export async function GET(req: NextRequest) {
     return handleError(
       error,
       'Failed to fetch pages'
+    );
+  }
+}
+
+export async function PUT(req: NextRequest) {
+  try {
+    const cookieStore = cookies();
+    const token = cookieStore.get('token');
+
+    if (!token) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
+    const decoded = jwt.verify(token.value, AuthService.JWT_SECRET) as {
+      userId: string;
+      email: string;
+    };
+
+    const body = await req.json();
+
+    if (!body.siteName || !body.data) {
+      return NextResponse.json(
+        { error: 'Missing required fields' },
+        { status: 400 }
+      );
+    }
+
+    // Find existing page by siteName and userId
+    await getPageDb();
+    const existingPage = await Page.findOne({ 
+      siteName: body.siteName,
+      createdBy: decoded.userId 
+    });
+
+    if (!existingPage) {
+      return NextResponse.json(
+        { error: 'Page not found' },
+        { status: 404 }
+      );
+    }
+
+    // Update the existing page
+    const updatedPage = await Page.findByIdAndUpdate(
+      existingPage._id,
+      {
+        $set: {
+          pageName: body.pageName || existingPage.pageName,
+          data: body.data,
+          lastModified: new Date()
+        }
+      },
+      { new: true }
+    );
+
+    return NextResponse.json(
+      { success: true, page: updatedPage },
+      { status: 200 }
+    );
+
+  } catch (error) {
+    console.error('Error updating page:', error);
+    return NextResponse.json(
+      { error: 'Failed to update page' },
+      { status: 500 }
     );
   }
 }
