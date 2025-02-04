@@ -5,8 +5,8 @@ import { useRouter } from 'next/navigation';
 import { translations } from '../../../../public/locales/translations';
 import Cookies from 'js-cookie';
 import { Eye, EyeOff } from 'lucide-react';
-import {handleError} from '@/utils/errorHandler';
-import {handleSuccess} from '@/utils/successHandler'
+import { handleError } from '@/utils/errorHandler';
+import { handleSuccess } from '@/utils/successHandler';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -25,12 +25,25 @@ export default function LoginPage() {
   }, []);
 
   useEffect(() => {
-    const hasRefreshed = sessionStorage.getItem('hasRefreshed');
-    if (!hasRefreshed) {
-      sessionStorage.setItem('hasRefreshed', 'true');
-      window.location.reload();
-    }
-  }, []);
+    const checkDbAndRedirect = async () => {
+      try {
+        const response = await fetch('/api/verify-connection');
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`Failed to fetch database connection status: ${errorText}`);
+        }
+        const data = await response.json();
+
+        if (!data.masterDbConnected || !data.userDbConnected || !data.pageDbConnected) {
+          router.push('/language');
+        }
+      } catch (error) {
+        console.error('Error checking database connections:', error);
+      }
+    };
+
+    checkDbAndRedirect();
+  }, [router]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -64,7 +77,7 @@ export default function LoginPage() {
         throw new Error(data.error || t.login.validationError);
       }
 
-      handleSuccess(true,null,'Login Successfull');
+      handleSuccess(true, null, 'Login Successful');
       router.push('/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : t.login.generalError);
@@ -84,8 +97,8 @@ export default function LoginPage() {
         )}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-          <label htmlFor="identifier" className="block text-sm font-medium text-gray-700">
-          {t.login.identifier}
+            <label htmlFor="identifier" className="block text-sm font-medium text-gray-700">
+              {t.login.identifier}
             </label>
             <input
               type="text"

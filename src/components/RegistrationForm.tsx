@@ -71,23 +71,22 @@ const RegisterForm = () => {
       }
 
       if (setupData.success) {
-        localStorage.clear();
-
-        const response = await fetch('/api/auth/admin', {
+        fetch('/api/auth/admin', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data),
-        });
+          body: JSON.stringify({ ...data, userDbName, pageDbName, mongodbCredentials }),
+        })
+        .then(response => response.json())
+        .then(result => {
+          if (!result.success) throw new Error(result.message || 'Registration failed');
 
-        const result = await response.json();
-        if (!response.ok) throw new Error(result.message || 'Registration failed');
-
-        if (result.success) {
           handleSuccess(true, null, 'Registration successful. Redirecting to login...');
+          localStorage.clear();
           router.push('/login');
-        } else {
-          throw new Error(result.message || 'Registration failed');
-        }
+        })
+        .catch(error => {
+          handleError(error, error.message || 'An unexpected error occurred');
+        });
       }
     } catch (error: any) {
       if (error instanceof z.ZodError) {

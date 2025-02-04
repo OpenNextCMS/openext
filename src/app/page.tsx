@@ -2,15 +2,15 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Cookies from 'js-cookie';
 
 export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
-    const isRegistrationComplete = Cookies.get('isRegistrationComplete');
-    
-    if (isRegistrationComplete === 'true') {
+    const isRegistration = process.env.isRegistration === 'true';
+    const dbConnection = process.env.dbConnection === 'true';
+
+    if (isRegistration && dbConnection) {
       router.push('/login');
     } else {
       router.push('/language');

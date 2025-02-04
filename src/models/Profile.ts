@@ -11,38 +11,15 @@ export interface IProfile extends mongoose.Document {
 }
 
 const profileSchema = new mongoose.Schema({
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
-  firstName: {
-    type: String,
-    required: true
-  },
-  lastName: {
-    type: String,
-    required: true
-  },
-  nickname: {
-    type: String,
-    required: true
-  },
-  displayName: {
-    type: String,
-    required: true
-  },
-  website: {
-    type: String
-  },
-  bio: {
-    type: String
-  }
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  firstName: { type: String, required: true },
+  lastName: { type: String, required: true },
+  nickname: { type: String, required: true },
+  displayName: { type: String, required: true },
+  website: { type: String },
+  bio: { type: String },
 }, {
   timestamps: true
 });
 
-const Profile = mongoose.models.Profile || mongoose.model<IProfile>('Profile', profileSchema);
-
-export default Profile;
-export { profileSchema, IProfile };
+export default mongoose.models.Profile || mongoose.model<IProfile>('Profile', profileSchema);

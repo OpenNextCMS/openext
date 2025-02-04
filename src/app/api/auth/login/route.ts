@@ -1,7 +1,7 @@
 // src/app/api/auth/login/route.ts
 import { NextResponse } from 'next/server';
 import { AuthService } from '@/modules/auth/authService';
-import { getUserDbConnection, getUserModel } from '@/lib/db';
+import { getUserDbConnection, getUserModel } from '@/utils/db';
 
 export async function POST(request: Request) {
   try {

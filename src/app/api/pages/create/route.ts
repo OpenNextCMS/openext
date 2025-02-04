@@ -4,7 +4,7 @@ import { cookies } from 'next/headers';
 import { AuthService } from '@/modules/auth/authService';
 import { handleError } from '@/utils/errorHandler';
 import { handleSuccess } from '@/utils/successHandler';
-import { getPageDb, getPageModel } from '@/lib/db';
+import { getPageDb, getPageModel } from '@/utils/db';
 import PageService from '@/modules/page/pageService';
 
 export async function POST(req: NextRequest) {

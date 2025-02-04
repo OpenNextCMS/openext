@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { getPageDb, getPageModel } from '@/lib/db';
+import { getPageDb, getPageModel } from '@/utils/db';
 
 export class PageService {
   private static instance: PageService;

@@ -5,7 +5,7 @@ import UserModel from '@/models/User';
 import SettingsModel from '@/models/Settings';
 import { handleSuccess } from '@/utils/successHandler';
 import { handleError } from '@/utils/errorHandler';
-import { getUserDbConnection, getUserModel } from '@/lib/db';
+import { getUserDbConnection, getUserModel } from '@/utils/db';
 
 
 export async function GET(req: NextRequest) {
