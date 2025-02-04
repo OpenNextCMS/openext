@@ -5,5 +5,5 @@ export function handleError(error: unknown, message: string) {
   if (typeof window !== 'undefined' && toast) {
     toast.error(message);
   }
-  return NextResponse.json({ success: false, message }, { status: 400 });
+  return new NextResponse(message, { status: 400 });
 }

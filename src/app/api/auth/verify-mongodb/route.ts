@@ -4,11 +4,13 @@ import { handleError } from '@/utils/errorHandler'; // Import error handler
 import { handleSuccess } from '@/utils/successHandler'; // Import success handler
 
 export async function POST(req: NextRequest) {
-  const { mongodbUrl } = await req.json();
+  const { username, password, host, cluster } = await req.json();
 
-  if (!mongodbUrl) {
-    return handleError(new Error('MongoDB URL is required'), 'MongoDB URL is required');
+  if (!username || !password || !host || !cluster) {
+    return handleError(new Error('All MongoDB credentials are required'), 'All MongoDB credentials are required');
   }
+
+  const mongodbUrl = `mongodb+srv://${username}:${password}@${cluster}.${host}.mongodb.net/?retryWrites=true&w=majority&appName=${cluster}`;
 
   try {
     // Attempt to connect to the MongoDB database
@@ -19,6 +21,6 @@ export async function POST(req: NextRequest) {
 
     return handleSuccess(null, 'MongoDB connection successful');
   } catch (error) {
-    return handleError(error, 'Failed to connect to MongoDB');
+    return handleError(null, 'Failed to connect to MongoDB');
   }
 }

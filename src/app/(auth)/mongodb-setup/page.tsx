@@ -41,24 +41,23 @@ export default function MongoDBSetup() {
     e.preventDefault();
     // setIsLoading(true);
 
-    const mongodbUrl = `mongodb+srv://${username}:${password}@${cluster}.${host}.mongodb.net/?retryWrites=true&w=majority&appName=${cluster}`;
-
     try {
       const response = await fetch('/api/auth/verify-mongodb', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ mongodbUrl }),
+        body: JSON.stringify({ username, password, host, cluster }),
       });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || t.mongodbSetup.generalError);
+      }
 
       const data = await response.json().catch(() => {
         throw new SyntaxError(t.mongodbSetup.invalidJsonResponse);
       });
-
-      if (!response.ok) {
-        throw new Error(data.message || t.mongodbSetup.generalError);
-      }
 
       if (data.success) {
         localStorage.setItem('MONGODB_USERNAME', username);
@@ -71,9 +70,7 @@ export default function MongoDBSetup() {
         throw new Error(data.message || t.mongodbSetup.generalError);
       }
     } catch (err) {
-      
       if (err instanceof SyntaxError) {
-       
         handleError(new Error('Invalid response from server'), 'Invalid response from server');
       } else {
         handleError(err, err instanceof Error ? err.message : t.mongodbSetup.generalError || 'An unexpected error occurred');

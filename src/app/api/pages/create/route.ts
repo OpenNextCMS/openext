@@ -4,8 +4,7 @@ import { cookies } from 'next/headers';
 import { AuthService } from '@/modules/auth/authService';
 import { handleError } from '@/utils/errorHandler';
 import { handleSuccess } from '@/utils/successHandler';
-import Page from '@/models/Page';
-import { getPageDb } from '@/utils/dbConnect';
+import { getPageDb, getPageModel } from '@/utils/db';
 import PageService from '@/modules/page/pageService';
 
 export async function POST(req: NextRequest) {
@@ -44,6 +43,10 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
+
+    // Connect to database
+    await getPageDb();
+    const Page = getPageModel();
 
     // Create page using PageService
     const savedPage = await PageService.createPage({
@@ -94,6 +97,7 @@ export async function GET(req: NextRequest) {
 
     // Connect to database
     await getPageDb();
+    const Page = getPageModel();
 
     // Get pages for the user
     const pages = await Page.find({ createdBy: decoded.userId });

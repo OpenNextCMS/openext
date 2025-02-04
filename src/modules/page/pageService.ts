@@ -1,6 +1,5 @@
 import mongoose from 'mongoose';
-import { getPageDb } from '@/utils/dbConnect';
-import Page from '@/models/Page';
+import { getPageDb, getPageModel } from '@/utils/db';
 
 export class PageService {
   private static instance: PageService;
@@ -16,6 +15,7 @@ export class PageService {
   async createPage(pageData: any, userId: string) {
     try {
       await getPageDb();
+      const Page = getPageModel();
       
       const page = new Page({
         ...pageData,
@@ -33,6 +33,7 @@ export class PageService {
   async getPagesByUser(userId: string) {
     try {
       await getPageDb();
+      const Page = getPageModel();
       return await Page.find({ createdBy: userId });
     } catch (error) {
       console.error('Error in getPagesByUser:', error);
@@ -43,6 +44,7 @@ export class PageService {
   async getPageById(pageId: string, userId: string) {
     try {
       await getPageDb();
+      const Page = getPageModel();
       return await Page.findOne({ 
         _id: pageId, 
         createdBy: userId 
@@ -56,6 +58,7 @@ export class PageService {
   async updatePage(pageId: string, userId: string, updateData: any) {
     try {
       await getPageDb();
+      const Page = getPageModel();
       return await Page.findOneAndUpdate(
         { _id: pageId, createdBy: userId },
         { ...updateData, lastModified: new Date() },

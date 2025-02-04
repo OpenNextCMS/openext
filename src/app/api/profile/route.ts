@@ -5,9 +5,13 @@ import UserModel from '@/models/User';
 import ProfileModel from '@/models/Profile';
 import { handleSuccess } from '@/utils/successHandler';
 import { handleError } from '@/utils/errorHandler';
+import { getUserDbConnection, getUserModel } from '@/utils/db';
+
 
 export async function GET(req: NextRequest) {
   try {
+    await getUserDbConnection();
+    const UserModel = getUserModel();
     const user = await UserModel.findOne();
     if (!user) {
       return handleError('User not found', 'User not found');
@@ -42,6 +46,8 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    await getUserDbConnection();
+    const UserModel = getUserModel();
     const body = await req.json();
     const { username, email, newPassword, ...profileData } = body;
 

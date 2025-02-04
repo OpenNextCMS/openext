@@ -1,31 +1,14 @@
-// app/api/auth/login/route.ts
-
+// src/app/api/auth/login/route.ts
 import { NextResponse } from 'next/server';
-import mongoose from 'mongoose';
 import { AuthService } from '@/modules/auth/authService';
-import User from '@/models/User';
-import dotenv from 'dotenv';
-
-dotenv.config({ path: '.env.local' });
+import { getUserDbConnection, getUserModel } from '@/utils/db';
 
 export async function POST(request: Request) {
   try {
-    // Get MongoDB connection string from environment variables
-    const username = process.env.MONGODB_USERNAME;
-    const password = process.env.MONGODB_PASSWORD;
-    const host = process.env.MONGODB_HOST;
-    const cluster = process.env.MONGODB_CLUSTER;
-    const dbName = process.env.USER_DB_NAME || 'DB-USER';
+    // Initialize database connection
+    await getUserDbConnection();
+    const UserModel = getUserModel();
 
-    // Construct MongoDB URI
-    const uri = `mongodb+srv://${username}:${password}@${cluster}.${host}.mongodb.net/${dbName}?retryWrites=true&w=majority`;
-
-    // Connect to MongoDB if not already connected
-    if (mongoose.connection.readyState !== 1) {
-      await mongoose.connect(uri);
-    }
-
-    // Get request body
     const { identifier, password: userPassword } = await request.json();
 
     if (!identifier || !userPassword) {
@@ -35,8 +18,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // Attempt login using AuthService
-    const result = await AuthService.login(identifier, userPassword, User);
+    const result = await AuthService.login(identifier, userPassword, UserModel);
 
     if (result.error) {
       return NextResponse.json(
@@ -45,7 +27,13 @@ export async function POST(request: Request) {
       );
     }
 
-    // Set JWT token in HTTP-only cookie
+    if (!result) {
+      return NextResponse.json(
+        { error: 'Login failed' },
+        { status: 401 }
+      );
+    }
+
     const response = NextResponse.json(
       { success: true, user: result.user },
       { status: 200 }
@@ -57,15 +45,16 @@ export async function POST(request: Request) {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      maxAge: 86400 // 24 hours
+      maxAge: 86400
     });
 
     return response;
 
   } catch (error) {
+    console.error('Login error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
     );
-  } 
+  }
 }
