@@ -56,6 +56,7 @@ export const ru = {
     mongodbUrlLabel: "URL подключения MongoDB",
     mongodbUrlPlaceholder: "mongodb://username:password@host:port/database",
     submitButton: "Проверить и продолжить",
+    verifying: "Проверка...",
   },
   databaseSetup: {
     title: "Настройка базы данных",

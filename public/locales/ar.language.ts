@@ -55,7 +55,8 @@ export const ar = {
     successMessage: "تم الاتصال بـ MongoDB بنجاح!",
     mongodbUrlLabel: "عنوان URL للاتصال بـ MongoDB",
     mongodbUrlPlaceholder: "mongodb://username:password@host:port/database",
-    submitButton: "التحقق والمتابعة"
+    submitButton: "التحقق والمتابعة",
+    verifying: "جارٍ التحقق...",
   },
   databaseSetup: {
     title: "إعداد قاعدة البيانات",

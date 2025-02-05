@@ -56,6 +56,7 @@ export const mr = {
     mongodbUrlLabel: "MongoDB कनेक्शन URL",
     mongodbUrlPlaceholder: "mongodb://username:password@host:port/database",
     submitButton: "सत्यापित करा आणि पुढे जा",
+    verifying: "पडताळणी करत आहे...",
   },
   databaseSetup: {
     title: "डेटाबेस सेटअप",

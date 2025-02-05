@@ -55,7 +55,8 @@ export const fr = {
     successMessage: "Connexion à MongoDB réussie !",
     mongodbUrlLabel: "URL de connexion MongoDB",
     mongodbUrlPlaceholder: "mongodb://username:password@host:port/database",
-    submitButton: "Vérifier et continuer"
+    submitButton: "Vérifier et continuer",
+    verifying: "Vérification en cours...",
   },
   databaseSetup: {
     title: "Configuration de la base de données",

@@ -56,6 +56,7 @@ export const ta = {
     mongodbUrlLabel: "MongoDB இணைப்பு URL",
     mongodbUrlPlaceholder: "mongodb://username:password@host:port/database",
     submitButton: "சரிபார்த்து தொடரவும்",
+    verifying: "சரிபார்க்கிறது...",
   },
   databaseSetup: {
     title: "தரவுத்தள அமைப்பு",

@@ -2,14 +2,59 @@
 import { useEffect, useState } from 'react';
 import { translations } from '../../../public/locales/translations';
 import Cookies from 'js-cookie';
+import { useRouter } from 'next/navigation';
+import { handleError } from '@/utils/errorHandler';
+import { handleSuccess } from '@/utils/successHandler';
 
 export default function DashboardPage() {
   const [t, setT] = useState(translations.en);
+  const router = useRouter();
 
   useEffect(() => {
     const langFromCookie = Cookies.get('selectedLanguage') || 'en';
     setT(translations[langFromCookie as keyof typeof translations]);
   }, []);
+
+  const clearAllCookies = async () => {
+    const response = await fetch('/api/clear-cookies', {
+      method: 'POST',
+    });
+    if (!response.ok) {
+      console.error('Failed to clear cookies');
+    }
+  };
+
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000'; // Use external backend URL if it exists
+
+  useEffect(() => {
+    const checkDbAndRedirect = async () => {
+      try {
+        const response = await fetch(`${backendUrl}/api/verify-connection`);
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`Failed to fetch database connection status: ${errorText}`);
+        }
+        const data = await response.json();
+
+        if (!data.masterDbConnected || !data.userDbConnected || !data.pageDbConnected) {
+          handleError(null,'Database Connection not Established');
+          await clearAllCookies(); // Clear all cookies
+          router.push('/language'); // Redirect to /language
+        } else {
+          // handleSuccess(null, 'Database Connection Established');
+        }
+      } catch (error) {
+        handleError(error, 'Error checking database connections');
+        await clearAllCookies(); // Clear all cookies
+        router.push('/language'); // Redirect to /language
+      }
+    };
+
+    checkDbAndRedirect();
+    const intervalId = setInterval(checkDbAndRedirect, 5000); // Check every 60 seconds
+
+    return () => clearInterval(intervalId); // Cleanup interval on component unmount
+  }, [router]);
 
   return (
     <div>

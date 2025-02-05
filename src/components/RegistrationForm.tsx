@@ -59,7 +59,10 @@ const RegisterForm = () => {
       const userDbName = localStorage.getItem('USER_DB_NAME');
       const pageDbName = localStorage.getItem('PAGE_DB_NAME');
 
-      const setupResponse = await fetch('/api/auth/setup-databases', {
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000'; // Use external backend URL if it exists
+
+
+      const setupResponse = await fetch(`${backendUrl}/api/auth/setup-databases`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userDbName, pageDbName, mongodbCredentials }),
@@ -71,7 +74,7 @@ const RegisterForm = () => {
       }
 
       if (setupData.success) {
-        fetch('/api/auth/admin', {
+        fetch(`${backendUrl}/api/auth/admin`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ ...data, userDbName, pageDbName, mongodbCredentials }),

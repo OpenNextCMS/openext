@@ -13,7 +13,7 @@ export default function MongoDBSetup() {
   const [password, setPassword] = useState('');
   const [host, setHost] = useState('');
   const [cluster, setCluster] = useState('');
-  // const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); // Add loading state
   const [showPassword, setShowPassword] = useState(false);
   const [currentLanguage, setCurrentLanguage] = useState();
   const [t, setT] = useState(translations.en); // Default to English
@@ -39,10 +39,12 @@ export default function MongoDBSetup() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // setIsLoading(true);
+    setIsLoading(true); // Set loading state to true
+
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000'; // Use external backend URL if it exists
 
     try {
-      const response = await fetch('/api/auth/verify-mongodb', {
+      const response = await fetch(`${backendUrl}/api/auth/verify-mongodb`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -76,7 +78,7 @@ export default function MongoDBSetup() {
         handleError(err, err instanceof Error ? err.message : t.mongodbSetup.generalError || 'An unexpected error occurred');
       }
     } finally {
-      // setIsLoading(false);
+      setIsLoading(false); // Set loading state to false
     }
   };
 
@@ -184,10 +186,10 @@ export default function MongoDBSetup() {
           <div className="col-span-2">
             <button
               type="submit"
-              // isLoading={isLoading}
-              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-1 focus:ring-offset-2 focus:ring-indigo-500 focus:border-indigo-500"
+              disabled={isLoading} // Disable button when loading
+              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-             {t.mongodbSetup.submit}
+              {isLoading ? t.mongodbSetup.verifying : t.mongodbSetup.submitButton} 
             </button>
           </div>
         </form>

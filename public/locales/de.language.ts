@@ -55,7 +55,8 @@ export const de = {
     successMessage: "MongoDB-Verbindung erfolgreich!",
     mongodbUrlLabel: "MongoDB-Verbindungs-URL",
     mongodbUrlPlaceholder: "mongodb://username:password@host:port/database",
-    submitButton: "Überprüfen und fortfahren"
+    submitButton: "Überprüfen und fortfahren",
+    verifying: "Überprüfung...",
   },
   databaseSetup: {
     title: "Datenbank-Setup",
@@ -104,7 +105,7 @@ export const de = {
     siteTitlePlaceholder: "Geben Sie Ihren Website-Titel ein",
     tagline: "Slogan",
     taglinePlaceholder: "Die beste Website aller Zeiten",
-    siteIcon: "Website-Symbol",
+    siteIcon: "Favicon",
     siteIconPlaceholder: "icon.png",
     adminInformation: "Admin-Informationen",
     newUserRole: "Neue Benutzerrolle",
