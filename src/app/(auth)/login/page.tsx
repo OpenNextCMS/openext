@@ -5,8 +5,8 @@ import { useRouter } from 'next/navigation';
 import { translations } from '../../../../public/locales/translations';
 import Cookies from 'js-cookie';
 import { Eye, EyeOff } from 'lucide-react';
-import { handleError } from '@/utils/errorHandler';
-import { handleSuccess } from '@/utils/successHandler';
+import { handleError } from '@/utils/errorHandler'; // Import error and success handlers
+import {handleSuccess} from '@/utils/successHandler';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -24,10 +24,20 @@ export default function LoginPage() {
     setT(translations[langFromCookie as keyof typeof translations]);
   }, []);
 
+  const clearAllCookies = async () => {
+    const response = await fetch('/api/clear-cookies', {
+      method: 'POST',
+    });
+    if (!response.ok) {
+      console.error('Failed to clear cookies');
+    }
+  };
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000'; // Use external backend URL if it exists
+
   useEffect(() => {
     const checkDbAndRedirect = async () => {
       try {
-        const response = await fetch('/api/verify-connection');
+        const response = await fetch(`${backendUrl}/api/verify-connection`);
         if (!response.ok) {
           const errorText = await response.text();
           throw new Error(`Failed to fetch database connection status: ${errorText}`);
@@ -35,14 +45,23 @@ export default function LoginPage() {
         const data = await response.json();
 
         if (!data.masterDbConnected || !data.userDbConnected || !data.pageDbConnected) {
-          router.push('/language');
+          handleError(null, 'Database Connection not Established');
+          await clearAllCookies(); // Clear all cookies
+          router.push('/language'); // Redirect to /language
+        } else {
+          // handleSuccess(null, 'Database Connection Established');
         }
       } catch (error) {
-        console.error('Error checking database connections:', error);
+        handleError(error, 'Error checking database connections');
+        await clearAllCookies(); // Clear all cookies
+        router.push('/language'); // Redirect to /language
       }
     };
 
     checkDbAndRedirect();
+    const intervalId = setInterval(checkDbAndRedirect, 5000); // Check every 60 seconds
+
+    return () => clearInterval(intervalId); // Cleanup interval on component unmount
   }, [router]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -62,8 +81,9 @@ export default function LoginPage() {
     setError('');
     setIsLoading(true);
 
+
     try {
-      const response = await fetch('/api/auth/login', {
+      const response = await fetch(`${backendUrl}/api/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -80,7 +100,7 @@ export default function LoginPage() {
       handleSuccess(true, null, 'Login Successful');
       router.push('/dashboard');
     } catch (err) {
-      setError(err instanceof Error ? err.message : t.login.generalError);
+      handleError(err, err instanceof Error ? err.message : t.login.generalError);
     } finally {
       setIsLoading(false);
     }

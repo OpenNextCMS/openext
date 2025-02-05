@@ -23,3 +23,4 @@ const profileSchema = new mongoose.Schema({
 });
 
 export default mongoose.models.Profile || mongoose.model<IProfile>('Profile', profileSchema);
+export { profileSchema };

@@ -1,6 +1,8 @@
 // src/lib/db.ts
 import mongoose from 'mongoose';
 import { IUser, userSchema } from '@/models/User';
+import { IProfile, profileSchema} from '@/models/Profile';
+import {ISettings , settingsSchema} from '@/models/Settings';
 
 let userDb: mongoose.Connection | null = null;
 let pageDbConnection: Promise<typeof mongoose> | null = null;
@@ -31,6 +33,12 @@ export async function getUserDbConnection() {
   // Initialize the User model if it doesn't exist
   if (!userDb.models['User']) {
     userDb.model<IUser>('User', userSchema);
+  }
+  if (!userDb.models['Profile']){
+    userDb.model<IProfile>('Profile', profileSchema)
+  }
+  if (!userDb.models['Settings']){
+    userDb.model<ISettings>('Settings', settingsSchema)
   }
 
   return userDb;

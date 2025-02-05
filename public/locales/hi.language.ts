@@ -55,7 +55,8 @@ export const hi = {
     successMessage: "MongoDB कनेक्शन सफल!",
     mongodbUrlLabel: "MongoDB कनेक्शन URL",
     mongodbUrlPlaceholder: "mongodb://username:password@host:port/database",
-    submitButton: "सत्यापित करें और जारी रखें"
+    submitButton: "सत्यापित करें और जारी रखें",
+    verifying: "सत्यापित किया जा रहा है...",
   },
   databaseSetup: {
     title: "डेटाबेस सेटअप",
@@ -104,7 +105,7 @@ export const hi = {
     siteTitlePlaceholder: "अपना साइट शीर्षक दर्ज करें",
     tagline: "टैगलाइन",
     taglinePlaceholder: "सबसे अच्छी वेबसाइट",
-    siteIcon: "साइट आइकन",
+    siteIcon: "पसंदीदा आइकन",
     siteIconPlaceholder: "icon.png",
     adminInformation: "व्यवस्थापक जानकारी",
     newUserRole: "नया उपयोगकर्ता भूमिका",

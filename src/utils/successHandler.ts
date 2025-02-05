@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { toast } from 'react-hot-toast';
 
-export function handleSuccess(success: boolean, data: unknown, message: string = 'Operation successful', status: number = 200, redirectUrl?: string) {
+export function handleSuccess(success: boolean, data: unknown, message: string, status: number = 200, redirectUrl?: string) {
   if (typeof window !== 'undefined' && toast) {
     toast.success(message);
   }

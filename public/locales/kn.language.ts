@@ -56,6 +56,7 @@ export const kn = {
     mongodbUrlLabel: "MongoDB ಸಂಪರ್ಕ URL",
     mongodbUrlPlaceholder: "mongodb://username:password@host:port/database",
     submitButton: "ಪರಿಶೀಲಿಸಿ ಮತ್ತು ಮುಂದುವರಿಸಿ",
+    verifying: "ಪರಿಶೀಲಿಸಲಾಗುತ್ತಿದೆ...",
   },
   databaseSetup: {
     title: "ಡೇಟಾಬೇಸ್ ಸೆಟಪ್",

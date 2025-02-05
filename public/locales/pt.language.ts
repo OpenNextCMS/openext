@@ -56,6 +56,7 @@ export const pt = {
     mongodbUrlLabel: "URL de conexão MongoDB",
     mongodbUrlPlaceholder: "mongodb://username:password@host:port/database",
     submitButton: "Verificar e continuar",
+    verifying: "Verificando...",
   },
   databaseSetup: {
     title: "Configuração do banco de dados",

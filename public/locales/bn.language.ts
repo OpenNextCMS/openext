@@ -55,7 +55,8 @@ export const bn = {
     successMessage: "MongoDB সংযোগ সফল!",
     mongodbUrlLabel: "MongoDB সংযোগ URL",
     mongodbUrlPlaceholder: "mongodb://username:password@host:port/database",
-    submitButton: "যাচাই করুন এবং চালিয়ে যান"
+    submitButton: "যাচাই করুন এবং চালিয়ে যান",
+    verifying: "যাচাই করা হচ্ছে...",
   },
   databaseSetup: {
     title: "ডাটাবেস সেটআপ",

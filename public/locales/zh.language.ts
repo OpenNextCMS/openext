@@ -56,6 +56,7 @@ export const zh = {
     mongodbUrlLabel: "MongoDB连接URL",
     mongodbUrlPlaceholder: "mongodb://username:password@host:port/database",
     submitButton: "验证并继续",
+    verifying: "验证中...",
   },
   databaseSetup: {
     title: "数据库设置",

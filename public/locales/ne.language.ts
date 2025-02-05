@@ -56,6 +56,7 @@ export const ne = {
     mongodbUrlLabel: "MongoDB जडान URL",
     mongodbUrlPlaceholder: "mongodb://username:password@host:port/database",
     submitButton: "प्रमाणित गर्नुहोस् र जारी राख्नुहोस्",
+    verifying: "प्रमाणीकरण गर्दै...",
   },
   databaseSetup: {
     title: "डाटाबेस सेटअप",
