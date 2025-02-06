@@ -8,6 +8,7 @@ export interface IUser extends mongoose.Document {
   email: string;
   password: string;
   phoneNumber?: string | null; // Allow phoneNumber to be null
+  role: 'admin' | 'user' | 'editor' | 'author';
 }
 
 const userSchema = new mongoose.Schema({
@@ -17,6 +18,7 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   phoneNumber: { type: String },
+  role: { type: String, enum: ['admin', 'user', 'editor', 'author'], default: 'author' },
 }, {
   timestamps: true
 });

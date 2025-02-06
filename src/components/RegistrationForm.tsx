@@ -44,6 +44,7 @@ const RegisterForm = () => {
       email: formData.get('email') as string,
       password: formData.get('password') as string,
       phoneNo: formData.get('phoneNo') as string,
+      role: 'author', // Default role
     };
 
     try {
@@ -212,6 +213,19 @@ const RegisterForm = () => {
                 className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
               />
               {errors.phoneNo && <p className="mt-1 text-sm text-red-600">{errors.phoneNo}</p>}
+            </div>
+
+            <div>
+              <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-1">
+                {t.register.role}
+              </label>
+              <input
+                id="role"
+                name="role"
+                value="author"
+                readOnly
+                className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm bg-gray-100 cursor-not-allowed"
+              />
             </div>
           </div>
 

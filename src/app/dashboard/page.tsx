@@ -8,11 +8,18 @@ import { handleSuccess } from '@/utils/successHandler';
 
 export default function DashboardPage() {
   const [t, setT] = useState(translations.en);
+  const [error, setError] = useState('');
   const router = useRouter();
 
   useEffect(() => {
     const langFromCookie = Cookies.get('selectedLanguage') || 'en';
     setT(translations[langFromCookie as keyof typeof translations]);
+
+    const message = Cookies.get('message');
+    if (message) {
+      handleError(null, message);
+      Cookies.remove('message'); // Remove the message cookie after reading it
+    }
   }, []);
 
   const clearAllCookies = async () => {
@@ -37,7 +44,7 @@ export default function DashboardPage() {
         const data = await response.json();
 
         if (!data.masterDbConnected || !data.userDbConnected || !data.pageDbConnected) {
-          handleError(null,'Database Connection not Established');
+          handleError(null, 'Database Connection not Established');
           await clearAllCookies(); // Clear all cookies
           router.push('/language'); // Redirect to /language
         } else {
@@ -51,13 +58,15 @@ export default function DashboardPage() {
     };
 
     checkDbAndRedirect();
-    const intervalId = setInterval(checkDbAndRedirect, 5000); // Check every 60 seconds
-
-    return () => clearInterval(intervalId); // Cleanup interval on component unmount
   }, [router]);
 
   return (
     <div>
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
+          <span dangerouslySetInnerHTML={{ __html: error }}></span>
+        </div>
+      )}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-800">{t.dashboard.welcome}</h1>
         <p className="text-gray-600 mt-2">

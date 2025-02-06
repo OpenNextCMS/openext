@@ -20,6 +20,7 @@ export const bn = {
     phoneNoPlaceholder: "আপনার ফোন নম্বর লিখুন",
     togglePasswordVisibility: "পাসওয়ার্ড দৃশ্যমানতা টগল করুন",
     registering: "নিবন্ধন করা হচ্ছে...",
+    role: "ভূমিকা",
   },
   login: {
     title: "আপনার অ্যাকাউন্টে সাইন ইন করুন",

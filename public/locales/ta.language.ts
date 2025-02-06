@@ -20,6 +20,7 @@ export const ta = {
     phoneNoPlaceholder: "உங்கள் தொலைபேசி எண்ணை உள்ளிடவும்",
     togglePasswordVisibility: "கடவுச்சொல் காட்சியை மாற்றவும்",
     registering: "பதிவு செய்கிறது...",
+    role: "பங்கு",
   },
   login: {
     title: "உங்கள் கணக்கில் உள்நுழையவும்",

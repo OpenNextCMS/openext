@@ -20,6 +20,7 @@ export const de = {
     phoneNoPlaceholder: "Geben Sie Ihre Telefonnummer ein",
     togglePasswordVisibility: "Passwort-Sichtbarkeit umschalten",
     registering: "Registrierung läuft...",
+    role: "Rolle",
   },
   login: {
     title: "Melden Sie sich in Ihrem Konto an",

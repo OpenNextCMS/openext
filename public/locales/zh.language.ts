@@ -20,6 +20,7 @@ export const zh = {
     phoneNoPlaceholder: "输入您的电话号码",
     togglePasswordVisibility: "切换密码可见性",
     registering: "正在注册...",
+    role: "角色",
   },
   login: {
     title: "登录您的账户",
@@ -77,7 +78,7 @@ export const zh = {
     title: "个人资料设置",
     subtitle: "管理您的个人资料信息和账户设置",
     profilePicture: "头像",
-    personalInfo: "��人信息",
+    personalInfo: "个人信息",
     language: "语言",
     username: "用户名",
     firstName: "名字",

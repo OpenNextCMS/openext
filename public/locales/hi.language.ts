@@ -20,6 +20,7 @@ export const hi = {
     phoneNoPlaceholder: "अपना फोन नंबर दर्ज करें",
     togglePasswordVisibility: "पासवर्ड की दृश्यता टॉगल करें",
     registering: "पंजीकरण हो रहा है...",
+    role: "भूमिका",
   },
   login: {
     title: "अपने खाते में साइन इन करें",

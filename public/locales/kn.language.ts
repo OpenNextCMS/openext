@@ -20,6 +20,7 @@ export const kn = {
     phoneNoPlaceholder: "ನಿಮ್ಮ ಫೋನ್ ಸಂಖ್ಯೆಯನ್ನು ನಮೂದಿಸಿ",
     togglePasswordVisibility: "ಪಾಸ್‌ವರ್ಡ್ ಗೋಚರತೆಯನ್ನು ಟಾಗಲ್ ಮಾಡಿ",
     registering: "ನೋಂದಣಿ ಮಾಡಲಾಗುತ್ತಿದೆ...",
+    role: "ಪಾತ್ರ",
   },
   login: {
     title: "ನಿಮ್ಮ ಖಾತೆಗೆ ಸೈನ್ ಇನ್ ಮಾಡಿ",
