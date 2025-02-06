@@ -20,6 +20,7 @@ export const ru = {
     phoneNoPlaceholder: "Введите ваш номер телефона",
     togglePasswordVisibility: "Переключить видимость пароля",
     registering: "Регистрация...",
+    role: "Роль",
   },
   login: {
     title: "Войдите в свой аккаунт",

@@ -13,8 +13,9 @@ export async function middleware(request: NextRequest) {
   }
 
   if (dbConnection && restrictedRoutes.includes(currentPath)) {
-    const loginUrl = new URL('/login', request.url);
-    return NextResponse.redirect(loginUrl);
+    const response = NextResponse.redirect(new URL('/login', request.url));
+    response.cookies.set('message', 'Super admin is created\n path is restricted', { path: '/' });
+    return response;
   }
 
   if (token) {

@@ -67,6 +67,7 @@ dbConnection=true
         success: true,
         message: 'Registration successful',
         data: authData.user,
+        role: authData.user.role,
         isRegistration: 'successful'
       }),
       { status: 201 }

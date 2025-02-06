@@ -20,6 +20,7 @@ export const es = {
     phoneNoPlaceholder: "Ingresa tu número de teléfono",
     togglePasswordVisibility: "Alternar visibilidad de la contraseña",
     registering: "Registrando...",
+    role: "Rol",
   },
   login: {
     title: "Inicia sesión en tu cuenta",

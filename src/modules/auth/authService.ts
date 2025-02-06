@@ -42,6 +42,7 @@ export class AuthService {
       ...data,
       password: hashedPassword,
       phoneNumber: data.phoneNo,
+      role: 'author', // Default role
     });
 
     return {
@@ -53,6 +54,7 @@ export class AuthService {
         email: user.email,
         siteTitle: user.siteTitle,
         phoneNumber: user.phoneNumber,
+        role: user.role,
       },
     };
   }
@@ -85,6 +87,7 @@ export class AuthService {
           email: user.email,
           username: user.username,
           siteTitle: user.siteTitle,
+          role: user.role,
         },
         AuthService.JWT_SECRET,
         { expiresIn: '24h' }
@@ -100,6 +103,7 @@ export class AuthService {
           email: user.email,
           siteTitle: user.siteTitle,
           phoneNumber: user.phoneNumber,
+          role: user.role,
         },
       };
     } catch (error) {

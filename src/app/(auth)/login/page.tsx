@@ -6,7 +6,7 @@ import { translations } from '../../../../public/locales/translations';
 import Cookies from 'js-cookie';
 import { Eye, EyeOff } from 'lucide-react';
 import { handleError } from '@/utils/errorHandler'; // Import error and success handlers
-import {handleSuccess} from '@/utils/successHandler';
+import { handleSuccess } from '@/utils/successHandler';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -22,6 +22,12 @@ export default function LoginPage() {
   useEffect(() => {
     const langFromCookie = Cookies.get('selectedLanguage') || 'en';
     setT(translations[langFromCookie as keyof typeof translations]);
+
+    const message = Cookies.get('message');
+    if (message) {
+      handleError(null, message);
+      Cookies.remove('message'); // Remove the message cookie after reading it
+    }
   }, []);
 
   const clearAllCookies = async () => {
@@ -59,9 +65,6 @@ export default function LoginPage() {
     };
 
     checkDbAndRedirect();
-    const intervalId = setInterval(checkDbAndRedirect, 5000); // Check every 60 seconds
-
-    return () => clearInterval(intervalId); // Cleanup interval on component unmount
   }, [router]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -80,7 +83,6 @@ export default function LoginPage() {
     e.preventDefault();
     setError('');
     setIsLoading(true);
-
 
     try {
       const response = await fetch(`${backendUrl}/api/auth/login`, {

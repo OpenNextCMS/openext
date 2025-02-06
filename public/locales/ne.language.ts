@@ -20,6 +20,7 @@ export const ne = {
     phoneNoPlaceholder: "आफ्नो फोन नम्बर प्रविष्ट गर्नुहोस्",
     togglePasswordVisibility: "पासवर्ड दृश्यता टगल गर्नुहोस्",
     registering: "दर्ता गर्दै...",
+    role: "भूमिका",
   },
   login: {
     title: "आफ्नो खातामा साइन इन गर्नुहोस्",

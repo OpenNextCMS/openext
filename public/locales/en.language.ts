@@ -22,6 +22,7 @@ export const en = {
       phoneNoPlaceholder: "Enter your phone number",
       togglePasswordVisibility: "Toggle password visibility",
       registering: "Registering...",
+      role: "Role",
     },
     login: {
       title: "Sign in to your account",

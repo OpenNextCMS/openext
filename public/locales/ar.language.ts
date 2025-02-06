@@ -20,6 +20,7 @@ export const ar = {
     phoneNoPlaceholder: "أدخل رقم هاتفك",
     togglePasswordVisibility: "تبديل رؤية كلمة المرور",
     registering: "جاري التسجيل...",
+    role: "دور",
   },
   login: {
     title: "تسجيل الدخول إلى حسابك",
