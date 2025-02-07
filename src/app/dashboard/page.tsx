@@ -60,6 +60,7 @@ export default function DashboardPage() {
     checkDbAndRedirect();
   }, [router]);
 
+
   return (
     <div>
       {error && (

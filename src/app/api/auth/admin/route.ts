@@ -8,6 +8,7 @@ import User, { IUser } from '@/models/User';
 import path from 'path';
 import fs from 'fs/promises';
 import crypto from 'crypto';
+import dotenv from 'dotenv';
 
 export async function POST(req: NextRequest) {
   try {
@@ -19,7 +20,6 @@ export async function POST(req: NextRequest) {
     const userDbUri = `mongodb+srv://${username}:${password}@${cluster}.${host}.mongodb.net/${userDbName}?retryWrites=true&w=majority&appName=${cluster}`;
     const pageDbUri = `mongodb+srv://${username}:${password}@${cluster}.${host}.mongodb.net/${pageDbName}?retryWrites=true&w=majority&appName=${cluster}`;
 
-    // Initialize database connection
     const userDbConnection = await mongoose.createConnection(userDbUri);
     const UserModel = userDbConnection.model<IUser>('User', User.schema);
 
@@ -32,21 +32,17 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Store the database names and URI in the master database
     const masterDb = new MasterDb({ userDbName, pageDbName, userDbUri, pageDbUri });
     await masterDb.save();
 
-    // Write the MongoDB credentials to the .env.local file
     const envPath = path.join(process.cwd(), '.env.local');
     
-    // Check if .env.local file exists, if not create it
     try {
       await fs.access(envPath);
     } catch {
       await fs.writeFile(envPath, '');
     }
 
-    // Generate a random JWT secret
     const jwtSecret = crypto.randomBytes(32).toString('hex');
 
     const envContent = `
@@ -61,6 +57,11 @@ isRegistration=true
 dbConnection=true
     `;
     await fs.writeFile(envPath, envContent.trim(), { flag: 'w' });
+
+    // Reload environment variables
+    dotenv.config({ path: envPath });
+
+    await AuthService.seedPageData(authData.user._id.toString(), pageDbUri);
 
     return new Response(
       JSON.stringify({
