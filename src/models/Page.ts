@@ -67,4 +67,4 @@ pageSchema.index({ pageName: 1, createdBy: 1 });
 const Page = mongoose.models.Page || mongoose.model<IPage>('Page', pageSchema);
 
 export default Page;
-export { pageSchema, IPage };
+export { pageSchema };

@@ -12,6 +12,7 @@ import gjsCustomCode from "grapesjs-custom-code";
 import gjsTooltip from "grapesjs-tooltip";
 import gjsTyped from "grapesjs-typed";
 import gjsStyleBg from "grapesjs-style-bg";
+import './custom-grapesjs-styles.css';
 import { useRouter } from "next/navigation";
 
 // Remove the direct CSS import and handle it in useEffect
@@ -67,10 +68,41 @@ const GrapeJSEditor: React.FC = () => {
         ],
         pluginsOpts: {
           gjsPreset: {},
+          gjsCustomCode: {
+            blockLabel: "Custom JS", // Block label for custom JS
+            droppable: true, // Allow custom JS block to be dropped in
+          },
         },
         storageManager: false,
         panels: { defaults: [] },
       });
+
+       e.BlockManager.add("alert-button", {
+        label: "Alert Button",
+        content: `
+          <button class="alert-btn">Click Me!</button>
+        `,
+        category: "Basic",
+      });
+
+      // Define the behavior for the custom button
+      e.DomComponents.addType("alert-button", {
+        isComponent: (el) => el.tagName === "BUTTON" && el.classList.contains("alert-btn"),
+        model: {
+          defaults: {
+            tagName: "button",
+            classes: ["alert-btn"],
+            text: "Click Me!",
+            script: function () {
+              // JavaScript code executed when the button is clicked
+              this.addEventListener("click", () => {
+                alert("Button clicked!");
+              });
+            },
+          },
+        },
+      });
+      
       setEditor(e);
     }
 
@@ -161,7 +193,7 @@ const GrapeJSEditor: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
+    <div className="flex flex-col min-h-screen">
       <div className="p-6 bg-white shadow-sm">
         <div className="max-w-7xl mx-auto flex items-center space-x-4">
           {isEditingTitle ? (
@@ -195,7 +227,7 @@ const GrapeJSEditor: React.FC = () => {
       </div>
 
       <div className="flex-grow p-6">
-        <div ref={editorRef} className="bg-white rounded-lg shadow-md" />
+        <div ref={editorRef} className="bg-white rounded-lg shadow-md" style={{ width: '100%' }} />
       </div>
 
       <div className="p-6 bg-white shadow-lg border-t">

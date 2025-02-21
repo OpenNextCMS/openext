@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { getPageDb, getPageModel } from '@/utils/db';
+import { getPageDbConnection, getPageModel } from '@/utils/db';
 
 export class PageService {
   private static instance: PageService;
@@ -12,9 +12,9 @@ export class PageService {
     return PageService.instance;
   }
 
-  async createPage(pageData: any, userId: string) {
+  async createPage(pageData: { title: string; content: string }, userId: string) {
     try {
-      await getPageDb();
+      await getPageDbConnection();
       const Page = getPageModel();
       
       const page = new Page({
@@ -32,7 +32,7 @@ export class PageService {
 
   async getPagesByUser(userId: string) {
     try {
-      await getPageDb();
+      await getPageDbConnection();
       const Page = getPageModel();
       return await Page.find({ createdBy: userId });
     } catch (error) {
@@ -43,7 +43,7 @@ export class PageService {
 
   async getPageById(pageId: string, userId: string) {
     try {
-      await getPageDb();
+      await getPageDbConnection();
       const Page = getPageModel();
       return await Page.findOne({ 
         _id: pageId, 
@@ -55,9 +55,9 @@ export class PageService {
     }
   }
 
-  async updatePage(pageId: string, userId: string, updateData: any) {
+  async updatePage(pageId: string, userId: string, updateData: { title?: string; content?: string }) {
     try {
-      await getPageDb();
+      await getPageDbConnection();
       const Page = getPageModel();
       return await Page.findOneAndUpdate(
         { _id: pageId, createdBy: userId },

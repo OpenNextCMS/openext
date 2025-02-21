@@ -18,18 +18,25 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Build connection string for the master database.
-  const masterDbUrl = `mongodb+srv://${MONGODB_USERNAME}:${MONGODB_PASSWORD}@${MONGODB_CLUSTER}.${MONGODB_HOST}.mongodb.net/?retryWrites=true&w=majority&appName=${MONGODB_CLUSTER}`;
+  // Function to generate a connection URL for a given database
+  const getDbUrl = (dbName: string) => 
+    `mongodb+srv://${MONGODB_USERNAME}:${MONGODB_PASSWORD}@${MONGODB_CLUSTER}.${MONGODB_HOST}.mongodb.net/${dbName}?retryWrites=true&w=majority&appName=${MONGODB_CLUSTER}`;
+
+  const masterDbUrl = getDbUrl("master");
+  const usersDbUrl = getDbUrl("users");
+  const pagesDbUrl = getDbUrl("pages");
 
   try {
-    // Connect to the master database
-    await mongoose.connect(masterDbUrl);
+    // Create separate connections for each database
+    const masterDbConnection = await mongoose.createConnection(masterDbUrl).asPromise();
+    const usersDbConnection = await mongoose.createConnection(usersDbUrl).asPromise();
+    const pagesDbConnection = await mongoose.createConnection(pagesDbUrl).asPromise();
 
-    if (!mongoose.connection.db) {
+    if (!masterDbConnection.db) {
       throw new Error('Database connection is undefined');
     }
 
-    const admin = mongoose.connection.db.admin();
+    const admin = masterDbConnection.db.admin();
     const { databases } = await admin.listDatabases();
 
     // Filter out system databases
@@ -39,7 +46,7 @@ export async function POST(req: NextRequest) {
 
     // Drop each non‑system database sequentially.
     for (const db of nonSystemDatabases) {
-      const dbToDrop = mongoose.connection.useDb(db.name);
+      const dbToDrop = masterDbConnection.useDb(db.name);
       await dbToDrop.dropDatabase();
     }
 

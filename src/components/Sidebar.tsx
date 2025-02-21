@@ -1,12 +1,13 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { LayoutDashboard, FileText, LogOut, ChevronDown, List, PlusCircle } from 'lucide-react';
+import { LayoutDashboard, FileText, LogOut, ChevronDown, List, PlusCircle, Palette } from 'lucide-react';
 import { useState } from 'react';
 import { handleSuccess } from '@/utils/successHandler';
 
 export default function Sidebar() {
   const [isPagesOpen, setIsPagesOpen] = useState(false);
+  const [isThemesOpen, setIsThemesOpen] = useState(false);
   const router = useRouter();
 
   const handleLogout = async () => {
@@ -64,6 +65,31 @@ export default function Sidebar() {
                 >
                   <PlusCircle className="w-4 h-4" />
                   <span>Add Pages</span>
+                </div>
+              </div>
+            )}
+          </div>
+          
+          {/* Themes Dropdown */}
+          <div className="relative">
+            <button 
+              onClick={() => setIsThemesOpen(!isThemesOpen)}
+              className="flex items-center justify-between w-full p-3 rounded-lg hover:bg-gray-100"
+            >
+              <div className="flex items-center space-x-3">
+                <Palette className="w-5 h-5 text-gray-600" />
+                <span className="text-gray-700">Themes</span>
+              </div>
+              <ChevronDown className={`w-4 h-4 transiti on-transform ${isThemesOpen ? 'rotate-180' : ''}`} />
+            </button>
+            {isThemesOpen && (
+              <div className="ml-10 mt-1 space-y-2">
+                <div 
+                  className="flex items-center space-x-2 p-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg"
+                  onClick={() => router.push('/dashboard/themes')}
+                >
+                  <PlusCircle className="w-4 h-4" />
+                  <span>Add Themes</span>
                 </div>
               </div>
             )}

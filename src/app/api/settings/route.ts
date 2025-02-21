@@ -1,6 +1,5 @@
 // app/api/settings/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import mongoose from 'mongoose';
 import UserModel from '@/models/User';
 import SettingsModel from '@/models/Settings';
 import { handleSuccess } from '@/utils/successHandler';

@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
-import UserModel from '@/models/User';
 import ProfileModel from '@/models/Profile';
-import { handleSuccess } from '@/utils/successHandler';
 import { handleError } from '@/utils/errorHandler';
 import { getUserDbConnection, getUserModel } from '@/utils/db';
 

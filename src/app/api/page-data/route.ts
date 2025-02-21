@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getPageDb, getPageModel } from '@/utils/db';
+import { NextResponse } from 'next/server';
+import { getPageDbConnection, getPageModel } from '@/utils/db';
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     // Ensure the page database connection is initialized
-    await getPageDb();
+    await getPageDbConnection();
 
     const PageModel = getPageModel();
     const pageData = await PageModel.findOne({ pageName: 'Welcome Page' });
@@ -14,8 +14,9 @@ export async function GET(req: NextRequest) {
     }
 
     return NextResponse.json(pageData);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching page data:', error); // Log the error
-    return NextResponse.json({ error: error.message || 'Failed to fetch page data' }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : 'Failed to fetch page data';
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
