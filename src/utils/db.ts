@@ -1,85 +1,157 @@
-// src/lib/db.ts
 import mongoose from 'mongoose';
 import { IUser, userSchema } from '@/models/User';
-import { IProfile, profileSchema} from '@/models/Profile';
-import {ISettings , settingsSchema} from '@/models/Settings';
+import { IProfile, profileSchema } from '@/models/Profile';
+import { ISettings, settingsSchema } from '@/models/Settings';
+import { IPage, pageSchema } from '@/models/Page';
+
 
 let userDb: mongoose.Connection | null = null;
-let pageDbConnection: Promise<typeof mongoose> | null = null;
+let pageDb: mongoose.Connection | null = null;
+let masterDb: mongoose.Connection | null = null;
 
-export async function getUserDbConnection() {
+async function createConnectionUri(dbName: string) {
   const {
     MONGODB_USERNAME,
     MONGODB_PASSWORD,
     MONGODB_HOST,
     MONGODB_CLUSTER,
-    USER_DB_NAME,
   } = process.env;
 
-  if (!MONGODB_USERNAME || !MONGODB_PASSWORD || !MONGODB_HOST || !MONGODB_CLUSTER || !USER_DB_NAME) {
+  if (!MONGODB_USERNAME || !MONGODB_PASSWORD || !MONGODB_HOST || !MONGODB_CLUSTER) {
     throw new Error('MongoDB environment variables are not set');
   }
 
-  const uri = `mongodb+srv://${MONGODB_USERNAME}:${MONGODB_PASSWORD}@${MONGODB_CLUSTER}.${MONGODB_HOST}.mongodb.net/${USER_DB_NAME}?retryWrites=true&w=majority`;
-
-  if (!userDb) {
-    // If there's no existing connection, create one
-    if (mongoose.connection.readyState === 0) {
-      await mongoose.connect(uri);
-    }
-    userDb = mongoose.connection.useDb(USER_DB_NAME);
-  }
-
-  // Initialize the User model if it doesn't exist
-  if (!userDb.models['User']) {
-    userDb.model<IUser>('User', userSchema);
-  }
-  if (!userDb.models['Profile']){
-    userDb.model<IProfile>('Profile', profileSchema)
-  }
-  if (!userDb.models['Settings']){
-    userDb.model<ISettings>('Settings', settingsSchema)
-  }
-
-  return userDb;
+  return `mongodb+srv://${MONGODB_USERNAME}:${MONGODB_PASSWORD}@${MONGODB_CLUSTER}.${MONGODB_HOST}.mongodb.net/${dbName}?retryWrites=true&w=majority`;
 }
 
-export async function getPageDb() {
-  if (pageDbConnection === null) {
-    const username = process.env.MONGODB_USERNAME;
-    const password = process.env.MONGODB_PASSWORD;
-    const host = process.env.MONGODB_HOST;
-    const cluster = process.env.MONGODB_CLUSTER;
-    const dbName = process.env.PAGE_DB_NAME;
+export async function getMasterDbConnection() {
+  if (!masterDb) {
+    const uri = await createConnectionUri('master');
+    masterDb = await mongoose.createConnection(uri);
+  }
+  return masterDb;
+}
 
-    if (!username || !password || !host || !cluster || !dbName) {
-      throw new Error('Missing required database configuration');
+
+export const getUserDbConnection = async () => {
+  const USER_DB_NAME = process.env.USER_DB_NAME || 'users'; // Default to 'users' if not set
+
+  if (!USER_DB_NAME) {
+    throw new Error('USER_DB_NAME environment variable is not set');
+  }
+
+  try {
+    if (!userDb) {
+      const uri = await createConnectionUri(USER_DB_NAME);
+      userDb = await mongoose.createConnection(uri, {
+        maxPoolSize: 10,
+        serverSelectionTimeoutMS: 30000, // Increase timeout to 30 seconds
+        socketTimeoutMS: 45000, // Increase socket timeout to 45 seconds
+      });
+
+      // Initialize models only if they don't exist
+      if (!userDb.models.User) {
+        userDb.model<IUser>('User', userSchema);
+      }
+      if (!userDb.models.Profile) {
+        userDb.model<IProfile>('Profile', profileSchema);
+      }
+      if (!userDb.models.Settings) {
+        userDb.model<ISettings>('Settings', settingsSchema);
+      }
+
+      userDb.on('error', (error) => {
+        console.error('MongoDB user database connection error:', error);
+        userDb = null;
+      });
+
+      userDb.on('connected', () => {
+        console.log('MongoDB user database connected successfully');
+      });
+
+      userDb.on('disconnected', () => {
+        console.warn('MongoDB user database disconnected');
+        userDb = null;
+      });
     }
 
-    const uri = `mongodb+srv://${username}:${password}@${cluster}.${host}.mongodb.net/${dbName}?retryWrites=true&w=majority`;
+    return userDb;
+  } catch (error) {
+    console.error('MongoDB connection error:', error);
+    throw error;
+  }
+};
 
-    pageDbConnection = mongoose.connect(uri, {
+export async function getPageDbConnection() {
+  const PAGE_DB_NAME = process.env.PAGE_DB_NAME;
+
+  if (!PAGE_DB_NAME) {
+    throw new Error('PAGE_DB_NAME environment variable is not set');
+  }
+
+  if (!pageDb) {
+    const uri = await createConnectionUri(PAGE_DB_NAME);
+    pageDb = await mongoose.createConnection(uri, {
       maxPoolSize: 10,
     });
 
+    // Initialize models only if they don't exist
+    if (!pageDb.models.Page) {
+      pageDb.model<IPage>('Page', pageSchema);
+    }
+
     // Handle connection errors
-    mongoose.connection.on('error', (error) => {
-      console.error('MongoDB connection error:', error);
-      pageDbConnection = null;
+    pageDb.on('error', (error) => {
+      console.error('MongoDB page database connection error:', error);
+      pageDb = null;
     });
 
-    mongoose.connection.on('disconnected', () => {
-      console.warn('MongoDB disconnected');
-      pageDbConnection = null;
+    pageDb.on('disconnected', () => {
+      console.warn('MongoDB page database disconnected');
+      pageDb = null;
     });
   }
 
-  return pageDbConnection;
+  return pageDb;
 }
 
 export function getUserModel() {
   if (!userDb) {
-    throw new Error('Database connection not initialized');
+    throw new Error('User database connection not initialized');
   }
   return userDb.model<IUser>('User');
+}
+
+export function getProfileModel() {
+  if (!userDb) {
+    throw new Error('User database connection not initialized');
+  }
+  return userDb.model<IProfile>('Profile');
+}
+
+export function getSettingsModel() {
+  if (!userDb) {
+    throw new Error('User database connection not initialized');
+  }
+  return userDb.model<ISettings>('Settings');
+}
+
+export function getPageModel() {
+  if (!pageDb) {
+    throw new Error('Page database connection not initialized');
+  }
+  return pageDb.model<IPage>('Page');
+}
+
+// Helper function to close all connections
+export async function closeAllConnections() {
+  await Promise.all([
+    userDb?.close(),
+    pageDb?.close(),
+    masterDb?.close()
+  ]);
+  
+  userDb = null;
+  pageDb = null;
+  masterDb = null;
 }

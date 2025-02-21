@@ -1,37 +1,50 @@
+// src/app/api/auth/setup-databases/route.ts
 import { NextRequest } from 'next/server';
 import mongoose from 'mongoose';
-import { handleError } from '@/utils/errorHandler'; // Import error handler
-import { handleSuccess } from '@/utils/successHandler'; // Import success handler
+import { handleError } from '@/utils/errorHandler';
+import { handleSuccess } from '@/utils/successHandler';
 
 export async function POST(req: NextRequest) {
   const { userDbName, pageDbName, mongodbCredentials } = await req.json();
 
   if (!userDbName || !pageDbName || !mongodbCredentials) {
-    return handleError(new Error('All fields are required'), 'All fields are required');
+    return handleError(null, 'All fields are required');
   }
 
   const { username, password, host, cluster } = mongodbCredentials;
-  const masterDbUrl = `mongodb+srv://${username}:${password}@${cluster}.${host}.mongodb.net/master?retryWrites=true&w=majority&appName=${cluster}`;
+  const baseUrl = `mongodb+srv://${username}:${password}@${cluster}.${host}.mongodb.net`;
   
   try {
-    // Connect to the master database
-    await mongoose.connect(masterDbUrl);
+    // Create separate connections for each database
+    const masterConnection = await mongoose.createConnection(
+      `${baseUrl}/master?retryWrites=true&w=majority&appName=${cluster}`
+    );
 
-    // Create the user and page databases
-    const userDb = mongoose.connection.useDb(userDbName);
-    const pageDb = mongoose.connection.useDb(pageDbName);
-    const master = mongoose.connection.useDb("master");
+    const userConnection = await mongoose.createConnection(
+      `${baseUrl}/${userDbName}?retryWrites=true&w=majority&appName=${cluster}`
+    );
 
-    // Create collections in the page database only
-    await userDb.createCollection('users');
-    await pageDb.createCollection('pages');
-    await master.createCollection('masterdbs');
+    const pageConnection = await mongoose.createConnection(
+      `${baseUrl}/${pageDbName}?retryWrites=true&w=majority&appName=${cluster}`
+    );
 
-    // Set cookie to indicate that database setup is completed
-    const response = handleSuccess(true, 'Databases setup successful');
-    // response.cookies.set('isRegistrationComplete', 'true', { path: '/' });
+    // Create collections in their respective databases
+    await Promise.all([
+      masterConnection.createCollection('masterdbs'),
+      userConnection.createCollection('users'),
+      userConnection.createCollection('profiles'),
+      userConnection.createCollection('settings'),
+      pageConnection.createCollection('pages')
+    ]);
 
-    return response;
+    // Close connections after setup
+    await Promise.all([
+      masterConnection.close(),
+      userConnection.close(),
+      pageConnection.close()
+    ]);
+
+    return handleSuccess(true, null, 'Databases setup successful');
   } catch (error) {
     return handleError(error, 'Failed to setup databases');
   }

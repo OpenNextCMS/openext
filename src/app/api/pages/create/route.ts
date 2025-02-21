@@ -1,17 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 import { cookies } from 'next/headers';
-import { AuthService } from '@/modules/auth/authService';
+// import { AuthService } from '@/modules/auth/authService';
 import { handleError } from '@/utils/errorHandler';
 import { handleSuccess } from '@/utils/successHandler';
-import { getPageDb, getPageModel } from '@/utils/db';
+import { getPageDbConnection, getPageModel } from '@/utils/db';
 import PageService from '@/modules/page/pageService';
+import dotenv from 'dotenv';
+
+dotenv.config({ path: '.env.local' });
+
+// Extract JWT_SECRET from environment variables
+const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
 
 export async function POST(req: NextRequest) {
   try {
     // Get token from cookies instead of header
-    const cookieStore = await cookies();
-    const token = cookieStore.get('token');
+    const cookieStore = cookies();
+    const token = (await cookieStore).get('token');
 
     if (!token) {
       return NextResponse.json(
@@ -23,11 +29,11 @@ export async function POST(req: NextRequest) {
     // Verify token
     let decoded;
     try {
-      decoded = jwt.verify(token.value, AuthService.JWT_SECRET) as {
+      decoded = jwt.verify(token.value, JWT_SECRET) as {
         userId: string;
         email: string;
       };
-    } catch (error) {
+    } catch {
       return NextResponse.json(
         { error: 'Invalid token' },
         { status: 401 }
@@ -45,8 +51,8 @@ export async function POST(req: NextRequest) {
     }
 
     // Connect to database
-    await getPageDb();
-    const Page = getPageModel();
+    await getPageDbConnection();
+    // const Page = getPageModel(); // Removed unused variable assignment
 
     // Create page using PageService
     const savedPage = await PageService.createPage({
@@ -85,7 +91,7 @@ export async function GET(req: NextRequest) {
     let decoded;
     
     try {
-      decoded = jwt.verify(token, AuthService.JWT_SECRET) as {
+      decoded = jwt.verify(token, JWT_SECRET) as {
         userId: string;
         email: string;
         username: string;
@@ -96,7 +102,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Connect to database
-    await getPageDb();
+    await getPageDbConnection();
     const Page = getPageModel();
 
     // Get pages for the user
@@ -121,7 +127,7 @@ export async function GET(req: NextRequest) {
 export async function PUT(req: NextRequest) {
   try {
     const cookieStore = cookies();
-    const token = cookieStore.get('token');
+    const token = (await cookieStore).get('token');
 
     if (!token) {
       return NextResponse.json(
@@ -130,7 +136,7 @@ export async function PUT(req: NextRequest) {
       );
     }
 
-    const decoded = jwt.verify(token.value, AuthService.JWT_SECRET) as {
+    const decoded = jwt.verify(token.value, JWT_SECRET) as {
       userId: string;
       email: string;
     };
@@ -145,7 +151,8 @@ export async function PUT(req: NextRequest) {
     }
 
     // Find existing page by siteName and userId
-    await getPageDb();
+    await getPageDbConnection();
+    const Page = getPageModel();
     const existingPage = await Page.findOne({ 
       siteName: body.siteName,
       createdBy: decoded.userId 

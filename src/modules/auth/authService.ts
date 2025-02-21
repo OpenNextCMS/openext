@@ -4,6 +4,7 @@ import type { RegisterInput } from './authValidation';
 import mongoose from 'mongoose';
 import { IUser } from '@/models/User';
 import dotenv from 'dotenv';
+import PageService from '@/modules/page/pageService'; // Import PageService
 
 dotenv.config({ path: '.env.local' });
 
@@ -58,13 +59,31 @@ export class AuthService {
       },
     };
   }
+
+  static async seedPageData(userId: string, pageDbUri: string) {
+    const pageDbConnection = await mongoose.createConnection(pageDbUri);
+
+    const defaultPageData = {
+      siteName: 'Dashboard',
+      pageName: 'Welcome Page',
+      data: {
+        html: '<div class="welcome-container"><header class="welcome-header"><h1>Welcome to the Dashboard</h1></header><main class="welcome-main"><p>This is the welcome page. Enjoy your stay!</p></main><footer class="welcome-footer"><p>© 2023 ATPL</p></footer></div>',
+        css: '.welcome-container { display: flex; flex-direction: column; min-height: 100vh; font-family: Arial, sans-serif; } .welcome-header, .welcome-footer { background-color: #282c34; color: white; text-align: center; padding: 1rem; } .welcome-main { flex: 1; display: flex; justify-content: center; align-items: center; padding: 2rem; } .welcome-main p { font-size: 1.5rem; color: #333; }',
+        styles: {}, // Add default styles
+        components: {}, // Add default components
+      },
+      isPublished: false
+    };
+
+    await PageService.createPage(defaultPageData, userId);
+  }
+
   static async login(
     identifier: string,
     password: string,
     UserModel: mongoose.Model<IUser>
   ) {
     try {
-      // Find user by email or username
       const user = await UserModel.findOne({
         $or: [{ email: identifier }, { username: identifier }],
       });
@@ -73,14 +92,12 @@ export class AuthService {
         return { error: 'User not found' };
       }
 
-      // Verify password
       const isValidPassword = await bcrypt.compare(password, user.password);
 
       if (!isValidPassword) {
         return { error: 'Invalid password' };
       }
 
-      // Generate JWT token
       const token = jwt.sign(
         {
           userId: user._id,
