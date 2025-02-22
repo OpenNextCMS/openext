@@ -2,33 +2,27 @@
 import mongoose from "mongoose";
 
 export interface ISettings extends mongoose.Document {
-  userId: mongoose.Schema.Types.ObjectId;
+  // newUserRole removed
+  siteTitle: string;
   tagline?: string;
   siteIcon?: string;
-  newUserRole: string;
   language: string;
   timeZone: string;
   dateFormat: string;
   timeFormat: string;
-  // Added themes array field
   themes: { name: string; isActive: boolean }[];
 }
 
 const settingsSchema = new mongoose.Schema(
   {
-    userId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    },
+    // newUserRole removed from schema definition
+    siteTitle: { type: String, required: true },
     tagline: String,
     siteIcon: String,
-    newUserRole: { type: String, required: true, default: "Subscriber" },
     language: { type: String, required: true, default: "en" },
     timeZone: { type: String, required: true, default: "UTC" },
     dateFormat: { type: String, required: true, default: "F j, Y" },
     timeFormat: { type: String, required: true, default: "g:i a" },
-    // New themes field: array of objects
     themes: [
       {
         name: { type: String, required: true },

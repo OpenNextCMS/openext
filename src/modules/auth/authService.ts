@@ -2,9 +2,10 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import type { RegisterInput } from './authValidation';
 import mongoose from 'mongoose';
-import { IUser } from '@/models/User';
+import { IUser, userSchema } from '@/models/User';
+import { ISettings, settingsSchema } from '@/models/Settings'; // NEW import
 import dotenv from 'dotenv';
-import PageService from '@/modules/page/pageService'; // Import PageService
+import PageService from '@/modules/page/pageService';
 
 dotenv.config({ path: '.env.local' });
 
@@ -14,10 +15,10 @@ export class AuthService {
     data: RegisterInput,
     UserModel: mongoose.Model<IUser>
   ) {
+    // Remove siteTitle duplicate check
     const existingUser = await UserModel.findOne({
       $or: [
         { email: data.email },
-        { siteTitle: data.siteTitle },
         { username: data.username },
         { phoneNumber: data.phoneNo },
       ],
@@ -26,9 +27,6 @@ export class AuthService {
     if (existingUser) {
       if (existingUser.email === data.email) {
         return { error: 'Email already in use' };
-      }
-      if (existingUser.siteTitle === data.siteTitle) {
-        return { error: 'Site title already in use' };
       }
       if (existingUser.username === data.username) {
         return { error: 'Username already in use' };
@@ -44,6 +42,21 @@ export class AuthService {
       password: hashedPassword,
       phoneNumber: data.phoneNo,
       role: 'author', // Default role
+      // siteTitle removed from user creation
+    });
+
+    // NEW: Get the Settings model from the same connection as UserModel
+    const SettingsModel = UserModel.db.models.Settings ||
+      UserModel.db.model<ISettings>('Settings', settingsSchema);
+    await SettingsModel.create({
+      siteTitle: data.siteTitle,
+      tagline: "",
+      siteIcon: "",
+      language: "en",
+      timeZone: "UTC",
+      dateFormat: "F j, Y",
+      timeFormat: "g:i a",
+      themes: []
     });
 
     return {
@@ -53,9 +66,9 @@ export class AuthService {
         name: user.name,
         username: user.username,
         email: user.email,
-        siteTitle: user.siteTitle,
         phoneNumber: user.phoneNumber,
         role: user.role,
+        // siteTitle now stored in settings
       },
     };
   }
