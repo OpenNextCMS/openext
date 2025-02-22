@@ -3,7 +3,8 @@ import jwt from 'jsonwebtoken';
 import type { RegisterInput } from './authValidation';
 import mongoose from 'mongoose';
 import { IUser, userSchema } from '@/models/User';
-import { ISettings, settingsSchema } from '@/models/Settings'; // NEW import
+import { ISettings, settingsSchema } from '@/models/Settings'; 
+import Role, { roleSchema } from '@/models/Role';
 import dotenv from 'dotenv';
 import PageService from '@/modules/page/pageService';
 
@@ -15,7 +16,6 @@ export class AuthService {
     data: RegisterInput,
     UserModel: mongoose.Model<IUser>
   ) {
-    // Remove siteTitle duplicate check
     const existingUser = await UserModel.findOne({
       $or: [
         { email: data.email },
@@ -37,15 +37,34 @@ export class AuthService {
     }
 
     const hashedPassword = await bcrypt.hash(data.password, 10);
+    
+    const requestedRole = data.role || 'SuperAdmin';
+    const RoleModel = UserModel.db.models.Role || UserModel.db.model('Role', roleSchema);
+    let roleDoc = await RoleModel.findOne({ name: new RegExp(`^${requestedRole}$`, 'i') });
+    if (!roleDoc) {
+      // Seed roles if not found
+      const roles = [
+        { name: 'SuperAdmin', value: 0 },
+        { name: 'Admin', value: 1 },
+        { name: 'Editor', value: 2 },
+        { name: 'Author', value: 3 }
+      ];
+      for (const role of roles) {
+        await RoleModel.create(role);
+      }
+      roleDoc = await RoleModel.findOne({ name: new RegExp(`^${requestedRole}$`, 'i') });
+      if (!roleDoc) {
+        throw new Error(`Role ${requestedRole} not found even after seeding`);
+      }
+    }
+
     const user = await UserModel.create({
       ...data,
       password: hashedPassword,
       phoneNumber: data.phoneNo,
-      role: 'author', // Default role
-      // siteTitle removed from user creation
+      role: roleDoc.value, 
     });
 
-    // NEW: Get the Settings model from the same connection as UserModel
     const SettingsModel = UserModel.db.models.Settings ||
       UserModel.db.model<ISettings>('Settings', settingsSchema);
     await SettingsModel.create({
@@ -68,7 +87,6 @@ export class AuthService {
         email: user.email,
         phoneNumber: user.phoneNumber,
         role: user.role,
-        // siteTitle now stored in settings
       },
     };
   }
@@ -82,8 +100,8 @@ export class AuthService {
       data: {
         html: '<div class="welcome-container"><header class="welcome-header"><h1>Welcome to the Dashboard</h1></header><main class="welcome-main"><p>This is the welcome page. Enjoy your stay!</p></main><footer class="welcome-footer"><p>© 2023 ATPL</p></footer></div>',
         css: '.welcome-container { display: flex; flex-direction: column; min-height: 100vh; font-family: Arial, sans-serif; } .welcome-header, .welcome-footer { background-color: #282c34; color: white; text-align: center; padding: 1rem; } .welcome-main { flex: 1; display: flex; justify-content: center; align-items: center; padding: 2rem; } .welcome-main p { font-size: 1.5rem; color: #333; }',
-        styles: {}, // Add default styles
-        components: {}, // Add default components
+        styles: {}, 
+        components: {}, 
       },
       isPublished: false
     };

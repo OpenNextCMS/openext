@@ -3,6 +3,7 @@ import { IUser, userSchema } from '@/models/User';
 import { IProfile, profileSchema } from '@/models/Profile';
 import { ISettings, settingsSchema } from '@/models/Settings';
 import { IPage, pageSchema } from '@/models/Page';
+import Role, { roleSchema } from '@/models/Role'; // NEW import
 
 
 let userDb: mongoose.Connection | null = null;
@@ -28,6 +29,7 @@ export async function getMasterDbConnection() {
   if (!masterDb) {
     const uri = await createConnectionUri('master');
     masterDb = await mongoose.createConnection(uri);
+    // Removed role seeding from master DB
   }
   return masterDb;
 }
@@ -58,6 +60,22 @@ export const getUserDbConnection = async () => {
       }
       if (!userDb.models.Settings) {
         userDb.model<ISettings>('Settings', settingsSchema);
+      }
+
+      // NEW: Seed roles in user DB if not already seeded
+      const RoleModel = userDb.models.Role || userDb.model('Role', roleSchema);
+      const existingCount = await RoleModel.countDocuments({});
+      if (existingCount === 0) {
+        const roles = [
+          { name: 'SuperAdmin', value: 0 },
+          { name: 'Admin', value: 1 },
+          { name: 'Editor', value: 2 },
+          { name: 'Author', value: 3 }
+        ];
+        for (const role of roles) {
+          await RoleModel.create(role);
+        }
+        console.log('Roles seeded in user DB.');
       }
 
       userDb.on('error', (error) => {
