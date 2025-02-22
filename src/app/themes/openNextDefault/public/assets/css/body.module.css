@@ -1,0 +1,288 @@
+.main {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.5;
+  background: #fff;
+  min-height: 100vh;
+}
+
+/* Hero Section Styles */
+.heroSection {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 80vh;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.heroTitle {
+  font-size: 5rem;
+  font-weight: 800;
+  line-height: 1.1;
+  margin-bottom: 2rem;
+  letter-spacing: -0.03em;
+  color: #000;
+}
+
+.heroDescription {
+  font-size: 1.5rem;
+  color: #666;
+  max-width: 800px;
+  margin: 0 auto 3rem;
+  line-height: 1.4;
+}
+
+.highlight {
+  color: #000;
+  font-weight: 500;
+}
+
+.buttonsContainer {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.btn {
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 500;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btnPrimary {
+  background: #000;
+  color: #fff;
+  border: none;
+}
+
+.btnPrimary:hover {
+  background: #333;
+}
+
+.btnSecondary {
+  background: #fff;
+  color: #000;
+  border: 1px solid #eaeaea;
+}
+
+.btnSecondary:hover {
+  background: #f5f5f5;
+}
+
+/* Powered By Section Styles */
+.poweredBySection {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 4rem 2rem;
+}
+
+.sectionTitle {
+  text-align: center;
+  font-size: 3rem;
+  font-weight: 800;
+  margin-bottom: 4rem;
+  color: #000;
+  letter-spacing: -0.03em;
+}
+
+.poweredBy {
+  position: relative;
+  text-align: center;
+  margin: 2rem 0;
+}
+
+.poweredByText {
+  display: inline-block;
+  background: #333;
+  color: #fff;
+  padding: 1rem 2rem;
+  border-radius: 8px;
+  font-weight: 500;
+  position: relative;
+  z-index: 2;
+}
+
+.connectionLines {
+  position: relative;
+  height: 200px;
+  margin: 2rem 0;
+}
+
+.leftLine, .middleLine, .rightLine {
+  position: absolute;
+  border: 2px solid #eaeaea;
+}
+
+.leftLine {
+  top: -65px;
+  left: 31px;
+  width: 250px;
+  height: 64px;
+  border-right: none;
+}
+
+.middleLine {
+  top: -97px;
+  left: 350px;
+  width: 2px;
+  height: 176px;
+}
+
+.rightLine {
+  top: -129px;
+  left: 430px;
+  width: 250px;
+  height: 64px;
+  border-left: none;
+}
+
+.cardsContainer {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.card {
+  background: #fff;
+  border: 1px solid #eaeaea;
+  padding: 2rem;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.cardIcon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.cardTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.arrow {
+  font-size: 1rem;
+  opacity: 0.5;
+}
+
+.cardDescription {
+  color: #666;
+  line-height: 1.5;
+}
+
+.reactIcon {
+  color: #61DAFB;
+}
+
+.turbopackIcon {
+  color: #000;
+}
+
+.swcIcon {
+  background: linear-gradient(45deg, #FFB6C1, #FFD700);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.beam {
+  position: absolute;
+  width: 4px;
+  height: 20px;
+  background: linear-gradient(to bottom, #FFD700, #FFA500);
+  animation: moveBeam 3s infinite;
+  opacity: 0;
+}
+
+@keyframes moveBeam {
+  0% {
+    top: 0;
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    top: 100%;
+    opacity: 0;
+  }
+}
+
+@media (max-width: 1024px) {
+  .heroTitle {
+    font-size: 4rem;
+  }
+
+  .heroDescription {
+    font-size: 1.25rem;
+    padding: 0 1rem;
+  }
+
+  .sectionTitle {
+    font-size: 2.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .heroTitle {
+    font-size: 3rem;
+  }
+
+  .heroDescription {
+    font-size: 1.1rem;
+  }
+
+  .buttonsContainer {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .btn {
+    width: 100%;
+    max-width: 300px;
+  }
+
+  .cardsContainer {
+    grid-template-columns: 1fr;
+  }
+
+  .connectionLines {
+    display: none;
+  }
+
+  .sectionTitle {
+    font-size: 2rem;
+    padding: 0 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .heroTitle {
+    font-size: 2.5rem;
+  }
+
+  .container {
+    padding: 1rem;
+  }
+}

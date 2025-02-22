@@ -38,9 +38,9 @@ export default function Home() {
     const checkTheme = async () => {
       try {
         // You can create an API route to check if the theme exists
-        const response = await fetch('/themes/my-demo-theme/layouts');
+        const response = await fetch('/themes/openNextDefault/layouts');
         if (response.ok) {
-          router.push('/themes/my-demo-theme/layouts');
+          router.push('/themes/openNextDefault/layouts');
         } else {
           setIsLoading(false); // Show the default content
         }

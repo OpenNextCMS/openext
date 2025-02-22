@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
     await getUserDbConnection();
     const UserModel = getUserModel();
     const body = await req.json();
-    const { siteTitle, ...settingsData } = body;
+    const { siteTitle, activeTheme, ...settingsData } = body;
 
     const user = await UserModel.findOne({ email }).exec();
     if (!user) {
@@ -83,8 +83,21 @@ export async function POST(req: NextRequest) {
     let settings = await SettingsModel.findOne({ userId: user._id }).exec();
     if (settings) {
       Object.assign(settings, settingsData);
+      // Update themes active flag if activeTheme provided
+      if (activeTheme !== undefined) {
+        settings.themes = settings.themes.map(theme => ({
+          ...theme,
+          isActive: theme.name === activeTheme
+        }));
+      }
     } else {
       settings = new SettingsModel({ userId: user._id, ...settingsData });
+      if (activeTheme) {
+        settings.themes = settings.themes.map(theme => ({
+          ...theme,
+          isActive: theme.name === activeTheme
+        }));
+      }
     }
     await settings.save();
 
