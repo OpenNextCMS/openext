@@ -1,86 +1,97 @@
 // app/api/settings/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import UserModel from '@/models/User';
-import SettingsModel from '@/models/Settings';
-import { handleSuccess } from '@/utils/successHandler';
-import { handleError } from '@/utils/errorHandler';
-import { getUserDbConnection, getUserModel } from '@/utils/db';
-
+import { getUserDbConnection, getUserModel, getSettingsModel } from '@/utils/db';
+import { cookies } from 'next/headers';
+import { jwtDecode } from 'jwt-decode';
+import bcrypt from 'bcryptjs';
 
 export async function GET(req: NextRequest) {
   try {
-    await getUserDbConnection();
-    const UserModel = getUserModel();
-    const user = await UserModel.findOne();
-    if (!user) {
-      return handleError('User not found', 'User not found');
+    const cookieStore = await cookies();
+    const token = cookieStore.get('token')?.value;
+
+    if (!token) {
+      console.error("❌ No token found in cookies");
+      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }
 
-    const settings = await SettingsModel.findOne({ userId: user._id });
+    const decodedToken: any = jwtDecode(token);
+    const email = decodedToken.email;
 
-    const responseData = {
-      data: {
-        user: {
-          siteTitle: user.siteTitle || 'My Website'
-        },
-        settings: settings ? {
-          tagline: settings.tagline,
-          siteIcon: settings.siteIcon,
-          newUserRole: settings.newUserRole,
-          language: settings.language,
-          timeZone: settings.timeZone,
-          dateFormat: settings.dateFormat,
-          timeFormat: settings.timeFormat
-        } : null
-      },
-      success: true,
-      message: 'Settings fetched successfully'
-    };
+    if (!email) {
+      console.error("❌ Token is missing email:", decodedToken);
+      return NextResponse.json({ success: false, message: 'Invalid token' }, { status: 401 });
+    }
 
-    return NextResponse.json(responseData);
-  } catch (error: any) {
-    return handleError(error, error.message || 'Error fetching settings');
+    const userDb = await getUserDbConnection();
+    if (!userDb) {
+      console.error("❌ Failed to connect to database");
+      return NextResponse.json({ success: false, message: 'Database connection error' }, { status: 500 });
+    }
+
+    const UserModel = userDb.model('User');
+    const user = await UserModel.findOne({ email }).exec();
+
+    if (!user) {
+      console.error("❌ User not found in database:", email);
+      return NextResponse.json({ success: false, message: 'User not found' }, { status: 404 });
+    }
+
+    const SettingsModel = getSettingsModel();
+    const settings = await SettingsModel.findOne({ userId: user._id }).exec();
+
+    return NextResponse.json({ success: true, data: { user, settings } });
+
+  } catch (error) {
+    console.error("❌ Server error in /api/settings:", error);
+    return NextResponse.json({ success: false, message: 'Server error' }, { status: 500 });
   }
 }
 
-// POST function for updating settings and user
 export async function POST(req: NextRequest) {
   try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get('token')?.value;
+
+    if (!token) {
+      console.error("❌ No token found in cookies");
+      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+    }
+
+    const decodedToken: any = jwtDecode(token);
+    const email = decodedToken.email;
+
+    if (!email) {
+      console.error("❌ Token is missing email:", decodedToken);
+      return NextResponse.json({ success: false, message: 'Invalid token' }, { status: 401 });
+    }
+
+    await getUserDbConnection();
+    const UserModel = getUserModel();
     const body = await req.json();
-    console.log('Request Body:', body);
-    const { siteTitle, ...settingsData } = body; // Ensure siteTitle is included
+    const { siteTitle, ...settingsData } = body;
 
-    if (!siteTitle) {
-      return handleError('Validation error', 'siteTitle is required');
-    }
-
-    const user = await UserModel.findOne();
+    const user = await UserModel.findOne({ email }).exec();
     if (!user) {
-      return handleError('User not found', 'User not found');
+      return NextResponse.json({ success: false, message: 'User not found' }, { status: 404 });
     }
 
-    // Update user siteTitle
     user.siteTitle = siteTitle;
     await user.save();
 
-    // Update or create settings
-    let settings = await SettingsModel.findOne({ userId: user._id });
+    const SettingsModel = getSettingsModel();
+    let settings = await SettingsModel.findOne({ userId: user._id }).exec();
     if (settings) {
-      // Update only the settings data (excluding siteTitle)
       Object.assign(settings, settingsData);
     } else {
-      settings = new SettingsModel({
-        userId: user._id,
-        ...settingsData, // Only pass the settings data excluding siteTitle
-      });
+      settings = new SettingsModel({ userId: user._id, ...settingsData });
     }
     await settings.save();
 
-    return handleSuccess(true, {
-      user: { siteTitle: user.siteTitle },
-      settings
-    }, 'Settings updated successfully');
+    return NextResponse.json({ success: true, data: { user, settings }, message: 'Settings updated successfully' });
+
   } catch (error: any) {
-    return handleError(error, error.message || 'Error updating settings');
+    console.error('Settings update error:', error);
+    return NextResponse.json({ success: false, message: error.message || 'Error updating settings' }, { status: 500 });
   }
 }
