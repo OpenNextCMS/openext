@@ -38,7 +38,8 @@ export async function GET(req: NextRequest) {
     }
 
     const SettingsModel = getSettingsModel();
-    const settings = await SettingsModel.findOne({ userId: user._id }).exec();
+    // Removed query filter on userId. Adjust criteria as needed.
+    const settings = await SettingsModel.findOne().exec();
 
     return NextResponse.json({ success: true, data: { user, settings } });
 
@@ -76,14 +77,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, message: 'User not found' }, { status: 404 });
     }
 
-    user.siteTitle = siteTitle;
-    await user.save();
-
+    // Remove updating siteTitle on user
+    // Update settings document
     const SettingsModel = getSettingsModel();
-    let settings = await SettingsModel.findOne({ userId: user._id }).exec();
+    let settings = await SettingsModel.findOne().exec();
     if (settings) {
-      Object.assign(settings, settingsData);
-      // Update themes active flag if activeTheme provided
+      Object.assign(settings, settingsData, { siteTitle });
       if (activeTheme !== undefined) {
         settings.themes = settings.themes.map(theme => ({
           ...theme,
@@ -91,7 +90,7 @@ export async function POST(req: NextRequest) {
         }));
       }
     } else {
-      settings = new SettingsModel({ userId: user._id, ...settingsData });
+      settings = new SettingsModel({ siteTitle, ...settingsData });
       if (activeTheme) {
         settings.themes = settings.themes.map(theme => ({
           ...theme,

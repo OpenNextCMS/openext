@@ -2,7 +2,7 @@
 import mongoose from 'mongoose';
 
 export interface IUser extends mongoose.Document {
-  siteTitle: string;
+  // siteTitle removed
   username: string;
   name: string;
   email: string;
@@ -12,7 +12,7 @@ export interface IUser extends mongoose.Document {
 }
 
 const userSchema = new mongoose.Schema({
-  siteTitle: { type: String, required: true },
+  // siteTitle removed
   username: { type: String, required: true, unique: true },
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },

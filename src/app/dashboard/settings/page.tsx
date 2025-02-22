@@ -12,21 +12,12 @@ const formSchema = z.object({
   siteTitle: z.string().min(1),
   tagline: z.string().optional(),
   siteIcon: z.string().optional(),
-  newUserRole: z.string().min(2),
   language: z.string().min(2),
   timeZone: z.string().min(2),
   dateFormat: z.string().min(2),
   timeFormat: z.string().min(2),
   activeTheme: z.string().optional()
 });
-
-const userRoles = [
-  { label: "Subscriber", value: "Subscriber" },
-  { label: "Editor", value: "Editor" },
-  { label: "Author", value: "Author" },
-  { label: "Contributor", value: "Contributor" },
-  { label: "Administrator", value: "Administrator" },
-];
 
 const languages = Object.entries(languageNames).map(([code, name]) => ({
   value: code,
@@ -55,7 +46,6 @@ export default function SettingsPage() {
       siteTitle: '',
       tagline: '',
       siteIcon: '',
-      newUserRole: 'Subscriber',
       language: 'en',
       timeZone: 'UTC',
       dateFormat: 'F j, Y',
@@ -79,21 +69,15 @@ export default function SettingsPage() {
         const result = await response.json();
         console.log('API Response:', result);
         if (result.success) {
-          // Set user data
-          if (result.data.user) {
-            setValue('siteTitle', result.data.user.siteTitle || 'My Website');
-          }
-          
-          // Set settings data if it exists
+          // Set settings data; use settings.siteTitle now
           if (result.data.settings) {
+            setValue('siteTitle', result.data.settings.siteTitle || 'My Website');
             setValue('tagline', result.data.settings.tagline || '');
             setValue('siteIcon', result.data.settings.siteIcon || '');
-            setValue('newUserRole', result.data.settings.newUserRole || 'Subscriber');
             setValue('language', result.data.settings.language || 'en');
             setValue('timeZone', result.data.settings.timeZone || 'UTC');
             setValue('dateFormat', result.data.settings.dateFormat || 'F j, Y');
             setValue('timeFormat', result.data.settings.timeFormat || 'g:i a');
-            // Update the themes state and default activeTheme value if available
             const settingsThemes = result.data.settings.themes || [];
             setThemes(settingsThemes);
             const active = settingsThemes.find(t => t.isActive);
@@ -182,26 +166,6 @@ export default function SettingsPage() {
                 placeholder={t.profileSettings.siteIconPlaceholder}
               />
               {errors.siteIcon && <span className="text-red-500 text-sm">{errors.siteIcon.message?.toString()}</span>}
-            </div>
-          </div>
-        </div>
-
-        <div className="mb-8 pb-8 border-b">
-          <h2 className="text-xl font-semibold text-gray-800 mb-6">{t.profileSettings.adminInformation}</h2>
-          <div className="space-y-6">
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">{t.profileSettings.newUserRole}</label>
-              <select
-                {...register('newUserRole')}
-                className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                {userRoles.map((role) => (
-                  <option key={role.value} value={role.value}>
-                    {role.label}
-                  </option>
-                ))}
-              </select>
-              {errors.newUserRole && <span className="text-red-500 text-sm">{errors.newUserRole.message?.toString()}</span>}
             </div>
           </div>
         </div>
