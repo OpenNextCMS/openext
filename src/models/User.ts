@@ -2,23 +2,21 @@
 import mongoose from 'mongoose';
 
 export interface IUser extends mongoose.Document {
-  // siteTitle removed
   username: string;
   name: string;
   email: string;
   password: string;
   phoneNumber?: string | null; // Allow phoneNumber to be null
-  role: 'admin' | 'user' | 'editor' | 'author';
+  role: number;
 }
 
 const userSchema = new mongoose.Schema({
-  // siteTitle removed
   username: { type: String, required: true, unique: true },
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   phoneNumber: { type: String },
-  role: { type: String, enum: ['admin', 'user', 'editor', 'author'], default: 'author' },
+  role: { type: Number, required: true },
 }, {
   timestamps: true
 });

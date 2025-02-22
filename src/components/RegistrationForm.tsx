@@ -44,7 +44,7 @@ const RegisterForm = () => {
       email: formData.get('email') as string,
       password: formData.get('password') as string,
       phoneNo: formData.get('phoneNo') as string,
-      role: 'author', // Default role
+      role: 'SuperAdmin', // updated default role to SuperAdmin (value 0)
     };
 
     try {
@@ -222,7 +222,7 @@ const RegisterForm = () => {
               <input
                 id="role"
                 name="role"
-                value="author"
+                value="SuperAdmin" // default role, which seeds to value 0 in DB
                 readOnly
                 className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm bg-gray-100 cursor-not-allowed"
               />
@@ -243,3 +243,5 @@ const RegisterForm = () => {
 };
 
 export default RegisterForm;
+
+
