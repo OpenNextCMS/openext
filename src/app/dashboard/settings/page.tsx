@@ -17,6 +17,7 @@ const formSchema = z.object({
   timeZone: z.string().min(2),
   dateFormat: z.string().min(2),
   timeFormat: z.string().min(2),
+  activeTheme: z.string().optional()
 });
 
 const userRoles = [
@@ -59,10 +60,12 @@ export default function SettingsPage() {
       timeZone: 'UTC',
       dateFormat: 'F j, Y',
       timeFormat: 'g:i a',
+      activeTheme: ''
     },
   });
 
   const [t, setT] = useState(translations.en);
+  const [themes, setThemes] = useState<{ name: string; isActive: boolean }[]>([]);
 
   useEffect(() => {
     const langFromCookie = Cookies.get('selectedLanguage') || 'en';
@@ -90,6 +93,11 @@ export default function SettingsPage() {
             setValue('timeZone', result.data.settings.timeZone || 'UTC');
             setValue('dateFormat', result.data.settings.dateFormat || 'F j, Y');
             setValue('timeFormat', result.data.settings.timeFormat || 'g:i a');
+            // Update the themes state and default activeTheme value if available
+            const settingsThemes = result.data.settings.themes || [];
+            setThemes(settingsThemes);
+            const active = settingsThemes.find(t => t.isActive);
+            setValue('activeTheme', active ? active.name : '');
           }
         }
       } catch (error) {
@@ -260,6 +268,25 @@ export default function SettingsPage() {
               </select>
               {errors.timeFormat && <span className="text-red-500 text-sm">{errors.timeFormat.message?.toString()}</span>}
             </div>
+          </div>
+        </div>
+
+        <div className="mb-8 pb-8 border-b">
+          <h2 className="text-xl font-semibold text-gray-800 mb-6">Theme Settings</h2>
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">Active Theme</label>
+            <select
+              {...register('activeTheme')}
+              className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="">Select a theme</option>
+              {themes.map(theme => (
+                <option key={theme.name} value={theme.name}>
+                  {theme.name} {theme.isActive ? '(Active)' : ''}
+                </option>
+              ))}
+            </select>
+            {errors.activeTheme && <span className="text-red-500 text-sm">{errors.activeTheme.message?.toString()}</span>}
           </div>
         </div>
 

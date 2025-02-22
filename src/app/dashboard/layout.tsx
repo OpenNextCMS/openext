@@ -7,6 +7,7 @@ import { IUser } from '@/models/User';
 import { AuthService } from '@/modules/auth/authService';
 import { AvatarProvider } from '@/context/AvatarContext';
 import { redirect } from 'next/navigation';
+import { getUserDbConnection } from '@/utils/db';  // Add this import
 
 export default async function DashboardLayout({
   children,
@@ -18,32 +19,37 @@ export default async function DashboardLayout({
   let user = null;
 
   if (!token) {
-    // Redirect to login if token is missing
     redirect('/login');
   }
 
   if (token) {
-    const decodedToken: any = jwtDecode(token);
-    const email = decodedToken.email;
-    const UserModel = mongoose.models.User || mongoose.model<IUser>('User', new mongoose.Schema({
-      siteTitle: { type: String, required: true },
-      username: { type: String, required: true, unique: true },
-      name: { type: String, required: true },
-      email: { type: String, required: true, unique: true },
-      password: { type: String, required: true },
-      phoneNumber: { type: String },
-      isRegistration: { type: Boolean, default: false },
-    }));
-    const response = await AuthService.getUserByEmail(email, UserModel);
-    if (response.success) {
-      user = {
-        _id: response.user._id.toString(),
-        name: response.user.name,
-        username: response.user.username,
-        email: response.user.email,
-        siteTitle: response.user.siteTitle,
-        phoneNumber: response.user.phoneNumber,
-      };
+    try {
+      const decodedToken: any = jwtDecode(token);
+      const email = decodedToken.email;
+      
+      // Get the database connection
+      const userDb = await getUserDbConnection();
+      if (!userDb) {
+        throw new Error('Failed to connect to database');
+      }
+
+      // Get the User model from the connection
+      const UserModel = userDb.model<IUser>('User');
+      const response = await AuthService.getUserByEmail(email, UserModel);
+      
+      if (response?.success) {
+        user = {
+          _id: (response.user as IUser)._id.toString(),
+          name: response.user.name,
+          username: response.user.username,
+          email: response.user.email,
+          siteTitle: response.user.siteTitle,
+          phoneNumber: response.user.phoneNumber,
+        };
+      }
+    } catch (error) {
+      console.error('Layout error:', error);
+      redirect('/login');
     }
   }
 

@@ -1,0 +1,174 @@
+:root {
+    --text-primary: #000;
+    --text-secondary: #666;
+    --bg-primary: #fff;
+    --bg-secondary: #f5f5f5;
+    --border-color: #eaeaea;
+  }
+  
+  .footer[data-theme="dark"] {
+    --text-primary: #fff;
+    --text-secondary: #888;
+    --bg-primary: #000;
+    --bg-secondary: #111;
+    --border-color: #333;
+  }
+  
+  .footer {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 4rem 2rem;
+    font-family: 'Inter', sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    transition: all 0.3s ease;
+  }
+  
+  .footerGrid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 2rem;
+    margin-bottom: 4rem;
+  }
+  
+  .footerColumn h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+  }
+  
+  .footerLinks {
+    list-style: none;
+  }
+  
+  .footerLinks li {
+    margin-bottom: 0.75rem;
+  }
+  
+  .footerLinks a {
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.875rem;
+    transition: color 0.2s ease;
+  }
+  
+  .footerLinks a:hover {
+    color: var(--text-primary);
+  }
+  
+  .newsletter {
+    margin-bottom: 1rem;
+  }
+  
+  .newsletter p {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+    line-height: 1.5;
+  }
+  
+  .subscribeForm {
+    display: flex;
+    gap: 0.5rem;
+  }
+  
+  .subscribeForm input {
+    flex: 1;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+  }
+  
+  .subscribeForm button {
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .subscribeForm button:hover {
+    background: var(--bg-secondary);
+  }
+  
+  .footerBottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border-color);
+  }
+  
+  .copyright {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+  }
+  
+  .themeControls {
+    display: flex;
+    gap: 1rem;
+  }
+  
+  .themeSwitch {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-secondary);
+    font-size: 1.25rem;
+  }
+  
+  .vercelLogo {
+    width: 50px;
+    margin-bottom: 1rem;
+  }
+  
+  .footerHeader {
+    display: flex;
+    align-items: center;
+    margin-bottom: 2rem;
+  }
+  
+  .footerHeader h1 {
+    margin-left: 0.5rem;
+    font-size: 1.5rem;
+    color: var(--text-primary);
+  }
+  
+  @media (max-width: 1024px) {
+    .footerGrid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .footerGrid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  
+    .footer {
+      padding: 2rem 1rem;
+    }
+  
+    .footerBottom {
+      flex-direction: column;
+      gap: 1rem;
+      text-align: center;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .footerGrid {
+      grid-template-columns: 1fr;
+    }
+  
+    .subscribeForm {
+      flex-direction: column;
+    }
+  }

@@ -1,55 +1,97 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { IUser } from '@/models/User';
 import bcrypt from 'bcryptjs';
-import ProfileModel from '@/models/Profile';
-import { handleError } from '@/utils/errorHandler';
+import jwt, { JwtPayload } from 'jsonwebtoken';
+import { jwtDecode } from 'jwt-decode';
 import { getUserDbConnection, getUserModel } from '@/utils/db';
+// import ProfileModel from '@/models/Profile';
+import {AuthService} from '@/modules/auth/authService';
+import { cookies } from 'next/headers';
+// import User from '@/models/User';
+// import Profile from '@/models/Profile';
+import { getProfileModel } from '@/utils/db';
 
 
-export async function GET(req: NextRequest) {
+interface DecodedToken extends JwtPayload {
+  userId: string;
+}
+
+export async function GET(req: Request) {
   try {
-    await getUserDbConnection();
-    const UserModel = getUserModel();
-    const user = await UserModel.findOne();
-    if (!user) {
-      return handleError('User not found', 'User not found');
+    // ✅ Get token from cookies
+    const cookieStore = await cookies();
+    const token = cookieStore.get('token')?.value;
+
+    if (!token) {
+      console.error("❌ No token found in cookies");
+      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }
 
-    const profile = await ProfileModel.findOne({ userId: user._id });
+    // ✅ Decode token to get user email
+    const decodedToken: any = jwtDecode(token);
+    const email = decodedToken.email;
+    
+    if (!email) {
+      console.error("❌ Token is missing email:", decodedToken);
+      return NextResponse.json({ success: false, message: 'Invalid token' }, { status: 401 });
+    }
 
-    const responseData = {
-      data: {
-        user: {
-          username: user.username,
-          email: user.email
-        },
-        profile: profile ? {
-          firstName: profile.firstName || '',
-          lastName: profile.lastName || '',
-          nickname: profile.nickname || '',
-          displayName: profile.displayName || '',
-          website: profile.website || '',
-          bio: profile.bio || ''
-        } : null
-      },
-      success: true,
-      message: 'Profile fetched successfully'
-    };
+    // ✅ Get the database connection
+    const userDb = await getUserDbConnection();
+    if (!userDb) {
+      console.error("❌ Failed to connect to database");
+      return NextResponse.json({ success: false, message: 'Database connection error' }, { status: 500 });
+    }
 
-    return NextResponse.json(responseData);
-  } catch (error: any) {
-    return handleError(error, error.message || 'Error fetching profile');
+    // ✅ Get the User model and fetch the user
+    const UserModel = userDb.model<IUser>('User');
+    const response = await AuthService.getUserByEmail(email, UserModel);
+
+    if (!response?.success) {
+      console.error("❌ User not found in database:", email);
+      return NextResponse.json({ success: false, message: 'User not found' }, { status: 404 });
+    }
+
+    const user = response.user;
+
+    // ✅ Fetch profile based on user ID
+    const ProfileModel = getProfileModel();
+    const profile = await ProfileModel.findOne({ userId: user._id }).maxTimeMS(30000);
+
+    return NextResponse.json({ success: true, data: { user, profile } });
+
+  } catch (error) {
+    console.error("❌ Server error in /api/profile:", error);
+    return NextResponse.json({ success: false, message: 'Server error' }, { status: 500 });
   }
 }
 
 export async function POST(req: NextRequest) {
   try {
+    // ✅ Get token from cookies
+    const cookieStore = await cookies();
+    const token = cookieStore.get('token')?.value;
+
+    if (!token) {
+      console.error("❌ No token found in cookies");
+      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+    }
+
+    // ✅ Decode token to get user email
+    const decodedToken: any = jwtDecode(token);
+    const email = decodedToken.email;
+
+    if (!email) {
+      console.error("❌ Token is missing email:", decodedToken);
+      return NextResponse.json({ success: false, message: 'Invalid token' }, { status: 401 });
+    }
+
     await getUserDbConnection();
     const UserModel = getUserModel();
     const body = await req.json();
-    const { username, email, newPassword, ...profileData } = body;
+    const { username, email: newEmail, newPassword, ...profileData } = body;
 
-    // First find the current user (using the original email from the session)
-    const originalUser = await UserModel.findOne();
+    const originalUser = await UserModel.findById(decodedToken.userId).maxTimeMS(5000);
     if (!originalUser) {
       return NextResponse.json({
         success: false,
@@ -57,12 +99,11 @@ export async function POST(req: NextRequest) {
       }, { status: 404 });
     }
 
-    // Check if the new email is already taken by another user
-    if (email !== originalUser.email) {
+    if (newEmail !== originalUser.email) {
       const emailExists = await UserModel.findOne({ 
-        email, 
+        email: newEmail, 
         _id: { $ne: originalUser._id }
-      });
+      }).maxTimeMS(5000);
       
       if (emailExists) {
         return NextResponse.json({
@@ -72,12 +113,11 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Check if the new username is already taken
     if (username !== originalUser.username) {
       const usernameExists = await UserModel.findOne({ 
         username, 
         _id: { $ne: originalUser._id }
-      });
+      }).maxTimeMS(5000);
       
       if (usernameExists) {
         return NextResponse.json({
@@ -87,9 +127,8 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Update user details
     originalUser.username = username;
-    originalUser.email = email;
+    originalUser.email = newEmail;
     
     if (newPassword && newPassword.trim() !== '') {
       originalUser.password = await bcrypt.hash(newPassword, 10);
@@ -97,8 +136,9 @@ export async function POST(req: NextRequest) {
 
     await originalUser.save();
 
-    // Update or create profile
-    let profile = await ProfileModel.findOne({ userId: originalUser._id });
+    const ProfileModel = getProfileModel();
+
+    let profile = await ProfileModel.findOne({ userId: originalUser._id }).maxTimeMS(5000);
     if (profile) {
       Object.assign(profile, profileData);
     } else {
