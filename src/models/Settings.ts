@@ -2,7 +2,7 @@
 import mongoose from "mongoose";
 
 export interface ISettings extends mongoose.Document {
-  // newUserRole removed
+  // Removed userId field
   siteTitle: string;
   tagline?: string;
   siteIcon?: string;
@@ -15,7 +15,7 @@ export interface ISettings extends mongoose.Document {
 
 const settingsSchema = new mongoose.Schema(
   {
-    // newUserRole removed from schema definition
+    // Removed userId field from schema definition
     siteTitle: { type: String, required: true },
     tagline: String,
     siteIcon: String,
@@ -30,14 +30,11 @@ const settingsSchema = new mongoose.Schema(
       },
     ],
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
 const Settings =
-  mongoose.models.Settings ||
-  mongoose.model<ISettings>("Settings", settingsSchema);
+  mongoose.models.Settings || mongoose.model<ISettings>("Settings", settingsSchema);
 
 export default Settings;
 export { settingsSchema };

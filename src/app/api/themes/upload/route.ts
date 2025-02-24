@@ -29,19 +29,15 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
         const decodedToken: any = jwtDecode(token);
-        const email = decodedToken.email;
-        if (!email) {
+        if (!decodedToken.email) {
             return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
         }
         
         await getUserDbConnection();
         // Use user email to fetch the settings document (assume Settings was created for user)
         const Settings = getSettingsModel();
-        // Filter settings by user _id (assuming token email lookup already created a settings doc)
-        // Here you may need to query your User collection to get user._id.
-        // For demonstration, assume decodedToken contains userId.
-        const userId = decodedToken.userId;
-        let settings = await Settings.findOne({ userId });
+        // Removed filtering by userId – update the settings document without that field
+        let settings = await Settings.findOne({});
         
         // Update themes field in the user's settings document
         const themeFolderName = originalName;
@@ -54,12 +50,6 @@ export async function POST(request: Request) {
         } else {
             // If no settings document exists, create one (using decodedToken.userId)
             settings = new Settings({
-                userId: userId || new mongoose.Types.ObjectId(),
-                // newUserRole: 'Subscriber',
-                // language: 'en',
-                // timeZone: 'UTC',
-                // dateFormat: 'F j, Y',
-                // timeFormat: 'g:i a',
                 themes: [{ name: themeFolderName, isActive: false }]
             });
             await settings.save();
