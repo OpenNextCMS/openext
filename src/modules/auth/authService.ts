@@ -59,14 +59,23 @@ export class AuthService {
     }
 
     const user = await UserModel.create({
-      ...data,
+      username: data.username,
+      name: data.name,
+      email: data.email,
       password: hashedPassword,
       phoneNumber: data.phoneNo,
-      role: roleDoc.value, 
+      role: roleDoc.value,
+      firstName: data.firstName || '',
+      lastName: data.lastName || '',
+      nickname: data.nickname || '',
+      displayName: data.displayName || '',
+      website: data.website || '',
+      bio: data.bio || ''
     });
 
     const SettingsModel = UserModel.db.models.Settings ||
       UserModel.db.model<ISettings>('Settings', settingsSchema);
+    // Include userId when creating default settings
     await SettingsModel.create({
       siteTitle: data.siteTitle,
       tagline: "",
@@ -75,7 +84,7 @@ export class AuthService {
       timeZone: "UTC",
       dateFormat: "F j, Y",
       timeFormat: "g:i a",
-      themes: []
+      themes: [{name: 'openNextDefault', isActive: true}]
     });
 
     return {
@@ -165,16 +174,26 @@ export class AuthService {
       if (!user) {
         return { error: 'User not found' };
       }
+      const userObj = {
+        _id: user._id,
+        name: user.name || '',
+        username: user.username || '',
+        email: user.email || '',
+        siteTitle: user.siteTitle || '',
+        phoneNumber: user.phoneNumber || '',
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        nickname: user.nickname || '',
+        displayName: user.displayName || '',
+        website: user.website || '',
+        bio: user.bio || ''
+      };
+      if (user.createdAt) {
+        userObj.createdAt = user.createdAt;
+      }
       return {
         success: true,
-        user: {
-          _id: user._id,
-          name: user.name,
-          username: user.username,
-          email: user.email,
-          siteTitle: user.siteTitle,
-          phoneNumber: user.phoneNumber,
-        },
+        user: userObj,
       };
     } catch (error) {
       console.log('Auth service error:', error);

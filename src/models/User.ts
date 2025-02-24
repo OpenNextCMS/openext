@@ -8,6 +8,13 @@ export interface IUser extends mongoose.Document {
   password: string;
   phoneNumber?: string | null; // Allow phoneNumber to be null
   role: number;
+  // NEW profile fields added to User
+  firstName?: string;
+  lastName?: string;
+  nickname?: string;
+  displayName?: string;
+  website?: string;
+  bio?: string;
 }
 
 const userSchema = new mongoose.Schema({
@@ -17,6 +24,13 @@ const userSchema = new mongoose.Schema({
   password: { type: String, required: true },
   phoneNumber: { type: String },
   role: { type: Number, required: true },
+  // NEW profile fields
+  firstName: { type: String },
+  lastName: { type: String },
+  nickname: { type: String },
+  displayName: { type: String },
+  website: { type: String },
+  bio: { type: String },
 }, {
   timestamps: true
 });

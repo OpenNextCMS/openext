@@ -79,8 +79,10 @@ export default function SettingsPage() {
             setValue('dateFormat', result.data.settings.dateFormat || 'F j, Y');
             setValue('timeFormat', result.data.settings.timeFormat || 'g:i a');
             const settingsThemes = result.data.settings.themes || [];
-            setThemes(settingsThemes);
-            const active = settingsThemes.find(t => t.isActive);
+            const uniqueThemes = Array.from(new Set(settingsThemes.map(theme => theme.name)))
+              .map(name => settingsThemes.find(theme => theme.name === name));
+            setThemes(uniqueThemes);
+            const active = uniqueThemes.find(t => t.isActive);
             setValue('activeTheme', active ? active.name : '');
           }
         }

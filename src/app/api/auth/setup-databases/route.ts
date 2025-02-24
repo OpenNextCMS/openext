@@ -32,7 +32,6 @@ export async function POST(req: NextRequest) {
     await Promise.all([
       masterConnection.createCollection('masterdbs'),
       userConnection.createCollection('users'),
-      userConnection.createCollection('profiles'),
       userConnection.createCollection('settings'),
       pageConnection.createCollection('pages')
     ]);

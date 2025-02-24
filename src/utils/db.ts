@@ -1,10 +1,9 @@
 import mongoose from 'mongoose';
 import { IUser, userSchema } from '@/models/User';
-import { IProfile, profileSchema } from '@/models/Profile';
+// Removed Profile and its schema import
 import { ISettings, settingsSchema } from '@/models/Settings';
 import { IPage, pageSchema } from '@/models/Page';
 import Role, { roleSchema } from '@/models/Role'; // NEW import
-
 
 let userDb: mongoose.Connection | null = null;
 let pageDb: mongoose.Connection | null = null;
@@ -34,7 +33,6 @@ export async function getMasterDbConnection() {
   return masterDb;
 }
 
-
 export const getUserDbConnection = async () => {
   const USER_DB_NAME = process.env.USER_DB_NAME || 'users'; // Default to 'users' if not set
 
@@ -55,12 +53,7 @@ export const getUserDbConnection = async () => {
       if (!userDb.models.User) {
         userDb.model<IUser>('User', userSchema);
       }
-      if (!userDb.models.Profile) {
-        userDb.model<IProfile>('Profile', profileSchema);
-      }
-      if (!userDb.models.Settings) {
-        userDb.model<ISettings>('Settings', settingsSchema);
-      }
+      // Removed Profile, Settings model initialization remains
 
       // NEW: Seed roles in user DB if not already seeded
       const RoleModel = userDb.models.Role || userDb.model('Role', roleSchema);
@@ -76,6 +69,26 @@ export const getUserDbConnection = async () => {
           await RoleModel.create(role);
         }
         console.log('Roles seeded in user DB.');
+      }
+
+      // NEW: Set default theme as active in settings
+      const SettingsModel = userDb.models.Settings || userDb.model('Settings', settingsSchema);
+      const settings = await SettingsModel.findOne({});
+      if (settings) {
+        const themeExists = settings.themes.some(theme => theme.name === 'openNextDefault');
+        if (!themeExists) {
+          settings.themes.push({ name: 'openNextDefault', isActive: true });
+          await settings.save();
+        }
+      } else {
+        await SettingsModel.create({
+          siteTitle: 'Default Site',
+          language: 'en',
+          timeZone: 'UTC',
+          dateFormat: 'F j, Y',
+          timeFormat: 'g:i a',
+          themes: [{ name: 'openNextDefault', isActive: true }]
+        });
       }
 
       userDb.on('error', (error) => {
@@ -138,13 +151,6 @@ export function getUserModel() {
     throw new Error('User database connection not initialized');
   }
   return userDb.model<IUser>('User');
-}
-
-export function getProfileModel() {
-  if (!userDb) {
-    throw new Error('User database connection not initialized');
-  }
-  return userDb.model<IProfile>('Profile');
 }
 
 export function getSettingsModel() {

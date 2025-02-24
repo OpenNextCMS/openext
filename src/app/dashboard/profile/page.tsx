@@ -57,21 +57,15 @@ export default function ProfilePage() {
         console.log('API Response:', result); // For debugging
 
         if (result.success && result.data) {
-          // Set user data
-          if (result.data.user) {
-            setValue('username', result.data.user.username || '');
-            setValue('email', result.data.user.email || '');
-          }
-          
-          // Set profile data if it exists
-          if (result.data.profile) {
-            setValue('firstName', result.data.profile.firstName || '');
-            setValue('lastName', result.data.profile.lastName || '');
-            setValue('nickname', result.data.profile.nickname || '');
-            setValue('displayName', result.data.profile.displayName || '');
-            setValue('website', result.data.profile.website || '');
-            setValue('bio', result.data.profile.bio || '');
-          }
+          // Populate form directly with data from the user object
+          setValue('username', result.data.username || '');
+          setValue('email', result.data.email || '');
+          setValue('firstName', result.data.firstName || '');
+          setValue('lastName', result.data.lastName || '');
+          setValue('nickname', result.data.nickname || '');
+          setValue('displayName', result.data.displayName || '');
+          setValue('website', result.data.website || '');
+          setValue('bio', result.data.bio || '');
         } else {
           console.error('Failed to fetch profile data:', result.message);
         }

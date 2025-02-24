@@ -38,8 +38,8 @@ export async function GET(req: NextRequest) {
     }
 
     const SettingsModel = getSettingsModel();
-    // Removed query filter on userId. Adjust criteria as needed.
-    const settings = await SettingsModel.findOne().exec();
+    // Removed userId filter, now retrieve the settings document without filtering
+    const settings = await SettingsModel.findOne({}).exec();
 
     return NextResponse.json({ success: true, data: { user, settings } });
 
@@ -77,10 +77,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, message: 'User not found' }, { status: 404 });
     }
 
-    // Remove updating siteTitle on user
-    // Update settings document
     const SettingsModel = getSettingsModel();
-    let settings = await SettingsModel.findOne().exec();
+    // Removed userId filter – update the sole settings document
+    let settings = await SettingsModel.findOne({}).exec();
     if (settings) {
       Object.assign(settings, settingsData, { siteTitle });
       if (activeTheme !== undefined) {
