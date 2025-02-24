@@ -5,7 +5,7 @@ import Header from '../components/Header';
 import Body from '../components/Body';
 import Footer from '../components/Footer';
 
-const Home: React.FC = () => {
+const Home2: React.FC = () => {
   return (
     <>
        <div>
@@ -17,4 +17,4 @@ const Home: React.FC = () => {
   );
 };
 
-export default Home;
+export default Home2;
