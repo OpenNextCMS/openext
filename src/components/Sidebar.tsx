@@ -1,13 +1,14 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { LayoutDashboard, FileText, LogOut, ChevronDown, List, PlusCircle, Palette } from 'lucide-react';
+import { LayoutDashboard, FileText, LogOut, ChevronDown, List, PlusCircle, Palette, User } from 'lucide-react';
 import { useState } from 'react';
 import { handleSuccess } from '@/utils/successHandler';
 
 export default function Sidebar() {
   const [isPagesOpen, setIsPagesOpen] = useState(false);
   const [isThemesOpen, setIsThemesOpen] = useState(false);
+  const [isUserOpen, setIsUserOpen] = useState(false); // NEW state for User dropdown
   const router = useRouter();
 
   const handleLogout = async () => {
@@ -94,6 +95,39 @@ export default function Sidebar() {
               </div>
             )}
           </div>
+          
+          {/* User Dropdown - NEW */}
+          <div className="relative">
+            <button 
+              onClick={() => setIsUserOpen(!isUserOpen)}
+              className="flex items-center justify-between w-full p-3 rounded-lg hover:bg-gray-100"
+            >
+              <div className="flex items-center space-x-3">
+                <User className="w-5 h-5 text-gray-600" />
+                <span className="text-gray-700">User</span>
+              </div>
+              <ChevronDown className={`w-4 h-4 transition-transform ${isUserOpen ? 'rotate-180' : ''}`} />
+            </button>
+            {isUserOpen && (
+              <div className="ml-10 mt-1 space-y-2">
+                <div 
+                  className="flex items-center space-x-2 p-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg"
+                  onClick={() => router.push('/dashboard/users/addUsers')}
+                >
+                  <PlusCircle className="w-4 h-4" />
+                  <span>Add User</span>
+                </div>
+                <div 
+                  className="flex items-center space-x-2 p-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg cursor-pointer"
+                  onClick={() => router.push('/dashboard/users/allUsers')}
+                >
+                  <List className="w-4 h-4" />
+                  <span>Users</span>
+                </div>
+              </div>
+            )}
+          </div>
+
         </div>
       </nav>
 
