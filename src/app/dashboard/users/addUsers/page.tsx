@@ -35,10 +35,11 @@ export default function UserManagement() {
   ]);
   const [roles, setRoles] = useState<Role[]>([]);
 
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
   useEffect(() => {
     const fetchRoles = async () => {
       try {
-        const res = await fetch('/api/get-role');
+        const res = await fetch(`${backendUrl}/api/get-role`);
         if (res.ok) {
           const data = await res.json();
           setRoles(data.roles || []);
@@ -58,7 +59,7 @@ export default function UserManagement() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await fetch('/api/add-users', {
+      const res = await fetch(`${backendUrl}/api/add-users`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(userData)

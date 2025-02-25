@@ -1,15 +1,10 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { User, Settings, LogOut } from 'lucide-react';
+import { User, LogOut } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
 import { useAvatar } from '@/context/AvatarContext';
-// import { AuthService } from '@/modules/auth/authService';
-// import mongoose from 'mongoose';
-// import { IUser } from '@/models/User';
-// import jwtDecode from 'jwt-decode';
-// import { useClickOutside } from '@/hooks/useClickOutside';
 
 export default function Navbar({ user }: { user: { name: string; email: string } | null }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -35,14 +30,6 @@ export default function Navbar({ user }: { user: { name: string; email: string }
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [dropdownRef]);
-
-  // useEffect(() => {
-  //   if (typeof window !== 'undefined') {
-  //     const avatar = localStorage.getItem('avatarUrl');
-  //     console.log('Avatar URL from localStorage:', avatar); // Debug log
-  //     setAvatarUrl(avatar);
-  //   }
-  // }, []);
 
   return (
     <nav className="bg-white border-b shadow-sm fixed top-0 right-0 left-64 z-10">
@@ -73,20 +60,12 @@ export default function Navbar({ user }: { user: { name: string; email: string }
                 </div>
                 
                 <div className="p-2 space-y-1">
-                <button 
+                  <button 
                     onClick={() => navigateTo('/dashboard/profile')}
                     className="flex items-center gap-3 w-full p-2 rounded-lg hover:bg-gray-50"
                   >
                     <User className="w-4 h-4 text-gray-600" />
                     <span className="text-gray-700">Profile</span>
-                  </button>
-                  
-                  <button 
-                    onClick={() => navigateTo('/dashboard/settings')}
-                    className="flex items-center gap-3 w-full p-2 rounded-lg hover:bg-gray-50"
-                  >
-                    <Settings className="w-4 h-4 text-gray-600" />
-                    <span className="text-gray-700">Settings</span>
                   </button>
                 </div>
               </div>

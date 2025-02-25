@@ -20,10 +20,12 @@ export default function UserList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
+
   // Updated: fetchUsers using the GET route /api/get-users
   const fetchUsers = async () => {
     try {
-      const response = await fetch('/api/get-users');
+      const response = await fetch(`${backendUrl}/api/get-users`);
       if (!response.ok) throw new Error('Failed to fetch');
       const data = await response.json();
       setUsers(data.users || []);
@@ -38,7 +40,7 @@ export default function UserList() {
   useEffect(() => {
     const fetchRoles = async () => {
       try {
-        const res = await fetch('/api/get-role');
+        const res = await fetch(`${backendUrl}/api/get-role`);
         if (res.ok) {
           const data = await res.json();
           setRolesMapping(data.roles || []);

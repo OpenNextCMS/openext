@@ -7,6 +7,7 @@ import * as z from 'zod';
 import { handleSuccess } from '@/utils/successHandler';
 import { languageNames, translations } from '../../../../public/locales/translations';
 import Cookies from 'js-cookie';
+import moment from 'moment-timezone';
 
 const formSchema = z.object({
   siteTitle: z.string().min(1),
@@ -24,7 +25,7 @@ const languages = Object.entries(languageNames).map(([code, name]) => ({
   label: name,
 }));
 
-const timeZones = Intl.supportedValuesOf("timeZone");
+const timeZones = moment.tz.names();
 
 const dateFormats = [
   { label: "January 17, 2025", value: "F j, Y" },
@@ -40,7 +41,7 @@ const timeFormats = [
 ];
 
 export default function SettingsPage() {
-  const { register, handleSubmit, setValue, formState: { errors } } = useForm<z.infer<typeof formSchema>>({
+  const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       siteTitle: '',
@@ -53,6 +54,7 @@ export default function SettingsPage() {
       activeTheme: ''
     },
   });
+  const siteIcon = watch('siteIcon'); // watch current siteIcon value
 
   const [t, setT] = useState(translations.en);
   const [themes, setThemes] = useState<{ name: string; isActive: boolean }[]>([]);
@@ -63,27 +65,31 @@ export default function SettingsPage() {
   }, []);
 
   useEffect(() => {
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
     const fetchSettingsData = async () => {
       try {
-        const response = await fetch('/api/settings');
+        const response = await fetch(`${backendUrl}/api/settings`);
         const result = await response.json();
         console.log('API Response:', result);
-        if (result.success) {
+        if (result.success && result.data.settings) {
           // Set settings data; use settings.siteTitle now
-          if (result.data.settings) {
-            setValue('siteTitle', result.data.settings.siteTitle || 'My Website');
-            setValue('tagline', result.data.settings.tagline || '');
-            setValue('siteIcon', result.data.settings.siteIcon || '');
-            setValue('language', result.data.settings.language || 'en');
-            setValue('timeZone', result.data.settings.timeZone || 'UTC');
-            setValue('dateFormat', result.data.settings.dateFormat || 'F j, Y');
-            setValue('timeFormat', result.data.settings.timeFormat || 'g:i a');
-            const settingsThemes = result.data.settings.themes || [];
-            const uniqueThemes = Array.from(new Set(settingsThemes.map(theme => theme.name)))
-              .map(name => settingsThemes.find(theme => theme.name === name));
-            setThemes(uniqueThemes);
-            const active = uniqueThemes.find(t => t.isActive);
-            setValue('activeTheme', active ? active.name : '');
+          setValue('siteTitle', result.data.settings.siteTitle || 'My Website');
+          setValue('tagline', result.data.settings.tagline || '');
+          setValue('siteIcon', result.data.settings.siteIcon || '');
+          setValue('language', result.data.settings.language || 'en');
+          setValue('timeZone', result.data.settings.timeZone || 'UTC');
+          setValue('dateFormat', result.data.settings.dateFormat || 'F j, Y');
+          setValue('timeFormat', result.data.settings.timeFormat || 'g:i a');
+          const settingsThemes = result.data.settings.themes || [];
+            const uniqueThemes: { name: string; isActive: boolean }[] = Array.from(new Set(settingsThemes.map(theme => theme.name)))
+            .map(name => settingsThemes.find(theme => theme.name === name) as { name: string; isActive: boolean });
+          // Sort so active theme is first if it exists
+          uniqueThemes.sort((a, b) => (b.isActive ? 1 : 0) - (a.isActive ? 1 : 0));
+          setThemes(uniqueThemes);
+          if (uniqueThemes.length > 0 && uniqueThemes[0].isActive) {
+            setValue('activeTheme', uniqueThemes[0].name);
+          } else {
+            setValue('activeTheme', '');
           }
         }
       } catch (error) {
@@ -100,6 +106,27 @@ export default function SettingsPage() {
     fetchSettingsData();
   }, [setValue]);
 
+  // NEW: Handler for uploading siteIcon file
+  const handleSiteIconChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const formData = new FormData();
+    formData.append('file', file);
+    try {
+      const res = await fetch(`${backendUrl}/api/siteicon`, {
+        method: 'POST',
+        body: formData,
+      });
+      const result = await res.json();
+      if (result.success && result.fileName) {
+        setValue('siteIcon', result.fileName);
+      }
+    } catch (error) {
+      console.error('SiteIcon upload error:', error);
+    }
+  };
+
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     console.log(values)
     const requestData = {
@@ -109,8 +136,10 @@ export default function SettingsPage() {
     // Update selected language and store in cookies
     Cookies.set("selectedLanguage", values.language, { expires: 7 }); // Expires in 7 days
 
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
+
     try {
-      const response = await fetch('/api/settings', {
+      const response = await fetch(`${backendUrl}/api/settings`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -160,15 +189,85 @@ export default function SettingsPage() {
               {errors.tagline && <span className="text-red-500 text-sm">{errors.tagline.message?.toString()}</span>}
             </div>
 
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">{t.profileSettings.siteIcon}</label>
-              <input
-                {...register('siteIcon')}
-                className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder={t.profileSettings.siteIconPlaceholder}
-              />
-              {errors.siteIcon && <span className="text-red-500 text-sm">{errors.siteIcon.message?.toString()}</span>}
-            </div>
+            {/* Replace siteIcon text input with file input and preview */}
+            <div className="space-y-4">
+  <label className="block text-sm font-medium text-gray-700">{t.profileSettings.siteIcon}</label>
+  
+  <div className="flex items-start space-x-6">
+    {/* Icon Preview */}
+    <div className={`relative flex-shrink-0 w-32 h-32 rounded-lg overflow-hidden bg-gray-100 border-2 ${siteIcon ? 'border-blue-400' : 'border-dashed border-gray-300'} flex items-center justify-center`}>
+      {siteIcon ? (
+        <img 
+          src={`/siteicon/${siteIcon}`} 
+          alt="Site Icon Preview" 
+          className="w-full h-full object-cover"
+        />
+      ) : (
+        <div className="text-gray-400 flex flex-col items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          <span className="text-xs font-medium">No icon</span>
+        </div>
+      )}
+    </div>
+    
+    {/* Upload Controls */}
+    <div className="flex-grow space-y-3">
+      <div className="relative">
+        <div className="flex items-center justify-between">
+          <label 
+            htmlFor="site-icon-upload" 
+            className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 cursor-pointer"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0l-4 4m4-4v12" />
+            </svg>
+            {siteIcon ? 'Change Icon' : 'Upload Icon'}
+          </label>
+          
+          {siteIcon && (
+            <button
+              type="button"
+              onClick={() => setValue('siteIcon', '')}
+              className="ml-2 inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+              Remove
+            </button>
+          )}
+        </div>
+        
+        <input
+          id="site-icon-upload"
+          type="file"
+          onChange={handleSiteIconChange}
+          className="sr-only"
+          accept="image/*"
+        />
+      </div>
+      
+      <div className="text-xs text-gray-500">
+        <p>Recommended size: 512×512 pixels</p>
+        <p>Supported formats: JPG, PNG, GIF (max 2MB)</p>
+        
+        {siteIcon && (
+          <p className="mt-1 text-green-600 font-medium">
+            Current file: {siteIcon}
+          </p>
+        )}
+      </div>
+    </div>
+  </div>
+  
+  {errors.siteIcon && (
+    <div className="text-red-500 text-sm bg-red-50 px-3 py-2 rounded border border-red-200">
+      {errors.siteIcon.message?.toString()}
+    </div>
+  )}
+</div>
           </div>
         </div>
 
@@ -245,7 +344,7 @@ export default function SettingsPage() {
               {...register('activeTheme')}
               className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
-              <option value="">Select a theme</option>
+              {!themes.some(theme => theme.isActive) && <option value="">Select a theme</option>}
               {themes.map(theme => (
                 <option key={theme.name} value={theme.name}>
                   {theme.name} {theme.isActive ? '(Active)' : ''}

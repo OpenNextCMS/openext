@@ -72,6 +72,12 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { siteTitle, activeTheme, ...settingsData } = body;
 
+    // If siteIcon exists, extract the filename in case a full path was sent.
+    if (settingsData.siteIcon) {
+      const parts = settingsData.siteIcon.split('/');
+      settingsData.siteIcon = parts[parts.length - 1];
+    }
+
     const user = await UserModel.findOne({ email }).exec();
     if (!user) {
       return NextResponse.json({ success: false, message: 'User not found' }, { status: 404 });

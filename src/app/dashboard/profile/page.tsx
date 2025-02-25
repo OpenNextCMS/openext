@@ -48,10 +48,12 @@ export default function ProfilePage() {
     setT(translations[langFromCookie as keyof typeof translations]);
   }, []);
 
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
+
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await fetch('/api/profile');
+        const response = await fetch(`${backendUrl}/api/profile`);
         const result = await response.json();
         
         console.log('API Response:', result); // For debugging

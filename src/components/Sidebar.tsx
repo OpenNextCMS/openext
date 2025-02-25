@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { LayoutDashboard, FileText, LogOut, ChevronDown, List, PlusCircle, Palette, User } from 'lucide-react';
+import { LayoutDashboard, FileText, LogOut, ChevronDown, List, PlusCircle, Palette, User, Settings } from 'lucide-react'; // Added Settings
 import { useState } from 'react';
 import { handleSuccess } from '@/utils/successHandler';
 
@@ -45,7 +45,7 @@ export default function Sidebar() {
           <div className="relative">
             <button 
               onClick={() => setIsPagesOpen(!isPagesOpen)}
-              className="flex items-center justify-between w-full p-3 rounded-lg hover:bg-gray-100"
+              className="flex items-center justify-between w-full p-3 cursor-pointer rounded-lg hover:bg-gray-100"
             >
               <div className="flex items-center space-x-3">
                 <FileText className="w-5 h-5 text-gray-600" />
@@ -58,14 +58,14 @@ export default function Sidebar() {
               <div className="ml-10 mt-1 space-y-2">
                 <div className="flex items-center space-x-2 p-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg">
                   <List className="w-4 h-4" />
-                  <span>All Pages</span>
+                  <span className="cursor-pointer">All Pages</span>
                 </div>
                 <div 
                   className="flex items-center space-x-2 p-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg"
                   onClick={() => router.push('/GrapeJSEditor')}
                 >
                   <PlusCircle className="w-4 h-4" />
-                  <span>Add Pages</span>
+                  <span className="cursor-pointer">Add Pages</span>
                 </div>
               </div>
             )}
@@ -75,7 +75,7 @@ export default function Sidebar() {
           <div className="relative">
             <button 
               onClick={() => setIsThemesOpen(!isThemesOpen)}
-              className="flex items-center justify-between w-full p-3 rounded-lg hover:bg-gray-100"
+              className="flex items-center justify-between w-full p-3 cursor-pointer rounded-lg hover:bg-gray-100"
             >
               <div className="flex items-center space-x-3">
                 <Palette className="w-5 h-5 text-gray-600" />
@@ -90,7 +90,7 @@ export default function Sidebar() {
                   onClick={() => router.push('/dashboard/themes')}
                 >
                   <PlusCircle className="w-4 h-4" />
-                  <span>Add Themes</span>
+                  <span className="cursor-pointer">Add Themes</span>
                 </div>
               </div>
             )}
@@ -100,7 +100,7 @@ export default function Sidebar() {
           <div className="relative">
             <button 
               onClick={() => setIsUserOpen(!isUserOpen)}
-              className="flex items-center justify-between w-full p-3 rounded-lg hover:bg-gray-100"
+              className="flex items-center justify-between w-full p-3 cursor-pointer rounded-lg hover:bg-gray-100"
             >
               <div className="flex items-center space-x-3">
                 <User className="w-5 h-5 text-gray-600" />
@@ -115,19 +115,30 @@ export default function Sidebar() {
                   onClick={() => router.push('/dashboard/users/addUsers')}
                 >
                   <PlusCircle className="w-4 h-4" />
-                  <span>Add User</span>
+                  <span className="cursor-pointer">Add User</span>
                 </div>
                 <div 
                   className="flex items-center space-x-2 p-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg cursor-pointer"
                   onClick={() => router.push('/dashboard/users/allUsers')}
                 >
                   <List className="w-4 h-4" />
-                  <span>Users</span>
+                  <span className="cursor-pointer">Users</span>
                 </div>
               </div>
             )}
           </div>
 
+          {/* New Settings Button moved inside nav container */}
+          <div>
+            <button 
+              onClick={() => router.push('/dashboard/settings')}
+              className="flex w-full items-center p-3 cursor-pointer rounded-lg hover:bg-gray-100"
+            >
+              <Settings className="w-5 h-5 text-gray-600" />
+              <span className="ml-3 cursor-pointer text-gray-700">Settings</span>
+            </button>
+          </div>
+          
         </div>
       </nav>
 
