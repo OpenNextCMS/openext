@@ -30,6 +30,7 @@ export default function AddThemePage() {
             setFile(e.dataTransfer.files[0]);
         }
     };
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
 
     const handleUpload = async () => {
         if (!file) return;
@@ -37,7 +38,7 @@ export default function AddThemePage() {
         formData.append('file', file);
         setIsLoading(true);
         try {
-            const res = await fetch('/api/themes/upload', {
+            const res = await fetch(`${backendUrl}/api/themes/upload`, {
                 method: 'POST',
                 body: formData
             });

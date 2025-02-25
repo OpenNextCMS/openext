@@ -65,9 +65,10 @@ export default function SettingsPage() {
   }, []);
 
   useEffect(() => {
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
     const fetchSettingsData = async () => {
       try {
-        const response = await fetch('/api/settings');
+        const response = await fetch(`${backendUrl}/api/settings`);
         const result = await response.json();
         console.log('API Response:', result);
         if (result.success && result.data.settings) {
@@ -107,12 +108,13 @@ export default function SettingsPage() {
 
   // NEW: Handler for uploading siteIcon file
   const handleSiteIconChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
     const file = e.target.files?.[0];
     if (!file) return;
     const formData = new FormData();
     formData.append('file', file);
     try {
-      const res = await fetch('/api/siteicon', {
+      const res = await fetch(`${backendUrl}/api/siteicon`, {
         method: 'POST',
         body: formData,
       });
@@ -134,8 +136,10 @@ export default function SettingsPage() {
     // Update selected language and store in cookies
     Cookies.set("selectedLanguage", values.language, { expires: 7 }); // Expires in 7 days
 
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
+
     try {
-      const response = await fetch('/api/settings', {
+      const response = await fetch(`${backendUrl}/api/settings`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
