@@ -8,6 +8,7 @@ import { handleSuccess } from '@/utils/successHandler';
 import { languageNames, translations } from '../../../../public/locales/translations';
 import Cookies from 'js-cookie';
 import moment from 'moment-timezone';
+import toast from 'react-hot-toast';
 
 const formSchema = z.object({
   siteTitle: z.string().min(1),
@@ -27,19 +28,6 @@ const languages = Object.entries(languageNames).map(([code, name]) => ({
 
 const timeZones = moment.tz.names();
 
-const dateFormats = [
-  { label: "January 17, 2025", value: "F j, Y" },
-  { label: "2025-01-17", value: "Y-m-d" },
-  { label: "01/17/2025", value: "m/d/Y" },
-  { label: "17/01/2025", value: "d/m/Y" },
-];
-
-const timeFormats = [
-  { label: "8:21 am", value: "g:i a" },
-  { label: "8:21 AM", value: "g:i A" },
-  { label: "08:21", value: "H:i" },
-];
-
 export default function SettingsPage() {
   const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -58,6 +46,12 @@ export default function SettingsPage() {
 
   const [t, setT] = useState(translations.en);
   const [themes, setThemes] = useState<{ name: string; isActive: boolean }[]>([]);
+  const [now, setNow] = useState(new Date());
+
+  useEffect(() => {
+    const interval = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const langFromCookie = Cookies.get('selectedLanguage') || 'en';
@@ -121,11 +115,30 @@ export default function SettingsPage() {
       const result = await res.json();
       if (result.success && result.fileName) {
         setValue('siteIcon', result.fileName);
+        toast.success('Site icon uploaded successfully');
+      } else {
+        toast.error('Failed to upload site icon');
       }
     } catch (error) {
       console.error('SiteIcon upload error:', error);
+      toast.error('Site icon upload error');
     }
   };
+
+  // NEW: Dynamic Date Formats using current date/time
+  const dateFormats = [
+    { label: moment(now).format("MMMM D, YYYY"), value: "MMMM D, YYYY" },
+    { label: moment(now).format("YYYY-MM-DD"), value: "YYYY-MM-DD" },
+    { label: moment(now).format("MM/DD/YYYY"), value: "MM/DD/YYYY" },
+    { label: moment(now).format("DD/MM/YYYY"), value: "DD/MM/YYYY" },
+  ];
+  
+  // NEW: Dynamic Time Formats using current time
+  const timeFormats = [
+    { label: moment(now).format("h:mm a"), value: "h:mm a" },
+    { label: moment(now).format("h:mm A"), value: "h:mm A" },
+    { label: moment(now).format("HH:mm"), value: "HH:mm" },
+  ];
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     console.log(values)

@@ -39,7 +39,7 @@ export default function MongoDBSetup() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setIsLoading(true); // Set loading state to true
+    setIsLoading(true); // Set loading state to true/api/verify-connection
 
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000'; // Use external backend URL if it exists
 
