@@ -82,6 +82,17 @@ export default function MongoDBSetup() {
     }
   };
 
+  const [formData, setFormData] = useState({
+    username: "",
+    password: "",
+    clusterName: "",
+    hostname: "",
+  });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 w-full py-2">
       <div className="w-full max-w-2xl mx-auto p-6 bg-white rounded-xl shadow-lg">
@@ -91,18 +102,24 @@ export default function MongoDBSetup() {
         <div className="mt-4 p-6 bg-gray-100 rounded-md">
           <h3 className="text-lg font-semibold mb-4">{t.mongodbSetup.mongodbExample}</h3>
           <div className="bg-white p-4 rounded-md shadow-sm overflow-x-auto">
-            <code className="text-sm">
-            <span className="text-gray-600">mongodb+srv://</span>
-              <span className="text-green-600">username</span>
-              <span className="text-gray-600">:</span>
-              <span className="text-red-600">&lt;{t.mongodbSetup.dbPassword}&gt;</span>
-              <span className="text-gray-600">@</span>
-              <span className="text-purple-600">cluster</span>
-              <span className="text-gray-600">.</span>
-              <span className="text-orange-600">host</span>
-              <span className="text-gray-600">.mongodb.net/?retryWrites=true&w=majority</span>
-              <span className="text-gray-600">appName=</span>
-              <span className="text-purple-600">ClusterName</span>
+            <code className="text-sm text-gray-600">
+              mongodb+srv://
+              <span className="text-blue-500">
+                {formData.username || "<username>"}
+              </span>
+              :
+              <span className="text-green-500">
+                {formData.password || "<password>"}
+              </span>
+              @
+              <span className="text-purple-500">
+                {formData.clusterName || "<clusterName>"}
+              </span>
+              .
+              <span className="text-red-500">
+                {formData.hostname || "<hostName>"}
+              </span>
+              .mongodb.net/myFirstDatabase?retryWrites=true&w=majority
             </code>
           </div>
           <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
@@ -189,7 +206,7 @@ export default function MongoDBSetup() {
               disabled={isLoading} // Disable button when loading
               className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? t.mongodbSetup.verifying : t.mongodbSetup.submitButton} 
+              {isLoading ? t.mongodbSetup.verifying : t.mongodbSetup.submitButton}
             </button>
           </div>
         </form>
