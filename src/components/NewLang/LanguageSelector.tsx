@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown } from "lucide-react";
@@ -58,6 +58,28 @@ export default function LanguageSelector() {
     };
   }, []);
 
+
+  // Filter languages based on input
+  const filteredLanguages = useMemo(() => {
+    return isOpen
+      ? languages
+      : languages.filter((lang) => lang.name.toLowerCase().includes(inputValue.toLowerCase()));
+  }, [inputValue, isOpen]);
+
+  // Sort languages to show matched items first
+  const sortedLanguages = useMemo(() => {
+    if (!inputValue) return filteredLanguages;
+
+    const matched = filteredLanguages.filter((lang) =>
+      lang.name.toLowerCase().startsWith(inputValue.toLowerCase())
+    );
+    const others = filteredLanguages.filter(
+      (lang) => !lang.name.toLowerCase().startsWith(inputValue.toLowerCase())
+    );
+
+    return [...matched, ...others];
+  }, [filteredLanguages, inputValue]);
+
   return (
     <div className="flex flex-col justify-center items-center px-4 sm:px-6 md:px-10 lg:px-16 py-6">
       <div className="relative w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl" ref={dropdownRef}>
@@ -73,11 +95,18 @@ export default function LanguageSelector() {
               type="text"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
-              onFocus={() => setIsOpen(true)}
-              className="w-full min-w-40 max-w-64 sm:max-w-80 md:max-w-96 lg:max-w-lg px-4 py-2 bg-white border border-black rounded shadow-lg focus:outline-none"
-              placeholder="Select a language"
+              onFocus={() => {
+                setIsOpen(true);
+              }}
+              onBlur={() => {
+                if (!inputValue.trim()) {
+                  setInputValue(selectedLang.name); // Restore value if no input
+                }
+              }}
+              className="w-full min-w-40 text-md max-w-64 sm:max-w-80 md:max-w-96 lg:max-w-lg px-6 py-2 bg-white border border-black rounded shadow-lg focus:outline-none text-center"
+              placeholder="Start typing..."
             />
-            <button
+            {/* <button
               type="button"
               onClick={() => setIsOpen((prev) => !prev)}
               className="absolute right-3 top-2.5 w-6 h-7 focus:outline-none"
@@ -85,7 +114,7 @@ export default function LanguageSelector() {
               <ChevronDown
                 className={`transition-transform ${isOpen ? "rotate-180" : "rotate-0"} duration-300`}
               />
-            </button>
+            </button> */}
           </div>
 
           {/* Fixed-width button */}
@@ -106,11 +135,13 @@ export default function LanguageSelector() {
               exit={{ opacity: 0, y: -10 }}
               className="absolute left-0 right-0 mt-2 bg-white border border-gray-300 rounded-xl shadow-lg overflow-y-auto max-h-60 duration-300 scrollbar-hide z-10"
             >
-              {languages.map((lang) => (
+              {sortedLanguages.map((lang) => (
                 <motion.li
                   key={lang.code}
                   onClick={() => handleLanguageSelect(lang)}
-                  className="flex items-center gap-4 px-6 py-3 cursor-pointer hover:bg-purple-100 transition-all duration-200"
+                  className={`flex items-center gap-4 px-6 py-3 cursor-pointer transition-all duration-200 
+                    ${lang.code === selectedLang.code ? "bg-gray-300 text-white" : "hover:bg-purple-100"}
+                  `}
                 >
                   <Image src={lang.flag} alt={lang.name} width={20} height={20} />
                   <span className="text-base text-gray-800">{lang.name}</span>

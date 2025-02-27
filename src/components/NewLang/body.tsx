@@ -21,12 +21,15 @@ export default function Body() {
                         Build Faster, Smarter, Better -<br />
                         A
                         <span className="bg-gradient-to-r from-yellow-400 to-orange-600 bg-clip-text text-transparent">
-                            Lightning-Fast
+                            {' '} Lightning-Fast {' '}
                         </span>
                         CMS for the Modern Web.
                     </h1>
 
-                    <LanguageSelector />
+                    <div className="w-full h-56 max-w-2xl mx-auto p-6 bg-white rounded-2xl shadow-xl flex flex-col items-center justify-center">
+                        <h2>Start Installation</h2>
+                        <LanguageSelector />
+                    </div>
                 </div>
             </div>
         </div>

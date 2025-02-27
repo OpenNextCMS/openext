@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import { motion } from "framer-motion";
-import styles from "./Marquee.module.css";
+import styles from "@/styles/Marquee.module.css";
 
 const tagGroups = [
     [
