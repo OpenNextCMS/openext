@@ -10,7 +10,7 @@ import { Eye, EyeOff } from 'lucide-react';
 import { translations } from '../../public/locales/translations';
 import Cookies from 'js-cookie';
 
-const RegisterForm = () => {
+const NewRegisterForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showPassword, setShowPassword] = useState(false);
@@ -60,8 +60,7 @@ const RegisterForm = () => {
       const userDbName = localStorage.getItem('USER_DB_NAME');
       const pageDbName = localStorage.getItem('PAGE_DB_NAME');
 
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000'; // Use external backend URL if it exists
-
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000'; // Use external backend URL if it exists
 
       const setupResponse = await fetch(`${backendUrl}/api/auth/setup-databases`, {
         method: 'POST',
@@ -80,17 +79,17 @@ const RegisterForm = () => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ ...data, userDbName, pageDbName, mongodbCredentials }),
         })
-        .then(response => response.json())
-        .then(result => {
-          if (!result.success) throw new Error(result.message || 'Registration failed');
+          .then(response => response.json())
+          .then(result => {
+            if (!result.success) throw new Error(result.message || 'Registration failed');
 
-          handleSuccess(true, null, 'Registration successful. Redirecting to login...');
-          localStorage.clear();
-          router.push('/login');
-        })
-        .catch(error => {
-          handleError(error, error.message || 'An unexpected error occurred');
-        });
+            handleSuccess(true, null, 'Registration successful. Redirecting to login...');
+            localStorage.clear();
+            router.push('/login');
+          })
+          .catch(error => {
+            handleError(error, error.message || 'An unexpected error occurred');
+          });
       }
     } catch (error: any) {
       if (error instanceof z.ZodError) {
@@ -110,8 +109,8 @@ const RegisterForm = () => {
   };
 
   return (
-    <div className="min-h-screen max-w-xl flex items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100 py-4 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-lg">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100 py-4 px-4 sm:px-6 lg:px-8">
+      <div className="w-max space-y-8 bg-white p-8 rounded-xl shadow-lg border border-gray-200">
         <div className="text-center space-y-6">
           <h2 className="text-3xl font-bold text-gray-900">{t.register.title}</h2>
           <p className="text-gray-600 text-sm">{t.register.subtitle}</p>
@@ -119,6 +118,7 @@ const RegisterForm = () => {
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-6">
           <div className="space-y-4">
+            {/* SiteTite */}
             <div>
               <label htmlFor="siteTitle" className="block text-sm font-medium text-gray-700 mb-1">
                 {t.register.siteTitle}
@@ -128,25 +128,12 @@ const RegisterForm = () => {
                 name="siteTitle"
                 placeholder={t.register.siteTitlePlaceholder}
                 required
-                className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500 text-sm"
               />
               {errors.siteTitle && <p className="mt-1 text-sm text-red-600">{errors.siteTitle}</p>}
             </div>
 
-            <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
-                {t.register.username}
-              </label>
-              <input
-                id="username"
-                name="username"
-                placeholder={t.register.usernamePlaceholder}
-                required
-                className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
-              />
-              {errors.username && <p className="mt-1 text-sm text-red-600">{errors.username}</p>}
-            </div>
-
+            {/* Name */}
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
                 {t.register.name}
@@ -156,11 +143,12 @@ const RegisterForm = () => {
                 name="name"
                 placeholder={t.register.namePlaceholder}
                 required
-                className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500 text-sm"
               />
               {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
             </div>
 
+            {/* Email */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
                 {t.register.email}
@@ -171,36 +159,54 @@ const RegisterForm = () => {
                 type="email"
                 placeholder={t.register.emailPlaceholder}
                 required
-                className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500 text-sm"
               />
               {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
             </div>
-
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                {t.register.password}
-              </label>
-              <div className="relative">
+            <div className="flex gap-6">
+              {/* UserName */}
+              <div>
+                <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
+                  {t.register.username}
+                </label>
                 <input
-                  id="password"
-                  name="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder={t.register.passwordPlaceholder}
+                  id="username"
+                  name="username"
+                  placeholder={t.register.usernamePlaceholder}
                   required
-                  className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm pr-10"
+                  className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500 text-sm"
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700 transition-colors duration-200"
-                  aria-label={t.register.togglePasswordVisibility}
-                >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
+                {errors.username && <p className="mt-1 text-sm text-red-600">{errors.username}</p>}
               </div>
-              {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password}</p>}
+
+              {/* Password */}
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+                  {t.register.password}
+                </label>
+                <div className="relative">
+                  <input
+                    id="password"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder={t.register.passwordPlaceholder}
+                    required
+                    className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500 text-sm pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700 transition-colors duration-200"
+                    aria-label={t.register.togglePasswordVisibility}
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+                {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password}</p>}
+              </div>
             </div>
 
+            {/* PhoneNo */}
             <div>
               <label htmlFor="phoneNo" className="block text-sm font-medium text-gray-700 mb-1">
                 {t.register.phoneNo}
@@ -210,11 +216,12 @@ const RegisterForm = () => {
                 name="phoneNo"
                 placeholder={t.register.phoneNoPlaceholder}
                 required
-                className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500 text-sm"
               />
               {errors.phoneNo && <p className="mt-1 text-sm text-red-600">{errors.phoneNo}</p>}
             </div>
 
+            {/* Role */}
             <div>
               <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-1">
                 {t.register.role}
@@ -224,7 +231,7 @@ const RegisterForm = () => {
                 name="role"
                 value="SuperAdmin" // default role, which seeds to value 0 in DB
                 readOnly
-                className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm bg-gray-100 cursor-not-allowed"
+                className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500 text-sm bg-gray-100 cursor-not-allowed"
               />
             </div>
           </div>
@@ -232,7 +239,7 @@ const RegisterForm = () => {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full flex justify-center py-3 px-4 rounded-lg bg-black shadow-sm text-sm font-medium text-white black border border-black hover:text-black hover:bg-transparent transition-all duration-500  disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? t.register.registering : t.register.submit}
           </button>
@@ -242,6 +249,4 @@ const RegisterForm = () => {
   );
 };
 
-export default RegisterForm;
-
-
+export default NewRegisterForm;
