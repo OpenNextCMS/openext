@@ -103,10 +103,10 @@ export default function LanguageSelector() {
                   setInputValue(selectedLang.name); // Restore value if no input
                 }
               }}
-              className="w-full min-w-40 text-md max-w-64 sm:max-w-80 md:max-w-96 lg:max-w-lg px-6 py-2 bg-white border border-black rounded shadow-lg focus:outline-none text-center"
+              className="w-full min-w-40 max-w-64 sm:max-w-80 md:max-w-96 lg:max-w-lg px-6 py-2 bg-white border border-black rounded shadow-lg focus:outline-none"
               placeholder="Start typing..."
             />
-            {/* <button
+            <button
               type="button"
               onClick={() => setIsOpen((prev) => !prev)}
               className="absolute right-3 top-2.5 w-6 h-7 focus:outline-none"
@@ -114,7 +114,7 @@ export default function LanguageSelector() {
               <ChevronDown
                 className={`transition-transform ${isOpen ? "rotate-180" : "rotate-0"} duration-300`}
               />
-            </button> */}
+            </button>
           </div>
 
           {/* Fixed-width button */}
