@@ -7,6 +7,7 @@ import { handleSuccess } from '@/utils/successHandler'; // Import success handle
 import { Eye, EyeOff } from 'lucide-react';
 import { translations } from '../../../../public/locales/translations';
 import Cookies from 'js-cookie';
+import ToggleSwitch from '@/components/vivComp/ToggleSwitch';
 
 export default function MongoDBSetup() {
   const [username, setUsername] = useState('');
@@ -85,8 +86,8 @@ export default function MongoDBSetup() {
   const [formData, setFormData] = useState({
     username: "",
     password: "",
-    clusterName: "",
-    hostname: "",
+    cluster: "",
+    host: "",
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -95,7 +96,7 @@ export default function MongoDBSetup() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 w-full py-2">
-      <div className="w-full max-w-2xl mx-auto p-6 bg-white rounded-xl shadow-lg">
+      <div className="w-full max-w-2xl mx-auto p-6 bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200">
         <div>
           <h2 className="mt-2 text-center text-3xl font-extrabold text-gray-900">{t.mongodbSetup.title}</h2>
         </div>
@@ -103,23 +104,24 @@ export default function MongoDBSetup() {
           <h3 className="text-lg font-semibold mb-4">{t.mongodbSetup.mongodbExample}</h3>
           <div className="bg-white p-4 rounded-md shadow-sm overflow-x-auto">
             <code className="text-sm text-gray-600">
-              mongodb+srv://
+              <span>
+                mongodb+srv://</span>
               <span className="text-blue-500">
                 {formData.username || "<username>"}
-              </span>
-              :
+              </span><span>
+                :</span>
               <span className="text-green-500">
                 {formData.password || "<password>"}
               </span>
-              @
+              <span>@</span>
               <span className="text-purple-500">
-                {formData.clusterName || "<clusterName>"}
+                {formData.cluster || "<clusterName>"}
               </span>
-              .
+              <span>.</span>
               <span className="text-red-500">
-                {formData.hostname || "<hostName>"}
+                {formData.host || "<hostName>"}
               </span>
-              .mongodb.net/myFirstDatabase?retryWrites=true&w=majority
+              <span>.mongodb.net/myFirstDatabase?retryWrites=true&w=majority</span>
             </code>
           </div>
           <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
@@ -144,7 +146,17 @@ export default function MongoDBSetup() {
             <strong>Note:</strong> The host is the part after the cluster name and before &quot;.mongodb.net&quot;
           </p>
         </div>
-        <form className="mt-8 grid grid-cols-2 gap-4" onSubmit={handleSubmit}>
+        <div>
+          <div className='flex flex-row items-center m-5 justify-end '>
+            <p className='mx-5 text-lg font-medium text-gray-700'>Multiple Cluster?</p>
+            <label htmlFor="Toggle3" className="inline-flex items-center p-1 rounded-md cursor-pointer">
+              <input id="Toggle3" type="checkbox" className="hidden peer" />
+              <span className="px-3 py-1 rounded-l-md bg-transparent peer-checked:bg-black peer-checked:text-white border border-black text-black transition-all duration-500">Yes</span>
+              <span className="px-4 py-1 rounded-r-md bg-black peer-checked:bg-transparent peer-checked:text-black border border-black text-white transition-all duration-500">No</span>
+            </label>
+          </div>
+        </div>
+        <form className="grid grid-cols-2 gap-4" onSubmit={handleSubmit}>
           <div>
             <input
               label={t.mongodbSetup.username}
@@ -152,9 +164,12 @@ export default function MongoDBSetup() {
               type="text"
               required
               value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              onChange={(e) => {
+                setUsername(e.target.value);
+                handleChange(e);
+              }}
               placeholder={t.mongodbSetup.usernamePlaceholder}
-              className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+              className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500 text-sm"
             />
           </div>
           <div className="relative">
@@ -163,9 +178,12 @@ export default function MongoDBSetup() {
               type={showPassword ? "text" : "password"}
               required
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                handleChange(e);
+              }}
               placeholder={t.mongodbSetup.passwordPlaceholder}
-              className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+              className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500 text-sm"
             />
             <button
               type="button"
@@ -183,9 +201,12 @@ export default function MongoDBSetup() {
               type="text"
               required
               value={cluster}
-              onChange={(e) => setCluster(e.target.value)}
+              onChange={(e) => {
+                setCluster(e.target.value);
+                handleChange(e);
+              }}
               placeholder={t.mongodbSetup.clusterPlaceholder}
-              className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+              className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500 text-sm"
             />
           </div>
           <div>
@@ -195,16 +216,19 @@ export default function MongoDBSetup() {
               type="text"
               required
               value={host}
-              onChange={(e) => setHost(e.target.value)}
+              onChange={(e) => {
+                setHost(e.target.value);
+                handleChange(e);
+              }}
               placeholder={t.mongodbSetup.hostPlaceholder}
-              className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+              className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500 text-sm"
             />
           </div>
           <div className="col-span-2">
             <button
               type="submit"
               disabled={isLoading} // Disable button when loading
-              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full flex justify-center py-3 px-4 rounded-lg shadow-sm text-sm font-medium text-white bg-black border border-black hover:text-black hover:bg-transparent transition-all duration-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? t.mongodbSetup.verifying : t.mongodbSetup.submitButton}
             </button>
