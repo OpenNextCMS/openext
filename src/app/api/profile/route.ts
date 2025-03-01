@@ -79,11 +79,35 @@ export async function POST(req: NextRequest) {
       originalUser.password = await bcrypt.hash(newPassword, 10);
     }
     await originalUser.save();
-    return NextResponse.json({
+
+    // NEW: Generate a refreshed token with updated email
+    const jwtSecret = process.env.JWT_SECRET || 'your_jwt_secret';
+    const newToken = jwt.sign(
+      {
+        userId: originalUser._id,
+        email: originalUser.email,
+        username: originalUser.username,
+        siteTitle: originalUser.siteTitle,
+        role: originalUser.role,
+      },
+      jwtSecret,
+      { expiresIn: '24h' }
+    );
+
+    const response = NextResponse.json({
       success: true,
       data: originalUser,
       message: 'Profile updated successfully'
     });
+    
+    response.cookies.set('token', newToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 86400
+    });
+
+    return response;
   } catch (error: any) {
     return NextResponse.json({
       success: false,

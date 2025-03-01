@@ -1,12 +1,11 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { User, LogOut } from 'lucide-react';
+import { User } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import Cookies from 'js-cookie';
 import { useAvatar } from '@/context/AvatarContext';
 
-export default function Navbar({ user }: { user: { name: string; email: string } | null }) {
+export default function Navbar({ user }: { user: { username: string; email: string } | null }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { avatarUrl } = useAvatar();
@@ -35,7 +34,7 @@ export default function Navbar({ user }: { user: { name: string; email: string }
     <nav className="bg-white border-b shadow-sm fixed top-0 right-0 left-64 z-10">
       <div className="flex items-center justify-end px-6 h-16">
         <div className="flex items-center gap-4">
-          <span className="text-gray-700 font-medium">{user?.name}</span>
+          <span className="text-gray-700 font-medium">{user?.username}</span>
           
           <div ref={dropdownRef} className="relative">
             {/* Avatar Circle */}
@@ -47,7 +46,7 @@ export default function Navbar({ user }: { user: { name: string; email: string }
                 <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
               ) : (
                 <span className="text-white text-sm">
-                  {user?.name?.charAt(0)}
+                  {user?.username?.charAt(0)}
                 </span>
               )}
             </div>

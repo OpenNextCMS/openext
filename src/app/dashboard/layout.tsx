@@ -40,7 +40,6 @@ export default async function DashboardLayout({
       if (response?.success) {
         user = {
           _id: (response.user as IUser)._id.toString(),
-          name: response.user.name,
           username: response.user.username,
           email: response.user.email,
           siteTitle: response.user.siteTitle,

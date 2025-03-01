@@ -64,7 +64,6 @@ export default function SettingsPage() {
       try {
         const response = await fetch(`${backendUrl}/api/settings`);
         const result = await response.json();
-        console.log('API Response:', result);
         if (result.success && result.data.settings) {
           // Set settings data; use settings.siteTitle now
           setValue('siteTitle', result.data.settings.siteTitle || 'My Website');
