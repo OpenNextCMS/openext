@@ -111,7 +111,7 @@ export default function Sidebar() {
             {isUserOpen && (
               <div className="ml-10 mt-1 space-y-2">
                 <div 
-                  className="flex items-center space-x-2 p-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg"
+                  className="flex items-center space-x-2 p-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg cursor-pointer"
                   onClick={() => router.push('/dashboard/users/addUsers')}
                 >
                   <PlusCircle className="w-4 h-4" />

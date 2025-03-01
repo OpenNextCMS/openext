@@ -15,6 +15,7 @@ export interface IUser extends mongoose.Document {
   displayName?: string;
   website?: string;
   bio?: string;
+  active: boolean;  // Add this line
 }
 
 const userSchema = new mongoose.Schema({
@@ -31,6 +32,7 @@ const userSchema = new mongoose.Schema({
   displayName: { type: String },
   website: { type: String },
   bio: { type: String },
+  active: { type: Boolean, default: true },  // Add this line
 }, {
   timestamps: true
 });
