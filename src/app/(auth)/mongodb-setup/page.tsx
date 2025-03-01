@@ -94,12 +94,18 @@ export default function MongoDBSetup() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const [toggle, setToggle] = useState(false);
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 w-full py-2">
       <div className="w-full max-w-2xl mx-auto p-6 bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200">
+
+        {/* Title */}
         <div>
           <h2 className="mt-2 text-center text-3xl font-extrabold text-gray-900">{t.mongodbSetup.title}</h2>
         </div>
+
+        {/* Example */}
         <div className="mt-4 p-6 bg-gray-100 rounded-md">
           <h3 className="text-lg font-semibold mb-4">{t.mongodbSetup.mongodbExample}</h3>
           <div className="bg-white p-4 rounded-md shadow-sm overflow-x-auto">
@@ -146,94 +152,125 @@ export default function MongoDBSetup() {
             <strong>Note:</strong> The host is the part after the cluster name and before &quot;.mongodb.net&quot;
           </p>
         </div>
+
+        {/* Switch */}
         <div>
           <div className='flex flex-row items-center m-5 justify-end '>
             <p className='mx-5 text-lg font-medium text-gray-700'>Multiple Cluster?</p>
             <label htmlFor="Toggle3" className="inline-flex items-center p-1 rounded-md cursor-pointer">
               <input id="Toggle3" type="checkbox" className="hidden peer" />
-              <span className="px-3 py-1 rounded-l-md bg-transparent peer-checked:bg-black peer-checked:text-white border border-black text-black transition-all duration-500">Yes</span>
-              <span className="px-4 py-1 rounded-r-md bg-black peer-checked:bg-transparent peer-checked:text-black border border-black text-white transition-all duration-500">No</span>
+
+              <span
+                className={`px-3 py-1 rounded-l-md border border-black transition-all duration-500 
+                  ${toggle ? 'bg-black text-white' : 'bg-transparent text-black'}`}
+                onClick={() => setToggle(true)}
+              >
+                Yes
+              </span>
+
+              <span
+                className={`px-4 py-1 rounded-r-md border border-black transition-all duration-500 
+                  ${toggle ? 'bg-transparent text-black' : 'bg-black text-white'}`}
+                onClick={() => setToggle(false)}
+              >
+                No
+              </span>
             </label>
           </div>
         </div>
-        <form className="grid grid-cols-2 gap-4" onSubmit={handleSubmit}>
-          <div>
-            <input
-              label={t.mongodbSetup.username}
-              name="username"
-              type="text"
-              required
-              value={username}
-              onChange={(e) => {
-                setUsername(e.target.value);
-                handleChange(e);
-              }}
-              placeholder={t.mongodbSetup.usernamePlaceholder}
-              className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500 text-sm"
-            />
-          </div>
-          <div className="relative">
-            <input
-              name="password"
-              type={showPassword ? "text" : "password"}
-              required
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                handleChange(e);
-              }}
-              placeholder={t.mongodbSetup.passwordPlaceholder}
-              className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500 text-sm"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword((prev) => !prev)}
-              className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700 transition duration-150 ease-in-out"
-              aria-label={t.mongodbSetup.togglePasswordVisibility}
-            >
-              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-            </button>
-          </div>
-          <div>
-            <input
-              label={t.mongodbSetup.cluster}
-              name="cluster"
-              type="text"
-              required
-              value={cluster}
-              onChange={(e) => {
-                setCluster(e.target.value);
-                handleChange(e);
-              }}
-              placeholder={t.mongodbSetup.clusterPlaceholder}
-              className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500 text-sm"
-            />
-          </div>
-          <div>
-            <input
-              label={t.mongodbSetup.host}
-              name="host"
-              type="text"
-              required
-              value={host}
-              onChange={(e) => {
-                setHost(e.target.value);
-                handleChange(e);
-              }}
-              placeholder={t.mongodbSetup.hostPlaceholder}
-              className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500 text-sm"
-            />
-          </div>
-          <div className="col-span-2">
-            <button
-              type="submit"
-              disabled={isLoading} // Disable button when loading
-              className="w-full flex justify-center py-3 px-4 rounded-lg shadow-sm text-sm font-medium text-white bg-black border border-black hover:text-black hover:bg-transparent transition-all duration-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isLoading ? t.mongodbSetup.verifying : t.mongodbSetup.submitButton}
-            </button>
-          </div>
-        </form>
+
+        {
+          toggle ? (
+            <div>
+              <h1 className='text-center m-5'>In Development</h1>
+              <button className="w-full flex justify-center py-3 px-4 rounded-lg shadow-sm text-sm font-medium text-white bg-black border border-black hover:text-black hover:bg-transparent transition-all duration-500 disabled:opacity-50 disabled:cursor-not-allowed" onClick={() => setToggle(false)}>
+                Please use the Single Cluster instead
+              </button>
+            </div>
+          ) : (
+            <form className="grid grid-cols-2 gap-4" onSubmit={handleSubmit}>
+              <div>
+                <input
+                  label={t.mongodbSetup.username}
+                  name="username"
+                  type="text"
+                  required
+                  value={username}
+                  onChange={(e) => {
+                    setUsername(e.target.value);
+                    handleChange(e);
+                  }}
+                  placeholder={t.mongodbSetup.usernamePlaceholder}
+                  className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500 text-sm"
+                />
+              </div>
+              <div className="relative">
+                <input
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  required
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    handleChange(e);
+                  }}
+                  placeholder={t.mongodbSetup.passwordPlaceholder}
+                  className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500 text-sm"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700 transition duration-150 ease-in-out"
+                  aria-label={t.mongodbSetup.togglePasswordVisibility}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+              <div>
+                <input
+                  label={t.mongodbSetup.cluster}
+                  name="cluster"
+                  type="text"
+                  required
+                  value={cluster}
+                  onChange={(e) => {
+                    setCluster(e.target.value);
+                    handleChange(e);
+                  }}
+                  placeholder={t.mongodbSetup.clusterPlaceholder}
+                  className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500 text-sm"
+                />
+              </div>
+              <div>
+                <input
+                  label={t.mongodbSetup.host}
+                  name="host"
+                  type="text"
+                  required
+                  value={host}
+                  onChange={(e) => {
+                    setHost(e.target.value);
+                    handleChange(e);
+                  }}
+                  placeholder={t.mongodbSetup.hostPlaceholder}
+                  className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500 text-sm"
+                />
+              </div>
+              <div className="col-span-2">
+                <button
+                  type="submit"
+                  disabled={isLoading} // Disable button when loading
+                  className="w-full flex justify-center py-3 px-4 rounded-lg shadow-sm text-sm font-medium text-white bg-black border border-black hover:text-black hover:bg-transparent transition-all duration-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isLoading ? t.mongodbSetup.verifying : t.mongodbSetup.submitButton}
+                </button>
+              </div>
+            </form>
+          )
+        }
+
+
+
       </div>
     </div>
   );
