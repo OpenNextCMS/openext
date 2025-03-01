@@ -77,14 +77,14 @@ export async function POST(req: NextRequest) {
 
     const envContent = `
     JWT_SECRET=${jwtSecret}
-MONGODB_USERNAME=${username}
-MONGODB_PASSWORD=${password}
-MONGODB_HOST=${host}
-MONGODB_CLUSTER=${cluster}
-USER_DB_NAME=${userDbName}
-PAGE_DB_NAME=${pageDbName}
-isRegistration=true
-dbConnection=true
+    MONGODB_USERNAME=${username}
+    MONGODB_PASSWORD=${password}
+    MONGODB_HOST=${host}
+    MONGODB_CLUSTER=${cluster}
+    USER_DB_NAME=${userDbName}
+    PAGE_DB_NAME=${pageDbName}
+    isRegistration=true
+    dbConnection=true
     `;
     await fs.writeFile(envPath, envContent.trim(), { flag: 'w' });
 

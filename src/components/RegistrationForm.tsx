@@ -40,7 +40,6 @@ const NewRegisterForm = () => {
     const data = {
       siteTitle: formData.get('siteTitle') as string,
       username: formData.get('username') as string,
-      name: formData.get('name') as string,
       email: formData.get('email') as string,
       password: formData.get('password') as string,
       phoneNo: formData.get('phoneNo') as string,
@@ -132,22 +131,7 @@ const NewRegisterForm = () => {
               />
               {errors.siteTitle && <p className="mt-1 text-sm text-red-600">{errors.siteTitle}</p>}
             </div>
-
-            {/* Name */}
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                {t.register.name}
-              </label>
-              <input
-                id="name"
-                name="name"
-                placeholder={t.register.namePlaceholder}
-                required
-                className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500 text-sm"
-              />
-              {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
-            </div>
-
+          
             {/* Email */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
