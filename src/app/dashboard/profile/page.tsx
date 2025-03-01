@@ -56,7 +56,6 @@ export default function ProfilePage() {
         const response = await fetch(`${backendUrl}/api/profile`);
         const result = await response.json();
         
-        console.log('API Response:', result); // For debugging
 
         if (result.success && result.data) {
           // Populate form directly with data from the user object
@@ -93,8 +92,8 @@ export default function ProfilePage() {
   
       if (result.success) {
         console.log('Profile saved successfully');
-        handleSuccess(true, null, 'Profile updated successfully')
-        // You could add a success notification here
+        handleSuccess(true, null, 'Profile updated successfully');
+        window.location.reload(); // Automatically refresh the page
       } else {
         console.error('Failed to save profile:', result.message);
         // You could add an error notification here

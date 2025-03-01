@@ -4,6 +4,7 @@
 import { useState, useCallback } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { User } from 'lucide-react'
+import { toast } from 'react-hot-toast'
 
 export function ProfileUploader({ avatarUrl, onUpload }: {
   avatarUrl: string | null
@@ -26,8 +27,10 @@ export function ProfileUploader({ avatarUrl, onUpload }: {
         const data = await response.json()
         onUpload(data.filePath)
         localStorage.setItem('avatarUrl', data.filePath)
+        toast.success('Profile image uploaded successfully!')
       } catch (error) {
         console.error('Upload failed:', error)
+        toast.error('Failed to upload profile image.')
       } finally {
         setIsUploading(false)
       }

@@ -33,6 +33,6 @@ export async function POST(request: Request) {
       fileName: filename 
     })
   } catch (error) {
-    return NextResponse.json({ error: 'Error saving file' }, { status: 500 })
+    return NextResponse.json({ error: 'Error saving siteicon' }, { status: 500 })
   }
 }
