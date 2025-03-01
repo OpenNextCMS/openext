@@ -38,7 +38,7 @@ export default function LoginPage() {
       console.error('Failed to clear cookies');
     }
   };
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000'; // Use external backend URL if it exists
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000'; 
 
   useEffect(() => {
     const checkDbAndRedirect = async () => {
