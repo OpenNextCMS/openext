@@ -22,16 +22,16 @@ export default function DashboardPage() {
     }
   }, []);
 
+  
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000'; // Use external backend URL if it exists
   const clearAllCookies = async () => {
-    const response = await fetch('/api/clear-cookies', {
+    const response = await fetch(`${backendUrl}/api/clear-cookies`, {
       method: 'POST',
     });
     if (!response.ok) {
       console.error('Failed to clear cookies');
     }
   };
-
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000'; // Use external backend URL if it exists
 
   useEffect(() => {
     const checkDbAndRedirect = async () => {

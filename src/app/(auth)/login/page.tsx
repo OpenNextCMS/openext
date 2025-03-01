@@ -110,7 +110,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md  border border-gray-200">
         <h1 className="text-2xl font-bold mb-6 text-center">{t.login.title}</h1>
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
@@ -129,7 +129,7 @@ export default function LoginPage() {
               value={credentials.identifier}
               onChange={handleInputChange}
               required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gray-500 focus:border-gray-500"
               placeholder={t.login.identifierPlaceholder}
               disabled={isLoading}
             />
@@ -146,7 +146,7 @@ export default function LoginPage() {
                 value={credentials.password}
                 onChange={handleInputChange}
                 required
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gray-500 focus:border-gray-500"
                 placeholder={t.login.passwordPlaceholder}
                 disabled={isLoading}
               />
@@ -160,7 +160,7 @@ export default function LoginPage() {
           </div>
           <button
             type="submit"
-            className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
+            className="w-full bg-black text-white py-2 px-4 rounded-md border border-black hover:text-black hover:bg-transparent transition-all duration-500 disabled:opacity-50"
             disabled={isLoading}
           >
             {isLoading ? t.login.loggingIn : t.login.submit}
