@@ -15,7 +15,7 @@ export default function Body() {
                     className="hover:opacity-75 mx-auto"
                     priority
                 />
-                <h1 className="p-8 pb-5 font-extrabold sm:text-3xl md:text-4xl lg:text-5xl">
+                <h1 className="p-8 pb-5 font-extrabold sm:text-2xl md:text-3xl lg:text-4xl">
                     Build Faster, Smarter, Better -<br />
                     A
                     <span className="bg-gradient-to-r from-yellow-400 to-orange-600 bg-clip-text text-transparent">

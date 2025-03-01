@@ -52,7 +52,7 @@ export default function DatabaseSetup() {
           <div className="space-y-4">
             <div className="space-y-2">
               <label htmlFor="masterDb" className="block text-sm font-medium text-gray-700">
-                Master Database
+                Master Database <span className='text-[12px] font-semibold text-gray-500'> (Mandatory not changable) </span>
               </label>
               <input
                 id="masterDb"

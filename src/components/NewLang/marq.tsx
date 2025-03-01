@@ -35,7 +35,7 @@ const Marq = () => {
 
     return (
         <div className='absolute bottom-4 left-0 w-full px-4 sm:px-6 md:px-10'>
-            <p className="font-semibold text-gray-700 text-sm sm:text-base md:text-lg lg:text-xl text-center m-3 sm:m-5">
+            <p className="font-semibold text-gray-700 text-sm sm:text-base md:text-md lg:text-lg text-center m-3 sm:m-5">
                 Designed for performance, built for flexibility -<br />
                 Our CMS lets you create without limits. Experience the power of a
                 headless, API-driven CMS with Next.js speed and modular flexibility.
