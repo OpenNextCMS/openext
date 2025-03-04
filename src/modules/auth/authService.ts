@@ -60,7 +60,6 @@ export class AuthService {
 
     const user = await UserModel.create({
       username: data.username,
-      name: data.name,
       email: data.email,
       password: hashedPassword,
       phoneNumber: data.phoneNo,
@@ -91,7 +90,6 @@ export class AuthService {
       success: true,
       user: {
         _id: user._id,
-        name: user.name,
         username: user.username,
         email: user.email,
         phoneNumber: user.phoneNumber,
@@ -155,7 +153,6 @@ export class AuthService {
         token,
         user: {
           _id: user._id,
-          name: user.name,
           username: user.username,
           email: user.email,
           siteTitle: user.siteTitle,
@@ -176,7 +173,6 @@ export class AuthService {
       }
       const userObj = {
         _id: user._id,
-        name: user.name || '',
         username: user.username || '',
         email: user.email || '',
         siteTitle: user.siteTitle || '',
