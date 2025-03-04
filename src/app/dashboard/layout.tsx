@@ -2,7 +2,6 @@ import Sidebar from '@/components/Sidebar';
 import Navbar from '@/components/Navbar';
 import { cookies } from 'next/headers';
 import {jwtDecode} from 'jwt-decode';
-import mongoose from 'mongoose';
 import { IUser } from '@/models/User';
 import { AuthService } from '@/modules/auth/authService';
 import { AvatarProvider } from '@/context/AvatarContext';

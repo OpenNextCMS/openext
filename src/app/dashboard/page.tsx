@@ -4,7 +4,6 @@ import { translations } from '../../../public/locales/translations';
 import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation';
 import { handleError } from '@/utils/errorHandler';
-import { handleSuccess } from '@/utils/successHandler';
 
 export default function DashboardPage() {
   const [t, setT] = useState(translations.en);
@@ -36,7 +35,8 @@ export default function DashboardPage() {
   useEffect(() => {
     const checkDbAndRedirect = async () => {
       try {
-        const response = await fetch(`${backendUrl}/api/verify-connection`);
+        const apiUrl = backendUrl === 'http://localhost:3000' ? '/api/verify-connection' : '/api/api-sync';
+        const response = await fetch(`http://localhost:3000${apiUrl}`);
         if (!response.ok) {
           const errorText = await response.text();
           throw new Error(`Failed to fetch database connection status: ${errorText}`);
