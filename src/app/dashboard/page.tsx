@@ -118,23 +118,21 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex min-h-screen bg-background ">
       {/* Main Content */}
-      <div className="flex-1 overflow-auto">
-        <header className="sticky top-0 z-10 bg-background border-b border-border p-4">
-          <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold">{t.dashboard.welcome}</h1>
-            <div className="flex items-center gap-4">
-              <Button variant="outline" size="sm" className="hidden md:flex gap-2">
-                <Clock className="h-4 w-4" />
-                {new Date().toLocaleDateString()}
-              </Button>
-              <Button variant="outline" size="icon" className="md:hidden">
-                <LayoutDashboard className="h-4 w-4" />
-              </Button>
-            </div>
+      <div className="flex-1 w-auto overflow-hidden">
+        <div className="flex justify-between items-center z-10 bg-background border-b border-border p-4">
+          <h1 className="text-2xl font-bold">{t.dashboard.welcome}</h1>
+          <div className="flex items-center gap-4">
+            <Button variant="outline" size="sm" className="hidden md:flex gap-2">
+              <Clock className="h-4 w-4" />
+              {new Date().toLocaleDateString()}
+            </Button>
+            <Button variant="outline" size="icon" className="md:hidden">
+              <LayoutDashboard className="h-4 w-4" />
+            </Button>
           </div>
-        </header>
+        </div>
 
         <main className="p-4 md:p-6">
           {error && (
