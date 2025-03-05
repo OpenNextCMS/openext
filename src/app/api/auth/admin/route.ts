@@ -76,6 +76,8 @@ export async function POST(req: NextRequest) {
     const jwtSecret = crypto.randomBytes(32).toString('hex');
 
     const envContent = `
+    # NEXT CMS UNCOMMENT BELOW FOR EXTERNAL BACKEND USE (External APIs only)
+    # NEXT_PUBLIC_BACKEND_URL=http://localhost:5000
     JWT_SECRET=${jwtSecret}
     MONGODB_USERNAME=${username}
     MONGODB_PASSWORD=${password}

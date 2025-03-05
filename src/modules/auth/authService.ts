@@ -2,11 +2,10 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import type { RegisterInput } from './authValidation';
 import mongoose from 'mongoose';
-import { IUser, userSchema } from '@/models/User';
+import { IUser } from '@/models/User';
 import { ISettings, settingsSchema } from '@/models/Settings'; 
-import Role, { roleSchema } from '@/models/Role';
+import { roleSchema } from '@/models/Role';
 import dotenv from 'dotenv';
-import PageService from '@/modules/page/pageService';
 
 dotenv.config({ path: '.env.local' });
 
@@ -64,12 +63,12 @@ export class AuthService {
       password: hashedPassword,
       phoneNumber: data.phoneNo,
       role: roleDoc.value,
-      firstName: data.firstName || '',
-      lastName: data.lastName || '',
-      nickname: data.nickname || '',
-      displayName: data.displayName || '',
-      website: data.website || '',
-      bio: data.bio || ''
+      firstName: '',
+      lastName:  '',
+      nickname:  '',
+      displayName:  '',
+      website:  '',
+      bio: '' ,
     });
 
     const SettingsModel = UserModel.db.models.Settings ||
@@ -98,24 +97,6 @@ export class AuthService {
     };
   }
 
-  static async seedPageData(userId: string, pageDbUri: string) {
-    const pageDbConnection = await mongoose.createConnection(pageDbUri);
-
-    const defaultPageData = {
-      siteName: 'Dashboard',
-      pageName: 'Welcome Page',
-      data: {
-        html: '<div class="welcome-container"><header class="welcome-header"><h1>Welcome to the Dashboard</h1></header><main class="welcome-main"><p>This is the welcome page. Enjoy your stay!</p></main><footer class="welcome-footer"><p>© 2023 ATPL</p></footer></div>',
-        css: '.welcome-container { display: flex; flex-direction: column; min-height: 100vh; font-family: Arial, sans-serif; } .welcome-header, .welcome-footer { background-color: #282c34; color: white; text-align: center; padding: 1rem; } .welcome-main { flex: 1; display: flex; justify-content: center; align-items: center; padding: 2rem; } .welcome-main p { font-size: 1.5rem; color: #333; }',
-        styles: {}, 
-        components: {}, 
-      },
-      isPublished: false
-    };
-
-    await PageService.createPage(defaultPageData, userId);
-  }
-
   static async login(
     identifier: string,
     password: string,
@@ -141,7 +122,6 @@ export class AuthService {
           userId: user._id,
           email: user.email,
           username: user.username,
-          siteTitle: user.siteTitle,
           role: user.role,
         },
         AuthService.JWT_SECRET,
@@ -155,9 +135,8 @@ export class AuthService {
           _id: user._id,
           username: user.username,
           email: user.email,
-          siteTitle: user.siteTitle,
           phoneNumber: user.phoneNumber,
-          role: user.role,
+          role: user.role
         },
       };
     } catch (error) {
@@ -175,17 +154,17 @@ export class AuthService {
         _id: user._id,
         username: user.username || '',
         email: user.email || '',
-        siteTitle: user.siteTitle || '',
         phoneNumber: user.phoneNumber || '',
         firstName: user.firstName || '',
         lastName: user.lastName || '',
         nickname: user.nickname || '',
         displayName: user.displayName || '',
         website: user.website || '',
-        bio: user.bio || ''
+        bio: user.bio || '',
+        timestamps: user.timestamps,
       };
-      if (user.createdAt) {
-        userObj.createdAt = user.createdAt;
+      if (user.timestamps) {
+        userObj.timestamps = user.timestamps;
       }
       return {
         success: true,
