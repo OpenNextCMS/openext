@@ -1,174 +1,144 @@
 'use client'
-import { useState, useEffect } from 'react';
 
-interface UserData {
-  username: string;
-  name: string;
-  email: string;
-  password: string;
-  role: string;
-  phoneNumber: string;
-}
-interface Role {
-  name: string;
-  value: number;
-}
+import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { User, Mail, Lock, Phone } from "lucide-react";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
+import { toast } from "sonner";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+
+const userSchema = z.object({
+  username: z.string().min(2).max(50),
+  name: z.string().min(2).max(50),
+  email: z.string().email(),
+  password: z.string().min(8).optional().or(z.literal("")),
+  role: z.string().min(1),
+  phoneNumber: z.string().min(10).max(15)
+});
 
 export default function UserManagement() {
-  const [userData, setUserData] = useState<UserData>({
-    username: '',
-    name: '',
-    email: '',
-    password: '',
-    role: '',
-    phoneNumber: ''
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isDirty },
+    setValue
+  } = useForm({
+    resolver: zodResolver(userSchema),
+    defaultValues: { username: "", name: "", email: "", password: "", role: "", phoneNumber: "" }
   });
-  const [users, setUsers] = useState<UserData[]>([
-    {
-      username: 'john_doe',
-      name: 'John Doe',
-      email: 'john@example.com',
-      password: '********',
-      role: 'user',
-      phoneNumber: '555-1234'
-    }
-  ]);
-  const [roles, setRoles] = useState<Role[]>([]);
 
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
+  const [users, setUsers] = useState([]);
+  const [roles, setRoles] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000";
+
   useEffect(() => {
     const fetchRoles = async () => {
       try {
         const res = await fetch(`${backendUrl}/api/get-role`);
-        if (res.ok) {
-          const data = await res.json();
-          setRoles(data.roles || []);
-        }
+        const data = await res.json();
+        setRoles(data.roles || []);
       } catch (error) {
-        console.error('Failed to fetch roles:', error);
+        toast.error("Error fetching roles");
       }
     };
+
     fetchRoles();
-  }, []);
+  }, [backendUrl]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setUserData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (values) => {
+    setIsLoading(true);
     try {
-      const res = await fetch(`${backendUrl}/api/add-users`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(userData)
+      const response = await fetch(`${backendUrl}/api/add-user`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values)
       });
-      if (res.ok) {
-        const result = await res.json();
-        // Update local state with created user from db
-        setUsers(prev => [...prev, result.user]);
-        // ...existing code to clear form...
-        setUserData({
-          username: '',
-          name: '',
-          email: '',
-          password: '',
-          role: '',
-          phoneNumber: ''
-        });
+      const result = await response.json();
+      if (result.success) {
+        toast.success("User added successfully");
       } else {
-        console.error('Failed to add user');
+        toast.error("Failed to add user");
       }
     } catch (error) {
-      console.error('Error adding user:', error);
+      toast.error("Error saving user data");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">User Management</h1>
-      <form onSubmit={handleSubmit} className="bg-gray-50 p-6 rounded-lg mb-8 shadow-md">
-        <h2 className="text-xl font-semibold mb-4">Add New User</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Username</label>
-            <input
-              type="text"
-              name="username"
-              value={userData.username}
-              onChange={handleInputChange}
-              className="w-full p-2 border rounded"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Name</label>
-            <input
-              type="text"
-              name="name"
-              value={userData.name}
-              onChange={handleInputChange}
-              className="w-full p-2 border rounded"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Email</label>
-            <input
-              type="email"
-              name="email"
-              value={userData.email}
-              onChange={handleInputChange}
-              className="w-full p-2 border rounded"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Password</label>
-            <input
-              type="password"
-              name="password"
-              value={userData.password}
-              onChange={handleInputChange}
-              className="w-full p-2 border rounded"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Role</label>
-            <select
-              name="role"
-              value={userData.role}
-              onChange={handleInputChange}
-              className="w-full p-2 border rounded"
-              required
-            >
-              <option value="">Select Role</option>
-              {roles.map(role => (
-                <option key={role.value} value={role.value}>{role.name}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Phone Number</label>
-            <input
-              type="tel"
-              name="phoneNumber"
-              value={userData.phoneNumber}
-              onChange={handleInputChange}
-              className="w-full p-2 border rounded"
-              required
-            />
-          </div>
-        </div>
-        <button
-          type="submit"
-          className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-        >
-          Add User
-        </button>
-      </form>
-    </div>
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <Card>
+        <CardHeader>
+          <CardTitle>User Management</CardTitle>
+          <CardDescription>Manage users and roles</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Tabs defaultValue="userInfo">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="userInfo">User Info</TabsTrigger>
+              <TabsTrigger value="roles">Roles</TabsTrigger>
+            </TabsList>
+            <TabsContent value="userInfo" className="space-y-6">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="username">Username</Label>
+                  <Input id="username" {...register("username")} />
+                  {errors.username && <p className="text-sm text-destructive">{errors.username.message}</p>}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="name">Name</Label>
+                  <Input id="name" {...register("name")} />
+                  {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input id="email" {...register("email")} />
+                  {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <Input id="password" type="password" {...register("password")} />
+                  {errors.password && <p className="text-sm text-destructive">{errors.password.message}</p>}
+                </div>
+              </div>
+            </TabsContent>
+            <TabsContent value="roles" className="space-y-6">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="role">Role</Label>
+                  <Input id="role" {...register("role")} />
+                  {errors.role && <p className="text-sm text-destructive">{errors.role.message}</p>}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="phoneNumber">Phone Number</Label>
+                  <Input id="phoneNumber" {...register("phoneNumber")} />
+                  {errors.phoneNumber && <p className="text-sm text-destructive">{errors.phoneNumber.message}</p>}
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+        <Separator className="my-4" />
+        <CardFooter className="flex justify-between">
+          <Alert variant="default" className="w-2/3">
+            <User className="h-4 w-4" />
+            <AlertTitle>User Management</AlertTitle>
+            <AlertDescription>Manage users and roles effectively.</AlertDescription>
+          </Alert>
+          <Button type="submit" disabled={!isDirty || isLoading}>
+            {isLoading ? "Saving..." : "Save User"}
+          </Button>
+        </CardFooter>
+      </Card>
+    </form>
   );
 }

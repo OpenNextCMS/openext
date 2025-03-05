@@ -145,13 +145,7 @@ export default function Sidebar() {
           {/* Header */}
           <div className="p-4 flex items-center justify-between border-b">
             {!isCollapsed && (
-              // <h2
-              //   className="text-lg font-bold text-foreground cursor-pointer truncate"
-              //   onClick={() => router.push("/dashboard")}
-              // >
-              //   Admin Dashboard
-              // </h2>
-              <img src={img.src} alt="" width={170}/>
+              <img src={img.src} alt="" width={150} className="mx-5"/>
             )}
             {!isMobile && (
               <Button
