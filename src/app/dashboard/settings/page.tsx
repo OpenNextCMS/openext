@@ -20,6 +20,7 @@ import { Separator } from "@/components/ui/separator"
 import { Switch } from "@/components/ui/switch"
 import { AlertCircle, Check, Globe, Info, Upload } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 
 const formSchema = z.object({
   siteTitle: z.string().min(1, "Site title is required"),
@@ -68,6 +69,9 @@ export default function SettingsPage() {
   const [themes, setThemes] = useState<{ name: string; isActive: boolean }[]>([])
   const [now, setNow] = useState(new Date())
   const [isLoading, setIsLoading] = useState(false)
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false)
+  const [showErrorDialog, setShowErrorDialog] = useState(false)
+  const [errorMessage, setErrorMessage] = useState("")
 
   useEffect(() => {
     const interval = setInterval(() => setNow(new Date()), 1000)
@@ -177,232 +181,264 @@ export default function SettingsPage() {
 
       if (result.success) {
         Cookies.set("selectedLanguage", values.language, { expires: 7 })
-        toast.success("Settings updated successfully")
-        // Optionally reload or update state here
+        setShowSuccessDialog(true)
       } else {
-        toast.error("Failed to save settings: " + result.message)
+        setErrorMessage("Failed to save settings: " + result.message)
+        setShowErrorDialog(true)
       }
     } catch (error) {
       console.error("Error saving settings:", error)
-      toast.error("Error saving settings")
+      setErrorMessage("Error saving settings")
+      setShowErrorDialog(true)
     } finally {
       setIsLoading(false)
     }
   }
 
+  useEffect(() => {
+    if (showSuccessDialog) {
+      const timer = setTimeout(() => {
+        setShowSuccessDialog(false);
+      }, 3000); // Hide after 3 seconds
+
+      return () => clearTimeout(timer);
+    }
+  }, [showSuccessDialog]);
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <Card>
-        <CardHeader>
-          <CardTitle>{t.profileSettings.title}</CardTitle>
-          <CardDescription>{t.profileSettings.subtitle}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="site-info">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="site-info">Site Information</TabsTrigger>
-              <TabsTrigger value="localization">Localization</TabsTrigger>
-              <TabsTrigger value="appearance">Appearance</TabsTrigger>
-            </TabsList>
-            <TabsContent value="site-info" className="space-y-6">
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="siteTitle">{t.profileSettings.siteTitle}</Label>
-                  <Input
-                    id="siteTitle"
-                    {...register("siteTitle")}
-                    placeholder={t.profileSettings.siteTitlePlaceholder}
-                  />
-                  {errors.siteTitle && <p className="text-sm text-destructive mt-1">{errors.siteTitle.message}</p>}
-                </div>
-                <div>
-                  <Label htmlFor="tagline">{t.profileSettings.tagline}</Label>
-                  <Input id="tagline" {...register("tagline")} placeholder={t.profileSettings.taglinePlaceholder} />
-                </div>
-                <div>
-                  <Label>{t.profileSettings.siteIcon}</Label>
-                  <div className="flex items-center space-x-4 mt-2">
-                    <div className="w-16 h-16 border rounded-lg overflow-hidden flex items-center justify-center bg-secondary">
-                      {siteIcon ? (
-                        <img src={`/siteicon/${siteIcon}`} alt="Site Icon" className="w-full h-full object-cover" />
-                      ) : (
-                        <Globe className="text-muted-foreground" />
-                      )}
-                    </div>
-                    <div>
-                      <Input
-                        id="site-icon-upload"
-                        type="file"
-                        onChange={handleSiteIconChange}
-                        className="my-2"
-                        accept="image/*"
-                      />
-                      <Label
-                        htmlFor="site-icon-upload"
-                        className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-secondary text-secondary-foreground hover:bg-secondary/80 h-10 px-4 py-2 cursor-pointer"
-                      >
-                        <Upload className="mr-2 h-4 w-4" />
-                        {siteIcon ? "Change Icon" : "Upload Icon"}
-                      </Label>
-                    </div>
+    <>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <Card>
+          <CardHeader>
+            <CardTitle>{t.profileSettings.title}</CardTitle>
+            <CardDescription>{t.profileSettings.subtitle}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Tabs defaultValue="site-info">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="site-info">Site Information</TabsTrigger>
+                <TabsTrigger value="localization">Localization</TabsTrigger>
+                <TabsTrigger value="appearance">Appearance</TabsTrigger>
+              </TabsList>
+              <TabsContent value="site-info" className="space-y-6">
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="siteTitle">{t.profileSettings.siteTitle}</Label>
+                    <Input
+                      id="siteTitle"
+                      {...register("siteTitle")}
+                      placeholder={t.profileSettings.siteTitlePlaceholder}
+                    />
+                    {errors.siteTitle && <p className="text-sm text-destructive mt-1">{errors.siteTitle.message}</p>}
                   </div>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Recommended size: 512×512 pixels. Supported formats: JPG, PNG, GIF (max 2MB)
-                  </p>
+                  <div>
+                    <Label htmlFor="tagline">{t.profileSettings.tagline}</Label>
+                    <Input id="tagline" {...register("tagline")} placeholder={t.profileSettings.taglinePlaceholder} />
+                  </div>
+                  <div>
+                    <Label>{t.profileSettings.siteIcon}</Label>
+                    <div className="flex items-center space-x-4 mt-2">
+                      <div className="w-16 h-16 border rounded-lg overflow-hidden flex items-center justify-center bg-secondary">
+                        {siteIcon ? (
+                          <img src={`/siteicon/${siteIcon}`} alt="Site Icon" className="w-full h-full object-cover" />
+                        ) : (
+                          <Globe className="text-muted-foreground" />
+                        )}
+                      </div>
+                      <div>
+                        <Input
+                          id="site-icon-upload"
+                          type="file"
+                          onChange={handleSiteIconChange}
+                          className="my-2"
+                          accept="image/*"
+                        />
+                        <Label
+                          htmlFor="site-icon-upload"
+                          className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-secondary text-secondary-foreground hover:bg-secondary/80 h-10 px-4 py-2 cursor-pointer"
+                        >
+                          <Upload className="mr-2 h-4 w-4" />
+                          {siteIcon ? "Change Icon" : "Upload Icon"}
+                        </Label>
+                      </div>
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-2">
+                      Recommended size: 512×512 pixels. Supported formats: JPG, PNG, GIF (max 2MB)
+                    </p>
+                  </div>
                 </div>
-              </div>
-            </TabsContent>
-            <TabsContent value="localization" className="space-y-6">
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="language">{t.profileSettings.language}</Label>
-                  <Controller
-                    name="language"
-                    control={control}
-                    render={({ field }) => (
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select language" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {languages.map((lang) => (
-                            <SelectItem key={lang.value} value={lang.value}>
-                              {lang.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
-                  />
+              </TabsContent>
+              <TabsContent value="localization" className="space-y-6">
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="language">{t.profileSettings.language}</Label>
+                    <Controller
+                      name="language"
+                      control={control}
+                      render={({ field }) => (
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select language" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {languages.map((lang) => (
+                              <SelectItem key={lang.value} value={lang.value}>
+                                {lang.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="timeZone">{t.profileSettings.timeZone}</Label>
+                    <Controller
+                      name="timeZone"
+                      control={control}
+                      render={({ field }) => (
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select time zone" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {timeZones.map((zone) => (
+                              <SelectItem key={zone} value={zone}>
+                                {zone}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="dateFormat">{t.profileSettings.dateFormat}</Label>
+                    <Controller
+                      name="dateFormat"
+                      control={control}
+                      render={({ field }) => (
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select date format" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {dateFormats.map((format) => (
+                              <SelectItem key={format.value} value={format.value}>
+                                {format.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="timeFormat">{t.profileSettings.timeFormat}</Label>
+                    <Controller
+                      name="timeFormat"
+                      control={control}
+                      render={({ field }) => (
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select time format" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {timeFormats.map((format) => (
+                              <SelectItem key={format.value} value={format.value}>
+                                {format.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                  </div>
                 </div>
-                <div>
-                  <Label htmlFor="timeZone">{t.profileSettings.timeZone}</Label>
-                  <Controller
-                    name="timeZone"
-                    control={control}
-                    render={({ field }) => (
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select time zone" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {timeZones.map((zone) => (
-                            <SelectItem key={zone} value={zone}>
-                              {zone}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
-                  />
+              </TabsContent>
+              <TabsContent value="appearance" className="space-y-6">
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="activeTheme">Active Theme</Label>
+                    <Controller
+                      name="activeTheme"
+                      control={control}
+                      render={({ field }) => (
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a theme" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {!themes.some((theme) => theme.isActive) && (
+                              <SelectItem value="default">Select a theme</SelectItem>
+                            )}
+                            {themes.map((theme) => (
+                              <SelectItem key={theme.name} value={theme.name}>
+                                {theme.name} {theme.isActive ? "(Active)" : ""}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Controller
+                      name="enableDarkMode"
+                      control={control}
+                      render={({ field }) => (
+                        <Switch checked={field.value} onCheckedChange={field.onChange} id="dark-mode" />
+                      )}
+                    />
+                    <Label htmlFor="dark-mode">Enable Dark Mode</Label>
+                  </div>
                 </div>
-                <div>
-                  <Label htmlFor="dateFormat">{t.profileSettings.dateFormat}</Label>
-                  <Controller
-                    name="dateFormat"
-                    control={control}
-                    render={({ field }) => (
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select date format" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {dateFormats.map((format) => (
-                            <SelectItem key={format.value} value={format.value}>
-                              {format.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="timeFormat">{t.profileSettings.timeFormat}</Label>
-                  <Controller
-                    name="timeFormat"
-                    control={control}
-                    render={({ field }) => (
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select time format" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {timeFormats.map((format) => (
-                            <SelectItem key={format.value} value={format.value}>
-                              {format.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
-                  />
-                </div>
-              </div>
-            </TabsContent>
-            <TabsContent value="appearance" className="space-y-6">
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="activeTheme">Active Theme</Label>
-                  <Controller
-                    name="activeTheme"
-                    control={control}
-                    render={({ field }) => (
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a theme" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {!themes.some((theme) => theme.isActive) && (
-                            <SelectItem value="default">Select a theme</SelectItem>
-                          )}
-                          {themes.map((theme) => (
-                            <SelectItem key={theme.name} value={theme.name}>
-                              {theme.name} {theme.isActive ? "(Active)" : ""}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
-                  />
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Controller
-                    name="enableDarkMode"
-                    control={control}
-                    render={({ field }) => (
-                      <Switch checked={field.value} onCheckedChange={field.onChange} id="dark-mode" />
-                    )}
-                  />
-                  <Label htmlFor="dark-mode">Enable Dark Mode</Label>
-                </div>
-              </div>
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-        <Separator className="my-4" />
-        <CardFooter className="flex justify-between">
-          <Alert variant="default" className="w-2/3">
-            <Info className="h-4 w-4" />
-            <AlertTitle>Heads up!</AlertTitle>
-            <AlertDescription>Changing some settings may require a page reload to take effect.</AlertDescription>
-          </Alert>
-          <Button type="submit" disabled={!isDirty || isLoading}>
-            {isLoading ? (
-              <>
-                <AlertCircle className="mr-2 h-4 w-4 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              <>
-                <Check className="mr-2 h-4 w-4" />
-                {t.profileSettings.saveChanges}
-              </>
-            )}
-          </Button>
-        </CardFooter>
-      </Card>
-    </form>
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+          <Separator className="my-4" />
+          <CardFooter className="flex justify-between">
+            <Alert variant="default" className="w-2/3">
+              <Info className="h-4 w-4" />
+              <AlertTitle>Heads up!</AlertTitle>
+              <AlertDescription>Changing some settings may require a page reload to take effect.</AlertDescription>
+            </Alert>
+            <Button type="submit" disabled={!isDirty || isLoading}>
+              {isLoading ? (
+                <>
+                  <AlertCircle className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Check className="mr-2 h-4 w-4" />
+                  {t.profileSettings.saveChanges}
+                </>
+              )}
+            </Button>
+          </CardFooter>
+        </Card>
+      </form>
+
+      <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Settings Updated</DialogTitle>
+            <DialogDescription className="text-green-600">Your settings have been successfully updated.</DialogDescription>
+          </DialogHeader>
+          <Button onClick={() => setShowSuccessDialog(false)}>Close</Button>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showErrorDialog} onOpenChange={setShowErrorDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Error</DialogTitle>
+            <DialogDescription>{errorMessage}</DialogDescription>
+          </DialogHeader>
+          <Button onClick={() => setShowErrorDialog(false)}>Close</Button>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }
-
