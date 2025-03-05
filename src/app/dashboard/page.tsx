@@ -85,7 +85,8 @@ export default function DashboardPage() {
     const checkDbAndRedirect = async () => {
       try {
         setLoading(true)
-        const response = await fetch(`${backendUrl}/api/verify-connection`)
+        const apiUrl = backendUrl === 'http://localhost:3000' ? '/api/verify-connection' : '/api/api-sync';
+        const response = await fetch(`http://localhost:3000${apiUrl}`);
 
         if (!response.ok) {
           const errorText = await response.text()
