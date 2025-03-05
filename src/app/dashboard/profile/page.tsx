@@ -1,32 +1,66 @@
-'use client';
+"use client"
 
-import { useState, useEffect } from 'react';
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
-import { Globe, Mail } from "lucide-react";
-import { ProfileUploader } from '@/components/ProfileUploader';
-import { useRouter } from 'next/navigation';
-import Cookies from 'js-cookie';
-import { handleSuccess } from '@/utils/successHandler';
-import { useAvatar } from '@/context/AvatarContext';
-import { translations } from '../../../../public/locales/translations';
+import { useState, useEffect } from "react"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useForm } from "react-hook-form"
+import * as z from "zod"
+import { Globe, Mail, User, Pencil, Key } from "lucide-react"
+import { ProfileUploader } from "@/components/ProfileUploader"
+import { useRouter } from "next/navigation"
+import Cookies from "js-cookie"
+import { useAvatar } from "@/context/AvatarContext"
+import { translations } from "../../../../public/locales/translations"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Button } from "@/components/ui/button"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Separator } from "@/components/ui/separator"
+import { toast } from "sonner"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 const formSchema = z.object({
-  username: z.string().min(2).max(50),
-  firstName: z.string().min(2).max(50),
-  lastName: z.string().min(2).max(50),
-  nickname: z.string().min(2).max(50),
-  displayName: z.string().min(2).max(50),
-  email: z.string().email(),
-  website: z.string().url().optional().or(z.literal('')),
-  bio: z.string().max(500).optional().or(z.literal('')),
-  newPassword: z.string().min(8).max(50).optional().or(z.literal(''))
-});
+  username: z
+    .string()
+    .min(2, "Username must be at least 2 characters")
+    .max(50, "Username must be at most 50 characters"),
+  firstName: z
+    .string()
+    .min(2, "First name must be at least 2 characters")
+    .max(50, "First name must be at most 50 characters"),
+  lastName: z
+    .string()
+    .min(2, "Last name must be at least 2 characters")
+    .max(50, "Last name must be at most 50 characters"),
+  nickname: z
+    .string()
+    .min(2, "Nickname must be at least 2 characters")
+    .max(50, "Nickname must be at most 50 characters"),
+  displayName: z
+    .string()
+    .min(2, "Display name must be at least 2 characters")
+    .max(50, "Display name must be at most 50 characters"),
+  email: z.string().email("Invalid email address"),
+  website: z.string().url("Invalid URL").optional().or(z.literal("")),
+  bio: z.string().max(500, "Bio must be at most 500 characters").optional().or(z.literal("")),
+  newPassword: z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .max(50, "Password must be at most 50 characters")
+    .optional()
+    .or(z.literal("")),
+})
 
 export default function ProfilePage() {
-  const { avatarUrl, setAvatarUrl } = useAvatar();
-  const { register, handleSubmit, formState: { errors }, setValue } = useForm<z.infer<typeof formSchema>>({
+  const { avatarUrl, setAvatarUrl } = useAvatar()
+  const {
+    control,
+    register,
+    handleSubmit,
+    formState: { errors, isDirty },
+    setValue,
+  } = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       username: "",
@@ -39,219 +73,191 @@ export default function ProfilePage() {
       bio: "",
       newPassword: "",
     },
-  });
-  const router = useRouter();
-  const [t, setT] = useState(translations.en);
+  })
+  const router = useRouter()
+  const [t, setT] = useState(translations.en)
+  const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
-    const langFromCookie = Cookies.get('selectedLanguage') || 'en';
-    setT(translations[langFromCookie as keyof typeof translations]);
-  }, []);
+    const langFromCookie = Cookies.get("selectedLanguage") || "en"
+    setT(translations[langFromCookie as keyof typeof translations])
+  }, [])
 
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000"
 
   useEffect(() => {
     const fetchUserData = async () => {
+      setIsLoading(true)
       try {
-        const response = await fetch(`${backendUrl}/api/profile`);
-        const result = await response.json();
-        
+        const response = await fetch(`${backendUrl}/api/profile`)
+        const result = await response.json()
 
         if (result.success && result.data) {
-          // Populate form directly with data from the user object
-          setValue('username', result.data.username || '');
-          setValue('email', result.data.email || '');
-          setValue('firstName', result.data.firstName || '');
-          setValue('lastName', result.data.lastName || '');
-          setValue('nickname', result.data.nickname || '');
-          setValue('displayName', result.data.displayName || '');
-          setValue('website', result.data.website || '');
-          setValue('bio', result.data.bio || '');
+          Object.keys(result.data).forEach((key) => {
+            if (key in formSchema.shape) {
+              setValue(key as keyof z.infer<typeof formSchema>, result.data[key] || "")
+            }
+          })
         } else {
-          console.error('Failed to fetch profile data:', result.message);
+          toast.error("Failed to fetch profile data: " + result.message)
         }
       } catch (error) {
-        console.error('Error fetching profile:', error);
+        console.error("Error fetching profile:", error)
+        toast.error("Error fetching profile data")
+      } finally {
+        setIsLoading(false)
       }
-    };
+    }
 
-    fetchUserData();
-  }, [setValue]);
+    fetchUserData()
+  }, [setValue, backendUrl])
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    setIsLoading(true)
     try {
-      const response = await fetch('/api/profile', {
-        method: 'POST',
+      const response = await fetch("/api/profile", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(values),
-      });
-  
-      const result = await response.json();
-  
+      })
+
+      const result = await response.json()
+
       if (result.success) {
-        console.log('Profile saved successfully');
-        handleSuccess(true, null, 'Profile updated successfully');
-        window.location.reload(); // Automatically refresh the page
+        toast.success("Profile updated successfully")
+        // Optionally refresh data or update state here instead of full page reload
       } else {
-        console.error('Failed to save profile:', result.message);
-        // You could add an error notification here
+        toast.error("Failed to save profile: " + result.message)
       }
     } catch (error) {
-      console.error('Error saving profile:', error);
+      console.error("Error saving profile:", error)
+      toast.error("Error saving profile")
+    } finally {
+      setIsLoading(false)
     }
-  };
+  }
 
   return (
-    <div className="max-w-8xl mx-auto">
-      <h1 className="text-3xl font-bold text-gray-800 mb-2">{t.profile.title}</h1>
-      <p className="text-gray-600 mb-8">{t.profile.subtitle}</p>
-
-      {/* Profile Picture Section */}
-      <div className="mb-8 pb-8 border-b">
-        <h2 className="text-xl font-semibold text-gray-800 mb-4">{t.profile.profilePicture}</h2>
-        <ProfileUploader 
-          avatarUrl={avatarUrl}
-          onUpload={(url) => setAvatarUrl(url)}
-        />
-      </div>
-
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-        {/* Personal Information Section */}
-        <div className="mb-8 pb-8 border-b">
-          <h2 className="text-xl font-semibold text-gray-800 mb-6">{t.profile.personalInfo}</h2>
-          <div className="space-y-6">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">{t.profile.username}</label>
-                <input
-                  {...register('username')}
-                  className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder={t.profile.username}
-                />
-                {errors.username && <span className="text-red-500 text-sm">{errors.username.message?.toString()}</span>}
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <Card>
+        <CardHeader>
+          <CardTitle>{t.profile.title}</CardTitle>
+          <CardDescription>{t.profile.subtitle}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Tabs defaultValue="personal">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="personal">Personal Info</TabsTrigger>
+              <TabsTrigger value="contact">Contact</TabsTrigger>
+              <TabsTrigger value="account">Account</TabsTrigger>
+            </TabsList>
+            <TabsContent value="personal" className="space-y-6">
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="profilePicture">{t.profile.profilePicture}</Label>
+                  <ProfileUploader avatarUrl={avatarUrl} onUpload={(url) => setAvatarUrl(url)} />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="username">{t.profile.username}</Label>
+                    <Input id="username" {...register("username")} placeholder={t.profile.username} />
+                    {errors.username && <p className="text-sm text-destructive">{errors.username.message}</p>}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="nickname">{t.profile.nickname}</Label>
+                    <Input id="nickname" {...register("nickname")} placeholder={t.profile.nickname} />
+                    {errors.nickname && <p className="text-sm text-destructive">{errors.nickname.message}</p>}
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="firstName">{t.profile.firstName}</Label>
+                    <Input id="firstName" {...register("firstName")} placeholder={t.profile.firstName} />
+                    {errors.firstName && <p className="text-sm text-destructive">{errors.firstName.message}</p>}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="lastName">{t.profile.lastName}</Label>
+                    <Input id="lastName" {...register("lastName")} placeholder={t.profile.lastName} />
+                    {errors.lastName && <p className="text-sm text-destructive">{errors.lastName.message}</p>}
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="displayName">{t.profile.displayName}</Label>
+                  <Input id="displayName" {...register("displayName")} placeholder={t.profile.displayName} />
+                  {errors.displayName && <p className="text-sm text-destructive">{errors.displayName.message}</p>}
+                </div>
               </div>
-
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">
-                  {t.profile.nickname}
-                </label>
-                <input
-                  {...register('nickname')}
-                  className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder={t.profile.nickname}
-                />
-                {errors.nickname && <span className="text-red-500 text-sm">{errors.nickname.message?.toString()}</span>}
+            </TabsContent>
+            <TabsContent value="contact" className="space-y-6">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email">{t.profile.email}</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input id="email" {...register("email")} className="pl-10" placeholder={t.profile.email} />
+                  </div>
+                  {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="website">{t.profile.website}</Label>
+                  <div className="relative">
+                    <Globe className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input id="website" {...register("website")} className="pl-10" placeholder={t.profile.website} />
+                  </div>
+                  {errors.website && <p className="text-sm text-destructive">{errors.website.message}</p>}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="bio">{t.profile.bio}</Label>
+                  <Textarea id="bio" {...register("bio")} placeholder={t.profile.bioPlaceholder} className="h-32" />
+                  {errors.bio && <p className="text-sm text-destructive">{errors.bio.message}</p>}
+                </div>
               </div>
-
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">{t.profile.firstName}</label>
-                <input
-                  {...register('firstName')}
-                  className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder={t.profile.firstName}
-                />
-                {errors.firstName && <span className="text-red-500 text-sm">{errors.firstName.message?.toString()}</span>}
+            </TabsContent>
+            <TabsContent value="account" className="space-y-6">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="newPassword">{t.profile.newPassword}</Label>
+                  <div className="relative">
+                    <Key className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="newPassword"
+                      type="password"
+                      {...register("newPassword")}
+                      className="pl-10"
+                      placeholder={t.profile.newPasswordPlaceholder}
+                    />
+                  </div>
+                  <p className="text-sm text-muted-foreground">{t.profile.passwordNote}</p>
+                  {errors.newPassword && <p className="text-sm text-destructive">{errors.newPassword.message}</p>}
+                </div>
               </div>
-
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">{t.profile.lastName}</label>
-                <input
-                  {...register('lastName')}
-                  className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder={t.profile.lastName}
-                />
-                {errors.lastName && <span className="text-red-500 text-sm">{errors.lastName.message?.toString()}</span>}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">{t.profile.displayName}</label>
-                <input
-                  {...register('displayName')}
-                  className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder={t.profile.displayName}
-                />
-                {errors.displayName && <span className="text-red-500 text-sm">{errors.displayName.message?.toString()}</span>}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Contact Information Section */}
-        <div className="mb-8 pb-8 border-b">
-          <h2 className="text-xl font-semibold text-gray-800 mb-6">{t.profile.contactInfo}</h2>
-          <div className="space-y-6">
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">{t.profile.email}</label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                <input
-                  {...register('email')}
-                  className="w-full pl-10 p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder={t.profile.email}
-                />
-              </div>
-              {errors.email && <span className="text-red-500 text-sm">{errors.email.message?.toString()}</span>}
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">{t.profile.website}</label>
-              <div className="relative">
-                <Globe className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                <input
-                  {...register('website')}
-                  className="w-full pl-10 p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder={t.profile.website}
-                />
-              </div>
-              {errors.website && <span className="text-red-500 text-sm">{errors.website.message?.toString()}</span>}
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">{t.profile.bio}</label>
-              <textarea
-                {...register('bio')}
-                className="w-full p-2 border rounded-md h-32 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder={t.profile.bioPlaceholder}
-              />
-              {errors.bio && <span className="text-red-500 text-sm">{errors.bio.message?.toString()}</span>}
-            </div>
-          </div>
-        </div>
-
-        {/* Account Management Section */}
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold text-gray-800 mb-6">{t.profile.accountManagement}</h2>
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">{t.profile.newPassword}</label>
-            <input
-              type="password"
-              {...register('newPassword')}
-              className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder={t.profile.newPasswordPlaceholder}
-            />
-            <p className="text-gray-500 text-sm mt-1">
-              {t.profile.passwordNote}
-            </p>
-            {errors.newPassword && <span className="text-red-500 text-sm">{errors.newPassword.message?.toString()}</span>}
-          </div>
-        </div>
-
-        <div className="flex justify-end">
-          <button
-            type="submit"
-            className="px-6 py-2 bg-gray-900 text-white rounded-md hover:bg-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2"
-          >
-            {t.profile.saveChanges}
-          </button>
-        </div>
-      </form>
-    </div>
-  );
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+        <Separator className="my-4" />
+        <CardFooter className="flex justify-between">
+          <Alert variant="info" className="w-2/3">
+            <User className="h-4 w-4" />
+            <AlertTitle>Profile Update</AlertTitle>
+            <AlertDescription>Your changes will be reflected immediately after saving.</AlertDescription>
+          </Alert>
+          <Button type="submit" disabled={!isDirty || isLoading}>
+            {isLoading ? (
+              <>
+                <Pencil className="mr-2 h-4 w-4 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Pencil className="mr-2 h-4 w-4" />
+                {t.profile.saveChanges}
+              </>
+            )}
+          </Button>
+        </CardFooter>
+      </Card>
+    </form>
+  )
 }

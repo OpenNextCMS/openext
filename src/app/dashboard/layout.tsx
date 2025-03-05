@@ -58,7 +58,7 @@ export default async function DashboardLayout({
 
         <div className="flex-1">
           <Navbar user={user} />
-          <main className="bg-gray-50 mt-16">
+          <main className="bg-gray-50 m-5 mt-[5.25rem]">
             {children}
           </main>
         </div>
