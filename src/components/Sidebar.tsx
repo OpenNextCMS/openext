@@ -1,5 +1,7 @@
 'use client';
 
+const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
+
 import { useRouter } from 'next/navigation';
 import { LayoutDashboard, FileText, LogOut, ChevronDown, List, PlusCircle, Palette, User, Settings } from 'lucide-react'; // Added Settings
 import { useState } from 'react';
@@ -14,7 +16,7 @@ export default function Sidebar() {
   const handleLogout = async () => {
     try {
       // Call API to remove the token
-      const response = await fetch('/api/logout', { method: 'GET' });
+      const response = await fetch(`${backendUrl}/api/logout`, { method: 'GET' });
 
       if (response.ok) {
         handleSuccess(true,null,'Logout Successfull')
