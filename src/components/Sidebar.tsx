@@ -22,6 +22,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
+import img from "../../public/img/openNext.png"
 
 const navItems = [
   {
@@ -144,12 +145,13 @@ export default function Sidebar() {
           {/* Header */}
           <div className="p-4 flex items-center justify-between border-b">
             {!isCollapsed && (
-              <h2
-                className="text-lg font-bold text-foreground cursor-pointer truncate"
-                onClick={() => router.push("/dashboard")}
-              >
-                Admin Dashboard
-              </h2>
+              // <h2
+              //   className="text-lg font-bold text-foreground cursor-pointer truncate"
+              //   onClick={() => router.push("/dashboard")}
+              // >
+              //   Admin Dashboard
+              // </h2>
+              <img src={img.src} alt="" width={170}/>
             )}
             {!isMobile && (
               <Button
