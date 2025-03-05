@@ -14,7 +14,8 @@ export interface IUser extends mongoose.Document {
   displayName?: string;
   website?: string;
   bio?: string;
-  active: boolean;  // Add this line
+  active: boolean;
+  timestamps: Date; // Add this line
 }
 
 const userSchema = new mongoose.Schema({

@@ -1,4 +1,6 @@
-"use client"
+'use client';
+
+const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
 
 import { useRouter, usePathname } from "next/navigation"
 import { useEffect, useState } from "react"
@@ -88,7 +90,9 @@ export default function Sidebar() {
 
   const handleLogout = async () => {
     try {
-      const response = await fetch("/api/logout", { method: "GET" })
+      // Call API to remove the token
+      const response = await fetch(`${backendUrl}/api/logout`, { method: 'GET' });
+
       if (response.ok) {
         handleSuccess(true, null, "Logout Successful")
         router.push("/login")

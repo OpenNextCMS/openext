@@ -1,12 +1,8 @@
 import Sidebar from '@/components/Sidebar';
 import Navbar from '@/components/Navbar';
 import { cookies } from 'next/headers';
-import { jwtDecode } from 'jwt-decode';
-import { IUser } from '@/models/User';
-import { AuthService } from '@/modules/auth/authService';
 import { AvatarProvider } from '@/context/AvatarContext';
 import { redirect } from 'next/navigation';
-import { getUserDbConnection } from '@/utils/db';  // Add this import
 
 export default async function DashboardLayout({
   children,
@@ -19,35 +15,29 @@ export default async function DashboardLayout({
 
   if (!token) {
     redirect('/login');
+    return null; // Prevent further execution
   }
 
   if (token) {
     try {
-      const decodedToken: any = jwtDecode(token);
-      const email = decodedToken.email;
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000'; 
 
-      // Get the database connection
-      const userDb = await getUserDbConnection();
-      if (!userDb) {
-        throw new Error('Failed to connect to database');
-      }
+      const response = await fetch(`${backendUrl}/api/dashboard`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-      // Get the User model from the connection
-      const UserModel = userDb.model<IUser>('User');
-      const response = await AuthService.getUserByEmail(email, UserModel);
-
-      if (response?.success) {
-        user = {
-          _id: (response.user as IUser)._id.toString(),
-          username: response.user.username,
-          email: response.user.email,
-          siteTitle: response.user.siteTitle,
-          phoneNumber: response.user.phoneNumber,
-        };
+      if (response.ok) {
+        const data = await response.json();
+        user = data.user;
+      } else {
+        throw new Error('Failed to fetch user data');
       }
     } catch (error) {
       console.error('Layout error:', error);
       redirect('/login');
+      return null; // Prevent further execution
     }
   }
 
