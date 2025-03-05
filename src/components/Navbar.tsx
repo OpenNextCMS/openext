@@ -31,8 +31,8 @@ export default function Navbar({ user }: { user: { username: string; email: stri
   }, [dropdownRef]);
 
   return (
-    <nav className="bg-white border-b shadow-sm fixed top-0 right-0 left-64 z-10">
-      <div className="flex items-center justify-end px-6 h-16">
+    <nav className="bg-white border-b shadow-sm fixed top-0 right-0 w-full z-10">
+      <div className="flex items-center justify-end px-6 h-16 overflow-auto">
         <div className="flex items-center gap-4">
           <span className="text-gray-700 font-medium">{user?.username}</span>
           

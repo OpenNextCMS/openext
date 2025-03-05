@@ -56,7 +56,7 @@ export default async function DashboardLayout({
     <div className="flex min-h-screen">
       <Sidebar />
       
-      <div className="flex-1 ml-64">
+      <div className="flex-1">
         <Navbar user={user} />
         <main className="p-8 bg-gray-50 min-h-screen mt-16">
           {children}
