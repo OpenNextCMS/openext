@@ -43,7 +43,8 @@ export default function LoginPage() {
   useEffect(() => {
     const checkDbAndRedirect = async () => {
       try {
-        const response = await fetch(`${backendUrl}/api/verify-connection`);
+        const apiUrl = backendUrl === 'http://localhost:3000' ? '/api/verify-connection' : '/api/api-sync';
+        const response = await fetch(`http://localhost:3000${apiUrl}`);
         if (!response.ok) {
           const errorText = await response.text();
           throw new Error(`Failed to fetch database connection status: ${errorText}`);
@@ -91,6 +92,7 @@ export default function LoginPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(credentials),
+        credentials: 'include',
       });
 
       const data = await response.json();
