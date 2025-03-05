@@ -1,7 +1,7 @@
 import Sidebar from '@/components/Sidebar';
 import Navbar from '@/components/Navbar';
 import { cookies } from 'next/headers';
-import {jwtDecode} from 'jwt-decode';
+import { jwtDecode } from 'jwt-decode';
 import { IUser } from '@/models/User';
 import { AuthService } from '@/modules/auth/authService';
 import { AvatarProvider } from '@/context/AvatarContext';
@@ -25,7 +25,7 @@ export default async function DashboardLayout({
     try {
       const decodedToken: any = jwtDecode(token);
       const email = decodedToken.email;
-      
+
       // Get the database connection
       const userDb = await getUserDbConnection();
       if (!userDb) {
@@ -35,7 +35,7 @@ export default async function DashboardLayout({
       // Get the User model from the connection
       const UserModel = userDb.model<IUser>('User');
       const response = await AuthService.getUserByEmail(email, UserModel);
-      
+
       if (response?.success) {
         user = {
           _id: (response.user as IUser)._id.toString(),
@@ -53,16 +53,16 @@ export default async function DashboardLayout({
 
   return (
     <AvatarProvider>
-    <div className="flex min-h-screen">
-      <Sidebar />
-      
-      <div className="flex-1">
-        <Navbar user={user} />
-        <main className="p-8 bg-gray-50 min-h-screen mt-16">
-          {children}
-        </main>
+      <div className="flex min-h-screen">
+        <Sidebar />
+
+        <div className="flex-1">
+          <Navbar user={user} />
+          <main className="bg-gray-50 mt-16">
+            {children}
+          </main>
+        </div>
       </div>
-    </div>
     </AvatarProvider>
   );
 }

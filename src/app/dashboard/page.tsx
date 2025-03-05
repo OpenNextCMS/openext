@@ -117,9 +117,9 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex min-h-screen bg-background ">
       {/* Main Content */}
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 w-auto overflow-hidden">
         <header className="sticky top-0 z-10 bg-background border-b border-border p-4">
           <div className="flex justify-between items-center">
             <h1 className="text-2xl font-bold">{t.dashboard.welcome}</h1>
