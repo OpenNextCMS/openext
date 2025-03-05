@@ -1,381 +1,408 @@
-'use client';
+"use client"
 
-import { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from 'zod';
-import { handleSuccess } from '@/utils/successHandler';
-import { languageNames, translations } from '../../../../public/locales/translations';
-import Cookies from 'js-cookie';
-import moment from 'moment-timezone';
-import toast from 'react-hot-toast';
+import type React from "react"
+
+import { useState, useEffect } from "react"
+import { useForm, Controller } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import * as z from "zod"
+import { languageNames, translations } from "../../../../public/locales/translations"
+import Cookies from "js-cookie"
+import moment from "moment-timezone"
+import { toast } from "sonner"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Button } from "@/components/ui/button"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Separator } from "@/components/ui/separator"
+import { Switch } from "@/components/ui/switch"
+import { AlertCircle, Check, Globe, Info, Upload } from "lucide-react"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 const formSchema = z.object({
-  siteTitle: z.string().min(1),
+  siteTitle: z.string().min(1, "Site title is required"),
   tagline: z.string().optional(),
   siteIcon: z.string().optional(),
-  language: z.string().min(2),
-  timeZone: z.string().min(2),
-  dateFormat: z.string().min(2),
-  timeFormat: z.string().min(2),
-  activeTheme: z.string().optional()
-});
+  language: z.string().min(2, "Language is required"),
+  timeZone: z.string().min(2, "Time zone is required"),
+  dateFormat: z.string().min(2, "Date format is required"),
+  timeFormat: z.string().min(2, "Time format is required"),
+  activeTheme: z.string().optional(),
+  enableDarkMode: z.boolean().optional(),
+})
 
 const languages = Object.entries(languageNames).map(([code, name]) => ({
   value: code,
   label: name,
-}));
+}))
 
-const timeZones = moment.tz.names();
+const timeZones = moment.tz.names()
 
 export default function SettingsPage() {
-  const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<z.infer<typeof formSchema>>({
+  const {
+    control,
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors, isDirty },
+  } = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      siteTitle: '',
-      tagline: '',
-      siteIcon: '',
-      language: 'en',
-      timeZone: 'UTC',
-      dateFormat: 'F j, Y',
-      timeFormat: 'g:i a',
-      activeTheme: ''
+      siteTitle: "",
+      tagline: "",
+      siteIcon: "",
+      language: "en",
+      timeZone: "UTC",
+      dateFormat: "MMMM D, YYYY",
+      timeFormat: "h:mm a",
+      activeTheme: "default",
+      enableDarkMode: false,
     },
-  });
-  const siteIcon = watch('siteIcon'); // watch current siteIcon value
+  })
+  const siteIcon = watch("siteIcon")
 
-  const [t, setT] = useState(translations.en);
-  const [themes, setThemes] = useState<{ name: string; isActive: boolean }[]>([]);
-  const [now, setNow] = useState(new Date());
-
-  useEffect(() => {
-    const interval = setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(interval);
-  }, []);
+  const [t, setT] = useState(translations.en)
+  const [themes, setThemes] = useState<{ name: string; isActive: boolean }[]>([])
+  const [now, setNow] = useState(new Date())
+  const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
-    const langFromCookie = Cookies.get('selectedLanguage') || 'en';
-    setT(translations[langFromCookie as keyof typeof translations]);
-  }, []);
+    const interval = setInterval(() => setNow(new Date()), 1000)
+    return () => clearInterval(interval)
+  }, [])
 
   useEffect(() => {
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
+    const langFromCookie = Cookies.get("selectedLanguage") || "en"
+    setT(translations[langFromCookie as keyof typeof translations])
+  }, [])
+
+  useEffect(() => {
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000"
     const fetchSettingsData = async () => {
       try {
-        const response = await fetch(`${backendUrl}/api/settings`);
-        const result = await response.json();
+        setIsLoading(true)
+        const response = await fetch(`${backendUrl}/api/settings`)
+        const result = await response.json()
         if (result.success && result.data.settings) {
-          // Set settings data; use settings.siteTitle now
-          setValue('siteTitle', result.data.settings.siteTitle || 'My Website');
-          setValue('tagline', result.data.settings.tagline || '');
-          setValue('siteIcon', result.data.settings.siteIcon || '');
-          setValue('language', result.data.settings.language || 'en');
-          setValue('timeZone', result.data.settings.timeZone || 'UTC');
-          setValue('dateFormat', result.data.settings.dateFormat || 'F j, Y');
-          setValue('timeFormat', result.data.settings.timeFormat || 'g:i a');
-          const settingsThemes = result.data.settings.themes || [];
-            const uniqueThemes: { name: string; isActive: boolean }[] = Array.from(new Set(settingsThemes.map(theme => theme.name)))
-            .map(name => settingsThemes.find(theme => theme.name === name) as { name: string; isActive: boolean });
-          // Sort so active theme is first if it exists
-          uniqueThemes.sort((a, b) => (b.isActive ? 1 : 0) - (a.isActive ? 1 : 0));
-          setThemes(uniqueThemes);
+          setValue("siteTitle", result.data.settings.siteTitle || "My Website")
+          setValue("tagline", result.data.settings.tagline || "")
+          setValue("siteIcon", result.data.settings.siteIcon || "")
+          setValue("language", result.data.settings.language || "en")
+          setValue("timeZone", result.data.settings.timeZone || "UTC")
+          setValue("dateFormat", result.data.settings.dateFormat || "MMMM D, YYYY")
+          setValue("timeFormat", result.data.settings.timeFormat || "h:mm a")
+          setValue("enableDarkMode", result.data.settings.enableDarkMode || false)
+          const settingsThemes = result.data.settings.themes || []
+          const uniqueThemes = Array.from(new Set(settingsThemes.map((theme) => theme.name))).map(
+            (name) => settingsThemes.find((theme) => theme.name === name) as { name: string; isActive: boolean },
+          )
+          uniqueThemes.sort((a, b) => (b.isActive ? 1 : 0) - (a.isActive ? 1 : 0))
+          setThemes(uniqueThemes)
           if (uniqueThemes.length > 0 && uniqueThemes[0].isActive) {
-            setValue('activeTheme', uniqueThemes[0].name);
+            setValue("activeTheme", uniqueThemes[0].name)
           } else {
-            setValue('activeTheme', '');
+            setValue("activeTheme", "default")
           }
         }
       } catch (error) {
-        console.error('Error fetching settings:', error);
+        console.error("Error fetching settings:", error)
+        toast.error("Failed to load settings")
+      } finally {
+        setIsLoading(false)
       }
-    };
-
-    // Retrieve selected language from cookies
-    const storedLanguage = Cookies.get("selectedLanguage");
-    if (storedLanguage) {
-      setValue('language', storedLanguage);
     }
 
-    fetchSettingsData();
-  }, [setValue]);
+    const storedLanguage = Cookies.get("selectedLanguage")
+    if (storedLanguage) {
+      setValue("language", storedLanguage)
+    }
 
-  // NEW: Handler for uploading siteIcon file
+    fetchSettingsData()
+  }, [setValue])
+
   const handleSiteIconChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const formData = new FormData();
-    formData.append('file', file);
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000"
+    const file = e.target.files?.[0]
+    if (!file) return
+    const formData = new FormData()
+    formData.append("file", file)
     try {
       const res = await fetch(`${backendUrl}/api/siteicon`, {
-        method: 'POST',
+        method: "POST",
         body: formData,
-      });
-      const result = await res.json();
+      })
+      const result = await res.json()
       if (result.success && result.fileName) {
-        setValue('siteIcon', result.fileName);
-        toast.success('Site icon uploaded successfully');
+        setValue("siteIcon", result.fileName, { shouldDirty: true })
+        toast.success("Site icon uploaded successfully")
       } else {
-        toast.error('Failed to upload site icon');
+        toast.error("Failed to upload site icon")
       }
     } catch (error) {
-      console.error('SiteIcon upload error:', error);
-      toast.error('Site icon upload error');
+      console.error("SiteIcon upload error:", error)
+      toast.error("Site icon upload error")
     }
-  };
+  }
 
-  // NEW: Dynamic Date Formats using current date/time
   const dateFormats = [
     { label: moment(now).format("MMMM D, YYYY"), value: "MMMM D, YYYY" },
     { label: moment(now).format("YYYY-MM-DD"), value: "YYYY-MM-DD" },
     { label: moment(now).format("MM/DD/YYYY"), value: "MM/DD/YYYY" },
     { label: moment(now).format("DD/MM/YYYY"), value: "DD/MM/YYYY" },
-  ];
-  
-  // NEW: Dynamic Time Formats using current time
+  ]
+
   const timeFormats = [
     { label: moment(now).format("h:mm a"), value: "h:mm a" },
     { label: moment(now).format("h:mm A"), value: "h:mm A" },
     { label: moment(now).format("HH:mm"), value: "HH:mm" },
-  ];
+  ]
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    console.log(values)
-    const requestData = {
-      ...values, // Other settings
-    };
-
-    // Update selected language and store in cookies
-    Cookies.set("selectedLanguage", values.language, { expires: 7 }); // Expires in 7 days
-
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
+    setIsLoading(true)
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000"
 
     try {
       const response = await fetch(`${backendUrl}/api/settings`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(requestData),
-      });
-  
-      const result = await response.json();
-  
+        body: JSON.stringify(values),
+      })
+
+      const result = await response.json()
+
       if (result.success) {
-        handleSuccess(true, null, 'Settings updated successfully');
-        window.location.reload();
+        Cookies.set("selectedLanguage", values.language, { expires: 7 })
+        toast.success("Settings updated successfully")
+        // Optionally reload or update state here
       } else {
-        console.error('Failed to save settings:', result.message);
+        toast.error("Failed to save settings: " + result.message)
       }
     } catch (error) {
-      console.error('Error saving settings:', error);
+      console.error("Error saving settings:", error)
+      toast.error("Error saving settings")
+    } finally {
+      setIsLoading(false)
     }
-  };
+  }
 
   return (
-    <div className="max-w-8xl mx-auto">
-      <h1 className="text-3xl font-bold text-gray-800 mb-2">{t.profileSettings.title}</h1>
-      <p className="text-gray-600 mb-8">{t.profileSettings.subtitle}</p>
-
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-        <div className="mb-8 pb-8 border-b">
-          <h2 className="text-xl font-semibold text-gray-800 mb-6">{t.profileSettings.siteInformation}</h2>
-          <div className="space-y-6">
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">{t.profileSettings.siteTitle}</label>
-              <input
-                {...register('siteTitle')}
-                className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder={t.profileSettings.siteTitlePlaceholder}
-              />
-              {errors.siteTitle && <span className="text-red-500 text-sm">{errors.siteTitle.message?.toString()}</span>}
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">{t.profileSettings.tagline}</label>
-              <input
-                {...register('tagline')}
-                className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder={t.profileSettings.taglinePlaceholder}
-              />
-              {errors.tagline && <span className="text-red-500 text-sm">{errors.tagline.message?.toString()}</span>}
-            </div>
-
-            {/* Replace siteIcon text input with file input and preview */}
-            <div className="space-y-4">
-  <label className="block text-sm font-medium text-gray-700">{t.profileSettings.siteIcon}</label>
-  
-  <div className="flex items-start space-x-6">
-    {/* Icon Preview */}
-    <div className={`relative flex-shrink-0 w-32 h-32 rounded-lg overflow-hidden bg-gray-100 border-2 ${siteIcon ? 'border-blue-400' : 'border-dashed border-gray-300'} flex items-center justify-center`}>
-      {siteIcon ? (
-        <img 
-          src={`/siteicon/${siteIcon}`} 
-          alt="Site Icon Preview" 
-          className="w-full h-full object-cover"
-        />
-      ) : (
-        <div className="text-gray-400 flex flex-col items-center">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-          </svg>
-          <span className="text-xs font-medium">No icon</span>
-        </div>
-      )}
-    </div>
-    
-    {/* Upload Controls */}
-    <div className="flex-grow space-y-3">
-      <div className="relative">
-        <div className="flex items-center justify-between">
-          <label 
-            htmlFor="site-icon-upload" 
-            className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 cursor-pointer"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0l-4 4m4-4v12" />
-            </svg>
-            {siteIcon ? 'Change Icon' : 'Upload Icon'}
-          </label>
-          
-          {siteIcon && (
-            <button
-              type="button"
-              onClick={() => setValue('siteIcon', '')}
-              className="ml-2 inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
-              Remove
-            </button>
-          )}
-        </div>
-        
-        <input
-          id="site-icon-upload"
-          type="file"
-          onChange={handleSiteIconChange}
-          className="sr-only"
-          accept="image/*"
-        />
-      </div>
-      
-      <div className="text-xs text-gray-500">
-        <p>Recommended size: 512×512 pixels</p>
-        <p>Supported formats: JPG, PNG, GIF (max 2MB)</p>
-        
-        {siteIcon && (
-          <p className="mt-1 text-green-600 font-medium">
-            Current file: {siteIcon}
-          </p>
-        )}
-      </div>
-    </div>
-  </div>
-  
-  {errors.siteIcon && (
-    <div className="text-red-500 text-sm bg-red-50 px-3 py-2 rounded border border-red-200">
-      {errors.siteIcon.message?.toString()}
-    </div>
-  )}
-</div>
-          </div>
-        </div>
-
-        <div className="mb-8 pb-8 border-b">
-          <h2 className="text-xl font-semibold text-gray-800 mb-6">{t.profileSettings.localization}</h2>
-          <div className="space-y-6">
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">{t.profileSettings.language}</label>
-              <select
-                {...register('language')}
-                className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                {languages.map((lang) => (
-                  <option key={lang.value} value={lang.value}>
-                    {lang.label}
-                  </option>
-                ))}
-              </select>
-              {errors.language && <span className="text-red-500 text-sm">{errors.language.message?.toString()}</span>}
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">{t.profileSettings.timeZone}</label>
-              <select
-                {...register('timeZone')}
-                className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                {timeZones.map((zone) => (
-                  <option key={zone} value={zone}>
-                    {zone}
-                  </option>
-                ))}
-              </select>
-              {errors.timeZone && <span className="text-red-500 text-sm">{errors.timeZone.message?.toString()}</span>}
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">{t.profileSettings.dateFormat}</label>
-              <select
-                {...register('dateFormat')}
-                className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                {dateFormats.map((format) => (
-                  <option key={format.value} value={format.value}>
-                    {format.label}
-                  </option>
-                ))}
-              </select>
-              {errors.dateFormat && <span className="text-red-500 text-sm">{errors.dateFormat.message?.toString()}</span>}
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">{t.profileSettings.timeFormat}</label>
-              <select
-                {...register('timeFormat')}
-                className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                {timeFormats.map((format) => (
-                  <option key={format.value} value={format.value}>
-                    {format.label}
-                  </option>
-                ))}
-              </select>
-              {errors.timeFormat && <span className="text-red-500 text-sm">{errors.timeFormat.message?.toString()}</span>}
-            </div>
-          </div>
-        </div>
-
-        <div className="mb-8 pb-8 border-b">
-          <h2 className="text-xl font-semibold text-gray-800 mb-6">Theme Settings</h2>
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">Active Theme</label>
-            <select
-              {...register('activeTheme')}
-              className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              {!themes.some(theme => theme.isActive) && <option value="">Select a theme</option>}
-              {themes.map(theme => (
-                <option key={theme.name} value={theme.name}>
-                  {theme.name} {theme.isActive ? '(Active)' : ''}
-                </option>
-              ))}
-            </select>
-            {errors.activeTheme && <span className="text-red-500 text-sm">{errors.activeTheme.message?.toString()}</span>}
-          </div>
-        </div>
-
-        <div className="flex justify-end">
-          <button
-            type="submit"
-            className="px-6 py-2 bg-gray-900 text-white rounded-md hover:bg-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2"
-          >
-            {t.profileSettings.saveChanges}
-          </button>
-        </div>
-      </form>
-    </div>
-  );
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <Card>
+        <CardHeader>
+          <CardTitle>{t.profileSettings.title}</CardTitle>
+          <CardDescription>{t.profileSettings.subtitle}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Tabs defaultValue="site-info">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="site-info">Site Information</TabsTrigger>
+              <TabsTrigger value="localization">Localization</TabsTrigger>
+              <TabsTrigger value="appearance">Appearance</TabsTrigger>
+            </TabsList>
+            <TabsContent value="site-info" className="space-y-6">
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="siteTitle">{t.profileSettings.siteTitle}</Label>
+                  <Input
+                    id="siteTitle"
+                    {...register("siteTitle")}
+                    placeholder={t.profileSettings.siteTitlePlaceholder}
+                  />
+                  {errors.siteTitle && <p className="text-sm text-destructive mt-1">{errors.siteTitle.message}</p>}
+                </div>
+                <div>
+                  <Label htmlFor="tagline">{t.profileSettings.tagline}</Label>
+                  <Input id="tagline" {...register("tagline")} placeholder={t.profileSettings.taglinePlaceholder} />
+                </div>
+                <div>
+                  <Label>{t.profileSettings.siteIcon}</Label>
+                  <div className="flex items-center space-x-4 mt-2">
+                    <div className="w-16 h-16 border rounded-lg overflow-hidden flex items-center justify-center bg-secondary">
+                      {siteIcon ? (
+                        <img src={`/siteicon/${siteIcon}`} alt="Site Icon" className="w-full h-full object-cover" />
+                      ) : (
+                        <Globe className="text-muted-foreground" />
+                      )}
+                    </div>
+                    <div>
+                      <Input
+                        id="site-icon-upload"
+                        type="file"
+                        onChange={handleSiteIconChange}
+                        className="my-2"
+                        accept="image/*"
+                      />
+                      <Label
+                        htmlFor="site-icon-upload"
+                        className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-secondary text-secondary-foreground hover:bg-secondary/80 h-10 px-4 py-2 cursor-pointer"
+                      >
+                        <Upload className="mr-2 h-4 w-4" />
+                        {siteIcon ? "Change Icon" : "Upload Icon"}
+                      </Label>
+                    </div>
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Recommended size: 512×512 pixels. Supported formats: JPG, PNG, GIF (max 2MB)
+                  </p>
+                </div>
+              </div>
+            </TabsContent>
+            <TabsContent value="localization" className="space-y-6">
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="language">{t.profileSettings.language}</Label>
+                  <Controller
+                    name="language"
+                    control={control}
+                    render={({ field }) => (
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select language" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {languages.map((lang) => (
+                            <SelectItem key={lang.value} value={lang.value}>
+                              {lang.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="timeZone">{t.profileSettings.timeZone}</Label>
+                  <Controller
+                    name="timeZone"
+                    control={control}
+                    render={({ field }) => (
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select time zone" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {timeZones.map((zone) => (
+                            <SelectItem key={zone} value={zone}>
+                              {zone}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="dateFormat">{t.profileSettings.dateFormat}</Label>
+                  <Controller
+                    name="dateFormat"
+                    control={control}
+                    render={({ field }) => (
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select date format" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {dateFormats.map((format) => (
+                            <SelectItem key={format.value} value={format.value}>
+                              {format.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="timeFormat">{t.profileSettings.timeFormat}</Label>
+                  <Controller
+                    name="timeFormat"
+                    control={control}
+                    render={({ field }) => (
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select time format" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {timeFormats.map((format) => (
+                            <SelectItem key={format.value} value={format.value}>
+                              {format.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                </div>
+              </div>
+            </TabsContent>
+            <TabsContent value="appearance" className="space-y-6">
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="activeTheme">Active Theme</Label>
+                  <Controller
+                    name="activeTheme"
+                    control={control}
+                    render={({ field }) => (
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a theme" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {!themes.some((theme) => theme.isActive) && (
+                            <SelectItem value="default">Select a theme</SelectItem>
+                          )}
+                          {themes.map((theme) => (
+                            <SelectItem key={theme.name} value={theme.name}>
+                              {theme.name} {theme.isActive ? "(Active)" : ""}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Controller
+                    name="enableDarkMode"
+                    control={control}
+                    render={({ field }) => (
+                      <Switch checked={field.value} onCheckedChange={field.onChange} id="dark-mode" />
+                    )}
+                  />
+                  <Label htmlFor="dark-mode">Enable Dark Mode</Label>
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+        <Separator className="my-4" />
+        <CardFooter className="flex justify-between">
+          <Alert variant="default" className="w-2/3">
+            <Info className="h-4 w-4" />
+            <AlertTitle>Heads up!</AlertTitle>
+            <AlertDescription>Changing some settings may require a page reload to take effect.</AlertDescription>
+          </Alert>
+          <Button type="submit" disabled={!isDirty || isLoading}>
+            {isLoading ? (
+              <>
+                <AlertCircle className="mr-2 h-4 w-4 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Check className="mr-2 h-4 w-4" />
+                {t.profileSettings.saveChanges}
+              </>
+            )}
+          </Button>
+        </CardFooter>
+      </Card>
+    </form>
+  )
 }
+
