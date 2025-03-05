@@ -9,7 +9,6 @@ export default function Navbar({ user }: { user: { username: string; email: stri
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { avatarUrl } = useAvatar();
-  // const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const router = useRouter();
 
   const navigateTo = (path: string) => {
@@ -28,11 +27,11 @@ export default function Navbar({ user }: { user: { username: string; email: stri
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [dropdownRef]);
+  }, []);
 
   return (
     <nav className="bg-white border-b shadow-sm fixed top-0 right-0 w-full z-10">
-      <div className="flex items-center justify-end px-6 h-16 overflow-auto">
+      <div className="flex items-center justify-end px-6 h-16">
         <div className="flex items-center gap-4">
           <span className="text-gray-700 font-medium">{user?.username}</span>
           
@@ -53,7 +52,7 @@ export default function Navbar({ user }: { user: { username: string; email: stri
 
             {/* Dropdown Menu */}
             {isDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border">
+              <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border z-50">
                 <div className="p-4 border-b">
                   <p className="text-sm font-medium text-gray-600">{user?.email}</p>
                 </div>
