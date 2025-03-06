@@ -1,13 +1,11 @@
 "use client"
 import { useState, useEffect } from 'react';
-import { Pencil, User, Key } from "lucide-react";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { User } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Separator } from "@/components/ui/separator";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 interface User {
   _id: string;
@@ -120,7 +118,7 @@ export default function UserList() {
       });
 
       if (!response.ok) throw new Error('Failed to update user');
-      
+
       setIsEditModalOpen(false);
       fetchUsers();
     } catch (err) {
@@ -154,40 +152,42 @@ export default function UserList() {
   }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <Card className="p-6 mx-auto">
       <div className="sm:flex sm:items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">User Management</h1>
+        <CardHeader>
+          <CardTitle>User Management</CardTitle>
+        </CardHeader>
         <span className="sm:ml-4 mt-2 sm:mt-0 bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full">
           {users.length} users
         </span>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+        <CardContent className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   User
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                </TableHead>
+                <TableHead className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Contact
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                </TableHead>
+                <TableHead className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Role
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                </TableHead>
+                <TableHead className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                </TableHead>
+                <TableHead className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody className="bg-white divide-y divide-gray-200">
               {users.map((user) => (
-                <tr key={user._id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 whitespace-nowrap">
+                <TableRow key={user._id} className="hover:bg-gray-50 transition-colors">
+                  <TableCell className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <div className="flex-shrink-0 h-10 w-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-medium">
                         {user.username.charAt(0)}
@@ -197,31 +197,30 @@ export default function UserList() {
                         <div className="text-sm text-gray-500">@{user.username}</div>
                       </div>
                     </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  </TableCell>
+                  <TableCell className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">{user.email}</div>
                     <div className="text-sm text-gray-500">{user.phoneNumber}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${
-                      rolesMapping.find(role => role.value === Number(user.role))?.name === 'admin' 
-                        ? 'bg-red-100 text-red-800' 
-                        : rolesMapping.find(role => role.value === Number(user.role))?.name === 'editor'
+                  </TableCell>
+                  <TableCell className="px-6 py-4 whitespace-nowrap">
+                    <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${rolesMapping.find(role => role.value === Number(user.role))?.name === 'admin'
+                      ? 'bg-red-100 text-red-800'
+                      : rolesMapping.find(role => role.value === Number(user.role))?.name === 'editor'
                         ? 'bg-purple-100 text-purple-800'
                         : 'bg-blue-100 text-blue-800'
-                    }`}>
+                      }`}>
                       {rolesMapping.find(role => role.value === Number(user.role))?.name || user.role}
                     </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span 
+                  </TableCell>
+                  <TableCell className="px-6 py-4 whitespace-nowrap">
+                    <span
                       className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
                         ${user.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}
                     >
                       {user.active ? 'Active' : 'Inactive'}
                     </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  </TableCell>
+                  <TableCell className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex gap-2">
                       <Button onClick={() => openEditModal(user)} variant="outline">
                         Edit
@@ -233,19 +232,19 @@ export default function UserList() {
                         {user.active ? 'Deactivate' : 'Activate'}
                       </Button>
                     </div>
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
               {users.length === 0 && (
-                <tr>
-                  <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
+                <TableRow>
+                  <TableCell colSpan={5} className="px-6 py-8 text-center text-gray-500">
                     No users found
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               )}
-            </tbody>
-          </table>
-        </div>
+            </TableBody>
+          </Table>
+        </CardContent>
       </div>
 
       {isEditModalOpen && (
@@ -260,7 +259,7 @@ export default function UserList() {
                     id="username"
                     type="text"
                     value={editForm.username}
-                    onChange={(e) => setEditForm({...editForm, username: e.target.value})}
+                    onChange={(e) => setEditForm({ ...editForm, username: e.target.value })}
                     disabled
                   />
                 </div>
@@ -270,7 +269,7 @@ export default function UserList() {
                     id="email"
                     type="email"
                     value={editForm.email}
-                    onChange={(e) => setEditForm({...editForm, email: e.target.value})}
+                    onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
                   />
                 </div>
                 <div>
@@ -279,7 +278,7 @@ export default function UserList() {
                     id="phoneNumber"
                     type="text"
                     value={editForm.phoneNumber}
-                    onChange={(e) => setEditForm({...editForm, phoneNumber: e.target.value})}
+                    onChange={(e) => setEditForm({ ...editForm, phoneNumber: e.target.value })}
                   />
                 </div>
                 <div>
@@ -287,7 +286,7 @@ export default function UserList() {
                   <select
                     id="role"
                     value={editForm.role}
-                    onChange={(e) => setEditForm({...editForm, role: Number(e.target.value)})}
+                    onChange={(e) => setEditForm({ ...editForm, role: Number(e.target.value) })}
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                   >
                     {rolesMapping.map((role) => (
@@ -310,6 +309,6 @@ export default function UserList() {
           </div>
         </div>
       )}
-    </div>
+    </Card>
   );
 }
