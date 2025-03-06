@@ -238,7 +238,7 @@ export default function ProfilePage() {
         </CardContent>
         <Separator className="my-4" />
         <CardFooter className="flex justify-between">
-          <Alert variant="info" className="w-2/3">
+          <Alert variant="default" className="w-2/3">
             <User className="h-4 w-4" />
             <AlertTitle>Profile Update</AlertTitle>
             <AlertDescription>Your changes will be reflected immediately after saving.</AlertDescription>
