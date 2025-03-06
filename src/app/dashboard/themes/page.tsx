@@ -56,8 +56,8 @@ export default function AddThemePage() {
     };
 
     return (
-        <div className="flex items-center justify-center min-h-screen">
-            <div className="max-w-xl mx-auto p-8 bg-white dark:bg-gray-800 shadow-lg rounded-lg">
+        <div className="flex items-center justify-center min-h-[75vh]">
+            <div className="max-w-xl mx-auto p-8 bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200">
                 <h1 className="text-3xl font-bold mb-6 text-center text-gray-800 dark:text-white">Theme Manager</h1>
 
                 <div className="mb-8">
@@ -104,8 +104,8 @@ export default function AddThemePage() {
                     className={`w-full py-4 px-6 rounded-lg shadow-md flex items-center justify-center space-x-3 text-white font-medium transition-all duration-200 ${!file
                             ? 'bg-gray-400 cursor-not-allowed'
                             : isLoading
-                                ? 'bg-blue-600'
-                                : 'bg-blue-600 hover:bg-blue-700 active:bg-blue-800'
+                                ? 'bg-gray-600'
+                                : 'bg-gray-600 hover:bg-gray-700 active:bg-gray-800'
                         }`}
                 >
                     {isLoading ? (
@@ -123,7 +123,7 @@ export default function AddThemePage() {
 
                 {file && (
                     <p className="mt-4 text-sm text-center text-gray-500 dark:text-gray-400">
-                        Ready to install: <span className="font-medium text-blue-500">{file.name}</span>
+                        Ready to install: <span className="font-medium text-green-500">{file.name}</span>
                     </p>
                 )}
             </div>

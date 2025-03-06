@@ -1,15 +1,23 @@
 "use client"
 import { useState, useEffect } from 'react';
+import { Pencil, User, Key } from "lucide-react";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface User {
-  _id: string;  // Changed from id to _id to match MongoDB
+  _id: string;
   username: string;
-  name: string;
   email: string;
   role: number;
   phoneNumber: string;
-  active: boolean;  // Added active status
+  active: boolean;
 }
+
 interface Role {
   name: string;
   value: number;
@@ -23,7 +31,7 @@ export default function UserList() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editForm, setEditForm] = useState({
-    name: '',
+    username: '',
     email: '',
     phoneNumber: '',
     role: 0
@@ -31,7 +39,6 @@ export default function UserList() {
 
   const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
 
-  // Updated: fetchUsers using the GET route /api/get-users
   const fetchUsers = async () => {
     try {
       const response = await fetch(`${backendUrl}/api/get-users`);
@@ -45,7 +52,6 @@ export default function UserList() {
     }
   };
 
-  // New: fetch roles mapping from /api/get-role
   useEffect(() => {
     const fetchRoles = async () => {
       try {
@@ -83,7 +89,6 @@ export default function UserList() {
 
       if (!response.ok) throw new Error('Failed to update user');
 
-      // Refresh the users list
       fetchUsers();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update user');
@@ -93,7 +98,7 @@ export default function UserList() {
   const openEditModal = (user: User) => {
     setSelectedUser(user);
     setEditForm({
-      name: user.name,
+      username: user.username,
       email: user.email,
       phoneNumber: user.phoneNumber || '',
       role: user.role
@@ -185,10 +190,10 @@ export default function UserList() {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <div className="flex-shrink-0 h-10 w-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-medium">
-                        {user.name.charAt(0)}
+                        {user.username.charAt(0)}
                       </div>
                       <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900">{user.name}</div>
+                        <div className="text-sm font-medium text-gray-900">{user.username}</div>
                         <div className="text-sm text-gray-500">@{user.username}</div>
                       </div>
                     </div>
@@ -218,33 +223,15 @@ export default function UserList() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex gap-2">
-                      <button
-                        onClick={() => openEditModal(user)}
-                        className="px-3 py-1 rounded-md text-sm font-medium bg-indigo-100 text-indigo-600 hover:bg-indigo-200"
-                      >
+                      <Button onClick={() => openEditModal(user)} variant="outline">
                         Edit
-                      </button>
-                      <button
+                      </Button>
+                      <Button
                         onClick={() => handleUserUpdate(user._id, { active: !user.active })}
-                        className={`px-3 py-1 rounded-md text-sm font-medium
-                          ${user.active 
-                            ? 'bg-red-100 text-red-600 hover:bg-red-200'
-                            : 'bg-green-100 text-green-600 hover:bg-green-200'
-                          }`}
+                        variant={user.active ? "destructive" : "default"}
                       >
                         {user.active ? 'Deactivate' : 'Activate'}
-                      </button>
-                      {/* <select
-                        value={user.role}
-                        onChange={(e) => handleUserUpdate(user._id, { role: Number(e.target.value) })}
-                        className="px-3 py-1 rounded-md text-sm font-medium bg-blue-100 text-blue-600 hover:bg-blue-200"
-                      >
-                        {rolesMapping.map((role) => (
-                          <option key={role.value} value={role.value}>
-                            {role.name}
-                          </option>
-                        ))}
-                      </select> */}
+                      </Button>
                     </div>
                   </td>
                 </tr>
@@ -268,35 +255,37 @@ export default function UserList() {
             <form onSubmit={handleEditSubmit}>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Name</label>
-                  <input
+                  <Label htmlFor="username">Username</Label>
+                  <Input
+                    id="username"
                     type="text"
-                    value={editForm.name}
-                    onChange={(e) => setEditForm({...editForm, name: e.target.value})}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    value={editForm.username}
+                    onChange={(e) => setEditForm({...editForm, username: e.target.value})}
+                    disabled
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Email</label>
-                  <input
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
                     type="email"
                     value={editForm.email}
                     onChange={(e) => setEditForm({...editForm, email: e.target.value})}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Phone Number</label>
-                  <input
+                  <Label htmlFor="phoneNumber">Phone Number</Label>
+                  <Input
+                    id="phoneNumber"
                     type="text"
                     value={editForm.phoneNumber}
                     onChange={(e) => setEditForm({...editForm, phoneNumber: e.target.value})}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Role</label>
+                  <Label htmlFor="role">Role</Label>
                   <select
+                    id="role"
                     value={editForm.role}
                     onChange={(e) => setEditForm({...editForm, role: Number(e.target.value)})}
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
@@ -310,19 +299,12 @@ export default function UserList() {
                 </div>
               </div>
               <div className="mt-5 flex justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => setIsEditModalOpen(false)}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
-                >
+                <Button type="button" onClick={() => setIsEditModalOpen(false)} variant="outline">
                   Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700"
-                >
+                </Button>
+                <Button type="submit" variant="default">
                   Save Changes
-                </button>
+                </Button>
               </div>
             </form>
           </div>
