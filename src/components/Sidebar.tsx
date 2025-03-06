@@ -91,7 +91,10 @@ export default function Sidebar() {
   const handleLogout = async () => {
     try {
       // Call API to remove the token
-      const response = await fetch(`${backendUrl}/api/logout`, { method: 'GET' });
+      const response = await fetch(`${backendUrl}/api/logout`, { 
+        method: 'GET', 
+        credentials: 'include',
+      });
 
       if (response.ok) {
         handleSuccess(true, null, "Logout Successful")

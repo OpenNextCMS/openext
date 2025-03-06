@@ -6,7 +6,6 @@ import { useForm } from "react-hook-form"
 import * as z from "zod"
 import { Globe, Mail, User, Pencil, Key } from "lucide-react"
 import { ProfileUploader } from "@/components/ProfileUploader"
-import { useRouter } from "next/navigation"
 import Cookies from "js-cookie"
 import { useAvatar } from "@/context/AvatarContext"
 import { translations } from "../../../../public/locales/translations"
@@ -74,7 +73,6 @@ export default function ProfilePage() {
       newPassword: "",
     },
   })
-  const router = useRouter()
   const [t, setT] = useState(translations.en)
   const [isLoading, setIsLoading] = useState(false)
 
@@ -89,7 +87,13 @@ export default function ProfilePage() {
     const fetchUserData = async () => {
       setIsLoading(true)
       try {
-        const response = await fetch(`${backendUrl}/api/profile`)
+        const response = await fetch(`${backendUrl}/api/profile`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+        })
         const result = await response.json()
 
         if (result.success && result.data) {
@@ -115,11 +119,12 @@ export default function ProfilePage() {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true)
     try {
-      const response = await fetch("/api/profile", {
+      const response = await fetch(`${backendUrl}/api/profile`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
         body: JSON.stringify(values),
       })
 

@@ -26,11 +26,15 @@ export default async function DashboardLayout({
         headers: {
           Authorization: `Bearer ${token}`,
         },
+        credentials: "include",
       });
 
       if (response.ok) {
         const data = await response.json();
-        user = data.user;
+        user = {
+          username: data.username,
+          email: data.email
+        };
       } else {
         throw new Error('Failed to fetch user data');
       }
