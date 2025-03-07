@@ -23,6 +23,7 @@ import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
 import img from "../../public/img/openNext.png"
+import path from "path";
 
 const navItems = [
   {
@@ -47,9 +48,10 @@ const navItems = [
   {
     label: "User",
     icon: User,
+    path: "/dashboard/users",
     links: [
-      { label: "Add User", icon: PlusCircle, path: "/dashboard/users/addUsers" },
-      { label: "Users", icon: List, path: "/dashboard/users/allUsers" },
+      // { label: "Add User", icon: PlusCircle, path: "/dashboard/users/addUsers" },
+      // { label: "Users", icon: List, path: "/dashboard/users/allUsers" },
     ],
   },
 ]
@@ -145,7 +147,7 @@ export default function Sidebar() {
           {/* Header */}
           <div className="p-4 flex items-center justify-between border-b">
             {!isCollapsed && (
-              <img src={img.src} alt="" width={150} className="mx-5"/>
+              <img src={img.src} alt="" width={150} className="mx-5" />
             )}
             {!isMobile && (
               <Button
