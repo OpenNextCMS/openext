@@ -23,7 +23,6 @@ import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
 import img from "../../public/img/openNext.png"
-import path from "path";
 
 const navItems = [
   {
@@ -36,7 +35,7 @@ const navItems = [
     label: "Pages",
     icon: FileText,
     links: [
-      { label: "All Pages", icon: List, path: "/pages" },
+      { label: "All Pages", icon: List, path: "/dashboard/pages" },
       { label: "Add Pages", icon: PlusCircle, path: "/GrapeJSEditor" },
     ],
   },

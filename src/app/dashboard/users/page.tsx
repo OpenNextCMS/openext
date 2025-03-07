@@ -480,7 +480,7 @@ export default function UserManagementDashboard() {
                               </Badge>
                             </TableCell>
                             <TableCell>
-                              <Badge variant={user.active ? "success" : "destructive"}>
+                              <Badge variant={user.active ? "default" : "destructive"}>
                                 {user.active ? (
                                   <span className="flex items-center">
                                     <CheckCircle className="mr-1 h-3 w-3" />
