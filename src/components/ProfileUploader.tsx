@@ -20,7 +20,7 @@ export function ProfileUploader({ avatarUrl, onUpload }: {
       formData.append('file', file)
 
       try {
-        const response = await fetch('/api/upload', {
+        const response = await fetch('/api/dashboard/profile/upload', {
           method: 'POST',
           body: formData
         })
