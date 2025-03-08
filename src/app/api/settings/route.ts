@@ -3,7 +3,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getUserDbConnection, getUserModel, getSettingsModel } from '@/utils/db';
 import { cookies } from 'next/headers';
 import { jwtDecode } from 'jwt-decode';
-import bcrypt from 'bcryptjs';
 
 export async function GET(req: NextRequest) {
   try {

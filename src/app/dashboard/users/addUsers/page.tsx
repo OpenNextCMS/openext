@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react"
 import type React from "react"
 
-import { PlusCircle, Loader2, UserPlus, Users, Search } from "lucide-react"
+import { PlusCircle, Loader2, UserPlus } from "lucide-react"
 import { toast } from "sonner"
 
 interface UserData {
@@ -31,7 +31,6 @@ export default function UserManagement() {
   const [roles, setRoles] = useState<Role[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [searchTerm, setSearchTerm] = useState("")
 
   const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000"
 
@@ -63,13 +62,12 @@ export default function UserManagement() {
     e.preventDefault()
     setIsSubmitting(true)
     try {
-      const res = await fetch(`${backendUrl}/api/add-users`, {
+      const response = await fetch(`${backendUrl}/api/add-users`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(userData),
       })
-      if (res.ok) {
-        const result = await res.json()
+      if (response.ok) {
         setUserData({
           username: "",
           name: "",
