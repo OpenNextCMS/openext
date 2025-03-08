@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createWriteStream, mkdirSync, existsSync } from 'fs'
 import { join } from 'path'
-import { v4 as uuidv4 } from 'uuid'
 
 export async function POST(request: Request) {
   const formData = await request.formData()

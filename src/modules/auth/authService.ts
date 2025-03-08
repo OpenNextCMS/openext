@@ -131,13 +131,6 @@ export class AuthService {
       return {
         success: true,
         token,
-        user: {
-          _id: user._id,
-          username: user.username,
-          email: user.email,
-          phoneNumber: user.phoneNumber,
-          role: user.role
-        },
       };
     } catch (error) {
       console.log('Auth service error:', error);
