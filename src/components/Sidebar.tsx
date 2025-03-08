@@ -35,7 +35,7 @@ const navItems = [
     label: "Pages",
     icon: FileText,
     links: [
-      { label: "All Pages", icon: List, path: "/pages" },
+      { label: "All Pages", icon: List, path: "/dashboard/pages" },
       { label: "Add Pages", icon: PlusCircle, path: "/GrapeJSEditor" },
     ],
   },
@@ -47,9 +47,10 @@ const navItems = [
   {
     label: "User",
     icon: User,
+    path: "/dashboard/users",
     links: [
-      { label: "Add User", icon: PlusCircle, path: "/dashboard/users/addUsers" },
-      { label: "Users", icon: List, path: "/dashboard/users/allUsers" },
+      // { label: "Add User", icon: PlusCircle, path: "/dashboard/users/addUsers" },
+      // { label: "Users", icon: List, path: "/dashboard/users/allUsers" },
     ],
   },
 ]
@@ -148,7 +149,7 @@ export default function Sidebar() {
           {/* Header */}
           <div className="p-4 flex items-center justify-between border-b">
             {!isCollapsed && (
-              <img src={img.src} alt="" width={150} className="mx-5"/>
+              <img src={img.src} alt="" width={150} className="mx-5" />
             )}
             {!isMobile && (
               <Button
