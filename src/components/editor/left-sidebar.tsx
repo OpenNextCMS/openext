@@ -94,7 +94,7 @@ export default function LeftSidebar() {
         </Collapsible>
       </div>
 
-      <div className="border-b border-t my-52">
+      <div className="border-b border-t my-5">
         <Collapsible open={layersOpen} onOpenChange={setLayersOpen}>
           <div className="flex items-center justify-between p-3">
             <div className="flex items-center gap-2">
@@ -118,7 +118,20 @@ export default function LeftSidebar() {
           </CollapsibleContent>
         </Collapsible>
       </div>
+
+      <div className="border-b border-t">
+        <Collapsible open={layersOpen} onOpenChange={setLayersOpen}>
+          <div className="flex items-center justify-between p-3">
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="icon" className="h-5 w-5">
+                {layersOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+              </Button>
+              <Layers className="h-4 w-4" />
+              <span className="font-medium">My Design</span>
+            </div>
+          </div>
+        </Collapsible>
+      </div>
     </div>
   )
 }
-

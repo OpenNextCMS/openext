@@ -3,8 +3,8 @@ import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { LayoutTemplate, UserPlus } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 interface Page {
   _id: string;
@@ -19,6 +19,7 @@ export default function PageList() {
   const [pages, setPages] = useState<Page[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter()
 
   const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
 
@@ -57,9 +58,21 @@ export default function PageList() {
 
   return (
     <Card className="p-6 mx-auto">
-      <CardHeader>
-        <CardTitle>Page Management</CardTitle>
-      </CardHeader>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Page Management</h1>
+        </div>
+        <div className="mt-4 md:mt-0">
+          <Button
+            variant="default"
+            className="mr-2"
+            onClick={() => router.push("/Editor")}
+          >
+            <LayoutTemplate className="mr-2 h-4 w-4" />
+            Add Page
+          </Button>
+        </div>
+      </div>
       <CardContent>
         <Table>
           <TableHeader>
