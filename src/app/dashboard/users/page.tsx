@@ -97,7 +97,7 @@ export default function UserManagementDashboard() {
   const fetchUsers = async () => {
     setIsLoading(true)
     try {
-      const response = await fetch(`${backendUrl}/api/get-users`)
+      const response = await fetch(`${backendUrl}/api/sub-users/get-users`)
       if (!response.ok) throw new Error("Failed to fetch users")
       const data = await response.json()
       setUsers(data.users || [])
@@ -139,7 +139,7 @@ export default function UserManagementDashboard() {
     e.preventDefault()
     setIsSubmitting(true)
     try {
-      const res = await fetch(`${backendUrl}/api/add-users`, {
+      const res = await fetch(`${backendUrl}/api/sub-users/add-users`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(userData),
@@ -173,7 +173,7 @@ export default function UserManagementDashboard() {
   // User List Handlers
   const handleUserUpdate = async (userId: string, updates: { role?: number; active?: boolean }) => {
     try {
-      const response = await fetch(`${backendUrl}/api/users/${userId}`, {
+      const response = await fetch(`${backendUrl}/api/sub-users/update-users/${userId}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -207,7 +207,7 @@ export default function UserManagementDashboard() {
     if (!selectedUser) return
 
     try {
-      const response = await fetch(`${backendUrl}/api/users/${selectedUser._id}`, {
+      const response = await fetch(`${backendUrl}/api/sub-users/update-users/${selectedUser._id}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",

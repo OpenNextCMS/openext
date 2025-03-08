@@ -62,7 +62,7 @@ export default function UserManagement() {
     e.preventDefault()
     setIsSubmitting(true)
     try {
-      const response = await fetch(`${backendUrl}/api/add-users`, {
+      const response = await fetch(`${backendUrl}/api/sub-users/add-users`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(userData),
