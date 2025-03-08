@@ -32,8 +32,8 @@ export default async function DashboardLayout({
       if (response.ok) {
         const data = await response.json();
         user = {
-          username: data.username,
-          email: data.email
+          username: data.user.username,
+          email: data.user.email
         };
       } else {
         throw new Error('Failed to fetch user data');

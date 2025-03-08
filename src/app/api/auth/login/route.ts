@@ -35,7 +35,7 @@ export async function POST(request: Request) {
     }
 
     const response = NextResponse.json(
-      { success: true, user: result.user },
+      { success: true},
       { status: 200 }
     );
 
@@ -45,7 +45,6 @@ export async function POST(request: Request) {
       sameSite: 'strict',
       maxAge: 86400
     });
-
     return response;
 
   } catch (error) {

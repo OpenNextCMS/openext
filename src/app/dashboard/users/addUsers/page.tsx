@@ -56,7 +56,7 @@ export default function UserManagement() {
   const onSubmit = async (values) => {
     setIsLoading(true);
     try {
-      const response = await fetch(`${backendUrl}/api/add-user`, {
+      const response = await fetch(`${backendUrl}/api/add-users`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(values)
