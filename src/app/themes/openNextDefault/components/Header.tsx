@@ -11,7 +11,7 @@ const Header = () => {
         </Link>
 
         <div className={styles.actions}>
-          <Button className={styles.button}>Get to know us</Button>
+          <Button className={styles.button} onClick={() => window.open("https://aviraltrendzpvtltd.com/")}>Get to know us</Button>
         </div>
       </div>
 

@@ -3,9 +3,11 @@ import styles from '../public/assets/css/body.module.css';
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ArrowUpRight, Atom, Zap, RefreshCw } from "lucide-react"
+import { useRouter } from 'next/navigation';
 
 
 const LandingPage = () => {
+  const route = useRouter()
   return (
     <main className={styles.main}>
       {/* Hero Section */}
@@ -21,10 +23,10 @@ const LandingPage = () => {
               with the power of React components.
             </p>
             <div className={styles.buttonGroup}>
-              <Button size="lg" className={styles.button}>
+              <Button size="lg" className={styles.button} onClick={() => route.push('/dashboard')}>
                 Get Started
               </Button>
-              <Button size="lg" variant="outline" className={styles.button}>
+              <Button size="lg" variant="outline" className={styles.button} onClick={() => window.open("https://aviraltrendzpvtltd.com/it-company-in-surat/")}>
                 Get in Touch
               </Button>
             </div>
@@ -32,7 +34,7 @@ const LandingPage = () => {
         </div>
       </section>
 
-       {/* Features Section */}
+      {/* Features Section */}
       <section className={styles.featuresSection}>
         <div className={styles.container}>
           <div className={styles.featuresGrid}>
