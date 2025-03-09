@@ -5,10 +5,9 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import { useRouter } from "next/navigation";
-import Cookies from "js-cookie"; // Import js-cookie
-import * as translations from "../../../public/locales/translations"; // Import translations
+import Cookies from "js-cookie";
+import * as translations from "../../../public/locales/translations";
 
-// Convert translations into an array of objects
 const languages = Object.entries(translations.languageNames).map(([code, name]) => ({
   code,
   name,
@@ -18,8 +17,6 @@ const languages = Object.entries(translations.languageNames).map(([code, name]) 
 export default function LanguageSelector() {
   const router = useRouter();
   const dropdownRef = useRef<HTMLDivElement>(null);
-
-  // Load initial language from cookies or default to English
   const [selectedLang, setSelectedLang] = useState(
     languages.find((lang) => lang.code === (Cookies.get("selectedLanguage") || "en")) || languages[0]
   );
@@ -44,63 +41,51 @@ export default function LanguageSelector() {
     router.push("/mongodb-setup");
   };
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
-
-  // Filter languages based on input
   const filteredLanguages = useMemo(() => {
     return isOpen
       ? languages
       : languages.filter((lang) => lang.name.toLowerCase().includes(inputValue.toLowerCase()));
   }, [inputValue, isOpen]);
 
-  // Sort languages to show matched items first
   const sortedLanguages = useMemo(() => {
     if (!inputValue) return filteredLanguages;
-
     const matched = filteredLanguages.filter((lang) =>
       lang.name.toLowerCase().startsWith(inputValue.toLowerCase())
     );
     const others = filteredLanguages.filter(
       (lang) => !lang.name.toLowerCase().startsWith(inputValue.toLowerCase())
     );
-
     return [...matched, ...others];
   }, [filteredLanguages, inputValue]);
 
   return (
-    <div className="flex flex-col justify-center items-center px-4 sm:px-6 md:px-10 lg:px-16 py-6">
-      <div className="relative w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl" ref={dropdownRef}>
-        <div className="grid grid-cols-[auto_1fr_auto] items-center gap-4 w-full">
-          {/* Fixed-width language label */}
-          <p className="w-48 text-right">
+    <div className="flex flex-col justify-center items-center px-4 sm:px-6 md:px-8 lg:px-10 xl:px-12 py-6">
+      <div className="relative w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-2xl" ref={dropdownRef}>
+        <div className="grid md:grid-cols-[auto_1fr_auto] items-center gap-4 w-full">
+          <p className="w-full md:text-right text-sm sm:text-base md:text-base lg:text-lg">
             {t.selectLanguage}:
           </p>
-
-          {/* Input field and dropdown button */}
           <div className="relative w-full">
             <input
               type="text"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
-              onFocus={() => {
-                setIsOpen(true);
-              }}
+              onFocus={() => setIsOpen(true)}
               onBlur={() => {
                 if (!inputValue.trim()) {
-                  setInputValue(selectedLang.name); // Restore value if no input
+                  setInputValue(selectedLang.name);
                 }
               }}
               className="w-full min-w-40 max-w-64 sm:max-w-80 md:max-w-96 lg:max-w-lg px-6 py-2 bg-white border border-black rounded shadow-lg focus:outline-none"
@@ -116,17 +101,13 @@ export default function LanguageSelector() {
               />
             </button>
           </div>
-
-          {/* Fixed-width button */}
           <button
             onClick={handleSubmit}
-            className="w-28 sm:w-36 px-3 sm:px-6 py-2 sm:py-3 bg-black border border-black text-white rounded-lg shadow-lg hover:text-black hover:bg-transparent transition-all duration-500"
+            className="w-full sm:w-36 px-3 sm:px-6 py-2 sm:py-3 bg-black border border-black text-white rounded-lg shadow-lg hover:text-black hover:bg-transparent transition-all duration-500"
           >
             {t.continue}
           </button>
         </div>
-
-        {/* Language dropdown */}
         <AnimatePresence>
           {isOpen && (
             <motion.ul
@@ -144,7 +125,7 @@ export default function LanguageSelector() {
                   `}
                 >
                   <Image src={lang.flag} alt={lang.name} width={20} height={20} />
-                  <span className="text-base text-gray-800">{lang.name}</span>
+                  <span className="text-sm sm:text-base text-gray-800">{lang.name}</span>
                 </motion.li>
               ))}
             </motion.ul>
