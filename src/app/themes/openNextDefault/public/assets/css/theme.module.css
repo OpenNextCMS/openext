@@ -1,145 +1,44 @@
 .header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 1rem 2rem;
-    background: white;
-    border-bottom: 1px solid #eaeaea;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  width: 100%;
+  border-bottom: 1px solid var(--border-color);
+  background-color: rgba(var(--background-rgb), 0.95);
+  backdrop-filter: blur(10px);
+}
+
+.container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 4rem;
+  padding: 0 1.5rem;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.logoImage {
+  height: 2rem;
+  width: auto;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.button {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .button {
+    display: inline-flex;
   }
-  
-  .logo {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 1.25rem;
-    font-weight: bold;
-    color: #000;
-    text-decoration: none;
-  }
-  
-  .navLinks {
-    display: flex;
-    gap: 2rem;
-    align-items: center;
-  }
-  
-  .navLinks a {
-    text-decoration: none;
-    color: #666;
-    font-size: 0.9rem;
-  }
-  
-  .navLinks a:hover {
-    color: #000;
-  }
-  
-  .rightSection {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-  }
-  
-  .searchBox {
-    display: flex;
-    align-items: center;
-    padding: 0.5rem 1rem;
-    background: #f5f5f5;
-    border-radius: 6px;
-    border: 1px solid #eaeaea;
-  }
-  
-  .searchBox input {
-    border: none;
-    background: none;
-    outline: none;
-    font-size: 0.9rem;
-    width: 200px;
-  }
-  
-  .searchBox span {
-    color: #666;
-    font-size: 0.8rem;
-    padding: 0.2rem 0.5rem;
-    background: #fff;
-    border-radius: 4px;
-    margin-left: 0.5rem;
-  }
-  
-  .actionButtons {
-    display: flex;
-    gap: 1rem;
-  }
-  
-  .actionButtons button {
-    padding: 0.5rem 1rem;
-    border-radius: 6px;
-    font-size: 0.9rem;
-    cursor: pointer;
-  }
-  
-  .deployBtn {
-    background: white;
-    border: 1px solid #eaeaea;
-  }
-  
-  .learnBtn {
-    background: black;
-    color: white;
-    border: none;
-  }
-  
-  .menuToggle {
-    display: none;
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 0.5rem;
-    margin-left: 65%;
-  }
-  
-  @media (max-width: 1024px) {
-    .searchBox input {
-      width: 150px;
-    }
-    
-    .navLinks {
-      gap: 1rem;
-    }
-  }
-  
-  @media (max-width: 768px) {
-    .navLinks {
-      display: none;
-      position: absolute;
-      top: 15%;
-      left: 0;
-      right: 0;
-      background: white;
-      flex-direction: column;
-      padding: 1rem;
-      border-bottom: 1px solid #eaeaea;
-    }
-  
-    .navLinks.active {
-      display: flex;
-    }
-  
-    .menuToggle {
-      display: block;
-    }
-  
-    .searchBox {
-      display: none;
-    }
-  
-    .rightSection .actionButtons {
-      display: none;
-    }
-  
-    .navLinks .actionButtons {
-      display: flex;
-      margin-top: 1rem;
-      width: 100%;
-      justify-content: center;
-    }
-  }
+}

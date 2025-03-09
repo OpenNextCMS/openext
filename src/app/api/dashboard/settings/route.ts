@@ -1,9 +1,8 @@
-// app/api/settings/route.ts
+// app/api/dashboard/settings/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { getUserDbConnection, getUserModel, getSettingsModel } from '@/utils/db';
 import { cookies } from 'next/headers';
 import { jwtDecode } from 'jwt-decode';
-import bcrypt from 'bcryptjs';
 
 export async function GET(req: NextRequest) {
   try {
@@ -44,7 +43,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ success: true, data: { user, settings } });
 
   } catch (error) {
-    console.error("❌ Server error in /api/settings:", error);
+    console.error("❌ Server error in /api/dashboard/settings:", error);
     return NextResponse.json({ success: false, message: 'Server error' }, { status: 500 });
   }
 }

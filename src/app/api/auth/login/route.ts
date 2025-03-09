@@ -20,7 +20,7 @@ export async function POST(request: Request) {
 
     const result = await AuthService.login(identifier, userPassword, UserModel);
 
-    if (result.error) {
+    if (result?.error) {
       return NextResponse.json(
         { error: result.error },
         { status: 401 }
@@ -35,7 +35,7 @@ export async function POST(request: Request) {
     }
 
     const response = NextResponse.json(
-      { success: true, user: result.user },
+      { success: true},
       { status: 200 }
     );
 
@@ -45,7 +45,6 @@ export async function POST(request: Request) {
       sameSite: 'strict',
       maxAge: 86400
     });
-
     return response;
 
   } catch (error) {

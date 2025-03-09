@@ -340,7 +340,7 @@ export default function Documentation() {
                                             <div className="border rounded-lg p-6">
                                                 <div className="flex items-center gap-2 mb-4">
                                                     <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm font-medium">POST</span>
-                                                    <code className="text-gray-700">/api/logout</code>
+                                                    <code className="text-gray-700">/api/auth/logout</code>
                                                     <span className="text-gray-500 text-sm">API #5</span>
                                                 </div>
                                                 <p className="text-gray-600 mb-4">Terminates user session</p>
@@ -366,7 +366,7 @@ export default function Documentation() {
                                             <div className="border rounded-lg p-6">
                                                 <div className="flex items-center gap-2 mb-4">
                                                     <span className="px-2 py-1 bg-green-100 text-green-800 rounded text-sm font-medium">POST</span>
-                                                    <code className="text-gray-700">/api/upload</code>
+                                                    <code className="text-gray-700">/api/dashboard/profile/upload</code>
                                                     <span className="text-gray-500 text-sm">API #6</span>
                                                 </div>
                                                 <p className="text-gray-600 mb-4">Handles file uploads</p>
@@ -393,7 +393,7 @@ export default function Documentation() {
                                             <div className="border rounded-lg p-6">
                                                 <div className="flex items-center gap-2 mb-4">
                                                     <span className="px-2 py-1 bg-green-100 text-green-800 rounded text-sm font-medium">POST</span>
-                                                    <code className="text-gray-700">/api/add-users</code>
+                                                    <code className="text-gray-700">/api/sub-users/add-users</code>
                                                     <span className="text-gray-500 text-sm">API #7</span>
                                                 </div>
                                                 <p className="text-gray-600 mb-4">Creates new user</p>
@@ -427,7 +427,7 @@ export default function Documentation() {
                                             <div className="border rounded-lg p-6">
                                                 <div className="flex items-center gap-2 mb-4">
                                                     <span className="px-2 py-1 bg-green-100 text-green-800 rounded text-sm font-medium">GET</span>
-                                                    <code className="text-gray-700">/api/get-users</code>
+                                                    <code className="text-gray-700">/api/sub-users/get-users</code>
                                                     <span className="text-gray-500 text-sm">API #8</span>
                                                 </div>
                                                 <p className="text-gray-600 mb-4">Retrieves user list</p>
@@ -447,7 +447,7 @@ export default function Documentation() {
                                             <div className="border rounded-lg p-6">
                                                 <div className="flex items-center gap-2 mb-4">
                                                     <span className="px-2 py-1 bg-green-100 text-green-800 rounded text-sm font-medium">POST</span>
-                                                    <code className="text-gray-700">/api/siteicon</code>
+                                                    <code className="text-gray-700">/api/dashboard/settings/siteicon</code>
                                                     <span className="text-gray-500 text-sm">API #9</span>
                                                 </div>
                                                 <p className="text-gray-600 mb-4">Uploads a site icon image</p>
@@ -526,7 +526,7 @@ export default function Documentation() {
                                             <div className="border rounded-lg p-6">
                                                 <div className="flex items-center gap-2 mb-4">
                                                     <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded text-sm font-medium">PUT</span>
-                                                    <code className="text-gray-700">/api/settings</code>
+                                                    <code className="text-gray-700">/api/dashboard/settings</code>
                                                     <span className="text-gray-500 text-sm">API #12</span>
                                                 </div>
                                                 <p className="text-gray-600 mb-4">Updates system settings</p>
@@ -578,7 +578,7 @@ export default function Documentation() {
                                             <div className="border rounded-lg p-6">
                                                 <div className="flex items-center gap-2 mb-4">
                                                     <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded text-sm font-medium">GET</span>
-                                                    <code className="text-gray-700">/api/profile</code>
+                                                    <code className="text-gray-700">/api/dashboard/profile</code>
                                                     <span className="text-gray-500 text-sm">API #14</span>
                                                 </div>
                                                 <p className="text-gray-600 mb-4">Updates user profile details</p>

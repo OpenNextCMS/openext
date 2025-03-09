@@ -15,13 +15,14 @@ import {
   User,
   Settings,
   Menu,
-  X,
+  ChevronLeft,
 } from "lucide-react"
 import { handleSuccess } from "@/utils/successHandler"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
+import img from "../../public/img/openNext.png"
 
 const navItems = [
   {
@@ -34,8 +35,8 @@ const navItems = [
     label: "Pages",
     icon: FileText,
     links: [
-      { label: "All Pages", icon: List, path: "/pages" },
-      { label: "Add Pages", icon: PlusCircle, path: "/GrapeJSEditor" },
+      { label: "All Pages", icon: List, path: "/dashboard/pages" },
+      { label: "Add Pages", icon: PlusCircle, path: "/Editor" },
     ],
   },
   {
@@ -46,9 +47,10 @@ const navItems = [
   {
     label: "User",
     icon: User,
+    path: "/dashboard/users",
     links: [
-      { label: "Add User", icon: PlusCircle, path: "/dashboard/users/addUsers" },
-      { label: "Users", icon: List, path: "/dashboard/users/allUsers" },
+      // { label: "Add User", icon: PlusCircle, path: "/dashboard/users/addUsers" },
+      // { label: "Users", icon: List, path: "/dashboard/users/allUsers" },
     ],
   },
 ]
@@ -91,7 +93,10 @@ export default function Sidebar() {
   const handleLogout = async () => {
     try {
       // Call API to remove the token
-      const response = await fetch(`${backendUrl}/api/logout`, { method: 'GET' });
+      const response = await fetch(`${backendUrl}/api/auth/logout`, { 
+        method: 'GET', 
+        credentials: 'include',
+      });
 
       if (response.ok) {
         handleSuccess(true, null, "Logout Successful")
@@ -130,7 +135,7 @@ export default function Sidebar() {
         className="fixed top-4 left-4 z-50 lg:hidden"
         onClick={() => setIsMobileOpen(!isMobileOpen)}
       >
-        {isMobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+        {isMobileOpen ? <ChevronLeft className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
       </Button>
 
       <div
@@ -144,12 +149,7 @@ export default function Sidebar() {
           {/* Header */}
           <div className="p-4 flex items-center justify-between border-b">
             {!isCollapsed && (
-              <h2
-                className="text-lg font-bold text-foreground cursor-pointer truncate"
-                onClick={() => router.push("/dashboard")}
-              >
-                Admin Dashboard
-              </h2>
+              <img src={img.src} alt="" width={150} className="mx-5" />
             )}
             {!isMobile && (
               <Button
@@ -158,7 +158,7 @@ export default function Sidebar() {
                 onClick={() => setIsCollapsed(!isCollapsed)}
                 className="text-muted-foreground hover:text-foreground"
               >
-                {isCollapsed ? <Menu className="h-4 w-4" /> : <X className="h-4 w-4" />}
+                {isCollapsed ? <Menu className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
               </Button>
             )}
           </div>

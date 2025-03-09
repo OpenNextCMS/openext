@@ -1,15 +1,21 @@
 "use client"
 import { useState, useEffect } from 'react';
+import { User } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 interface User {
-  _id: string;  // Changed from id to _id to match MongoDB
+  _id: string;
   username: string;
-  name: string;
   email: string;
   role: number;
   phoneNumber: string;
-  active: boolean;  // Added active status
+  active: boolean;
 }
+
 interface Role {
   name: string;
   value: number;
@@ -23,7 +29,7 @@ export default function UserList() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editForm, setEditForm] = useState({
-    name: '',
+    username: '',
     email: '',
     phoneNumber: '',
     role: 0
@@ -31,10 +37,9 @@ export default function UserList() {
 
   const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
 
-  // Updated: fetchUsers using the GET route /api/get-users
   const fetchUsers = async () => {
     try {
-      const response = await fetch(`${backendUrl}/api/get-users`);
+      const response = await fetch(`${backendUrl}/api/sub-users/get-users`);
       if (!response.ok) throw new Error('Failed to fetch');
       const data = await response.json();
       setUsers(data.users || []);
@@ -45,7 +50,6 @@ export default function UserList() {
     }
   };
 
-  // New: fetch roles mapping from /api/get-role
   useEffect(() => {
     const fetchRoles = async () => {
       try {
@@ -73,7 +77,7 @@ export default function UserList() {
 
   const handleUserUpdate = async (userId: string, updates: { role?: number, active?: boolean }) => {
     try {
-      const response = await fetch(`/api/users/${userId}`, {
+      const response = await fetch(`/api/sub-users/update-users/${userId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -83,7 +87,6 @@ export default function UserList() {
 
       if (!response.ok) throw new Error('Failed to update user');
 
-      // Refresh the users list
       fetchUsers();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update user');
@@ -93,7 +96,7 @@ export default function UserList() {
   const openEditModal = (user: User) => {
     setSelectedUser(user);
     setEditForm({
-      name: user.name,
+      username: user.username,
       email: user.email,
       phoneNumber: user.phoneNumber || '',
       role: user.role
@@ -106,7 +109,7 @@ export default function UserList() {
     if (!selectedUser) return;
 
     try {
-      const response = await fetch(`/api/users/${selectedUser._id}`, {
+      const response = await fetch(`/api/sub-users/update-users/${selectedUser._id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -115,7 +118,7 @@ export default function UserList() {
       });
 
       if (!response.ok) throw new Error('Failed to update user');
-      
+
       setIsEditModalOpen(false);
       fetchUsers();
     } catch (err) {
@@ -149,116 +152,99 @@ export default function UserList() {
   }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <Card className="p-6 mx-auto">
       <div className="sm:flex sm:items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">User Management</h1>
+        <CardHeader>
+          <CardTitle>User Management</CardTitle>
+        </CardHeader>
         <span className="sm:ml-4 mt-2 sm:mt-0 bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full">
           {users.length} users
         </span>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+        <CardContent className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   User
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                </TableHead>
+                <TableHead className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Contact
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                </TableHead>
+                <TableHead className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Role
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                </TableHead>
+                <TableHead className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                </TableHead>
+                <TableHead className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody className="bg-white divide-y divide-gray-200">
               {users.map((user) => (
-                <tr key={user._id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 whitespace-nowrap">
+                <TableRow key={user._id} className="hover:bg-gray-50 transition-colors">
+                  <TableCell className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <div className="flex-shrink-0 h-10 w-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-medium">
-                        {user.name.charAt(0)}
+                        {user.username.charAt(0)}
                       </div>
                       <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900">{user.name}</div>
+                        <div className="text-sm font-medium text-gray-900">{user.username}</div>
                         <div className="text-sm text-gray-500">@{user.username}</div>
                       </div>
                     </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  </TableCell>
+                  <TableCell className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">{user.email}</div>
                     <div className="text-sm text-gray-500">{user.phoneNumber}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${
-                      rolesMapping.find(role => role.value === Number(user.role))?.name === 'admin' 
-                        ? 'bg-red-100 text-red-800' 
-                        : rolesMapping.find(role => role.value === Number(user.role))?.name === 'editor'
+                  </TableCell>
+                  <TableCell className="px-6 py-4 whitespace-nowrap">
+                    <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${rolesMapping.find(role => role.value === Number(user.role))?.name === 'admin'
+                      ? 'bg-red-100 text-red-800'
+                      : rolesMapping.find(role => role.value === Number(user.role))?.name === 'editor'
                         ? 'bg-purple-100 text-purple-800'
                         : 'bg-blue-100 text-blue-800'
-                    }`}>
+                      }`}>
                       {rolesMapping.find(role => role.value === Number(user.role))?.name || user.role}
                     </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span 
+                  </TableCell>
+                  <TableCell className="px-6 py-4 whitespace-nowrap">
+                    <span
                       className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
                         ${user.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}
                     >
                       {user.active ? 'Active' : 'Inactive'}
                     </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  </TableCell>
+                  <TableCell className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex gap-2">
-                      <button
-                        onClick={() => openEditModal(user)}
-                        className="px-3 py-1 rounded-md text-sm font-medium bg-indigo-100 text-indigo-600 hover:bg-indigo-200"
-                      >
+                      <Button onClick={() => openEditModal(user)} variant="outline">
                         Edit
-                      </button>
-                      <button
+                      </Button>
+                      <Button
                         onClick={() => handleUserUpdate(user._id, { active: !user.active })}
-                        className={`px-3 py-1 rounded-md text-sm font-medium
-                          ${user.active 
-                            ? 'bg-red-100 text-red-600 hover:bg-red-200'
-                            : 'bg-green-100 text-green-600 hover:bg-green-200'
-                          }`}
+                        variant={user.active ? "destructive" : "default"}
                       >
                         {user.active ? 'Deactivate' : 'Activate'}
-                      </button>
-                      {/* <select
-                        value={user.role}
-                        onChange={(e) => handleUserUpdate(user._id, { role: Number(e.target.value) })}
-                        className="px-3 py-1 rounded-md text-sm font-medium bg-blue-100 text-blue-600 hover:bg-blue-200"
-                      >
-                        {rolesMapping.map((role) => (
-                          <option key={role.value} value={role.value}>
-                            {role.name}
-                          </option>
-                        ))}
-                      </select> */}
+                      </Button>
                     </div>
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
               {users.length === 0 && (
-                <tr>
-                  <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
+                <TableRow>
+                  <TableCell colSpan={5} className="px-6 py-8 text-center text-gray-500">
                     No users found
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               )}
-            </tbody>
-          </table>
-        </div>
+            </TableBody>
+          </Table>
+        </CardContent>
       </div>
 
       {isEditModalOpen && (
@@ -268,37 +254,39 @@ export default function UserList() {
             <form onSubmit={handleEditSubmit}>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Name</label>
-                  <input
+                  <Label htmlFor="username">Username</Label>
+                  <Input
+                    id="username"
                     type="text"
-                    value={editForm.name}
-                    onChange={(e) => setEditForm({...editForm, name: e.target.value})}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    value={editForm.username}
+                    onChange={(e) => setEditForm({ ...editForm, username: e.target.value })}
+                    disabled
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Email</label>
-                  <input
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
                     type="email"
                     value={editForm.email}
-                    onChange={(e) => setEditForm({...editForm, email: e.target.value})}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Phone Number</label>
-                  <input
+                  <Label htmlFor="phoneNumber">Phone Number</Label>
+                  <Input
+                    id="phoneNumber"
                     type="text"
                     value={editForm.phoneNumber}
-                    onChange={(e) => setEditForm({...editForm, phoneNumber: e.target.value})}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    onChange={(e) => setEditForm({ ...editForm, phoneNumber: e.target.value })}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Role</label>
+                  <Label htmlFor="role">Role</Label>
                   <select
+                    id="role"
                     value={editForm.role}
-                    onChange={(e) => setEditForm({...editForm, role: Number(e.target.value)})}
+                    onChange={(e) => setEditForm({ ...editForm, role: Number(e.target.value) })}
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                   >
                     {rolesMapping.map((role) => (
@@ -310,24 +298,17 @@ export default function UserList() {
                 </div>
               </div>
               <div className="mt-5 flex justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => setIsEditModalOpen(false)}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
-                >
+                <Button type="button" onClick={() => setIsEditModalOpen(false)} variant="outline">
                   Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700"
-                >
+                </Button>
+                <Button type="submit" variant="default">
                   Save Changes
-                </button>
+                </Button>
               </div>
             </form>
           </div>
         </div>
       )}
-    </div>
+    </Card>
   );
 }
