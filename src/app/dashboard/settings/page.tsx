@@ -31,6 +31,7 @@ const formSchema = z.object({
   dateFormat: z.string().min(2, "Date format is required"),
   timeFormat: z.string().min(2, "Time format is required"),
   activeTheme: z.string().optional(),
+  imgSize: z.string().optional(),
   enableDarkMode: z.boolean().optional(),
 })
 
@@ -60,6 +61,7 @@ export default function SettingsPage() {
       dateFormat: "MMMM D, YYYY",
       timeFormat: "h:mm a",
       activeTheme: "default",
+      imgSize: "5mb",
       enableDarkMode: false,
     },
   })
@@ -110,10 +112,16 @@ export default function SettingsPage() {
           setValue("dateFormat", result.data.settings.dateFormat || "MMMM D, YYYY")
           setValue("timeFormat", result.data.settings.timeFormat || "h:mm a")
           setValue("enableDarkMode", result.data.settings.enableDarkMode || false)
+
           const settingsThemes = result.data.settings.themes || []
           interface Theme {
             name: string;
             isActive: boolean;
+          }
+          const configArray = result.data.settings.config || [];
+          const maxFileSizeSetting = configArray.find((item: { key: string }) => item.key === "maxFileSize");
+          if (maxFileSizeSetting) {
+            setValue("imgSize", maxFileSizeSetting.value || "5mb"); // Default fallback
           }
 
           const uniqueThemes: Theme[] = Array.from(new Set(settingsThemes.map((theme: Theme) => theme.name))).map(
@@ -181,36 +189,49 @@ export default function SettingsPage() {
   ]
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    setIsLoading(true)
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000"
+    setIsLoading(true);
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000";
 
     try {
+      // Map imgSize to the correct structure for MongoDB
+      interface ConfigItem {
+        key: string;
+        value: string;
+      }
+
+      const updatedConfig: ConfigItem[] = [{ key: "maxFileSize", value: values.imgSize || "5mb" }];
+
+      const updatedValues = {
+        ...values,
+        config: updatedConfig,
+      };
+
       const response = await fetch(`${backendUrl}/api/dashboard/settings`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         credentials: "include",
-        body: JSON.stringify(values),
-      })
+        body: JSON.stringify(updatedValues),
+      });
 
-      const result = await response.json()
+      const result = await response.json();
 
       if (result.success) {
-        Cookies.set("selectedLanguage", values.language, { expires: 7 })
-        setShowSuccessDialog(true)
+        Cookies.set("selectedLanguage", values.language, { expires: 7 });
+        setShowSuccessDialog(true);
       } else {
-        setErrorMessage("Failed to save settings: " + result.message)
-        setShowErrorDialog(true)
+        setErrorMessage("Failed to save settings: " + result.message);
+        setShowErrorDialog(true);
       }
     } catch (error) {
-      console.error("Error saving settings:", error)
-      setErrorMessage("Error saving settings")
-      setShowErrorDialog(true)
+      console.error("Error saving settings:", error);
+      setErrorMessage("Error saving settings");
+      setShowErrorDialog(true);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
     if (showSuccessDialog) {
@@ -232,10 +253,11 @@ export default function SettingsPage() {
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="site-info">
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="site-info">Site Information</TabsTrigger>
                 <TabsTrigger value="localization">Localization</TabsTrigger>
                 <TabsTrigger value="appearance">Appearance</TabsTrigger>
+                <TabsTrigger value="config">Config</TabsTrigger>
               </TabsList>
               <TabsContent value="site-info" className="space-y-6">
                 <div className="space-y-4">
@@ -410,6 +432,14 @@ export default function SettingsPage() {
                     <Label htmlFor="dark-mode">Enable Dark Mode</Label>
                   </div>
                 </div>
+              </TabsContent>
+              <TabsContent value="config" className="space-y-6">
+                <Label htmlFor="imgSize">Max Image size</Label>
+                <Input
+                  id="siteTitle"
+                  {...register("imgSize")}
+                  placeholder="Enter Image size"
+                />
               </TabsContent>
             </Tabs>
           </CardContent>
