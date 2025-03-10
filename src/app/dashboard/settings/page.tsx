@@ -64,6 +64,7 @@ export default function SettingsPage() {
     },
   })
   const siteIcon = watch("siteIcon")
+  const enableDarkMode = watch("enableDarkMode")
 
   const [t, setT] = useState(translations.en)
   const [themes, setThemes] = useState<{ name: string; isActive: boolean }[]>([])
@@ -84,11 +85,19 @@ export default function SettingsPage() {
   }, [])
 
   useEffect(() => {
+    if (enableDarkMode) {
+      document.documentElement.classList.add("dark")
+    } else {
+      document.documentElement.classList.remove("dark")
+    }
+  }, [enableDarkMode])
+
+  useEffect(() => {
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000"
     const fetchSettingsData = async () => {
       try {
         setIsLoading(true)
-        const response = await fetch(`${backendUrl}/api/settings`,{
+        const response = await fetch(`${backendUrl}/api/settings`, {
           credentials: "include",
         })
         const result = await response.json()
@@ -102,8 +111,13 @@ export default function SettingsPage() {
           setValue("timeFormat", result.data.settings.timeFormat || "h:mm a")
           setValue("enableDarkMode", result.data.settings.enableDarkMode || false)
           const settingsThemes = result.data.settings.themes || []
-          const uniqueThemes = Array.from(new Set(settingsThemes.map((theme) => theme.name))).map(
-            (name) => settingsThemes.find((theme) => theme.name === name) as { name: string; isActive: boolean },
+          interface Theme {
+            name: string;
+            isActive: boolean;
+          }
+
+          const uniqueThemes: Theme[] = Array.from(new Set(settingsThemes.map((theme: Theme) => theme.name))).map(
+            (name) => settingsThemes.find((theme: Theme) => theme.name === name) as Theme,
           )
           uniqueThemes.sort((a, b) => (b.isActive ? 1 : 0) - (a.isActive ? 1 : 0))
           setThemes(uniqueThemes)

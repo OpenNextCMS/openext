@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { LayoutTemplate, UserPlus } from 'lucide-react';
+import { PlusSquare } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 interface Page {
@@ -68,7 +68,7 @@ export default function PageList() {
             className="mr-2"
             onClick={() => router.push("/Editor")}
           >
-            <LayoutTemplate className="mr-2 h-4 w-4" />
+            <PlusSquare className="mr-2 h-5 w-5" />
             Add Page
           </Button>
         </div>
