@@ -23,22 +23,10 @@
 }
 
 .heroTitle {
-  font-size: 2.5rem;
+  font-size: 3rem;
   font-weight: bold;
   line-height: 1.25;
   letter-spacing: -0.02em;
-}
-
-@media (min-width: 768px) {
-  .heroTitle {
-    font-size: 3rem;
-  }
-}
-
-@media (min-width: 1024px) {
-  .heroTitle {
-    font-size: 3.75rem;
-  }
 }
 
 .heroSubtitle {
@@ -71,16 +59,10 @@
 
 .featuresGrid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: 2rem;
   max-width: 80rem;
   margin: 0 auto;
-}
-
-@media (min-width: 768px) {
-  .featuresGrid {
-    grid-template-columns: repeat(3, 1fr);
-  }
 }
 
 .card {

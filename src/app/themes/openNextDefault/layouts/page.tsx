@@ -8,11 +8,11 @@ import Footer from '../components/Footer';
 const Home2: React.FC = () => {
   return (
     <>
-       <div>
-      <Header />
-      <Body />
-      <Footer />
-    </div>
+      <div>
+        <Header />
+        <Body />
+        <Footer />
+      </div>
     </>
   );
 };
