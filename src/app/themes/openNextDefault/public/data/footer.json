@@ -1,0 +1,20 @@
+{
+    "component": "Footer",
+    "structure": {
+        "tag": "footer",
+        "className": "footer",
+        "children": [
+            {
+                "tag": "div",
+                "className": "container",
+                "children": [
+                    {
+                        "tag": "p",
+                        "className": "text",
+                        "text": "© 2025 Vercel, Inc. All rights reserved."
+                    }
+                ]
+            }
+        ]
+    }
+}

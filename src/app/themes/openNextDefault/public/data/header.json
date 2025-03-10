@@ -1,0 +1,41 @@
+{
+    "tag": "header",
+    "className": "header",
+    "children": [
+        {
+            "tag": "div",
+            "className": "container",
+            "children": [
+                {
+                    "tag": "a",
+                    "className": "logo",
+                    "attributes": {
+                        "href": "/"
+                    },
+                    "children": [
+                        {
+                            "tag": "img",
+                            "className": "logoImage",
+                            "attributes": {
+                                "src": "/siteicon/openNext.png",
+                                "alt": "OpenNext Logo"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "tag": "div",
+                    "className": "actions",
+                    "children": [
+                        {
+                            "tag": "button",
+                            "className": "button",
+                            "text": "Get to know us",
+                            "onClick": "openExternalLink"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
