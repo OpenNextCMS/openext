@@ -93,6 +93,18 @@ export async function POST(req: NextRequest) {
           isActive: theme.name === activeTheme
         }));
       }
+      // Update maxFileSize in config if provided
+      if (settingsData.config) {
+        const maxFileSizeConfig = settingsData.config.find((c: any) => c.key === 'maxFileSize');
+        if (maxFileSizeConfig) {
+          const existingConfig = settings.config.find(c => c.key === 'maxFileSize');
+          if (existingConfig) {
+            existingConfig.value = maxFileSizeConfig.value;
+          } else {
+            settings.config.push(maxFileSizeConfig);
+          }
+        }
+      }
     } else {
       settings = new SettingsModel({ siteTitle, ...settingsData });
       if (activeTheme) {
@@ -100,6 +112,10 @@ export async function POST(req: NextRequest) {
           ...theme,
           isActive: theme.name === activeTheme
         }));
+      }
+      // Add default maxFileSize if not provided
+      if (!settings.config.find(c => c.key === 'maxFileSize')) {
+        settings.config.push({ key: 'maxFileSize', value: '5mb' });
       }
     }
     await settings.save();

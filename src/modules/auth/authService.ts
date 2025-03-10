@@ -82,7 +82,8 @@ export class AuthService {
       timeZone: "UTC",
       dateFormat: "F j, Y",
       timeFormat: "g:i a",
-      themes: [{name: 'openNextDefault', isActive: true}]
+      themes: [{name: 'openNextDefault', isActive: true}],
+      config: [{ key: 'maxFileSize', value: '5mb' }] // Default max file size
     });
 
     return {

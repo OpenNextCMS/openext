@@ -11,6 +11,7 @@ export interface ISettings extends mongoose.Document {
   dateFormat: string;
   timeFormat: string;
   themes: { name: string; isActive: boolean }[];
+  config: { key: string; value: string | number }[];
 }
 
 const settingsSchema = new mongoose.Schema(
@@ -27,6 +28,12 @@ const settingsSchema = new mongoose.Schema(
       {
         name: { type: String, required: true },
         isActive: { type: Boolean, default: false },
+      },
+    ],
+    config: [
+      {
+        key: { type: String, required: true },
+        value: { type: mongoose.Schema.Types.Mixed, required: true, default: '5mb' },
       },
     ],
   },
