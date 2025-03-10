@@ -20,7 +20,7 @@ export async function POST(request: Request) {
 
     const result = await AuthService.login(identifier, userPassword, UserModel);
 
-    if (result.error) {
+    if (result?.error) {
       return NextResponse.json(
         { error: result.error },
         { status: 401 }

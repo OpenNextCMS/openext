@@ -87,7 +87,7 @@ export default function ProfilePage() {
     const fetchUserData = async () => {
       setIsLoading(true)
       try {
-        const response = await fetch(`${backendUrl}/api/profile`, {
+        const response = await fetch(`${backendUrl}/api/dashboard/profile`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -119,7 +119,7 @@ export default function ProfilePage() {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true)
     try {
-      const response = await fetch(`${backendUrl}/api/profile`, {
+      const response = await fetch(`${backendUrl}/api/dashboard/profile`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

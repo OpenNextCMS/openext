@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { getUserDbConnection, getUserModel } from '../../../utils/db';
+import { getUserDbConnection, getUserModel } from '../../../../utils/db';
 
-export async function GET(request: Request) {
+export async function GET() {
     try {
         // Establish DB connection and get User model
         await getUserDbConnection();

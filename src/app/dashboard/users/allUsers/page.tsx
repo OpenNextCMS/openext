@@ -39,7 +39,7 @@ export default function UserList() {
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch(`${backendUrl}/api/get-users`);
+      const response = await fetch(`${backendUrl}/api/sub-users/get-users`);
       if (!response.ok) throw new Error('Failed to fetch');
       const data = await response.json();
       setUsers(data.users || []);
@@ -77,7 +77,7 @@ export default function UserList() {
 
   const handleUserUpdate = async (userId: string, updates: { role?: number, active?: boolean }) => {
     try {
-      const response = await fetch(`/api/users/${userId}`, {
+      const response = await fetch(`/api/sub-users/update-users/${userId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -109,7 +109,7 @@ export default function UserList() {
     if (!selectedUser) return;
 
     try {
-      const response = await fetch(`/api/users/${selectedUser._id}`, {
+      const response = await fetch(`/api/sub-users/update-users/${selectedUser._id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

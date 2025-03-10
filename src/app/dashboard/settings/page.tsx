@@ -97,7 +97,7 @@ export default function SettingsPage() {
     const fetchSettingsData = async () => {
       try {
         setIsLoading(true)
-        const response = await fetch(`${backendUrl}/api/settings`, {
+        const response = await fetch(`${backendUrl}/api/dashboard/settings`, {
           credentials: "include",
         })
         const result = await response.json()
@@ -150,7 +150,7 @@ export default function SettingsPage() {
     const formData = new FormData()
     formData.append("file", file)
     try {
-      const res = await fetch(`${backendUrl}/api/siteicon`, {
+      const res = await fetch(`${backendUrl}/api/dashboard/settings/siteicon`, {
         method: "POST",
         body: formData,
       })
@@ -185,7 +185,7 @@ export default function SettingsPage() {
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000"
 
     try {
-      const response = await fetch(`${backendUrl}/api/settings`, {
+      const response = await fetch(`${backendUrl}/api/dashboard/settings`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

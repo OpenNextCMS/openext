@@ -38,7 +38,7 @@ export default function UserManagement() {
     const fetchRoles = async () => {
       setIsLoading(true)
       try {
-        const res = await fetch(`${backendUrl}/api/get-role`)
+        const res = await fetch(`${backendUrl}/api/get-role`, { credentials: "include" } )
         if (res.ok) {
           const data = await res.json()
           setRoles(data.roles || [])
@@ -62,7 +62,7 @@ export default function UserManagement() {
     e.preventDefault()
     setIsSubmitting(true)
     try {
-      const response = await fetch(`${backendUrl}/api/add-users`, {
+      const response = await fetch(`${backendUrl}/api/sub-users/add-users`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(userData),
