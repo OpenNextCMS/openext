@@ -2,8 +2,8 @@ import mongoose from 'mongoose';
 import { IUser, userSchema } from '@/models/User';
 // Removed Profile and its schema import
 import { ISettings, settingsSchema } from '@/models/Settings';
-import { IPage, pageSchema } from '@/models/Page';
-import Role, { roleSchema } from '@/models/Role'; // NEW import
+import { PageSchema, PageDocument } from '@/models/Page';
+import { roleSchema } from '@/models/Role'; // NEW import
 
 let userDb: mongoose.Connection | null = null;
 let pageDb: mongoose.Connection | null = null;
@@ -128,7 +128,7 @@ export async function getPageDbConnection() {
 
     // Initialize models only if they don't exist
     if (!pageDb.models.Page) {
-      pageDb.model<IPage>('Page', pageSchema);
+      pageDb.model<PageDocument>('Page', PageSchema); // Ensure Page schema is registered
     }
 
     // Handle connection errors
@@ -160,11 +160,11 @@ export function getSettingsModel() {
   return userDb.model<ISettings>('Settings');
 }
 
-export function getPageModel() {
+export function getPageModel(pageDb: mongoose.Connection) { // UPDATED
   if (!pageDb) {
     throw new Error('Page database connection not initialized');
   }
-  return pageDb.model<IPage>('Page');
+  return pageDb.model<PageDocument>('Page');
 }
 
 // Helper function to close all connections
