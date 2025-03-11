@@ -1,70 +1,61 @@
-import mongoose from 'mongoose';
+import mongoose, { Schema, Document, Types } from "mongoose";
 
-export interface IPage extends mongoose.Document {
-  siteName: string;
-  pageName: string;
-  createdBy: mongoose.Types.ObjectId;
-  data: {
-    html: string;
-    css: string;
-    components: mongoose.Schema.Types.Mixed;
-    styles: mongoose.Schema.Types.Mixed;
-  };
-  isPublished: boolean;
-  lastModified: Date;
+interface Attribute {
+  [key: string]: string;
 }
 
-const pageSchema = new mongoose.Schema({
-  siteName: {
-    type: String,
-    required: [true, 'Site name is required'],
-    trim: true
-  },
-  pageName: {
-    type: String,
-    required: [true, 'Page name is required'],
-    trim: true
-  },
-  createdBy: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
-  data: {
-    html: {
-      type: String,
-      required: true
-    },
-    css: {
-      type: String,
-      required: true
-    },
-    components: {
-      type: mongoose.Schema.Types.Mixed,
-      required: true
-    },
-    styles: {
-      type: mongoose.Schema.Types.Mixed,
-      required: true
-    }
-  },
-  isPublished: {
-    type: Boolean,
-    default: false
-  },
-  lastModified: {
-    type: Date,
-    default: Date.now
-  }
-}, {
-  timestamps: true
+interface Element {
+  tag: string;
+  className?: string;
+  text?: string;
+  attributes?: Attribute;
+  events?: { [key: string]: string };
+  children?: Element[];
+}
+
+interface Component {
+  name: string; // This will store names like "header" or "body"
+  data: Element; // This will store the actual JSON structure
+}
+
+export interface PageDocument extends Document {
+  pageName: string;
+  createdBy: Types.ObjectId;
+  isPublished: boolean;
+  lastModified: Date;
+  component: Component[];
+}
+
+const ElementSchema = new Schema<Element>({
+  tag: { type: String, required: true },
+  className: { type: String },
+  text: { type: String },
+  attributes: { type: Schema.Types.Mixed },
+  events: { type: Schema.Types.Mixed },
+  children: [{ type: Schema.Types.Mixed }]
 });
 
+const ComponentSchema = new Schema<Component>({
+  name: { type: String, required: true },
+  data: { type: ElementSchema, required: true } // Store each component's structure
+});
+
+const PageSchema = new Schema<PageDocument>(
+  {
+    pageName: { type: String, required: true, trim: true },
+    createdBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    isPublished: { type: Boolean, default: false },
+    lastModified: { type: Date, default: Date.now },
+    component: [ComponentSchema] // Array of components
+  },
+  { timestamps: true }
+);
+
 // Create indexes for better query performance
-pageSchema.index({ siteName: 1, createdBy: 1 });
-pageSchema.index({ pageName: 1, createdBy: 1 });
+PageSchema.index({ siteName: 1, createdBy: 1 });
+PageSchema.index({ pageName: 1, createdBy: 1 });
 
-const Page = mongoose.models.Page || mongoose.model<IPage>('Page', pageSchema);
+const PageModel = mongoose.model<PageDocument>("Page", PageSchema);
 
-export default Page;
-export { pageSchema };
+export default PageModel;
+export { PageSchema };
