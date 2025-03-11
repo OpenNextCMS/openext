@@ -119,12 +119,15 @@ export async function getPageDbConnection() {
   if (!PAGE_DB_NAME) {
     throw new Error('PAGE_DB_NAME environment variable is not set');
   }
-
+  
   if (!pageDb) {
     const uri = await createConnectionUri(PAGE_DB_NAME);
     pageDb = await mongoose.createConnection(uri, {
+      serverSelectionTimeoutMS: 30000, // Increase timeout to 30 seconds
+      socketTimeoutMS: 45000,
       maxPoolSize: 10,
     });
+    console.log(pageDb, 'MongoDB page database connected successfully');
 
     // Initialize models only if they don't exist
     if (!pageDb.models.Page) {
