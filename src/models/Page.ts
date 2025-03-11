@@ -55,7 +55,7 @@ const PageSchema = new Schema<PageDocument>(
 PageSchema.index({ siteName: 1, createdBy: 1 });
 PageSchema.index({ pageName: 1, createdBy: 1 });
 
-const PageModel = mongoose.model<PageDocument>("Page", PageSchema);
+const PageModel = mongoose.models.Page || mongoose.model<PageDocument>("Page", PageSchema);
 
 export default PageModel;
 export { PageSchema };
