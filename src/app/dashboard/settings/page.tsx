@@ -33,6 +33,7 @@ const formSchema = z.object({
   activeTheme: z.string().optional(),
   imgSize: z.string().optional(),
   enableDarkMode: z.boolean().optional(),
+  revisionHistory: z.boolean().optional(), // Add this line
 })
 
 const languages = Object.entries(languageNames).map(([code, name]) => ({
@@ -63,6 +64,7 @@ export default function SettingsPage() {
       activeTheme: "default",
       imgSize: "5mb",
       enableDarkMode: false,
+      revisionHistory: false, // Add this line
     },
   })
   const siteIcon = watch("siteIcon")
@@ -434,12 +436,33 @@ export default function SettingsPage() {
                 </div>
               </TabsContent>
               <TabsContent value="config" className="space-y-6">
-                <Label htmlFor="imgSize">Max Image size</Label>
-                <Input
-                  id="siteTitle"
-                  {...register("imgSize")}
-                  placeholder="Enter Image size"
-                />
+                <div className="flex justify-between m-5">
+                  <Label htmlFor="imgSize">Max Upload size</Label>
+                  <Input
+                    id="imgSize"
+                    {...register("imgSize")}
+                    placeholder="Enter Image size"
+                    className="w-40"
+                  />
+                </div>
+                <div className="flex justify-between m-5">
+                  <Label htmlFor="revisionHistory">Revision History</Label>
+
+                  <Controller
+                    name="revisionHistory"
+                    control={control}
+                    render={({ field }) => (
+                      <div className="flex items-center gap-5">
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          id="revisionHistory"
+                        />
+                        <p className={field.value ? "text-green-500" : "text-red-500"}>{field.value ? "ON" : "OFF"}</p>
+                      </div>
+                    )}
+                  />
+                </div>
               </TabsContent>
             </Tabs>
           </CardContent>
