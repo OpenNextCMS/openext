@@ -1,22 +1,46 @@
-import styles from '../public/assets/css/theme.module.css';
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
+import { useEffect, useState, JSX } from "react";
+import componentData from "../public/data/header.json";
+import styles from "../public/assets/css/theme.module.css";
+
+const renderElement = (element: any) => {
+  const { tag, className, attributes = {}, children, text, onClick } = element;
+  const Element = tag as keyof JSX.IntrinsicElements;
+
+  const handleClick = () => {
+    if (onClick === "openExternalLink") {
+      window.open("https://aviraltrendzpvtltd.com/");
+    }
+  };
+
+  // Check if the element is a void tag (like <img>, <input>, etc.)
+  const voidElements = ["area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"];
+  if (voidElements.includes(tag)) {
+    return <Element key={tag} {...attributes} className={styles[className] || className} />;
+  }
+
+  return (
+    <Element
+      key={tag}
+      {...attributes}
+      className={styles[className] || className}
+      onClick={onClick ? handleClick : undefined}
+    >
+      {text}
+      {children && children.map((child: any, index: number) => renderElement(child))}
+    </Element>
+  );
+};
 
 const Header = () => {
-  return (
-    <header className={styles.header}>
-      <div className={styles.container}>
-        <Link href="/" className={styles.logo}>
-          <img src="/siteicon/openNext.png" alt="OpenNext Logo" className={styles.logoImage} />
-        </Link>
+  const [component, setComponent] = useState<any>(null);
 
-        <div className={styles.actions}>
-          <Button className={styles.button} onClick={() => window.open("https://aviraltrendzpvtltd.com/")}>Get to know us</Button>
-        </div>
-      </div>
+  useEffect(() => {
+    setComponent(componentData);
+  }, []);
 
-    </header>
-  );
+  if (!component) return null;
+
+  return renderElement(component);
 };
 
 export default Header;

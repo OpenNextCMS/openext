@@ -38,7 +38,7 @@ export default function UserManagement() {
     const fetchRoles = async () => {
       setIsLoading(true)
       try {
-        const res = await fetch(`${backendUrl}/api/get-role`)
+        const res = await fetch(`${backendUrl}/api/get-role`, { credentials: "include" } )
         if (res.ok) {
           const data = await res.json()
           setRoles(data.roles || [])
