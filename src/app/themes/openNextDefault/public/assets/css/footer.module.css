@@ -1,14 +1,13 @@
 .footer {
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid rgba(180, 178, 178, 0.532);
   background-color: var(--background);
 }
 
 .container {
-  padding: 2rem 1rem;
+  padding: 2.5rem 1rem;
 }
 
 .text {
-  margin-bottom: 0;
   text-align: left;
   font-size: 0.875rem;
   color: var(--muted-foreground);

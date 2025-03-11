@@ -12,7 +12,6 @@ const renderElement = (element: any) => {
     }
   };
 
-  // Check if the element is a void tag (like <img>, <input>, etc.)
   const voidElements = ["area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"];
   if (voidElements.includes(tag)) {
     return <Element key={tag} {...attributes} className={styles[className] || className} />;

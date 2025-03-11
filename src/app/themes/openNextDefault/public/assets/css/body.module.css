@@ -5,7 +5,7 @@
 /* Hero Section */
 .heroSection {
   position: relative;
-  padding: 5rem 0;
+  padding: 4.5rem 0;
 }
 
 .container {
@@ -54,7 +54,7 @@
 
 /* Features Section */
 .featuresSection {
-  padding: 4rem 0;
+  padding: 1rem 0;
 }
 
 .featuresGrid {
@@ -66,9 +66,12 @@
 }
 
 .card {
+  padding: 24px;
   position: relative;
   overflow: hidden;
   transition: all 0.3s ease;
+  border: 1px solid rgba(181, 181, 181, 0.344);
+  border-radius: 12px;
 }
 
 .card:hover {
