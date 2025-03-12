@@ -3,7 +3,6 @@ import { getPageDbConnection, getPageModel } from '@/utils/db';
 
 export async function GET() {
   try {
-    await getPageDbConnection();
     const pageDb = await getPageDbConnection();
     const PageModel = getPageModel(pageDb);
 
