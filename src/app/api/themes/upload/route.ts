@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { mkdirSync } from 'fs';
 import { join } from 'path';
 import AdmZip from 'adm-zip';
-import mongoose from 'mongoose';
 import { cookies } from 'next/headers';
 import { jwtDecode } from 'jwt-decode';
 import { getUserDbConnection, getSettingsModel } from '@/utils/db';
