@@ -438,21 +438,21 @@ export default function SettingsPage() {
               <TabsContent value="config" className="space-y-6">
                 <div className="flex items-center justify-between m-5">
                   <Label htmlFor="imgSize">Max Upload size</Label>
-                  <p className="text-gray-600 text-sm">Set the size of Image upload</p>
-                  <div className="flex items-center border border-gray-200 rounded bg-gray-200 pr-3">
+                  <p className="text-gray-600 dark:text-gray-200 text-sm">Set the size of Image upload</p>
+                  <div className="flex items-center border border-gray-200 rounded bg-gray-200 dark:bg-black pr-3">
                   <Input
                     id="imgSize"
                     {...register("imgSize", {
-                    setValueAs: (value) => value.replace(/\D/g, ''), // Remove non-digit characters
+                    setValueAs: (value) => value.replace(/\D/g, ''),
                     })}
                     className="w-9 mx-2"
                   />
-                  mb
+                 <p className="text-gray-800 dark:text-gray-200">mb</p>
                   </div>
                 </div>
                 <div className="flex items-center justify-between m-5">
                   <Label htmlFor="revisionHistory">Revision History</Label>
-                  <p className="text-gray-600 text-sm">When ON, Your DB size will increase substatntly</p>
+                  <p className="text-gray-600 dark:text-gray-200 text-sm">When ON, Your DB size will increase substatntly</p>
                   <Controller
                     name="revisionHistory"
                     control={control}
