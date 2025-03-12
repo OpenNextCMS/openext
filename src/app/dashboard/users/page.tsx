@@ -495,29 +495,31 @@ export default function UserManagementDashboard() {
                               </Badge>
                             </TableCell>
                             <TableCell className="text-right">
-                              <div className="flex justify-end gap-2">
-                                <Button onClick={() => openEditModal(user)} variant="outline" size="sm">
-                                  <Edit className="h-3.5 w-3.5 mr-1" />
-                                  Edit
-                                </Button>
-                                <Button
-                                  onClick={() => handleUserUpdate(user._id, { active: !user.active })}
-                                  variant={user.active ? "destructive" : "default"}
-                                  size="sm"
-                                >
-                                  {user.active ? (
-                                    <>
-                                      <XCircle className="h-3.5 w-3.5 mr-1" />
-                                      Deactivate
-                                    </>
-                                  ) : (
-                                    <>
-                                      <CheckCircle className="h-3.5 w-3.5 mr-1" />
-                                      Activate
-                                    </>
-                                  )}
-                                </Button>
-                              </div>
+                              {user.role == "0" ? (<div></div>) : (
+                                <div className="flex justify-end gap-2">
+                                  <Button onClick={() => openEditModal(user)} variant="outline" size="sm">
+                                    <Edit className="h-3.5 w-3.5 mr-1" />
+                                    Edit
+                                  </Button>
+                                  <Button
+                                    onClick={() => handleUserUpdate(user._id, { active: !user.active })}
+                                    variant={user.active ? "destructive" : "default"}
+                                    size="sm"
+                                  >
+                                    {user.active ? (
+                                      <>
+                                        <XCircle className="h-3.5 w-3.5 mr-1" />
+                                        Deactivate
+                                      </>
+                                    ) : (
+                                      <>
+                                        <CheckCircle className="h-3.5 w-3.5 mr-1" />
+                                        Activate
+                                      </>
+                                    )}
+                                  </Button>
+                                </div>
+                              )}
                             </TableCell>
                           </TableRow>
                         ))
