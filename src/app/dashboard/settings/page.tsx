@@ -436,7 +436,7 @@ export default function SettingsPage() {
                 </div>
               </TabsContent>
               <TabsContent value="config" className="space-y-6">
-                <div className="flex justify-between m-5">
+                <div className="flex items-center justify-between m-5">
                   <Label htmlFor="imgSize">Max Upload size</Label>
                   <Input
                     id="imgSize"
