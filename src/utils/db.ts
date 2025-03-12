@@ -127,7 +127,6 @@ export async function getPageDbConnection() {
       socketTimeoutMS: 45000,
       maxPoolSize: 10,
     });
-    console.log(pageDb, 'MongoDB page database connected successfully');
 
     // Initialize models only if they don't exist
     if (!pageDb.models.Page) {
