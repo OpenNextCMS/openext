@@ -1,5 +1,4 @@
 import { useEffect, useState, JSX } from "react";
-import componentData from "../public/data/footer.json";
 import styles from "../public/assets/css/footer.module.css";
 
 const renderElement = (element: any) => {
@@ -19,15 +18,28 @@ const renderElement = (element: any) => {
 };
 
 const Footer = () => {
-  const [component, setComponent] = useState<any>(null);
+  const [pageData, setPageData] = useState<any>(null);
 
   useEffect(() => {
-    setComponent(componentData.structure);
+    const fetchPageData = async () => {
+      try {
+        const res = await fetch('http://localhost:3000/api/pages/get-pages');
+        const data = await res.json();
+        const bodyComponent = data[0].component.find((comp: any) => comp.name === 'footer').data;
+        setPageData(bodyComponent);
+      } catch (error) {
+        console.error('Failed to fetch page data:', error);
+      }
+    };
+
+    fetchPageData();
   }, []);
 
-  if (!component) return null;
+  if (!pageData) {
+    return <div>Loading...</div>;
+  }
 
-  return renderElement(component);
+  return renderElement(pageData);
 };
 
 export default Footer;
