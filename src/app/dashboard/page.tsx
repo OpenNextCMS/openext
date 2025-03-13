@@ -8,9 +8,7 @@ import { handleError } from "@/utils/errorHandler"
 import {
   Activity,
   BarChart3,
-  Calendar,
   Clock,
-  Database,
   FileText,
   LayoutDashboard,
   Settings,
@@ -27,7 +25,7 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/
 
 export default function DashboardPage() {
   const [t, setT] = useState(translations.en)
-  const [error, setError] = useState("")
+  const [error] = useState("")
   const [loading, setLoading] = useState(true)
   const [dbStatus, setDbStatus] = useState({
     masterDbConnected: false,

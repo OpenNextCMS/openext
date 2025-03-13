@@ -100,7 +100,7 @@ export default function AddThemePage() {
                 setUploadStatus("error")
                 handleSuccess(false, null, "Failed to upload theme")
             }
-        } catch (error) {
+        } catch {
             clearInterval(progressInterval)
             setUploadProgress(0)
             setUploadStatus("error")

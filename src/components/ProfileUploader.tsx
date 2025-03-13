@@ -37,7 +37,7 @@ export function ProfileUploader({ avatarUrl, onUpload }: {
     }
   }, [onUpload])
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+  const { getRootProps, getInputProps } = useDropzone({
     onDrop,
     accept: {
       'image/*': ['.png', '.jpg', '.jpeg', '.gif']
