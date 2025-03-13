@@ -8,7 +8,6 @@ import {
   UserPlus,
   Users,
   Search,
-  type User,
   RefreshCw,
   CheckCircle,
   XCircle,
@@ -29,12 +28,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 
 interface UserData {
+  _id: string
   username: string
   name: string
   email: string
   password: string
   role: string
   phoneNumber: string
+  active: boolean
 }
 
 interface Role {
@@ -45,22 +46,24 @@ interface Role {
 export default function UserManagementDashboard() {
   // Add User Form State
   const [userData, setUserData] = useState<UserData>({
+    _id: "",
     username: "",
     name: "",
     email: "",
     password: "",
     role: "",
     phoneNumber: "",
+    active: false,
   })
 
   // User List State
-  const [users, setUsers] = useState<User[]>([])
+  const [users, setUsers] = useState<UserData[]>([])
   const [roles, setRoles] = useState<Role[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
   const [error, setError] = useState<string | null>(null)
-  const [selectedUser, setSelectedUser] = useState<User | null>(null)
+  const [selectedUser, setSelectedUser] = useState<UserData | null>(null)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [editForm, setEditForm] = useState({
     username: "",
@@ -69,7 +72,7 @@ export default function UserManagementDashboard() {
     role: 0,
   })
   const [activeTab, setActiveTab] = useState("user-list")
-  const [filteredUsers, setFilteredUsers] = useState<User[]>([])
+  const [filteredUsers, setFilteredUsers] = useState<UserData[]>([])
 
   const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000"
 
@@ -147,12 +150,14 @@ export default function UserManagementDashboard() {
       if (res.ok) {
         await res.json()
         setUserData({
+          _id: "",
           username: "",
           name: "",
           email: "",
           password: "",
           role: "",
           phoneNumber: "",
+          active: false,
         })
         toast.success("User added successfully")
         // Switch to user list tab and refresh the list
@@ -191,13 +196,13 @@ export default function UserManagementDashboard() {
     }
   }
 
-  const openEditModal = (user: User) => {
+  const openEditModal = (user: UserData) => {
     setSelectedUser(user)
     setEditForm({
       username: user.username,
       email: user.email,
       phoneNumber: user.phoneNumber || "",
-      role: user.role,
+      role: Number(user.role),
     })
     setIsEditModalOpen(true)
   }

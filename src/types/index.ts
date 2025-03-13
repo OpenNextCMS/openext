@@ -25,3 +25,9 @@ export interface MongoDBConfig {
     user: string;
     pages: string;
   }
+
+  export interface RouteContext {
+    params: {
+      id: string;
+    };
+  }  
