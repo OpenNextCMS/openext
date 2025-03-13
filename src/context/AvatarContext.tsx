@@ -1,16 +1,22 @@
 'use client';
 
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 
-// Create Context
-const AvatarContext = createContext({
+// Define the shape of the context value
+interface AvatarContextType {
+  avatarUrl: string | null;
+  setAvatarUrl: (url: string) => void;
+}
+
+// Create Context with a default value
+const AvatarContext = createContext<AvatarContextType>({
   avatarUrl: null,
-  setAvatarUrl: (url: string) => {},
+  setAvatarUrl: () => {},
 });
 
 export const useAvatar = () => useContext(AvatarContext);
 
-export const AvatarProvider = ({ children }: { children: React.ReactNode }) => {
+export const AvatarProvider = ({ children }: { children: ReactNode }) => {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   // Effect to fetch avatar URL from localStorage when the component mounts

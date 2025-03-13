@@ -7,7 +7,6 @@ import { handleSuccess } from '@/utils/successHandler'; // Import success handle
 import { Eye, EyeOff } from 'lucide-react';
 import { translations } from '../../../../public/locales/translations';
 import Cookies from 'js-cookie';
-import ToggleSwitch from '@/components/vivComp/ToggleSwitch';
 
 export default function MongoDBSetup() {
   const [username, setUsername] = useState('');
@@ -16,7 +15,7 @@ export default function MongoDBSetup() {
   const [cluster, setCluster] = useState('');
   const [isLoading, setIsLoading] = useState(false); // Add loading state
   const [showPassword, setShowPassword] = useState(false);
-  const [currentLanguage, setCurrentLanguage] = useState();
+  const [setCurrentLanguage] = useState();
   const [t, setT] = useState(translations.en); // Default to English
   const router = useRouter();
 
