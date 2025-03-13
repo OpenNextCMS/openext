@@ -8,7 +8,6 @@ import {
   Download,
   Eye,
   Fullscreen,
-  Plus,
   PlusSquare,
   RotateCcw,
   Settings,

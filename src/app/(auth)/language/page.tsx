@@ -1,7 +1,7 @@
 "use client";
 
-import Body  from '@/components/NewLang/body'
-import Marq from '@/components/NewLang/marq'
+import Body  from '@/components/LanguageSelector/body'
+import Marq from '@/components/LanguageSelector/marq'
 import React from 'react'
 
 export default function page() {

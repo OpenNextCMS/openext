@@ -54,7 +54,6 @@ const formSchema = z.object({
 export default function ProfilePage() {
   const { avatarUrl, setAvatarUrl } = useAvatar()
   const {
-    control,
     register,
     handleSubmit,
     formState: { errors, isDirty },
