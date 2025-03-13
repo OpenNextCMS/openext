@@ -11,13 +11,27 @@ import { Label } from "@/components/ui/label"
 interface Page {
   id: string
   name: string
+  preHeading: string
+  description: string
+  seoName: string
+  seoMeta: string
 }
 
 export default function LeftSidebar() {
   const [pagesOpen, setPagesOpen] = useState(true)
   const [layersOpen, setLayersOpen] = useState(true)
-  const [pages, setPages] = useState<Page[]>([{ id: "home", name: "Home" }])
-  const [pageId, setPageId] = useState<Page>({ id: "home", name: "Home" })
+  const [pages, setPages] = useState<Page[]>([{
+    id: "home", name: "Home", preHeading: "Welcome to OpenNext",
+    description: "This is a default page created during registration.",
+    seoName: "OpenNext",
+    seoMeta: "OpenNext is a React framework for the web.",
+  }])
+  const [pageId, setPageId] = useState<Page>({
+    id: "home", name: "Home", preHeading: "Welcome to OpenNext",
+    description: "This is a default page created during registration.",
+    seoName: "OpenNext",
+    seoMeta: "OpenNext is a React framework for the web.",
+  })
   const [newPageName, setNewPageName] = useState("")
   const [dialogOpen, setDialogOpen] = useState(false)
   const [openPage, setOpenPage] = useState(false)
@@ -27,6 +41,10 @@ export default function LeftSidebar() {
       const newPage: Page = {
         id: `page-${Date.now()}`,
         name: newPageName.trim(),
+        preHeading: "",
+        description: "",
+        seoName: "",
+        seoMeta: "",
       }
       setPages([...pages, newPage])
       setNewPageName("")
@@ -37,11 +55,47 @@ export default function LeftSidebar() {
   return (
     <div className="flex h-full flex-col">
       {openPage ? (
-        <div className="flex flex-col-reverse items-center m-12">
+        <div>
+          {/* <div className="flex flex-col-reverse items-center m-12">
+            {pageId && (
+              <div>This is {pageId.id} and name is {pageId.name}</div>
+            )}
+            <X className="h-4 w-4 m-5" onClick={() => (setOpenPage(false))} />
+          </div> */}
           {pageId && (
-            <div>This is {pageId.id} and name is {pageId.name}</div>
+            <div>
+              <div className="flex flex-col gap-2 p-2 my-3">
+                <Label htmlFor="name">
+                  Name
+                </Label>
+                <Input type="text" value={pageId.name || ""} />
+              </div>
+              <div className="flex flex-col gap-2 p-2 my-3">
+                <Label htmlFor="preHead">
+                  Pre-Heading
+                </Label>
+                <Input type="text" value={pageId.preHeading || ""} />
+              </div>
+              <div className="flex flex-col gap-2 p-2 my-3">
+                <Label htmlFor="description">
+                  Description
+                </Label>
+                <textarea id="description" className="border rounded p-2" rows={2} value={pageId.description || ""} />
+              </div>
+              <div className="flex flex-col gap-2 p-2 my-3">
+                <Label htmlFor="seoName">
+                  Seo Name
+                </Label>
+                <Input type="text" value={pageId.seoName || ""} />
+              </div>
+              <div className="flex flex-col gap-2 p-2 my-3">
+                <Label htmlFor="seoMeta">
+                  Seo Meta
+                </Label>
+                <textarea id="seoMeta" className="border rounded p-2" rows={2} value={pageId.seoMeta || ""} />
+              </div>
+            </div>
           )}
-          <X className="h-4 w-4 m-5" onClick={() => (setOpenPage(false))} />
         </div>
       ) : (
         <div className="flex h-full flex-col">
