@@ -15,7 +15,24 @@ const languages = Object.entries(translations.languageNames).map(([code, name]) 
 }));
 
 interface Translations {
-  [key: string]: string;
+  selectLanguage: string;
+  continue: string;
+  register: {
+    title: string;
+    siteTitle: string;
+    username: string;
+    name: string;
+    email: string;
+    password: string;
+    phoneNo: string;
+    submit: string;
+    successMessage: string;
+    validationError: string;
+    generalError: string;
+    role: string;
+  };
+  // Add other properties as needed
+  [key: string]: string | { [key: string]: string };
 }
 
 export default function LanguageSelector() {
