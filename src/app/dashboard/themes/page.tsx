@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useRef } from "react"
 import { handleSuccess } from "@/utils/successHandler"
 import {
@@ -61,9 +60,6 @@ export default function AddThemePage() {
     const handleUpload = async () => {
         if (!file) return
 
-        const formData = new FormData()
-        formData.append("file", file)
-
         setIsLoading(true)
         setUploadProgress(0)
 
@@ -79,9 +75,27 @@ export default function AddThemePage() {
         }, 200)
 
         try {
-            const res = await fetch(`${backendUrl}/api/themes/upload`, {
-                method: "POST",
+            // Extract ZIP file and get folder name
+            const formData = new FormData()
+            formData.append('file', file)
+
+            const extractRes = await fetch(`/api/themes/extract`, {
+                method: 'POST',
                 body: formData,
+            })
+
+            const extractData = await extractRes.json()
+            if (!extractData.folderName) {
+                throw new Error('Invalid ZIP structure. Required folders: header, body, footer')
+            }
+
+            // Send folder name to API
+            const res = await fetch(`${backendUrl}/api/themes/upload`, {
+                method: 'POST',
+                body: JSON.stringify({ folderName: extractData.folderName }),
+                headers: {
+                    'Content-Type': 'application/json',
+                },
             })
 
             clearInterval(progressInterval)
@@ -90,21 +104,21 @@ export default function AddThemePage() {
             const data = await res.json()
 
             if (data.success) {
-                setUploadStatus("success")
-                handleSuccess(true, null, "Theme uploaded successfully")
+                setUploadStatus('success')
+                handleSuccess(true, null, 'Theme uploaded successfully')
                 setTimeout(() => {
                     setFile(null)
                     setUploadProgress(0)
                 }, 2000)
             } else {
-                setUploadStatus("error")
-                handleSuccess(false, null, "Failed to upload theme")
+                setUploadStatus('error')
+                handleSuccess(false, null, 'Failed to upload theme')
             }
         } catch {
             clearInterval(progressInterval)
             setUploadProgress(0)
-            setUploadStatus("error")
-            handleSuccess(false, null, "Theme upload error")
+            setUploadStatus('error')
+            handleSuccess(false, null, 'Theme upload error')
         } finally {
             setIsLoading(false)
         }
