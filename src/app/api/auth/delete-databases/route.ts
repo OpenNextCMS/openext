@@ -1,4 +1,3 @@
-import { NextRequest } from 'next/server';
 import mongoose from 'mongoose';
 import { handleError } from '@/utils/errorHandler'; // Import error handler
 import { handleSuccess } from '@/utils/successHandler'; // Import success handler
@@ -8,7 +7,7 @@ import path from 'path';
 
 dotenv.config();
 
-export async function POST(req: NextRequest) {
+export async function POST() {
   const { MONGODB_USERNAME, MONGODB_PASSWORD, MONGODB_HOST, MONGODB_CLUSTER } = process.env;
 
   if (!MONGODB_USERNAME || !MONGODB_PASSWORD || !MONGODB_HOST || !MONGODB_CLUSTER) {
@@ -23,14 +22,10 @@ export async function POST(req: NextRequest) {
     `mongodb+srv://${MONGODB_USERNAME}:${MONGODB_PASSWORD}@${MONGODB_CLUSTER}.${MONGODB_HOST}.mongodb.net/${dbName}?retryWrites=true&w=majority&appName=${MONGODB_CLUSTER}`;
 
   const masterDbUrl = getDbUrl("master");
-  const usersDbUrl = getDbUrl("users");
-  const pagesDbUrl = getDbUrl("pages");
 
   try {
     // Create separate connections for each database
     const masterDbConnection = await mongoose.createConnection(masterDbUrl).asPromise();
-    const usersDbConnection = await mongoose.createConnection(usersDbUrl).asPromise();
-    const pagesDbConnection = await mongoose.createConnection(pagesDbUrl).asPromise();
 
     if (!masterDbConnection.db) {
       throw new Error('Database connection is undefined');

@@ -4,7 +4,7 @@ import { getUserDbConnection, getUserModel, getSettingsModel } from '@/utils/db'
 import { cookies } from 'next/headers';
 import { jwtDecode } from 'jwt-decode';
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get('token')?.value;
@@ -14,7 +14,12 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }
 
-    const decodedToken: any = jwtDecode(token);
+    interface DecodedToken {
+      email: string;
+      // Add other properties if needed
+    }
+
+    const decodedToken: DecodedToken = jwtDecode(token);
     const email = decodedToken.email;
 
     if (!email) {
@@ -58,7 +63,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }
 
-    const decodedToken: any = jwtDecode(token);
+    interface DecodedToken {
+      email: string;
+      // Add other properties if needed
+    }
+
+    const decodedToken: DecodedToken = jwtDecode(token);
     const email = decodedToken.email;
 
     if (!email) {
@@ -95,7 +105,11 @@ export async function POST(req: NextRequest) {
       }
       // Update maxFileSize in config if provided
       if (settingsData.config) {
-        const maxFileSizeConfig = settingsData.config.find((c: any) => c.key === 'maxFileSize');
+        interface ConfigItem {
+          key: string;
+          value: string;
+        }
+        const maxFileSizeConfig = settingsData.config.find((c: ConfigItem) => c.key === 'maxFileSize');
         if (maxFileSizeConfig) {
           const existingConfig = settings.config.find(c => c.key === 'maxFileSize');
           if (existingConfig) {
@@ -122,8 +136,9 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true, data: { user, settings }, message: 'Settings updated successfully' });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Settings update error:', error);
-    return NextResponse.json({ success: false, message: error.message || 'Error updating settings' }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : 'Error updating settings';
+    return NextResponse.json({ success: false, message: errorMessage }, { status: 500 });
   }
 }

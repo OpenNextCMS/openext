@@ -15,7 +15,7 @@ export default function DatabaseSetup() {
 
   useEffect(() => {
     const langFromCookie = Cookies.get('selectedLanguage') || 'en';
-    setT(translations[langFromCookie as keyof typeof translations]);
+  setT(translations[langFromCookie as keyof typeof translations] as typeof translations.en);
 
     // Load database names from localStorage if they exist
     const savedUserDbName = localStorage.getItem('USER_DB_NAME');

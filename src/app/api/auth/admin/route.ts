@@ -140,12 +140,12 @@ export async function POST(req: NextRequest) {
       }),
       { status: 201 }
     );
-  } catch (error: any) {
+  } catch (error) {
     console.error('Registration error:', error);
     return new Response(
       JSON.stringify({
         success: false,
-        message: error.message || 'Registration failed',
+        message: error instanceof Error ? error.message : 'Registration failed',
         isRegistration: 'failed'
       }),
       { status: 500 }

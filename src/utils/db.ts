@@ -75,7 +75,21 @@ export const getUserDbConnection = async () => {
       const SettingsModel = userDb.models.Settings || userDb.model('Settings', settingsSchema);
       const settings = await SettingsModel.findOne({});
       if (settings) {
-        const themeExists = settings.themes.some(theme => theme.name === 'openNextDefault');
+        interface ITheme {
+          name: string;
+          isActive: boolean;
+        }
+
+        interface ISettingsDocument extends mongoose.Document {
+          siteTitle: string;
+          language: string;
+          timeZone: string;
+          dateFormat: string;
+          timeFormat: string;
+          themes: ITheme[];
+        }
+
+        const themeExists: boolean = (settings as ISettingsDocument).themes.some((theme: ITheme) => theme.name === 'openNextDefault');
         if (!themeExists) {
           settings.themes.push({ name: 'openNextDefault', isActive: true });
           await settings.save();

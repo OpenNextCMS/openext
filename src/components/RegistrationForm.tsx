@@ -19,7 +19,7 @@ const NewRegisterForm = () => {
 
   useEffect(() => {
     const langFromCookie = Cookies.get('selectedLanguage') || 'en';
-    setT(translations[langFromCookie as keyof typeof translations]);
+  setT(translations[langFromCookie as keyof typeof translations] as typeof translations.en);
 
     const mongodbCredentials = ['MONGODB_USERNAME', 'MONGODB_PASSWORD', 'MONGODB_CLUSTER', 'MONGODB_HOST'];
     const dbInfo = ['USER_DB_NAME', 'PAGE_DB_NAME'];
