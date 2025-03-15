@@ -1,24 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { IUser } from '@/models/User';
 import bcrypt from 'bcryptjs';
-import jwt, { JwtPayload } from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 import { jwtDecode } from 'jwt-decode';
 import { getUserDbConnection, getUserModel } from '@/utils/db';
 import { AuthService } from '@/modules/auth/authService';
 import { cookies } from 'next/headers';
 
-interface DecodedToken extends JwtPayload {
-  userId: string;
-}
 
-export async function GET(req: Request) {
+
+export async function GET() {
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get('token')?.value;
     if (!token) {
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }
-    const decodedToken: any = jwtDecode(token);
+    interface DecodedToken {
+      email: string;
+      userId: string;
+      [key: string]: unknown;
+    }
+    const decodedToken: DecodedToken = jwtDecode(token);
     const email = decodedToken.email;
     if (!email) {
       return NextResponse.json({ success: false, message: 'Invalid token' }, { status: 401 });
@@ -34,7 +37,7 @@ export async function GET(req: Request) {
     }
     // Return user with profile fields combined
     return NextResponse.json({ success: true, data: response.user });
-  } catch (error) {
+  } catch{
     return NextResponse.json({ success: false, message: 'Server error' }, { status: 500 });
   }
 }
@@ -46,7 +49,12 @@ export async function POST(req: NextRequest) {
     if (!token) {
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }
-    const decodedToken: any = jwtDecode(token);
+    interface DecodedToken {
+      email: string;
+      userId: string;
+      [key: string]: unknown;
+    }
+    const decodedToken: DecodedToken = jwtDecode(token);
     const email = decodedToken.email;
     if (!email) {
       return NextResponse.json({ success: false, message: 'Invalid token' }, { status: 401 });
@@ -87,7 +95,6 @@ export async function POST(req: NextRequest) {
         userId: originalUser._id,
         email: originalUser.email,
         username: originalUser.username,
-        siteTitle: originalUser.siteTitle,
         role: originalUser.role,
       },
       jwtSecret,
@@ -108,10 +115,10 @@ export async function POST(req: NextRequest) {
     });
 
     return response;
-  } catch (error: any) {
+  } catch (error: unknown) {
     return NextResponse.json({
       success: false,
-      message: error.message || 'Error updating profile'
+      message: (error instanceof Error ? error.message : 'Error updating profile')
     }, { status: 500 });
   }
 }

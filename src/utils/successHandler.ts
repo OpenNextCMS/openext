@@ -8,7 +8,7 @@ export function handleSuccess(success: boolean, data: unknown, message: string, 
   const response = NextResponse.json({ success: true, message, data, status });
   if (redirectUrl) {
     response.headers.set('Location', redirectUrl);
-    response.status = 302;
+    return NextResponse.redirect(redirectUrl);
   }
   return response;
 }

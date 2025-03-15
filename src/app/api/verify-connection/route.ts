@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import {  NextResponse } from 'next/server';
 import mongoose from 'mongoose';
 import fs from 'fs/promises';
 import path from 'path';
@@ -40,7 +40,7 @@ async function updateEnvFile(dbConnection: boolean, isRegistration: boolean) {
   }
 }
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     if (!MONGODB_USERNAME || !MONGODB_PASSWORD || !MONGODB_HOST || !MONGODB_CLUSTER || !USER_DB_NAME || !PAGE_DB_NAME) {
       throw new Error('Missing required environment variables');

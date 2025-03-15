@@ -21,7 +21,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     const langFromCookie = Cookies.get('selectedLanguage') || 'en';
-    setT(translations[langFromCookie as keyof typeof translations]);
+  setT(translations[langFromCookie as keyof typeof translations] as typeof translations.en);
 
     const message = Cookies.get('message');
     if (message) {

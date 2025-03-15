@@ -19,8 +19,8 @@ export async function POST(req: NextRequest) {
     // If successful, disconnect
     await mongoose.disconnect();
 
-    return handleSuccess(null, 'MongoDB connection successful');
-  } catch (error) {
+    return handleSuccess(true, null, 'MongoDB connection successful', 200);
+  } catch {
     return handleError(null, 'Failed to connect to MongoDB');
   }
 }
