@@ -14,6 +14,10 @@ const languages = Object.entries(translations.languageNames).map(([code, name]) 
   flag: `/flags/${code}.png`,
 }));
 
+interface Translations {
+  [key: string]: string;
+}
+
 export default function LanguageSelector() {
   const router = useRouter();
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -21,19 +25,19 @@ export default function LanguageSelector() {
     languages.find((lang) => lang.code === (Cookies.get("selectedLanguage") || "en")) || languages[0]
   );
   const [inputValue, setInputValue] = useState(selectedLang.name);
-  const [t, setT] = useState<{ [key: string]: any }>(translations?.translations?.en);
+  const [t, setT] = useState<Translations>(translations.translations.en as Translations);
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
     Cookies.set("selectedLanguage", selectedLang.code, { expires: 7 });
-    setT(translations.translations[selectedLang.code as keyof typeof translations.translations] as { [key: string]: any });
+    setT(translations.translations[selectedLang.code as keyof typeof translations.translations] as Translations);
   }, [selectedLang]);
 
   const handleLanguageSelect = (lang: { code: string; name: string; flag: string }) => {
     setSelectedLang(lang);
     setInputValue(lang.name);
     Cookies.set("selectedLanguage", lang.code, { expires: 7 });
-    setT(translations.translations[lang.code as keyof typeof translations.translations] as { [key: string]: any });
+    setT(translations.translations[lang.code as keyof typeof translations.translations] as Translations);
     setIsOpen(false);
   };
 

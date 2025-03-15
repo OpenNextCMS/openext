@@ -1,7 +1,21 @@
 import { useEffect, useState, JSX } from "react";
 import styles from "../public/assets/css/theme.module.css";
 
-const renderElement = (element: any) => {
+interface ElementAttributes {
+  id?: string;
+  [key: string]: string | undefined;
+}
+
+interface ElementNode {
+  tag: string;
+  attributes?: ElementAttributes;
+  className?: string;
+  children?: ElementNode[];
+  text?: string;
+  onClick?: string;
+}
+
+const renderElement = (element: ElementNode) => {
   const { tag, className, attributes = {}, children, text, onClick } = element;
   const Element = tag as keyof JSX.IntrinsicElements;
 
@@ -13,31 +27,31 @@ const renderElement = (element: any) => {
 
   const voidElements = ["area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"];
   if (voidElements.includes(tag)) {
-    return <Element key={tag} {...attributes} className={styles[className] || className} />;
+    return <Element key={tag} {...attributes} className={className ? styles[className] || className : undefined} />;
   }
 
   return (
     <Element
       key={tag}
       {...attributes}
-      className={styles[className] || className}
+      className={className ? styles[className] || className : undefined}
       onClick={onClick ? handleClick : undefined}
     >
       {text}
-      {children && children.map((child: any, index: number) => renderElement(child))}
+      {children && children.map((child: ElementNode) => renderElement(child))}
     </Element>
   );
 };
 
 const Header = () => {
-  const [pageData, setPageData] = useState<any>(null);
+  const [pageData, setPageData] = useState<ElementNode | null>(null);
 
   useEffect(() => {
     const fetchPageData = async () => {
       try {
         const res = await fetch('http://localhost:3000/api/pages/get-pages');
         const data = await res.json();
-        const bodyComponent = data[0].component.find((comp: any) => comp.name === 'header').data;
+        const bodyComponent = data[0].component.find((comp: { name: string }) => comp.name === 'header').data;
         setPageData(bodyComponent);
       } catch (error) {
         console.error('Failed to fetch page data:', error);

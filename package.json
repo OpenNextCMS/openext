@@ -47,6 +47,7 @@
     "i18next-resources-to-backend": "^1.2.1",
     "js-cookie": "^3.0.5",
     "jsonwebtoken": "^9.0.2",
+    "jszip": "^3.10.1",
     "jwt-decode": "^4.0.0",
     "lucide-react": "^0.471.2",
     "moment-timezone": "^0.5.47",
