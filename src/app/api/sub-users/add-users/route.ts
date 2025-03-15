@@ -4,7 +4,7 @@ import { getUserDbConnection, getUserModel } from '../../../../utils/db';
 
 export async function POST(request: Request) {
     try {
-        const { password, ...userData } = await request.json(); // Destructure password separately
+        const { password, _id, ...userData } = await request.json(); // Destructure password separately
 
         if (!password) {
             return NextResponse.json({ error: 'Password is required' }, { status: 400 });
