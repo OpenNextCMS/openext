@@ -9,7 +9,7 @@ import Block from "./blocks"
 import Canvas from "./canvas"
 import { Button } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight } from "lucide-react"
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from "uuid";
 
 export default function Editor() {
   const [showLeftSidebar, setShowLeftSidebar] = useState(true)
@@ -20,42 +20,57 @@ export default function Editor() {
 
 
   const handleDragEnd = (event) => {
-    console.log(event)
+    console.log(event);
     const { active, over } = event;
 
     if (!over) return;
 
-    // Generate a unique block instance
+    // Extract block data
     const blockData = {
       ...active.data.current,
-      uniqueId: uuidv4(), // Ensure uniqueness
+      uniqueId: uuidv4(), // Generate a unique ID for rendering
     };
 
-    // Drop on canvas
-    if (over.id === "canvas") {
-      setCanvasBlocks((prev) => [...prev, blockData]);
-      return;
-    }
+    setCanvasBlocks((prev) => {
+      // Dropped directly onto the canvas
+      if (over.id === "canvas") {
+        return [...prev, blockData];
+      }
 
-    // Drop in a column
-    if (over.data.current?.type === "column") {
-      const { blockId, columnIndex } = over.data.current;
+      // Dropped inside a column
+      if (over.data.current?.type === "column") {
+        return prev.map((block) =>
+          updateNestedBlock(block, over.data.current.blockId, over.data.current.columnIndex, blockData)
+        );
+      }
 
-      setCanvasBlocks((prev) =>
-        prev.map((block) => {
-          if (block.id === blockId) {
-            const updatedChildren = [...block.children];
-            updatedChildren[columnIndex] = [
-              ...updatedChildren[columnIndex],
-              blockData,
-            ];
-            return { ...block, children: updatedChildren };
-          }
-          return block;
-        })
-      );
-    }
+      return prev;
+    });
   };
+
+  // Recursive function to update nested blocks correctly
+  const updateNestedBlock = (block, targetBlockId, columnIndex, newBlock) => {
+    if (block.uniqueId === targetBlockId) {
+      // Found the column block, update children
+      const updatedChildren = [...block.children];
+      updatedChildren[columnIndex] = [...updatedChildren[columnIndex], newBlock];
+
+      return { ...block, children: updatedChildren };
+    }
+
+    // Recursively update children for deep nesting
+    if (block.children) {
+      return {
+        ...block,
+        children: block.children.map((col) =>
+          col.map((child) => updateNestedBlock(child, targetBlockId, columnIndex, newBlock))
+        ),
+      };
+    }
+
+    return block;
+  };
+
 
 
   return (

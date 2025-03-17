@@ -1,5 +1,6 @@
 "use client";
 import DraggableBlock from "./draggableblock";
+import { v4 as uuidv4 } from "uuid";
 
 const blockData = [
     {
@@ -20,9 +21,8 @@ export default function Sidebar() {
     return (
         <div className="w-64 h-screen bg-gray-100 p-4 shadow-lg">
             {blockData.map((block) => (
-                <DraggableBlock key={block.id} block={block} />
+                <DraggableBlock key={block.id} block={{ ...block, id: uuidv4() }} />
             ))}
         </div>
     );
 }
-
