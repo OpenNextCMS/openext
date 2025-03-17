@@ -4,7 +4,7 @@ import { Pointer } from "lucide-react"
 
 export default function RightSidebar() {
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col bg-background text-foreground transition-colors duration-300">
       <Tabs defaultValue="styles" className="h-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="styles">Styles</TabsTrigger>
@@ -24,7 +24,7 @@ export default function RightSidebar() {
 
             <p className="text-sm text-muted-foreground mb-4">You don&apos;t have any selected element.</p>
 
-            <ul className="list-disc pl-5 text-sm space-y-2">
+            <ul className="list-disc pl-5 text-sm space-y-2 text-muted-foreground">
               <li>Select an element from the canvas.</li>
               <li>Pick any style from the Style Catalog.</li>
             </ul>

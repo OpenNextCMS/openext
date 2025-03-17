@@ -25,14 +25,20 @@ export default function LeftSidebar() {
   const pageIdFromUrl = searchParams ? searchParams.get("pageId") : null
   const [pagesOpen, setPagesOpen] = useState(true)
   const [layersOpen, setLayersOpen] = useState(true)
-  const [pages, setPages] = useState<Page[]>([{
-    id: "home", pageName: "Home", preHeading: "Welcome",
-    description: "This is a default page",
-    seoName: "OpenNext",
-    seoMeta: "OpenNext is a new CMS type Website.",
-  }])
+  const [pages, setPages] = useState<Page[]>([
+    {
+      id: "home",
+      pageName: "Home",
+      preHeading: "Welcome",
+      description: "This is a default page",
+      seoName: "OpenNext",
+      seoMeta: "OpenNext is a new CMS type Website.",
+    },
+  ])
   const [pageId, setPageId] = useState<Page>({
-    id: "home", pageName: "Home", preHeading: "Welcome",
+    id: "home",
+    pageName: "Home",
+    preHeading: "Welcome",
     description: "This is a default page",
     seoName: "OpenNext",
     seoMeta: "OpenNext is a new CMS type Website.",
@@ -40,7 +46,6 @@ export default function LeftSidebar() {
   const [newPageName, setNewPageName] = useState("")
   const [dialogOpen, setDialogOpen] = useState(false)
   const [openPage, setOpenPage] = useState(false)
-
 
   const addNewPage = () => {
     if (newPageName.trim()) {
@@ -84,35 +89,48 @@ export default function LeftSidebar() {
     }
   }, [pageIdFromUrl])
 
-  console.log("filtered pages:", pages);
-
+  console.log("filtered pages:", pages)
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col bg-background text-foreground transition-colors duration-300">
       {openPage ? (
         <div>
           {pageId && (
-            <div>
-              <X className="h-4 w-4 m-5" onClick={() => setOpenPage(false)} />
-              <div className="flex flex-col gap-2 p-2 my-3">
+            <div className="p-4">
+              <Button variant="ghost" size="icon" className="mb-4" onClick={() => setOpenPage(false)}>
+                <X className="h-4 w-4" />
+              </Button>
+              <div className="flex flex-col gap-2 my-3">
                 <Label htmlFor="name">Name</Label>
-                <Input type="text" value={pageId.pageName || ""} readOnly />
+                <Input type="text" value={pageId.pageName || ""} readOnly className="dark:bg-muted" />
               </div>
-              <div className="flex flex-col gap-2 p-2 my-3">
+              <div className="flex flex-col gap-2 my-3">
                 <Label htmlFor="preHead">Pre-Heading</Label>
-                <Input type="text" value={pageId.preHeading || ""} readOnly />
+                <Input type="text" value={pageId.preHeading || ""} readOnly className="dark:bg-muted" />
               </div>
-              <div className="flex flex-col gap-2 p-2 my-3">
+              <div className="flex flex-col gap-2 my-3">
                 <Label htmlFor="description">Description</Label>
-                <textarea id="description" className="border rounded p-2" rows={2} value={pageId.description || ""} readOnly />
+                <textarea
+                  id="description"
+                  className="border rounded p-2 w-full dark:bg-muted dark:border-border"
+                  rows={2}
+                  value={pageId.description || ""}
+                  readOnly
+                />
               </div>
-              <div className="flex flex-col gap-2 p-2 my-3">
+              <div className="flex flex-col gap-2 my-3">
                 <Label htmlFor="seoName">Seo Name</Label>
-                <Input type="text" value={pageId.seoName || ""} readOnly />
+                <Input type="text" value={pageId.seoName || ""} readOnly className="dark:bg-muted" />
               </div>
-              <div className="flex flex-col gap-2 p-2 my-3">
+              <div className="flex flex-col gap-2 my-3">
                 <Label htmlFor="seoMeta">Seo Meta</Label>
-                <textarea id="seoMeta" className="border rounded p-2" rows={2} value={pageId.seoMeta || ""} readOnly />
+                <textarea
+                  id="seoMeta"
+                  className="border rounded p-2 w-full dark:bg-muted dark:border-border"
+                  rows={2}
+                  value={pageId.seoMeta || ""}
+                  readOnly
+                />
               </div>
             </div>
           )}
@@ -127,9 +145,9 @@ export default function LeftSidebar() {
                     <Button variant="ghost" size="icon" className="h-5 w-5">
                       {pagesOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-2 w-4" />}
                     </Button>
-                  </CollapsibleTrigger >
+                  </CollapsibleTrigger>
                   <span className="font-medium">Pages</span>
-                </div >
+                </div>
                 <div className="flex items-center gap-1">
                   <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                     <DialogTrigger asChild>
@@ -137,7 +155,7 @@ export default function LeftSidebar() {
                         <Plus className="h-4 w-4" />
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="sm:max-w-[425px]">
+                    <DialogContent className="sm:max-w-[425px] dark:bg-background">
                       <DialogHeader>
                         <DialogTitle>Add New Page</DialogTitle>
                       </DialogHeader>
@@ -163,14 +181,25 @@ export default function LeftSidebar() {
                     </DialogContent>
                   </Dialog>
                 </div>
-              </div >
+              </div>
               <CollapsibleContent>
                 <div className="px-3 pb-2">
                   {pages.map((page) => (
-                    <div key={page.id} className="flex items-center justify-between rounded-md px-2 py-1 hover:bg-muted">
+                    <div
+                      key={page.id}
+                      className="flex items-center justify-between rounded-md px-2 py-1 hover:bg-muted transition-colors duration-200"
+                    >
                       <span>{page.pageName}</span>
                       <div className="flex items-center">
-                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => { setOpenPage(true); setPageId(page); }}>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6"
+                          onClick={() => {
+                            setOpenPage(true)
+                            setPageId(page)
+                          }}
+                        >
                           <Settings className="h-4 w-4" />
                         </Button>
                         <Button variant="ghost" size="icon" className="h-6 w-6">
@@ -181,10 +210,10 @@ export default function LeftSidebar() {
                   ))}
                 </div>
               </CollapsibleContent>
-            </Collapsible >
-          </div >
+            </Collapsible>
+          </div>
 
-          <div className="border-b border-t my-5">
+          <div className="border-b border-t border-border my-5">
             <Collapsible open={layersOpen} onOpenChange={setLayersOpen}>
               <div className="flex items-center justify-between p-3">
                 <div className="flex items-center gap-2">
@@ -209,7 +238,7 @@ export default function LeftSidebar() {
             </Collapsible>
           </div>
 
-          <div className="border-b border-t">
+          <div className="border-b border-t border-border">
             <Collapsible open={layersOpen} onOpenChange={setLayersOpen}>
               <div className="flex items-center justify-between p-3">
                 <div className="flex items-center gap-2">
@@ -222,9 +251,8 @@ export default function LeftSidebar() {
               </div>
             </Collapsible>
           </div>
-        </div >
-      )
-      }
-    </div >
+        </div>
+      )}
+    </div>
   )
 }
