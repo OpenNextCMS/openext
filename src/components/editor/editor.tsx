@@ -82,10 +82,10 @@ export default function Editor() {
             <Button
               variant="outline"
               size="icon"
-              className="absolute left-2 top-3.5 z-10 h-6 w-6 rounded-full border shadow-md"
+              className={`absolute ${showLeftSidebar ? "left-64 rounded-r-full" : "left-2 rounded-full"}  top-3.5 z-10 h-8 w-8  border shadow-md transition-all duration-300`}
               onClick={() => setShowLeftSidebar(!showLeftSidebar)}
             >
-              {showLeftSidebar ? <ChevronLeft className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+              {showLeftSidebar ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
             </Button>
           </div>
 
@@ -124,10 +124,10 @@ export default function Editor() {
             <Button
               variant="outline"
               size="icon"
-              className="absolute right-2 top-2.5 z-10 h-6 w-6 rounded-full border shadow-md"
+              className={`absolute ${showRightSidebar ? "right-64 rounded-l-full" : "right-2 rounded-full"} top-2.5 z-10 h-8 w-8 border shadow-md`}
               onClick={() => setShowRightSidebar(!showRightSidebar)}
             >
-              {showRightSidebar ? <ChevronRight className="h-3 w-3" /> : <ChevronLeft className="h-3 w-3" />}
+              {showRightSidebar ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
             </Button>
           </div>
         </div>
