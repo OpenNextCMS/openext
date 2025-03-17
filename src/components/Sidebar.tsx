@@ -22,7 +22,10 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
+import Image from 'next/image'
 import img from "../../public/img/openNext.png"
+import dimg from "../../public/img/openNextWhite.png"
+import { useTheme } from "@/context/ThemeContext";
 
 const navItems = [
   {
@@ -48,10 +51,7 @@ const navItems = [
     label: "User",
     icon: User,
     path: "/dashboard/users",
-    links: [
-      // { label: "Add User", icon: PlusCircle, path: "/dashboard/users/addUsers" },
-      // { label: "Users", icon: List, path: "/dashboard/users/allUsers" },
-    ],
+    links: [],
   },
 ]
 
@@ -62,6 +62,8 @@ export default function Sidebar() {
   const [isMobileOpen, setIsMobileOpen] = useState(false)
   const router = useRouter()
   const pathname = usePathname()
+
+  const { theme } = useTheme();
 
   useEffect(() => {
     // Check if we're on mobile and set initial state
@@ -93,8 +95,8 @@ export default function Sidebar() {
   const handleLogout = async () => {
     try {
       // Call API to remove the token
-      const response = await fetch(`${backendUrl}/api/auth/logout`, { 
-        method: 'GET', 
+      const response = await fetch(`${backendUrl}/api/auth/logout`, {
+        method: 'GET',
         credentials: 'include',
       });
 
@@ -149,7 +151,9 @@ export default function Sidebar() {
           {/* Header */}
           <div className="p-4 flex items-center justify-between border-b">
             {!isCollapsed && (
-              <img src={img.src} alt="" width={150} className="mx-5" />
+              <div onClick={() => router.push('/dashboard')}>
+                <Image src={theme === "dark" ? dimg : img} alt="Theme Image" width={150} className="mx-5" />
+              </div>
             )}
             {!isMobile && (
               <Button
