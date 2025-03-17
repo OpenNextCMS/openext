@@ -75,7 +75,21 @@ export const getUserDbConnection = async () => {
       const SettingsModel = userDb.models.Settings || userDb.model('Settings', settingsSchema);
       const settings = await SettingsModel.findOne({});
       if (settings) {
-        const themeExists = settings.themes.some(theme => theme.name === 'openNextDefault');
+        interface ITheme {
+          name: string;
+          isActive: boolean;
+        }
+
+        interface ISettingsDocument extends mongoose.Document {
+          siteTitle: string;
+          language: string;
+          timeZone: string;
+          dateFormat: string;
+          timeFormat: string;
+          themes: ITheme[];
+        }
+
+        const themeExists: boolean = (settings as ISettingsDocument).themes.some((theme: ITheme) => theme.name === 'openNextDefault');
         if (!themeExists) {
           settings.themes.push({ name: 'openNextDefault', isActive: true });
           await settings.save();
@@ -119,10 +133,12 @@ export async function getPageDbConnection() {
   if (!PAGE_DB_NAME) {
     throw new Error('PAGE_DB_NAME environment variable is not set');
   }
-
+  
   if (!pageDb) {
     const uri = await createConnectionUri(PAGE_DB_NAME);
     pageDb = await mongoose.createConnection(uri, {
+      serverSelectionTimeoutMS: 30000, // Increase timeout to 30 seconds
+      socketTimeoutMS: 45000,
       maxPoolSize: 10,
     });
 

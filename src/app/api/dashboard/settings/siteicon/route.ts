@@ -31,7 +31,7 @@ export async function POST(request: Request) {
       success: true,
       fileName: filename 
     })
-  } catch (error) {
+  } catch{
     return NextResponse.json({ error: 'Error saving siteicon' }, { status: 500 })
   }
 }

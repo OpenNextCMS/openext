@@ -33,6 +33,7 @@ const formSchema = z.object({
   activeTheme: z.string().optional(),
   imgSize: z.string().optional(),
   enableDarkMode: z.boolean().optional(),
+  revisionHistory: z.boolean().optional(), // Add this line
 })
 
 const languages = Object.entries(languageNames).map(([code, name]) => ({
@@ -63,6 +64,7 @@ export default function SettingsPage() {
       activeTheme: "default",
       imgSize: "5mb",
       enableDarkMode: false,
+      revisionHistory: false, // Add this line
     },
   })
   const siteIcon = watch("siteIcon")
@@ -83,7 +85,7 @@ export default function SettingsPage() {
 
   useEffect(() => {
     const langFromCookie = Cookies.get("selectedLanguage") || "en"
-    setT(translations[langFromCookie as keyof typeof translations])
+    setT(translations[langFromCookie as keyof typeof translations] as typeof translations.en);
   }, [])
 
   useEffect(() => {
@@ -434,12 +436,38 @@ export default function SettingsPage() {
                 </div>
               </TabsContent>
               <TabsContent value="config" className="space-y-6">
-                <Label htmlFor="imgSize">Max Image size</Label>
-                <Input
-                  id="siteTitle"
-                  {...register("imgSize")}
-                  placeholder="Enter Image size"
-                />
+                <div className="flex items-center justify-between m-5">
+                  <Label htmlFor="imgSize">Max Upload size</Label>
+                  <p className="text-gray-600 dark:text-gray-200 text-sm">Set the size of Image upload</p>
+                  <div className="flex items-center border border-gray-200 rounded bg-gray-200 dark:bg-black pr-3">
+                  <Input
+                    id="imgSize"
+                    {...register("imgSize", {
+                    setValueAs: (value) => value.replace(/\D/g, ''),
+                    })}
+                    className="w-9 mx-2"
+                  />
+                 <p className="text-gray-800 dark:text-gray-200">mb</p>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between m-5">
+                  <Label htmlFor="revisionHistory">Revision History</Label>
+                  <p className="text-gray-600 dark:text-gray-200 text-sm">When ON, Your DB size will increase substatntly</p>
+                  <Controller
+                    name="revisionHistory"
+                    control={control}
+                    render={({ field }) => (
+                      <div className="flex items-center gap-5">
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          id="revisionHistory"
+                        />
+                        <p className={field.value ? "text-green-500" : "text-red-500"}>{field.value ? "ON" : "OFF"}</p>
+                      </div>
+                    )}
+                  />
+                </div>
               </TabsContent>
             </Tabs>
           </CardContent>

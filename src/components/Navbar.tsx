@@ -1,69 +1,69 @@
-'use client';
+"use client"
 
-import { useState, useRef, useEffect } from 'react';
-import { User } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useAvatar } from '@/context/AvatarContext';
+import { useState, useRef, useEffect } from "react"
+import { User } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { useAvatar } from "@/context/AvatarContext"
+import { ThemeToggle } from "./ThemeToggle"
 
 export default function Navbar({ user }: { user: { username: string; email: string } | null }) {
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  const { avatarUrl } = useAvatar();
-  const router = useRouter();
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+  const { avatarUrl } = useAvatar()
+  const router = useRouter()
 
   const navigateTo = (path: string) => {
-    router.push(path);
-    setIsDropdownOpen(false);
-  };
+    router.push(path)
+    setIsDropdownOpen(false)
+  }
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsDropdownOpen(false);
+        setIsDropdownOpen(false)
       }
-    };
+    }
 
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside)
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
+  }, [])
 
   return (
-    <nav className="bg-white border-b shadow-sm fixed top-0 right-0 w-full z-10">
+    <nav className="bg-background border-b shadow-sm fixed top-0 right-0 w-full z-10">
       <div className="flex items-center justify-end px-6 h-16">
         <div className="flex items-center gap-4">
-          <span className="text-gray-700 font-medium">{user?.username}</span>
-          
+          <ThemeToggle />
+          <span className="text-foreground font-medium">{user?.username}</span>
+
           <div ref={dropdownRef} className="relative">
             {/* Avatar Circle */}
-            <div 
-              className="w-8 h-8 rounded-full overflow-hidden bg-blue-500 flex items-center justify-center cursor-pointer"
+            <div
+              className="w-8 h-8 rounded-full overflow-hidden bg-primary flex items-center justify-center cursor-pointer"
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             >
               {avatarUrl ? (
-                <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
+                <img src={avatarUrl || "/placeholder.svg"} alt="Profile" className="w-full h-full object-cover" />
               ) : (
-                <span className="text-white text-sm">
-                  {user?.username?.charAt(0)}
-                </span>
+                <span className="text-primary-foreground text-sm">{user?.username?.charAt(0)}</span>
               )}
             </div>
 
             {/* Dropdown Menu */}
             {isDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border z-50">
+              <div className="absolute right-0 mt-2 w-64 bg-card rounded-lg shadow-lg border z-50">
                 <div className="p-4 border-b">
-                  <p className="text-sm font-medium text-gray-600">{user?.email}</p>
+                  <p className="text-sm font-medium text-muted-foreground">{user?.email}</p>
                 </div>
-                
+
                 <div className="p-2 space-y-1">
-                  <button 
-                    onClick={() => navigateTo('/dashboard/profile')}
-                    className="flex items-center gap-3 w-full p-2 rounded-lg hover:bg-gray-50"
+                  <button
+                    onClick={() => navigateTo("/dashboard/profile")}
+                    className="flex items-center gap-3 w-full p-2 rounded-lg hover:bg-muted"
                   >
-                    <User className="w-4 h-4 text-gray-600" />
-                    <span className="text-gray-700">Profile</span>
+                    <User className="w-4 h-4 text-foreground" />
+                    <span className="text-foreground">Profile</span>
                   </button>
                 </div>
               </div>
@@ -72,5 +72,5 @@ export default function Navbar({ user }: { user: { username: string; email: stri
         </div>
       </div>
     </nav>
-  );
+  )
 }

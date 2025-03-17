@@ -23,6 +23,10 @@ export interface PageDocument extends Document {
   createdBy: Types.ObjectId;
   isPublished: boolean;
   lastModified: Date;
+  preHeading: string;
+  description: string;
+  seoName: string;
+  seoMeta: string;
   component: Component[];
 }
 
@@ -46,6 +50,10 @@ const PageSchema = new Schema<PageDocument>(
     createdBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
     isPublished: { type: Boolean, default: false },
     lastModified: { type: Date, default: Date.now },
+    preHeading: { type: String },
+    description: { type: String },
+    seoName: { type: String },
+    seoMeta: { type: String },
     component: [ComponentSchema] // Array of components
   },
   { timestamps: true }
@@ -55,7 +63,7 @@ const PageSchema = new Schema<PageDocument>(
 PageSchema.index({ siteName: 1, createdBy: 1 });
 PageSchema.index({ pageName: 1, createdBy: 1 });
 
-const PageModel = mongoose.model<PageDocument>("Page", PageSchema);
+const PageModel = mongoose.models.Page || mongoose.model<PageDocument>("Page", PageSchema);
 
 export default PageModel;
 export { PageSchema };

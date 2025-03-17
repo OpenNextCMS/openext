@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { z } from 'zod';
+import { ZodError } from 'zod';
 import { registerSchema } from '@/modules/auth/authValidation';
 import { useRouter } from 'next/navigation';
 import { handleError } from '@/utils/errorHandler';
@@ -19,7 +19,7 @@ const NewRegisterForm = () => {
 
   useEffect(() => {
     const langFromCookie = Cookies.get('selectedLanguage') || 'en';
-    setT(translations[langFromCookie as keyof typeof translations]);
+  setT(translations[langFromCookie as keyof typeof translations] as typeof translations.en);
 
     const mongodbCredentials = ['MONGODB_USERNAME', 'MONGODB_PASSWORD', 'MONGODB_CLUSTER', 'MONGODB_HOST'];
     const dbInfo = ['USER_DB_NAME', 'PAGE_DB_NAME'];
@@ -90,8 +90,8 @@ const NewRegisterForm = () => {
             handleError(error, error.message || 'An unexpected error occurred');
           });
       }
-    } catch (error: any) {
-      if (error instanceof z.ZodError) {
+    } catch (error) {
+      if (error instanceof ZodError) {
         const formattedErrors: Record<string, string> = {};
         error.errors.forEach((err) => {
           if (err.path) {
@@ -100,7 +100,7 @@ const NewRegisterForm = () => {
         });
         setErrors(formattedErrors);
       } else {
-        handleError(error, error.message || 'An unexpected error occurred');
+        handleError(error, (error as Error).message || 'An unexpected error occurred');
       }
     } finally {
       setIsLoading(false);

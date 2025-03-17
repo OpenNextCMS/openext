@@ -9,6 +9,9 @@ import Page from '@/models/Page'; // NEW import
 import path from 'path';
 import fs from 'fs/promises';
 import crypto from 'crypto';
+import footerData from '@/app/themes/openNextDefault/public/data/footer.json'; // NEW import
+import headerData from '@/app/themes/openNextDefault/public/data/header.json'; // NEW import
+import bodyData from '@/app/themes/openNextDefault/public/data/body.json'; // NEW import
 
 export async function POST(req: NextRequest) {
   let userDbConnection: mongoose.Connection | null = null;
@@ -77,137 +80,22 @@ export async function POST(req: NextRequest) {
       pageName: "Default Page",
       createdBy: authData.user._id, // Use the newly created user's ObjectId
       isPublished: true,
+      preHeading: "Welcome to OpenNext",
+      description: "This is a default page created during registration.",
+      seoName: "OpenNext",
+      seoMeta: "OpenNext is a React framework for the web.",
       component: [
         {
           name: "header",
-          data: {
-            tag: "header",
-            className: "header",
-            children: [
-              {
-                tag: "div",
-                className: "container",
-                children: [
-                  {
-                    tag: "a",
-                    className: "logo",
-                    attributes: { href: "/" },
-                    children: [
-                      {
-                        tag: "img",
-                        className: "logoImage",
-                        attributes: {
-                          src: "/siteicon/openNext.png",
-                          alt: "OpenNext Logo",
-                        },
-                      },
-                    ],
-                  },
-                  {
-                    tag: "div",
-                    className: "actions",
-                    children: [
-                      {
-                        tag: "button",
-                        className: "button",
-                        text: "Get to know us",
-                        onClick: "openExternalLink",
-                      },
-                    ],
-                  },
-                ],
-              },
-            ],
-          },
+          data: headerData // UPDATED
         },
         {
           name: "body",
-          data: {
-            tag: "main",
-            className: "main",
-            children: [
-              {
-                tag: "section",
-                className: "heroSection",
-                children: [
-                  {
-                    tag: "div",
-                    className: "container",
-                    children: [
-                      {
-                        tag: "div",
-                        className: "heroContent",
-                        children: [
-                          {
-                            tag: "h1",
-                            className: "heroTitle",
-                            text: "The React Framework for the Web",
-                          },
-                          {
-                            tag: "p",
-                            className: "heroSubtitle",
-                            children: [
-                              {
-                                tag: "span",
-                                text: "Used by some of the world's largest companies, Next.js enables you to create ",
-                              },
-                              {
-                                tag: "span",
-                                className: "highlight",
-                                text: "high-quality web applications",
-                              },
-                              {
-                                tag: "span",
-                                text: " with the power of React components.",
-                              },
-                            ],
-                          },
-                          {
-                            tag: "div",
-                            className: "buttonGroup",
-                            children: [
-                              {
-                                tag: "button",
-                                className: "button",
-                                text: "Get Started",
-                                onClick: "/dashboard",
-                              },
-                              {
-                                tag: "button",
-                                className: "button",
-                                text: "Get in Touch",
-                                onClick: "https://aviraltrendzpvtltd.com/it-company-in-surat/",
-                              },
-                            ],
-                          },
-                        ],
-                      },
-                    ],
-                  },
-                ],
-              },
-            ],
-          },
+          data: bodyData // UPDATED
         },
         {
           name: "footer",
-          data: {
-            tag: "footer",
-            className: "footer",
-            children: [
-              {
-                tag: "div",
-                className: "container",
-                children: [
-                  {
-                    tag: "p",
-                    className: "text",
-                    text: "© 2025 Vercel, Inc. All rights reserved.",
-                  },
-                ],
-              },
-            ],
-          },
+          data: footerData.structure // UPDATED
         },
       ],
     };
@@ -252,12 +140,12 @@ export async function POST(req: NextRequest) {
       }),
       { status: 201 }
     );
-  } catch (error: any) {
+  } catch (error) {
     console.error('Registration error:', error);
     return new Response(
       JSON.stringify({
         success: false,
-        message: error.message || 'Registration failed',
+        message: error instanceof Error ? error.message : 'Registration failed',
         isRegistration: 'failed'
       }),
       { status: 500 }

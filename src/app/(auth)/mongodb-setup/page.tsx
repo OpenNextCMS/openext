@@ -7,7 +7,6 @@ import { handleSuccess } from '@/utils/successHandler'; // Import success handle
 import { Eye, EyeOff } from 'lucide-react';
 import { translations } from '../../../../public/locales/translations';
 import Cookies from 'js-cookie';
-import ToggleSwitch from '@/components/vivComp/ToggleSwitch';
 
 export default function MongoDBSetup() {
   const [username, setUsername] = useState('');
@@ -16,15 +15,14 @@ export default function MongoDBSetup() {
   const [cluster, setCluster] = useState('');
   const [isLoading, setIsLoading] = useState(false); // Add loading state
   const [showPassword, setShowPassword] = useState(false);
-  const [currentLanguage, setCurrentLanguage] = useState();
   const [t, setT] = useState(translations.en); // Default to English
   const router = useRouter();
 
   useEffect(() => {
     // Load language settings
     const langFromCookie = Cookies.get('selectedLanguage') || 'en';
-    setCurrentLanguage(langFromCookie);
-    setT(translations[langFromCookie as keyof typeof translations]);
+
+  setT(translations[langFromCookie as keyof typeof translations] as typeof translations.en);
 
     // Load MongoDB credentials from localStorage if they exist
     const savedUsername = localStorage.getItem('MONGODB_USERNAME');
@@ -191,7 +189,6 @@ export default function MongoDBSetup() {
             <form className="grid grid-cols-2 gap-4" onSubmit={handleSubmit}>
               <div>
                 <input
-                  label={t.mongodbSetup.username}
                   name="username"
                   type="text"
                   required
@@ -228,7 +225,6 @@ export default function MongoDBSetup() {
               </div>
               <div>
                 <input
-                  label={t.mongodbSetup.cluster}
                   name="cluster"
                   type="text"
                   required
@@ -243,7 +239,6 @@ export default function MongoDBSetup() {
               </div>
               <div>
                 <input
-                  label={t.mongodbSetup.host}
                   name="host"
                   type="text"
                   required
