@@ -15,7 +15,7 @@ import {
 } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
-export default function Toolbar() {
+export default function Toolbar({ toggleSidebar }) {
   return (
     <div className="relative border-b p-2 flex items-center justify-between mx-9">
       <div className="flex flex-row-reverse items-center gap-1">
@@ -48,7 +48,9 @@ export default function Toolbar() {
         </Button>
       </div>
       <div>
-        <PlusSquare className="h-6 w-6" />
+        <Button onClick={toggleSidebar} variant="ghost" size="icon">
+          <PlusSquare className="h-6 w-6" />
+        </Button>
       </div>
       <div className="mr-3">
         <Select defaultValue="desktop">

@@ -4,19 +4,19 @@ import { useState } from "react"
 import { DndContext } from "@dnd-kit/core";
 import LeftSidebar from "./left-sidebar"
 import RightSidebar from "./right-sidebar"
-import Toolbar from "./toolbar"
 import Block from "./blocks"
 import Canvas from "./canvas"
 import { Button } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { v4 as uuidv4 } from "uuid";
+import Toolbar from "./toolbar";
 
 export default function Editor() {
   const [showLeftSidebar, setShowLeftSidebar] = useState(true)
   const [showRightSidebar, setShowRightSidebar] = useState(true)
   const [isOpen, setIsOpen] = useState(false);
   const [canvasBlocks, setCanvasBlocks] = useState([]);
-  const toggleSidebar = () => setIsOpen(!isOpen);
+  const toggleSidebar = () => { setIsOpen(!isOpen), setShowLeftSidebar(false) };
 
 
   const handleDragEnd = (event) => {
@@ -83,7 +83,7 @@ export default function Editor() {
               variant="outline"
               size="icon"
               className={`absolute ${showLeftSidebar ? "left-64 rounded-r-full" : "left-2 rounded-full"}  top-3.5 z-10 h-8 w-8  border shadow-md transition-all duration-300`}
-              onClick={() => setShowLeftSidebar(!showLeftSidebar)}
+              onClick={() => { setShowLeftSidebar(!showLeftSidebar), setIsOpen(false) }}
             >
               {showLeftSidebar ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
             </Button>
@@ -95,20 +95,14 @@ export default function Editor() {
               <LeftSidebar />
             </div>
           </div>
+
           {/* Block Sidebar */}
-          <div>
-            <Button
-              onClick={toggleSidebar}
-              className="p-2 m-4 bg-blue-500 text-white rounded-lg"
-            >
-              {isOpen ? "Close Sidebar" : "Open Sidebar"}
-            </Button>
-            {isOpen && <Block />}
-          </div>
+          {isOpen && <Block />}
 
           {/* Main Content */}
           <div className="flex flex-1 flex-col">
-            <Toolbar />
+            {/* Toolbar */}
+            <Toolbar toggleSidebar={toggleSidebar} />
             <Canvas canvasBlocks={canvasBlocks} />
           </div>
 
