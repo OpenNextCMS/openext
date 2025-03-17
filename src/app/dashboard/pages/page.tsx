@@ -180,7 +180,7 @@ export default function PageManagement() {
   }
 
   const handleEditPage = (pageId: string) => {
-    window.location.href = `/Editor?pageId=${pageId}`
+    window.open(`/Editor?pageId=${pageId}`)
   }
 
   return (

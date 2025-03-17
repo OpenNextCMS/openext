@@ -1,16 +1,18 @@
 "use client"
 
+import { useSearchParams } from "next/navigation"
 import { ChevronDown, ChevronRight, Layers, MoreVertical, Plus, Settings, X } from "lucide-react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { toast } from "sonner"
 
 interface Page {
   id: string
-  name: string
+  pageName: string
   preHeading: string
   description: string
   seoName: string
@@ -18,29 +20,33 @@ interface Page {
 }
 
 export default function LeftSidebar() {
+  const searchParams = useSearchParams()
+  // const pageIdFromUrl = searchParams.get("pageId")
+  const pageIdFromUrl = searchParams ? searchParams.get("pageId") : null
   const [pagesOpen, setPagesOpen] = useState(true)
   const [layersOpen, setLayersOpen] = useState(true)
   const [pages, setPages] = useState<Page[]>([{
-    id: "home", name: "Home", preHeading: "Welcome to OpenNext",
-    description: "This is a default page created during registration.",
+    id: "home", pageName: "Home", preHeading: "Welcome",
+    description: "This is a default page",
     seoName: "OpenNext",
-    seoMeta: "OpenNext is a React framework for the web.",
+    seoMeta: "OpenNext is a new CMS type Website.",
   }])
   const [pageId, setPageId] = useState<Page>({
-    id: "home", name: "Home", preHeading: "Welcome to OpenNext",
-    description: "This is a default page created during registration.",
+    id: "home", pageName: "Home", preHeading: "Welcome",
+    description: "This is a default page",
     seoName: "OpenNext",
-    seoMeta: "OpenNext is a React framework for the web.",
+    seoMeta: "OpenNext is a new CMS type Website.",
   })
   const [newPageName, setNewPageName] = useState("")
   const [dialogOpen, setDialogOpen] = useState(false)
   const [openPage, setOpenPage] = useState(false)
 
+
   const addNewPage = () => {
     if (newPageName.trim()) {
       const newPage: Page = {
         id: `page-${Date.now()}`,
-        name: newPageName.trim(),
+        pageName: newPageName.trim(),
         preHeading: "",
         description: "",
         seoName: "",
@@ -52,47 +58,61 @@ export default function LeftSidebar() {
     }
   }
 
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000"
+
+  const fetchPageById = async (id: string) => {
+    setIsLoading(true)
+    try {
+      const response = await fetch(`${backendUrl}/api/pages/get-pages`)
+      if (!response.ok) throw new Error("Failed to fetch pages")
+      const data = await response.json()
+      setPages(data || [])
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to fetch pages")
+      toast.error("Failed to load pages")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (pageIdFromUrl) {
+      fetchPageById(pageIdFromUrl)
+    }
+  }, [pageIdFromUrl])
+
+  console.log("filtered pages:", pages);
+
+
   return (
     <div className="flex h-full flex-col">
       {openPage ? (
         <div>
-          {/* <div className="flex flex-col-reverse items-center m-12">
-            {pageId && (
-              <div>This is {pageId.id} and name is {pageId.name}</div>
-            )}
-            <X className="h-4 w-4 m-5" onClick={() => (setOpenPage(false))} />
-          </div> */}
           {pageId && (
             <div>
+              <X className="h-4 w-4 m-5" onClick={() => setOpenPage(false)} />
               <div className="flex flex-col gap-2 p-2 my-3">
-                <Label htmlFor="name">
-                  Name
-                </Label>
-                <Input type="text" value={pageId.name || ""} />
+                <Label htmlFor="name">Name</Label>
+                <Input type="text" value={pageId.pageName || ""} readOnly />
               </div>
               <div className="flex flex-col gap-2 p-2 my-3">
-                <Label htmlFor="preHead">
-                  Pre-Heading
-                </Label>
-                <Input type="text" value={pageId.preHeading || ""} />
+                <Label htmlFor="preHead">Pre-Heading</Label>
+                <Input type="text" value={pageId.preHeading || ""} readOnly />
               </div>
               <div className="flex flex-col gap-2 p-2 my-3">
-                <Label htmlFor="description">
-                  Description
-                </Label>
-                <textarea id="description" className="border rounded p-2" rows={2} value={pageId.description || ""} />
+                <Label htmlFor="description">Description</Label>
+                <textarea id="description" className="border rounded p-2" rows={2} value={pageId.description || ""} readOnly />
               </div>
               <div className="flex flex-col gap-2 p-2 my-3">
-                <Label htmlFor="seoName">
-                  Seo Name
-                </Label>
-                <Input type="text" value={pageId.seoName || ""} />
+                <Label htmlFor="seoName">Seo Name</Label>
+                <Input type="text" value={pageId.seoName || ""} readOnly />
               </div>
               <div className="flex flex-col gap-2 p-2 my-3">
-                <Label htmlFor="seoMeta">
-                  Seo Meta
-                </Label>
-                <textarea id="seoMeta" className="border rounded p-2" rows={2} value={pageId.seoMeta || ""} />
+                <Label htmlFor="seoMeta">Seo Meta</Label>
+                <textarea id="seoMeta" className="border rounded p-2" rows={2} value={pageId.seoMeta || ""} readOnly />
               </div>
             </div>
           )}
@@ -148,7 +168,7 @@ export default function LeftSidebar() {
                 <div className="px-3 pb-2">
                   {pages.map((page) => (
                     <div key={page.id} className="flex items-center justify-between rounded-md px-2 py-1 hover:bg-muted">
-                      <span>{page.name}</span>
+                      <span>{page.pageName}</span>
                       <div className="flex items-center">
                         <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => { setOpenPage(true); setPageId(page); }}>
                           <Settings className="h-4 w-4" />
