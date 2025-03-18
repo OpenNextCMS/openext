@@ -17,9 +17,9 @@ const DraggableBlock = ({ block }) => {
             {...listeners}
             {...attributes}
             style={style}
-            className="p-2 text-left rounded-lg hover:bg-muted cursor-grab w-full mb-2 transition-colors duration-200 dark:text-foreground"
+            className="flex items-center w-full text-left cursor-grab transition-colors duration-200 group-hover:text-primary"
         >
-            {block.label}
+            <span className="truncate">{block.label}</span>
         </button>
     )
 }
