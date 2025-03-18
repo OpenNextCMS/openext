@@ -10,21 +10,16 @@ import { Button } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { v4 as uuidv4 } from "uuid"
 import Toolbar from "./toolbar"
+import StatusBar from "./status-bar"
 
 export default function Editor() {
   const [showLeftSidebar, setShowLeftSidebar] = useState(true)
   const [showRightSidebar, setShowRightSidebar] = useState(true)
   const [isOpen, setIsOpen] = useState(false)
   const [canvasBlocks, setCanvasBlocks] = useState([])
-  const [viewMode, setViewMode] = useState("desktop");
-
   const toggleSidebar = () => {
     setIsOpen(!isOpen), setShowLeftSidebar(false)
   }
-
-  const handleViewChange = (mode) => {
-    setViewMode(mode);
-  };
 
   const handleDragEnd = (event) => {
     console.log(event)
@@ -79,42 +74,43 @@ export default function Editor() {
   }
 
   return (
-    <div className="flex h-full flex-col bg-background text-foreground transition-colors duration-300">
+    <div className="flex h-full flex-col bg-background text-foreground">
       <DndContext onDragEnd={handleDragEnd}>
-        <div className="flex h-full">
+        <div className="flex h-[calc(100vh-1.5rem)]">
           {/* Left Sidebar Toggle Button - Always Visible */}
           <div className="relative">
             <Button
               variant="outline"
               size="icon"
-              className={`absolute ${showLeftSidebar ? "left-64 rounded-r-full" : "left-2 rounded-full"}  top-3.5 z-10 h-8 w-8 border shadow-md transition-all duration-300 dark:border-border dark:bg-background`}
+              className={`absolute ${showLeftSidebar ? "left-64 rounded-r-full" : "left-2 rounded-full"}  top-3.5 z-10 h-8 w-8 border shadow-md transition-all duration-300 hover:bg-primary/10 hover:text-primary`}
               onClick={() => {
                 setShowLeftSidebar(!showLeftSidebar), setIsOpen(false)
               }}
+              aria-label={showLeftSidebar ? "Hide left sidebar" : "Show left sidebar"}
             >
               {showLeftSidebar ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
             </Button>
           </div>
 
           {/* Left Sidebar */}
-          <div className={`transition-all duration-300 ${showLeftSidebar ? "w-64 border-r border-border" : "w-0"}`}>
+          <div className={`transition-all duration-300 ${showLeftSidebar ? "w-64 border-r" : "w-0"}`}>
             <div className={`h-full ${!showLeftSidebar ? "invisible" : ""}`}>
               <LeftSidebar />
             </div>
           </div>
 
           {/* Block Sidebar */}
-          {isOpen && <Block toggleSidebar={toggleSidebar} />}
+          {isOpen && <Block />}
 
           {/* Main Content */}
           <div className="flex flex-1 flex-col">
             {/* Toolbar */}
-            <Toolbar toggleSidebar={toggleSidebar} onViewChange={handleViewChange}/>
-            <Canvas canvasBlocks={canvasBlocks} viewMode={viewMode}/>
+            <Toolbar toggleSidebar={toggleSidebar} />
+            <Canvas canvasBlocks={canvasBlocks} />
           </div>
 
           {/* Right Sidebar */}
-          <div className={`transition-all duration-300 ${showRightSidebar ? "w-64 border-l border-border" : "w-0"}`}>
+          <div className={`transition-all duration-300 ${showRightSidebar ? "w-64 border-l" : "w-0"}`}>
             <div className={`h-full ${!showRightSidebar ? "invisible" : ""}`}>
               <RightSidebar />
             </div>
@@ -125,14 +121,17 @@ export default function Editor() {
             <Button
               variant="outline"
               size="icon"
-              className={`absolute ${showRightSidebar ? "right-64 rounded-l-full" : "right-2 rounded-full"} top-2.5 z-10 h-8 w-8 border shadow-md transition-all duration-300 dark:border-border dark:bg-background`}
+              className={`absolute ${showRightSidebar ? "right-64 rounded-l-full" : "right-2 rounded-full"} top-2.5 z-10 h-8 w-8 border shadow-md transition-all duration-300 hover:bg-primary/10 hover:text-primary`}
               onClick={() => setShowRightSidebar(!showRightSidebar)}
+              aria-label={showRightSidebar ? "Hide right sidebar" : "Show right sidebar"}
             >
               {showRightSidebar ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
             </Button>
           </div>
         </div>
+        <StatusBar />
       </DndContext>
     </div>
   )
 }
+

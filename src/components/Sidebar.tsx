@@ -17,7 +17,6 @@ import {
   Menu,
   ChevronLeft,
 } from "lucide-react"
-import { handleSuccess } from "@/utils/successHandler"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
@@ -90,25 +89,6 @@ export default function Sidebar() {
 
   const toggleDropdown = (label: string) => {
     setOpenDropdown(openDropdown === label ? null : label)
-  }
-
-  const handleLogout = async () => {
-    try {
-      // Call API to remove the token
-      const response = await fetch(`${backendUrl}/api/auth/logout`, {
-        method: 'GET',
-        credentials: 'include',
-      });
-
-      if (response.ok) {
-        handleSuccess(true, null, "Logout Successful")
-        router.push("/login")
-      } else {
-        console.error("Logout failed")
-      }
-    } catch (error) {
-      console.error("Logout error:", error)
-    }
   }
 
   const isActive = (path: string) => pathname === path
@@ -289,25 +269,6 @@ export default function Sidebar() {
             </div>
           </nav>
 
-          {/* Footer with Logout */}
-          <div className="p-4 border-t mt-auto">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className={cn(
-                    "w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10",
-                    isCollapsed ? "px-2" : "px-3",
-                  )}
-                  onClick={handleLogout}
-                >
-                  <LogOut className={cn("h-5 w-5", isCollapsed ? "mx-auto" : "mr-2")} />
-                  {!isCollapsed && <span className="font-medium">Logout</span>}
-                </Button>
-              </TooltipTrigger>
-              {isCollapsed && <TooltipContent side="right">Logout</TooltipContent>}
-            </Tooltip>
-          </div>
         </div>
       </div>
 
