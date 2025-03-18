@@ -1,16 +1,18 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
-import { User } from "lucide-react"
+import { LogOut, User } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useAvatar } from "@/context/AvatarContext"
 import { ThemeToggle } from "./ThemeToggle"
+import { handleSuccess } from "@/utils/successHandler"
 
 export default function Navbar({ user }: { user: { username: string; email: string } | null }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const { avatarUrl } = useAvatar()
   const router = useRouter()
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
 
   const navigateTo = (path: string) => {
     router.push(path)
@@ -29,6 +31,25 @@ export default function Navbar({ user }: { user: { username: string; email: stri
       document.removeEventListener("mousedown", handleClickOutside)
     }
   }, [])
+
+  const handleLogout = async () => {
+    try {
+      // Call API to remove the token
+      const response = await fetch(`${backendUrl}/api/auth/logout`, {
+        method: 'GET',
+        credentials: 'include',
+      });
+
+      if (response.ok) {
+        handleSuccess(true, null, "Logout Successful")
+        router.push("/login")
+      } else {
+        console.error("Logout failed")
+      }
+    } catch (error) {
+      console.error("Logout error:", error)
+    }
+  }
 
   return (
     <nav className="bg-background border-b shadow-sm fixed top-0 right-0 w-full z-10">
@@ -56,7 +77,6 @@ export default function Navbar({ user }: { user: { username: string; email: stri
                 <div className="p-4 border-b">
                   <p className="text-sm font-medium text-muted-foreground">{user?.email}</p>
                 </div>
-
                 <div className="p-2 space-y-1">
                   <button
                     onClick={() => navigateTo("/dashboard/profile")}
@@ -64,6 +84,15 @@ export default function Navbar({ user }: { user: { username: string; email: stri
                   >
                     <User className="w-4 h-4 text-foreground" />
                     <span className="text-foreground">Profile</span>
+                  </button>
+                </div>
+                <div className="p-2 space-y-1">
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center gap-3 w-full p-2 rounded-lg hover:text-destructive hover:bg-destructive/30"
+                  >
+                    <LogOut className="w-4 h-4 text-foreground" />
+                    <span className="text-foreground">Logout</span>
                   </button>
                 </div>
               </div>
