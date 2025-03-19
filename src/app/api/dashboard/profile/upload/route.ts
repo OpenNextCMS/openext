@@ -23,25 +23,47 @@ export async function POST(req: NextRequest) {
     .jpeg({ quality: 80 })
     .toBuffer();
 
-  // Ensure the upload directory exists
+  const fileName = `${Date.now()}-${file.name}`;
   const uploadDir = path.join(process.cwd(), 'public', 'upload');
+  const savePath = path.join(uploadDir, fileName);
+
+  // Ensure the upload directory exists
   if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
   }
 
-  const fileName = `${Date.now()}-${file.name}`;
-  const savePath = path.join(uploadDir, fileName);
   fs.writeFileSync(savePath, processedBuffer);
 
   const relativePath = `/upload/${fileName}`;
-  const fullPath = `http://localhost:3000/${relativePath}`;
+  const fullPath = `http://localhost:3000${relativePath}`;
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
+  if (backendUrl) {
+    // If external backend URL exists, send the full path to the external backend API
+    const externalApiUrl = `${backendUrl}/api/dashboard/profile/upload/${userId}`;
+    try {
+      const response = await fetch(externalApiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ profilePicturePath: fullPath }), // Send fullPath instead of relativePath
+      });
+
+      if (!response.ok) {
+        throw new Error(`External API error: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      return NextResponse.json(result);
+    } catch (error) {
+      console.error('Error communicating with external backend:', error);
+      return NextResponse.json({ success: false, message: 'External backend error' }, { status: 500 });
+    }
+  }
+
+  // Default behavior if no external backend URL
   try {
-    // Get the user model
     await getUserDbConnection();
     const User = getUserModel();
-
-    // Update the user's profilePicturePath in the database
     await User.findByIdAndUpdate(userId, { profilePicturePath: fullPath });
 
     return NextResponse.json({ success: true, filePath: fullPath });
