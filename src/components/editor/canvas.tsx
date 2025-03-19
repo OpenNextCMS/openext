@@ -4,7 +4,7 @@ import RenderBlock from "./renderblock"
 import { LayoutGrid, PlusSquare, MousePointerClick } from "lucide-react"
 import { useState } from "react"
 
-export default function Canvas({ canvasBlocks }) {
+export default function Canvas({ canvasBlocks, viewMode }) {
   const { setNodeRef, isOver } = useDroppable({ id: "canvas" })
   const [zoom, setZoom] = useState(100)
 
@@ -16,8 +16,19 @@ export default function Canvas({ canvasBlocks }) {
     if (zoom > 50) setZoom(zoom - 10)
   }
 
+  const getWidthClass = () => {
+    switch (viewMode) {
+      case "tablet":
+        return "max-w-[768px]"; // Tablet width
+      case "mobile":
+        return "max-w-[480px]"; // Mobile landscape width
+      default:
+        return "max-w-full"; // Desktop width
+    }
+  }
+
   return (
-    <div className="flex-1 bg-muted/30 dark:bg-muted/10 overflow-auto p-6" ref={setNodeRef}>
+    <div className="flex-1 bg-muted/30 dark:bg-muted/10 overflow-auto p-4 transition-colors duration-300" ref={setNodeRef}>
       <div className="max-w-screen-xl mx-auto">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold flex items-center gap-2">
@@ -48,14 +59,14 @@ export default function Canvas({ canvasBlocks }) {
           </div>
         </div>
         <div
-          className={`bg-background w-full min-h-[800px] shadow-md p-6 rounded-lg border transition-all ${isOver ? "border-primary border-dashed border-2" : "border-border"
-            }`}
+          className={`bg-background dark:bg-background w-full h-auto shadow-md p-4 rounded-lg border ${getWidthClass()} transition-all mx-auto ${isOver ? "border-primary border-dashed border-2" : "border-border"
+            } `}
           style={{ transform: `scale(${zoom / 100})`, transformOrigin: "top left" }}
         >
           {canvasBlocks.length > 0 ? (
             canvasBlocks.map((block) => <RenderBlock key={block.uniqueId} block={block} />)
           ) : (
-            <div className="flex flex-col items-center justify-center h-[700px] border-2 border-dashed rounded-lg p-6">
+            <div className="flex flex-col items-center justify-center h-[750px] border-2 border-dashed rounded-lg p-6">
               {isOver ? (
                 <div className="animate-pulse">
                   <MousePointerClick className="h-12 w-12 text-primary mb-4" />

@@ -20,9 +20,9 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Separator } from "@/components/ui/separator"
-import { ThemeToggle } from "./theme-toggle"
+// import { ThemeToggle } from "./theme-toggle"
 
-export default function Toolbar({ toggleSidebar }) {
+export default function Toolbar({ toggleSidebar, onViewChange }) {
   return (
     <div className="relative border-b p-2 flex items-center justify-between mx-9 bg-background">
       <div className="flex items-center gap-1">
@@ -149,7 +149,6 @@ export default function Toolbar({ toggleSidebar }) {
           </Tooltip>
         </TooltipProvider>
 
-        <ThemeToggle />
       </div>
 
       <div>
@@ -179,37 +178,21 @@ export default function Toolbar({ toggleSidebar }) {
           Save
         </Button>
 
-        <Select defaultValue="desktop">
-          <SelectTrigger className="w-[140px]">
-            <SelectValue placeholder="View" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="desktop" className="flex items-center">
-              <div className="flex items-center gap-2">
-                <Laptop className="h-4 w-4" />
-                <span>Desktop</span>
-              </div>
-            </SelectItem>
-            <SelectItem value="tablet" className="flex items-center">
-              <div className="flex items-center gap-2">
-                <Tablet className="h-4 w-4" />
-                <span>Tablet</span>
-              </div>
-            </SelectItem>
-            <SelectItem value="mobile-landscape" className="flex items-center">
-              <div className="flex items-center gap-2">
-                <Smartphone className="h-4 w-4 rotate-90" />
-                <span>Mobile Landscape</span>
-              </div>
-            </SelectItem>
-            <SelectItem value="mobile-portrait" className="flex items-center">
-              <div className="flex items-center gap-2">
-                <Smartphone className="h-4 w-4" />
-                <span>Mobile Portrait</span>
-              </div>
-            </SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="mr-3">
+          <Select
+            defaultValue="desktop"
+            onValueChange={(value) => onViewChange(value)}
+          >
+            <SelectTrigger className="w-[120px]">
+              <SelectValue placeholder="View" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="desktop">Desktop</SelectItem>
+              <SelectItem value="tablet">Tablet</SelectItem>
+              <SelectItem value="mobile">Mobile</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
     </div>
   )
