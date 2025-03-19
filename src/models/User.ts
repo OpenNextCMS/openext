@@ -16,6 +16,7 @@ export interface IUser extends mongoose.Document {
   bio?: string;
   active: boolean;
   timestamps: Date; // Add this line
+  profilePicturePath?: string;
 }
 
 const userSchema = new mongoose.Schema({
@@ -32,6 +33,7 @@ const userSchema = new mongoose.Schema({
   website: { type: String },
   bio: { type: String },
   active: { type: Boolean, default: true },  // Add this line
+  profilePicturePath: { type: String, select: true }, // Ensure this field is included
 }, {
   timestamps: true
 });
