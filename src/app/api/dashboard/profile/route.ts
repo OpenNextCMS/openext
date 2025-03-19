@@ -7,8 +7,6 @@ import { getUserDbConnection, getUserModel } from '@/utils/db';
 import { AuthService } from '@/modules/auth/authService';
 import { cookies } from 'next/headers';
 
-
-
 export async function GET() {
   try {
     const cookieStore = await cookies();
@@ -35,9 +33,8 @@ export async function GET() {
     if (!response?.success) {
       return NextResponse.json({ success: false, message: 'User not found' }, { status: 404 });
     }
-    // Return user with profile fields combined
     return NextResponse.json({ success: true, data: response.user });
-  } catch{
+  } catch {
     return NextResponse.json({ success: false, message: 'Server error' }, { status: 500 });
   }
 }

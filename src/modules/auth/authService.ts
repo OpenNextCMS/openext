@@ -69,6 +69,7 @@ export class AuthService {
       displayName:  '',
       website:  '',
       bio: '' ,
+      profilePicturePath: '',
     });
 
     const SettingsModel = UserModel.db.models.Settings ||
@@ -140,7 +141,7 @@ export class AuthService {
 
   static async getUserByEmail(email: string, UserModel: mongoose.Model<IUser>) {
     try {
-      const user = await UserModel.findOne({ email });
+      const user = await UserModel.findOne({ email }).select('+profilePicturePath'); // Explicitly include profilePicturePath
       if (!user) {
         return { error: 'User not found' };
       }
@@ -155,11 +156,9 @@ export class AuthService {
         displayName: user.displayName || '',
         website: user.website || '',
         bio: user.bio || '',
+        profilePicturePath: user.profilePicturePath || '', // Include profilePicturePath
         timestamps: user.timestamps,
       };
-      if (user.timestamps) {
-        userObj.timestamps = user.timestamps;
-      }
       return {
         success: true,
         user: userObj,
