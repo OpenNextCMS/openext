@@ -6,9 +6,10 @@ import { useDropzone } from 'react-dropzone'
 import { User } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 
-export function ProfileUploader({ avatarUrl, onUpload }: {
+export function ProfileUploader({ avatarUrl, onUpload, userId }: {
   avatarUrl: string | null
   onUpload: (url: string) => void
+  userId: string // Add userId as a prop
 }) {
   const [isUploading, setIsUploading] = useState(false)
 
@@ -18,6 +19,7 @@ export function ProfileUploader({ avatarUrl, onUpload }: {
       setIsUploading(true)
       const formData = new FormData()
       formData.append('file', file)
+      formData.append('userId', userId) // Include userId in the form data
 
       try {
         const response = await fetch('/api/dashboard/profile/upload', {
@@ -35,7 +37,7 @@ export function ProfileUploader({ avatarUrl, onUpload }: {
         setIsUploading(false)
       }
     }
-  }, [onUpload])
+  }, [onUpload, userId])
 
   const { getRootProps, getInputProps } = useDropzone({
     onDrop,

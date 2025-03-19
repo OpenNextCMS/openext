@@ -53,6 +53,7 @@ const formSchema = z.object({
 
 export default function ProfilePage() {
   const { avatarUrl, setAvatarUrl } = useAvatar()
+  const [userId, setUserId] = useState<string>(""); // Add state for userId
   const {
     register,
     handleSubmit,
@@ -84,7 +85,7 @@ export default function ProfilePage() {
 
   useEffect(() => {
     const fetchUserData = async () => {
-      setIsLoading(true)
+      setIsLoading(true);
       try {
         const response = await fetch(`${backendUrl}/api/dashboard/profile`, {
           method: "GET",
@@ -92,27 +93,29 @@ export default function ProfilePage() {
             "Content-Type": "application/json",
           },
           credentials: "include",
-        })
-        const result = await response.json()
+        });
+        const result = await response.json();
 
         if (result.success && result.data) {
+          setUserId(result.data._id); // Set the userId from the response
+          setAvatarUrl(result.data.profilePicturePath || null); // Set the avatarUrl from the database
           Object.keys(result.data).forEach((key) => {
             if (key in formSchema.shape) {
-              setValue(key as keyof z.infer<typeof formSchema>, result.data[key] || "")
+              setValue(key as keyof z.infer<typeof formSchema>, result.data[key] || "");
             }
-          })
+          });
         } else {
-          toast.error("Failed to fetch profile data: " + result.message)
+          toast.error("Failed to fetch profile data: " + result.message);
         }
       } catch (error) {
-        console.error("Error fetching profile:", error)
-        toast.error("Error fetching profile data")
+        console.error("Error fetching profile:", error);
+        toast.error("Error fetching profile data");
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    fetchUserData()
+    fetchUserData();
   }, [setValue, backendUrl])
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
@@ -161,7 +164,7 @@ export default function ProfilePage() {
               <div className="space-y-4">
                 <div>
                   <Label htmlFor="profilePicture">{t.profile.profilePicture}</Label>
-                  <ProfileUploader avatarUrl={avatarUrl} onUpload={(url) => setAvatarUrl(url)} />
+                  <ProfileUploader avatarUrl={avatarUrl} onUpload={(url) => setAvatarUrl(url)} userId={userId} />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
