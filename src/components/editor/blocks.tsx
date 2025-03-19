@@ -55,7 +55,7 @@ const blockCategories = {
     ],
 }
 
-export default function Block() {
+export default function Block({toggleSidebar}) {
     const [searchTerm, setSearchTerm] = useState("")
 
     const getFilteredBlocks = (blocks) => {
@@ -78,7 +78,7 @@ export default function Block() {
                     <Grip className="h-4 w-4 mr-2 text-primary" />
                     Blocks Library
                 </h3>
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-muted">
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-muted" onClick={toggleSidebar}>
                     <X className="h-4 w-4" />
                 </Button>
             </div>
