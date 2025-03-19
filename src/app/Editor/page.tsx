@@ -1,11 +1,14 @@
-"use client";
+"use client"
 
 import Editor from "@/components/editor/editor"
+import { ThemeProvider } from "next-themes"
 
-export default function Data() {
+export default function LayoutWrapper() {
     return (
-        <main className="h-screen w-full overflow-hidden">
-            <Editor />
-        </main>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+            <div className="h-screen bg-background text-foreground transition-colors">
+                <Editor />
+            </div>
+        </ThemeProvider>
     )
 }
