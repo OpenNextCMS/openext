@@ -16,7 +16,7 @@ export const GET = async () => {
       console.error(`Failed to verify connection: ${errorText}`);
 
       // Update environment variables if the response is not ok
-      const envPath = path.resolve(process.cwd(), '.env.local');
+      const envPath = path.resolve(process.cwd(), '.env');
       const envConfig = dotenv.parse(fs.readFileSync(envPath));
 
       envConfig.isRegistration = 'false';
@@ -41,7 +41,7 @@ export const GET = async () => {
     const { masterDbConnected, userDbConnected, pageDbConnected, dbConnection } = data;
 
     // Update environment variables if any connection is missing or false
-    const envPath = path.resolve(process.cwd(), '.env.local');
+    const envPath = path.resolve(process.cwd(), '.env');
     const envConfig = dotenv.parse(fs.readFileSync(envPath));
 
     if (!masterDbConnected || !userDbConnected || !pageDbConnected) {

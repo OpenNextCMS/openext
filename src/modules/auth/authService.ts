@@ -7,7 +7,7 @@ import { ISettings, settingsSchema } from '@/models/Settings';
 import { roleSchema } from '@/models/Role';
 import dotenv from 'dotenv';
 
-dotenv.config({ path: '.env.local' });
+dotenv.config({ path: '.env' });
 
 export class AuthService {
   private static JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';

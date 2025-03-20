@@ -46,14 +46,14 @@ export async function POST() {
     }
 
     // At this point, all non‑system databases have been dropped successfully.
-    // Now, clear the .env.local file.
-    const envPath = path.join(process.cwd(), '.env.local');
+    // Now, clear the .env file.
+    const envPath = path.join(process.cwd(), '.env');
     await fs.writeFile(envPath, '', { flag: 'w' });
 
     return handleSuccess(
       true,
       null,
-      'All non-system databases have been deleted and .env.local has been cleared'
+      'All non-system databases have been deleted and .env has been cleared'
     );
   } catch (error) {
     return handleError(error, 'Failed to delete databases');

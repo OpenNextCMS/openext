@@ -9,9 +9,6 @@ import Page from '@/models/Page'; // NEW import
 import path from 'path';
 import fs from 'fs/promises';
 import crypto from 'crypto';
-import footerData from '@/app/themes/openNextDefault/public/data/footer.json'; // NEW import
-import headerData from '@/app/themes/openNextDefault/public/data/header.json'; // NEW import
-import bodyData from '@/app/themes/openNextDefault/public/data/body.json'; // NEW import
 
 export async function POST(req: NextRequest) {
   let userDbConnection: mongoose.Connection | null = null;
@@ -22,7 +19,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const validatedData = registerSchema.parse(body);
 
-    const { userDbName, pageDbName, mongodbCredentials } = body;
+    const { userDbName, pageDbName, mongodbCredentials, footerData, headerData, bodyData } = body; // UPDATED
     const { username, password, host, cluster } = mongodbCredentials;
     
     // Create connection URIs
@@ -95,17 +92,17 @@ export async function POST(req: NextRequest) {
         },
         {
           name: "footer",
-          data: footerData.structure // UPDATED
+          data: footerData // UPDATED
         },
       ],
     };
 
     await PageModel.create(jsonData);
 
-    // Write the MongoDB credentials to the .env.local file
-    const envPath = path.join(process.cwd(), '.env.local');
+    // Write the MongoDB credentials to the .env file
+    const envPath = path.join(process.cwd(), '.env');
     
-    // Check if .env.local file exists, if not create it
+    // Check if .env file exists, if not create it
     try {
       await fs.access(envPath);
     } catch {
