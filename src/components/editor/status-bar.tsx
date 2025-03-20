@@ -41,6 +41,7 @@ export default function StatusBar() {
 
       <div>
         <span>Ready</span>
+        <button onClick={handleSave} hidden></button>
       </div>
     </div>
   )
