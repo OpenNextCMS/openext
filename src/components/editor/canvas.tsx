@@ -4,7 +4,12 @@ import RenderBlock from "./renderblock"
 import { LayoutGrid, PlusSquare, MousePointerClick } from "lucide-react"
 import { useState } from "react"
 
-export default function Canvas({ canvasBlocks, viewMode }) {
+interface CanvasProps {
+  canvasBlocks: Array<{ uniqueId: string;[key: string]: any }>;
+  viewMode: "desktop" | "tablet" | "mobile";
+}
+
+export default function Canvas({ canvasBlocks, viewMode }: CanvasProps) {
   const { setNodeRef, isOver } = useDroppable({ id: "canvas" })
   const [zoom, setZoom] = useState(100)
 
