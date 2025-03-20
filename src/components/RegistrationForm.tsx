@@ -9,6 +9,9 @@ import { handleSuccess } from '@/utils/successHandler';
 import { Eye, EyeOff } from 'lucide-react';
 import { translations } from '../../public/locales/translations';
 import Cookies from 'js-cookie';
+import footerData from '@/app/themes/openNextDefault/public/data/footer.json';
+import headerData from '@/app/themes/openNextDefault/public/data/header.json';
+import bodyData from '@/app/themes/openNextDefault/public/data/body.json';
 
 const NewRegisterForm = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -76,7 +79,7 @@ const NewRegisterForm = () => {
         fetch(`${backendUrl}/api/auth/admin`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...data, userDbName, pageDbName, mongodbCredentials }),
+          body: JSON.stringify({ ...data, userDbName, pageDbName, mongodbCredentials, headerData, bodyData, footerData }),
         })
           .then(response => response.json())
           .then(result => {

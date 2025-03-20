@@ -1,15 +1,11 @@
-import { getUserDbConnection, getSettingsModel } from '@/utils/db';
 import ThemeLoader from '@/components/ThemeLoader';
 
+const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000"
+
 export default async function Home() {
-  await getUserDbConnection();
-  const SettingsModel = getSettingsModel();
-  const settings = await SettingsModel.findOne({});
-  const activeTheme = settings?.themes.find(
-    (theme: { name: string; isActive: boolean }) => theme.isActive
-  );
-  const themeName = activeTheme ? activeTheme.name : 'openNextDefault';
-  
+  const response = await fetch(`${backendUrl}/api/themes/get-theme`);
+  const { themeName } = await response.json();
+
   // Render the client component that loads the theme dynamically.
   return <ThemeLoader themeName={themeName} />;
 }

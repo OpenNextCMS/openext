@@ -28,15 +28,15 @@ async function checkConnection(uri: string) {
 
 async function updateEnvFile(dbConnection: boolean, isRegistration: boolean) {
   try {
-    const envPath = path.join(process.cwd(), '.env.local');
+    const envPath = path.join(process.cwd(), '.env');
     const envContent = await fs.readFile(envPath, 'utf-8');
     const newEnvContent = envContent
       .replace(/dbConnection=.*/, `dbConnection=${dbConnection}`)
       .replace(/isRegistration=.*/, `isRegistration=${isRegistration}`);
     await fs.writeFile(envPath, newEnvContent, 'utf-8');
-    console.log(`Updated .env.local with dbConnection=${dbConnection} and isRegistration=${isRegistration}`);
+    console.log(`Updated .env with dbConnection=${dbConnection} and isRegistration=${isRegistration}`);
   } catch (error) {
-    console.error('Error updating .env.local file:', error);
+    console.error('Error updating .env file:', error);
   }
 }
 
