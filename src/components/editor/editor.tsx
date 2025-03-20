@@ -16,8 +16,8 @@ export default function Editor() {
   const [showLeftSidebar, setShowLeftSidebar] = useState(true)
   const [showRightSidebar, setShowRightSidebar] = useState(true)
   const [isOpen, setIsOpen] = useState(false)
-  const [canvasBlocks, setCanvasBlocks] = useState([])
-  const [viewMode, setViewMode] = useState("desktop")
+  const [canvasBlocks, setCanvasBlocks] = useState<BlockData[]>([])
+  const [viewMode, setViewMode] = useState<"desktop" | "tablet" | "mobile">("desktop")
 
   // Prevent body scrolling when layout changes
   useEffect(() => {
@@ -32,46 +32,84 @@ export default function Editor() {
     setShowLeftSidebar(false)
   }
 
-  const handleViewChange = (mode) => {
-    setViewMode(mode)
+  interface ViewChangeHandler {
+    (mode: "desktop" | "tablet" | "mobile"): void;
   }
 
-  const handleDragEnd = (event) => {
-    const { active, over } = event
+  const handleViewChange: ViewChangeHandler = (mode) => {
+    setViewMode(mode);
+  }
 
-    if (!over) return
+  interface BlockData {
+    uniqueId: string;
+    [key: string]: any;
+  }
+
+  interface DragEndEvent {
+    active: {
+      data: {
+        current: BlockData;
+      };
+    };
+    over: {
+      id: string;
+      data: {
+        current: {
+          type: string;
+          blockId: string;
+          columnIndex: number;
+        };
+      };
+    } | null;
+  }
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over) return;
 
     // Extract block data
-    const blockData = {
+    const blockData: BlockData = {
       ...active.data.current,
       uniqueId: uuidv4(), // Generate a unique ID for rendering
-    }
+    };
 
-    setCanvasBlocks((prev) => {
+    setCanvasBlocks((prev: BlockData[]) => {
       // Dropped directly onto the canvas
       if (over.id === "canvas") {
-        return [...prev, blockData]
+        return [...prev, blockData];
       }
 
       // Dropped inside a column
       if (over.data.current?.type === "column") {
         return prev.map((block) =>
           updateNestedBlock(block, over.data.current.blockId, over.data.current.columnIndex, blockData),
-        )
+        );
       }
 
-      return prev
-    })
-  }
+      return prev;
+    });
+  };
 
   // Recursive function to update nested blocks correctly
-  const updateNestedBlock = (block, targetBlockId, columnIndex, newBlock) => {
+  interface Block {
+    uniqueId: string;
+    children?: Block[][];
+    [key: string]: any;
+  }
+
+  const updateNestedBlock = (
+    block: Block,
+    targetBlockId: string,
+    columnIndex: number,
+    newBlock: Block
+  ): Block => {
     if (block.uniqueId === targetBlockId) {
       // Found the column block, update children
-      const updatedChildren = [...block.children]
-      updatedChildren[columnIndex] = [...updatedChildren[columnIndex], newBlock]
+      const updatedChildren = [...(block.children || [])];
+      updatedChildren[columnIndex] = [...(updatedChildren[columnIndex] || []), newBlock];
 
-      return { ...block, children: updatedChildren }
+      return { ...block, children: updatedChildren };
     }
 
     // Recursively update children for deep nesting
@@ -79,13 +117,13 @@ export default function Editor() {
       return {
         ...block,
         children: block.children.map((col) =>
-          col.map((child) => updateNestedBlock(child, targetBlockId, columnIndex, newBlock)),
+          col.map((child) => updateNestedBlock(child, targetBlockId, columnIndex, newBlock))
         ),
-      }
+      };
     }
 
-    return block
-  }
+    return block;
+  };
 
   return (
     <div className="flex h-screen w-screen flex-col overflow-hidden bg-background text-foreground transition-colors duration-300">
