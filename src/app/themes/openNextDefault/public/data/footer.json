@@ -1,6 +1,4 @@
 {
-    "component": "Footer",
-    "structure": {
         "tag": "footer",
         "className": "footer",
         "children": [
@@ -16,5 +14,4 @@
                 ]
             }
         ]
-    }
 }

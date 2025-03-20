@@ -30,13 +30,16 @@ const renderElement = (element: ElementNode) => {
   );
 };
 
+
+const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000"
+
 const Footer = () => {
   const [pageData, setPageData] = useState<ElementNode | null>(null);
 
   useEffect(() => {
     const fetchPageData = async () => {
       try {
-        const res = await fetch('http://localhost:3000/api/pages/get-pages');
+        const res = await fetch(`${backendUrl}/api/pages/get-pages`);
         const data = await res.json();
         const bodyComponent = data[0].component.find((comp: { name: string }) => comp.name === 'footer').data;
         setPageData(bodyComponent);
