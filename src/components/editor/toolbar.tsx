@@ -13,16 +13,18 @@ import {
   Settings,
   Trash,
   Save,
-  Laptop,
-  Smartphone,
-  Tablet,
 } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Separator } from "@/components/ui/separator"
 // import { ThemeToggle } from "./theme-toggle"
 
-export default function Toolbar({ toggleSidebar, onViewChange }) {
+interface ToolbarProps {
+  toggleSidebar: () => void;
+  onViewChange: (value: "desktop" | "tablet" | "mobile") => void;
+}
+
+export default function Toolbar({ toggleSidebar, onViewChange }: ToolbarProps) {
   return (
     <div className="relative border-b p-2 flex items-center justify-between mx-9 bg-background">
       <div className="flex items-center gap-1">
@@ -181,7 +183,7 @@ export default function Toolbar({ toggleSidebar, onViewChange }) {
         <div className="mr-3">
           <Select
             defaultValue="desktop"
-            onValueChange={(value) => onViewChange(value)}
+            onValueChange={(value) => onViewChange(value as "desktop" | "tablet" | "mobile")}
           >
             <SelectTrigger className="w-[120px]">
               <SelectValue placeholder="View" />

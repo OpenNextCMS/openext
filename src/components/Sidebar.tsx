@@ -1,13 +1,10 @@
 'use client';
 
-const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
-
 import { useRouter, usePathname } from "next/navigation"
 import { useEffect, useState } from "react"
 import {
   LayoutDashboard,
   FileText,
-  LogOut,
   ChevronDown,
   List,
   PlusCircle,

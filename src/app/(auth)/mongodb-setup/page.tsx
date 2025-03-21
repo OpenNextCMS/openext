@@ -21,7 +21,6 @@ export default function MongoDBSetup() {
   const [t, setT] = useState(translations.en)
   const router = useRouter()
   const [mongoAcc, setMongoAcc] = useState(true)
-  const [selectMongoAcc, setSelectMongoAcc] = useState(true)
   const [toggle, setToggle] = useState(false)
   const [isVisible, setIsVisible] = useState(false)
 
@@ -101,6 +100,7 @@ export default function MongoDBSetup() {
         localStorage.setItem("MONGODB_PASSWORD", password)
         localStorage.setItem("MONGODB_HOST", host)
         localStorage.setItem("MONGODB_CLUSTER", cluster)
+        localStorage.setItem("MONGODB_PORT", port)
         handleSuccess(true, null, "MongoDB connection successful. Redirecting to database setup...")
         router.push("/mongodb-setup/database-setup")
       } else {
