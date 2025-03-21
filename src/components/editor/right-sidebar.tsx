@@ -1,6 +1,6 @@
-"use client"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Pointer, Palette, Sliders } from "lucide-react"
+'use client';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Pointer, Palette, Sliders } from 'lucide-react';
 
 export default function RightSidebar() {
   return (
@@ -35,7 +35,9 @@ export default function RightSidebar() {
               <Pointer className="h-4 w-4" />
             </div>
 
-            <p className="text-sm text-muted-foreground mb-4">You don&apos;t have any selected element.</p>
+            <p className="text-sm text-muted-foreground mb-4">
+              You don&apos;t have any selected element.
+            </p>
 
             <ul className="list-disc pl-5 text-sm space-y-2 text-muted-foreground">
               <li>Select an element from the canvas.</li>
@@ -45,5 +47,5 @@ export default function RightSidebar() {
         </TabsContent>
       </Tabs>
     </div>
-  )
+  );
 }

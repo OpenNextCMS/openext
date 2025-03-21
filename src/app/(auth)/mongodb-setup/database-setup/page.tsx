@@ -15,7 +15,7 @@ export default function DatabaseSetup() {
 
   useEffect(() => {
     const langFromCookie = Cookies.get('selectedLanguage') || 'en';
-  setT(translations[langFromCookie as keyof typeof translations] as typeof translations.en);
+    setT(translations[langFromCookie as keyof typeof translations] as typeof translations.en);
 
     // Load database names from localStorage if they exist
     const savedUserDbName = localStorage.getItem('USER_DB_NAME');
@@ -52,7 +52,11 @@ export default function DatabaseSetup() {
           <div className="space-y-4">
             <div className="space-y-2">
               <label htmlFor="masterDb" className="block text-sm font-medium text-gray-700">
-                Master Database <span className='text-[12px] font-semibold text-gray-500'> (Mandatory not changable) </span>
+                Master Database{' '}
+                <span className="text-[12px] font-semibold text-gray-500">
+                  {' '}
+                  (Mandatory not changable){' '}
+                </span>
               </label>
               <input
                 id="masterDb"

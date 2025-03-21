@@ -18,10 +18,10 @@ export async function POST() {
   }
 
   // Function to generate a connection URL for a given database
-  const getDbUrl = (dbName: string) => 
+  const getDbUrl = (dbName: string) =>
     `mongodb+srv://${MONGODB_USERNAME}:${MONGODB_PASSWORD}@${MONGODB_CLUSTER}.${MONGODB_HOST}.mongodb.net/${dbName}?retryWrites=true&w=majority&appName=${MONGODB_CLUSTER}`;
 
-  const masterDbUrl = getDbUrl("master");
+  const masterDbUrl = getDbUrl('master');
 
   try {
     // Create separate connections for each database
@@ -35,8 +35,8 @@ export async function POST() {
     const { databases } = await admin.listDatabases();
 
     // Filter out system databases
-    const nonSystemDatabases = databases.filter(db =>
-      !['admin', 'local', 'config'].includes(db.name)
+    const nonSystemDatabases = databases.filter(
+      (db) => !['admin', 'local', 'config'].includes(db.name)
     );
 
     // Drop each non‑system database sequentially.

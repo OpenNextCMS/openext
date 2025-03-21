@@ -1,36 +1,37 @@
-"use client"
+'use client';
 
-import { useState, useRef, useEffect } from "react"
-import { LogOut, User } from "lucide-react"
-import { useRouter } from "next/navigation"
-import { useAvatar } from "@/context/AvatarContext"
-import { ThemeToggle } from "./ThemeToggle"
-import { handleSuccess } from "@/utils/successHandler"
+import { useState, useRef, useEffect } from 'react';
+import Image from 'next/image';
+import { LogOut, User } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useAvatar } from '@/context/AvatarContext';
+import { ThemeToggle } from './ThemeToggle';
+import { handleSuccess } from '@/utils/successHandler';
 
 export default function Navbar({ user }: { user: { username: string; email: string } | null }) {
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
-  const dropdownRef = useRef<HTMLDivElement>(null)
-  const { avatarUrl } = useAvatar()
-  const router = useRouter()
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const { avatarUrl } = useAvatar();
+  const router = useRouter();
   const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
 
   const navigateTo = (path: string) => {
-    router.push(path)
-    setIsDropdownOpen(false)
-  }
+    router.push(path);
+    setIsDropdownOpen(false);
+  };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsDropdownOpen(false)
+        setIsDropdownOpen(false);
       }
-    }
+    };
 
-    document.addEventListener("mousedown", handleClickOutside)
+    document.addEventListener('mousedown', handleClickOutside);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside)
-    }
-  }, [])
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -41,15 +42,15 @@ export default function Navbar({ user }: { user: { username: string; email: stri
       });
 
       if (response.ok) {
-        handleSuccess(true, null, "Logout Successful")
-        router.push("/login")
+        handleSuccess(true, null, 'Logout Successful');
+        router.push('/login');
       } else {
-        console.error("Logout failed")
+        console.error('Logout failed');
       }
     } catch (error) {
-      console.error("Logout error:", error)
+      console.error('Logout error:', error);
     }
-  }
+  };
 
   return (
     <nav className="bg-background border-b shadow-sm fixed top-0 right-0 w-full z-10">
@@ -64,11 +65,14 @@ export default function Navbar({ user }: { user: { username: string; email: stri
               className="w-8 h-8 rounded-full overflow-hidden bg-primary flex items-center justify-center cursor-pointer"
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             >
-              {avatarUrl ? (
-                <img src={avatarUrl || "/placeholder.svg"} alt="Profile" className="w-full h-full object-cover" />
-              ) : (
-                <span className="text-primary-foreground text-sm">{user?.username?.charAt(0)}</span>
-              )}
+              <Image
+                src={avatarUrl || '/placeholder.svg'}
+                alt="Profile"
+                className="w-full h-full object-cover"
+                width={32}
+                height={32}
+              />
+              <span className="text-primary-foreground text-sm">{user?.username?.charAt(0)}</span>
             </div>
 
             {/* Dropdown Menu */}
@@ -79,7 +83,7 @@ export default function Navbar({ user }: { user: { username: string; email: stri
                 </div>
                 <div className="p-2 space-y-1">
                   <button
-                    onClick={() => navigateTo("/dashboard/profile")}
+                    onClick={() => navigateTo('/dashboard/profile')}
                     className="flex items-center gap-3 w-full p-2 rounded-lg hover:bg-muted"
                   >
                     <User className="w-4 h-4 text-foreground" />
@@ -101,5 +105,5 @@ export default function Navbar({ user }: { user: { username: string; email: stri
         </div>
       </div>
     </nav>
-  )
+  );
 }

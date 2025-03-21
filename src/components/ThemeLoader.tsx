@@ -1,4 +1,4 @@
-"use client"
+'use client';
 import dynamic from 'next/dynamic';
 import React from 'react';
 
@@ -7,10 +7,9 @@ interface ThemeLoaderProps {
 }
 
 const ThemeLoader: React.FC<ThemeLoaderProps> = ({ themeName }) => {
-  const ThemeComponent = dynamic(
-    () => import(`../app/themes/${themeName}/layouts/page`),
-    { ssr: false }
-  );
+  const ThemeComponent = dynamic(() => import(`../app/themes/${themeName}/layouts/page`), {
+    ssr: false,
+  });
   return <ThemeComponent />;
 };
 

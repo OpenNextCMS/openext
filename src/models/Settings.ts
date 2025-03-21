@@ -1,5 +1,5 @@
 // models/Settings.ts
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
 export interface ISettings extends mongoose.Document {
   // Removed userId field
@@ -20,10 +20,10 @@ const settingsSchema = new mongoose.Schema(
     siteTitle: { type: String, required: true },
     tagline: String,
     siteIcon: String,
-    language: { type: String, required: true, default: "en" },
-    timeZone: { type: String, required: true, default: "UTC" },
-    dateFormat: { type: String, required: true, default: "F j, Y" },
-    timeFormat: { type: String, required: true, default: "g:i a" },
+    language: { type: String, required: true, default: 'en' },
+    timeZone: { type: String, required: true, default: 'UTC' },
+    dateFormat: { type: String, required: true, default: 'F j, Y' },
+    timeFormat: { type: String, required: true, default: 'g:i a' },
     themes: [
       {
         name: { type: String, required: true },
@@ -40,8 +40,7 @@ const settingsSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const Settings =
-  mongoose.models.Settings || mongoose.model<ISettings>("Settings", settingsSchema);
+const Settings = mongoose.models.Settings || mongoose.model<ISettings>('Settings', settingsSchema);
 
 export default Settings;
 export { settingsSchema };

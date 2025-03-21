@@ -1,185 +1,205 @@
-"use client"
+'use client';
 
-import type React from "react"
+import type React from 'react';
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { handleError } from "@/utils/errorHandler"
-import { handleSuccess } from "@/utils/successHandler"
-import { Eye, EyeOff, Server, Home } from "lucide-react"
-import { translations } from "../../../../public/locales/translations"
-import Cookies from "js-cookie"
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { handleError } from '@/utils/errorHandler';
+import { handleSuccess } from '@/utils/successHandler';
+import { Eye, EyeOff, Server, Home } from 'lucide-react';
+import { translations } from '../../../../public/locales/translations';
+import Cookies from 'js-cookie';
 
 export default function MongoDBSetup() {
-  const [username, setUsername] = useState("")
-  const [password, setPassword] = useState("")
-  const [host, setHost] = useState("")
-  const [cluster, setCluster] = useState("")
-  const [mongoDB, setMongoDB] = useState("compass")
-  const [authMech, setAuthMech] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  const [showPassword, setShowPassword] = useState(false)
-  const [t, setT] = useState(translations.en)
-  const router = useRouter()
-  const [mongoAcc, setMongoAcc] = useState(true)
-  const [toggle, setToggle] = useState(false)
-  const [isVisible, setIsVisible] = useState(false)
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [host, setHost] = useState('');
+  const [cluster, setCluster] = useState('');
+  const [mongoDB, setMongoDB] = useState('compass');
+  const [authMech, setAuthMech] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [t, setT] = useState(translations.en);
+  const router = useRouter();
+  const [mongoAcc, setMongoAcc] = useState(true);
+  const [toggle, setToggle] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
 
   const [formData, setFormData] = useState({
-    username: "",
-    password: "",
-    cluster: "",
-    host: "",
-    mongoDB: "compass",
-    authMech: "Default",
-  })
+    username: '',
+    password: '',
+    cluster: '',
+    host: '',
+    mongoDB: 'compass',
+    authMech: 'Default',
+  });
 
   useEffect(() => {
     // Load language settings
-    const langFromCookie = Cookies.get("selectedLanguage") || "en"
-    setT(translations[langFromCookie as keyof typeof translations] as typeof translations.en)
+    const langFromCookie = Cookies.get('selectedLanguage') || 'en';
+    setT(translations[langFromCookie as keyof typeof translations] as typeof translations.en);
 
     // Load MongoDB credentials from localStorage if they exist
-    const savedUsername = localStorage.getItem("MONGODB_USERNAME")
-    const savedPassword = localStorage.getItem("MONGODB_PASSWORD")
-    const savedHost = localStorage.getItem("MONGODB_HOST")
-    const savedCluster = localStorage.getItem("MONGODB_CLUSTER")
-    const savedMongoDB = localStorage.getItem("MONGODB")
-    const savedAuthMech = localStorage.getItem("MONGODB_AUTH_MECH")
+    const savedUsername = localStorage.getItem('MONGODB_USERNAME');
+    const savedPassword = localStorage.getItem('MONGODB_PASSWORD');
+    const savedHost = localStorage.getItem('MONGODB_HOST');
+    const savedCluster = localStorage.getItem('MONGODB_CLUSTER');
+    const savedMongoDB = localStorage.getItem('MONGODB');
+    const savedAuthMech = localStorage.getItem('MONGODB_AUTH_MECH');
 
     if (savedUsername) {
-      setUsername(savedUsername)
-      setFormData((prev) => ({ ...prev, username: savedUsername }))
+      setUsername(savedUsername);
+      setFormData((prev) => ({ ...prev, username: savedUsername }));
     }
     if (savedPassword) {
-      setPassword(savedPassword)
-      setFormData((prev) => ({ ...prev, password: savedPassword }))
+      setPassword(savedPassword);
+      setFormData((prev) => ({ ...prev, password: savedPassword }));
     }
     if (savedHost) {
-      setHost(savedHost)
-      setFormData((prev) => ({ ...prev, host: savedHost }))
+      setHost(savedHost);
+      setFormData((prev) => ({ ...prev, host: savedHost }));
     }
     if (savedCluster) {
-      setCluster(savedCluster)
-      setFormData((prev) => ({ ...prev, cluster: savedCluster }))
+      setCluster(savedCluster);
+      setFormData((prev) => ({ ...prev, cluster: savedCluster }));
     }
     if (savedMongoDB) {
-      setMongoDB(savedMongoDB)
-      setFormData((prev) => ({ ...prev, mongoDB: savedMongoDB }))
+      setMongoDB(savedMongoDB);
+      setFormData((prev) => ({ ...prev, mongoDB: savedMongoDB }));
     }
     if (savedAuthMech) {
-      setAuthMech(savedAuthMech)
-      setFormData((prev) => ({ ...prev, authMech: savedAuthMech }))
+      setAuthMech(savedAuthMech);
+      setFormData((prev) => ({ ...prev, authMech: savedAuthMech }));
     }
 
     // Trigger animation after component mounts
     setTimeout(() => {
-      setIsVisible(true)
-    }, 100)
-  }, [])
+      setIsVisible(true);
+    }, 100);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    setIsLoading(true)
+    e.preventDefault();
+    setIsLoading(true);
 
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000"
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
 
     try {
       const response = await fetch(`${backendUrl}/api/auth/verify-mongodb`, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({ username, password, host, cluster }),
-      })
+      });
 
       if (!response.ok) {
-        const errorText = await response.text()
-        throw new Error(errorText || t.mongodbSetup.generalError)
+        const errorText = await response.text();
+        throw new Error(errorText || t.mongodbSetup.generalError);
       }
 
       const data = await response.json().catch(() => {
-        throw new SyntaxError(t.mongodbSetup.invalidJsonResponse)
-      })
+        throw new SyntaxError(t.mongodbSetup.invalidJsonResponse);
+      });
 
       if (data.success) {
-        localStorage.setItem("MONGODB_USERNAME", username)
-        localStorage.setItem("MONGODB_PASSWORD", password)
-        localStorage.setItem("MONGODB_HOST", host)
-        localStorage.setItem("MONGODB_CLUSTER", cluster)
-        localStorage.setItem("MONGODB", mongoDB)
-        localStorage.setItem("MONGODB_AUTH_MECH", authMech)
-        handleSuccess(true, null, "MongoDB connection successful. Redirecting to database setup...")
-        router.push("/mongodb-setup/database-setup")
+        localStorage.setItem('MONGODB_USERNAME', username);
+        localStorage.setItem('MONGODB_PASSWORD', password);
+        localStorage.setItem('MONGODB_HOST', host);
+        localStorage.setItem('MONGODB_CLUSTER', cluster);
+        localStorage.setItem('MONGODB', mongoDB);
+        localStorage.setItem('MONGODB_AUTH_MECH', authMech);
+        handleSuccess(
+          true,
+          null,
+          'MongoDB connection successful. Redirecting to database setup...'
+        );
+        router.push('/mongodb-setup/database-setup');
       } else {
-        throw new Error(data.message || t.mongodbSetup.generalError)
+        throw new Error(data.message || t.mongodbSetup.generalError);
       }
     } catch (err) {
       if (err instanceof SyntaxError) {
-        handleError(new Error("Invalid response from server"), "Invalid response from server")
+        handleError(new Error('Invalid response from server'), 'Invalid response from server');
       } else {
         handleError(
           err,
-          err instanceof Error ? err.message : t.mongodbSetup.generalError || "An unexpected error occurred",
-        )
+          err instanceof Error
+            ? err.message
+            : t.mongodbSetup.generalError || 'An unexpected error occurred'
+        );
       }
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target
-    setFormData({ ...formData, [name]: value })
-    console.log("Changing:", name, "to", value);
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+    console.log('Changing:', name, 'to', value);
 
     // Update the corresponding state variable
     switch (name) {
-      case "username":
-        setUsername(value)
-        break
-      case "password":
-        setPassword(value)
-        break
-      case "host":
-        setHost(value)
-        break
-      case "cluster":
-        setCluster(value)
-        break
-      case "mongoDB":
-        setMongoDB(value)
-        break
-      case "authMech":
-        setAuthMech(value)
-        break
+      case 'username':
+        setUsername(value);
+        break;
+      case 'password':
+        setPassword(value);
+        break;
+      case 'host':
+        setHost(value);
+        break;
+      case 'cluster':
+        setCluster(value);
+        break;
+      case 'mongoDB':
+        setMongoDB(value);
+        break;
+      case 'authMech':
+        setAuthMech(value);
+        break;
     }
-  }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 w-full py-2">
       <div
-        className={`w-full max-w-2xl mx-auto p-6 bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200 transition-all duration-500 ease-in-out ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
+        className={`w-full max-w-2xl mx-auto p-6 bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200 transition-all duration-500 ease-in-out ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
       >
         {/* Title */}
-        <div className={`transition-opacity duration-500 delay-100 ${isVisible ? "opacity-100" : "opacity-0"}`}>
-          <h2 className="mt-2 text-center text-3xl font-extrabold text-gray-900">{t.mongodbSetup.title}</h2>
+        <div
+          className={`transition-opacity duration-500 delay-100 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
+        >
+          <h2 className="mt-2 text-center text-3xl font-extrabold text-gray-900">
+            {t.mongodbSetup.title}
+          </h2>
         </div>
         {/* Connection Type Selector */}
         <div
-          className={`flex justify-center mt-4 mb-2 gap-2 transition-opacity duration-500 delay-200 ${isVisible ? "opacity-100" : "opacity-0"}`}
+          className={`flex justify-center mt-4 mb-2 gap-2 transition-opacity duration-500 delay-200 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
         >
           <button
-            onClick={() => { setMongoAcc(true), setMongoDB("compass") }}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 ${mongoAcc ? "bg-black text-white shadow-md" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+            onClick={() => {
+              setMongoAcc(true);
+              setMongoDB('compass');
+            }}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 ${mongoAcc
+                ? 'bg-black text-white shadow-md'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
           >
             <Home size={18} />
             <span className="text-sm">MongoDB Compass</span>
           </button>
           <button
-            onClick={() => { setMongoAcc(false), setMongoDB("atlas") }}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 ${!mongoAcc ? "bg-black text-white shadow-md" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+            onClick={() => {
+              setMongoAcc(false);
+              setMongoDB('atlas');
+            }}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 ${!mongoAcc
+                ? 'bg-black text-white shadow-md'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
           >
             <Server size={18} />
@@ -188,24 +208,25 @@ export default function MongoDBSetup() {
         </div>
         {/* Content based on connection type */}
         <div
-          className={`transition-all duration-500 ${isVisible ? "opacity-100 translate-x-0" : "opacity-0 translate-x-4"}`}
+          className={`transition-all duration-500 ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-4'}`}
         >
           {mongoAcc ? (
             <div
-              className={`mt-4 p-6 bg-gray-100 rounded-md transition-all duration-500 delay-300 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
+              className={`mt-4 p-6 bg-gray-100 rounded-md transition-all duration-500 delay-300 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
             >
               <h3 className="text-lg font-semibold mb-4">{t.mongodbSetup.mongodbExample}</h3>
               <div className="bg-white p-4 rounded-md shadow-sm overflow-x-auto">
                 <code className="text-sm text-gray-600">
                   <span>mongodb://</span>
-                  <span className="text-blue-500">{formData.username || "<username>"}</span>
+                  <span className="text-blue-500">{formData.username || '<username>'}</span>
                   <span>:</span>
-                  <span className="text-green-500">{formData.password ? "••••••••" : "<password>"}</span>
+                  <span className="text-green-500">
+                    {formData.password ? '••••••••' : '<password>'}
+                  </span>
                   <span>@</span>
-                  <span className="text-red-500">{formData.host || "<hostName>"}</span>
+                  <span className="text-red-500">{formData.host || '<hostName>'}</span>
                   <span>/?authMechanism=</span>
-                  <span className="text-purple-500">{formData.authMech || "<authMech>"}</span>
-
+                  <span className="text-purple-500">{formData.authMech || '<authMech>'}</span>
                 </code>
               </div>
               <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
@@ -230,19 +251,21 @@ export default function MongoDBSetup() {
           ) : (
             <div>
               <div
-                className={`mt-4 p-6 bg-gray-100 rounded-md transition-all duration-500 delay-300 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
+                className={`mt-4 p-6 bg-gray-100 rounded-md transition-all duration-500 delay-300 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
               >
                 <h3 className="text-lg font-semibold mb-4">{t.mongodbSetup.mongodbExample}</h3>
                 <div className="bg-white p-4 rounded-md shadow-sm overflow-x-auto">
                   <code className="text-sm text-gray-600">
                     <span>mongodb+srv://</span>
-                    <span className="text-blue-500">{formData.username || "<username>"}</span>
+                    <span className="text-blue-500">{formData.username || '<username>'}</span>
                     <span>:</span>
-                    <span className="text-green-500">{formData.password ? "••••••••" : "<password>"}</span>
+                    <span className="text-green-500">
+                      {formData.password ? '••••••••' : '<password>'}
+                    </span>
                     <span>@</span>
-                    <span className="text-purple-500">{formData.cluster || "<clusterName>"}</span>
+                    <span className="text-purple-500">{formData.cluster || '<clusterName>'}</span>
                     <span>.</span>
-                    <span className="text-red-500">{formData.host || "<hostName>"}</span>
+                    <span className="text-red-500">{formData.host || '<hostName>'}</span>
                     <span>.mongodb.net/myFirstDatabase?retryWrites=true&w=majority</span>
                   </code>
                 </div>
@@ -265,24 +288,25 @@ export default function MongoDBSetup() {
                   </div>
                 </div>
                 <p className="text-xs mt-4">
-                  <strong>Note:</strong> The host is the part after the cluster name and before &quot;.mongodb.net&quot;
+                  <strong>Note:</strong> The host is the part after the cluster name and before
+                  &quot;.mongodb.net&quot;
                 </p>
               </div>
               <div
-                className={`flex flex-row items-center my-5 justify-end transition-all duration-500 delay-400 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
+                className={`flex flex-row items-center my-5 justify-end transition-all duration-500 delay-400 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
               >
                 <p className="mx-5 text-lg font-medium text-gray-700">Multiple Cluster?</p>
                 <div className="relative inline-flex items-center p-1 rounded-md cursor-pointer">
                   <div className="flex border border-black rounded-md overflow-hidden">
                     <button
-                      className={`px-3 py-1 transition-all duration-300 ${toggle ? "bg-black text-white" : "bg-transparent text-black"
+                      className={`px-3 py-1 transition-all duration-300 ${toggle ? 'bg-black text-white' : 'bg-transparent text-black'
                         }`}
                       onClick={() => setToggle(true)}
                     >
                       Yes
                     </button>
                     <button
-                      className={`px-4 py-1 transition-all duration-300 ${toggle ? "bg-transparent text-black" : "bg-black text-white"
+                      className={`px-4 py-1 transition-all duration-300 ${toggle ? 'bg-transparent text-black' : 'bg-black text-white'
                         }`}
                       onClick={() => setToggle(false)}
                     >
@@ -295,7 +319,7 @@ export default function MongoDBSetup() {
           )}
           {toggle ? (
             <div
-              className={`mt-6 transition-all duration-500 delay-500 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
+              className={`mt-6 transition-all duration-500 delay-500 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
             >
               <h1 className="text-center m-5 text-lg font-medium">In Development</h1>
               <button
@@ -306,12 +330,11 @@ export default function MongoDBSetup() {
               </button>
             </div>
           ) : (
-            <form
-
-              onSubmit={handleSubmit}
-            >
+            <form onSubmit={handleSubmit}>
               {mongoAcc ? (
-                <div className={`grid grid-cols-2 gap-4 mt-6 transition-all duration-500 delay-500 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
+                <div
+                  className={`grid grid-cols-2 gap-4 mt-6 transition-all duration-500 delay-500 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+                >
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
                     <input
@@ -329,7 +352,7 @@ export default function MongoDBSetup() {
                     <div className="relative">
                       <input
                         name="password"
-                        type={showPassword ? "text" : "password"}
+                        type={showPassword ? 'text' : 'password'}
                         required
                         value={formData.password}
                         onChange={handleChange}
@@ -375,7 +398,9 @@ export default function MongoDBSetup() {
                   </div>
                 </div>
               ) : (
-                <div className={`grid grid-cols-2 gap-4 mt-6 transition-all duration-500 delay-500 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
+                <div
+                  className={`grid grid-cols-2 gap-4 mt-6 transition-all duration-500 delay-500 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+                >
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
                     <input
@@ -393,7 +418,7 @@ export default function MongoDBSetup() {
                     <div className="relative">
                       <input
                         name="password"
-                        type={showPassword ? "text" : "password"}
+                        type={showPassword ? 'text' : 'password'}
                         required
                         value={formData.password}
                         onChange={handleChange}
@@ -476,5 +501,5 @@ export default function MongoDBSetup() {
         </div>
       </div>
     </div>
-  )
+  );
 }

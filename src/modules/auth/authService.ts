@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 import type { RegisterInput } from './authValidation';
 import mongoose from 'mongoose';
 import { IUser } from '@/models/User';
-import { ISettings, settingsSchema } from '@/models/Settings'; 
+import { ISettings, settingsSchema } from '@/models/Settings';
 import { roleSchema } from '@/models/Role';
 import dotenv from 'dotenv';
 
@@ -11,16 +11,9 @@ dotenv.config({ path: '.env' });
 
 export class AuthService {
   private static JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
-  static async register(
-    data: RegisterInput,
-    UserModel: mongoose.Model<IUser>
-  ) {
+  static async register(data: RegisterInput, UserModel: mongoose.Model<IUser>) {
     const existingUser = await UserModel.findOne({
-      $or: [
-        { email: data.email },
-        { username: data.username },
-        { phoneNumber: data.phoneNo },
-      ],
+      $or: [{ email: data.email }, { username: data.username }, { phoneNumber: data.phoneNo }],
     });
 
     if (existingUser) {
@@ -36,7 +29,7 @@ export class AuthService {
     }
 
     const hashedPassword = await bcrypt.hash(data.password, 10);
-    
+
     const requestedRole = data.role || 'SuperAdmin';
     const RoleModel = UserModel.db.models.Role || UserModel.db.model('Role', roleSchema);
     let roleDoc = await RoleModel.findOne({ name: new RegExp(`^${requestedRole}$`, 'i') });
@@ -46,7 +39,7 @@ export class AuthService {
         { name: 'SuperAdmin', value: 0 },
         { name: 'Admin', value: 1 },
         { name: 'Editor', value: 2 },
-        { name: 'Author', value: 3 }
+        { name: 'Author', value: 3 },
       ];
       for (const role of roles) {
         await RoleModel.create(role);
@@ -64,27 +57,27 @@ export class AuthService {
       phoneNumber: data.phoneNo,
       role: roleDoc.value,
       firstName: '',
-      lastName:  '',
-      nickname:  '',
-      displayName:  '',
-      website:  '',
-      bio: '' ,
+      lastName: '',
+      nickname: '',
+      displayName: '',
+      website: '',
+      bio: '',
       profilePicturePath: '',
     });
 
-    const SettingsModel = UserModel.db.models.Settings ||
-      UserModel.db.model<ISettings>('Settings', settingsSchema);
+    const SettingsModel =
+      UserModel.db.models.Settings || UserModel.db.model<ISettings>('Settings', settingsSchema);
     // Include userId when creating default settings
     await SettingsModel.create({
       siteTitle: data.siteTitle,
-      tagline: "",
-      siteIcon: "",
-      language: "en",
-      timeZone: "UTC",
-      dateFormat: "F j, Y",
-      timeFormat: "g:i a",
-      themes: [{name: 'openNextDefault', isActive: true}],
-      config: [{ key: 'maxFileSize', value: '5mb' }] // Default max file size
+      tagline: '',
+      siteIcon: '',
+      language: 'en',
+      timeZone: 'UTC',
+      dateFormat: 'F j, Y',
+      timeFormat: 'g:i a',
+      themes: [{ name: 'openNextDefault', isActive: true }],
+      config: [{ key: 'maxFileSize', value: '5mb' }], // Default max file size
     });
 
     return {
@@ -99,11 +92,7 @@ export class AuthService {
     };
   }
 
-  static async login(
-    identifier: string,
-    password: string,
-    UserModel: mongoose.Model<IUser>
-  ) {
+  static async login(identifier: string, password: string, UserModel: mongoose.Model<IUser>) {
     try {
       const user = await UserModel.findOne({
         $or: [{ email: identifier }, { username: identifier }],

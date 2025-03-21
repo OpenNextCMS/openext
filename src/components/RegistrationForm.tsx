@@ -22,9 +22,14 @@ const NewRegisterForm = () => {
 
   useEffect(() => {
     const langFromCookie = Cookies.get('selectedLanguage') || 'en';
-  setT(translations[langFromCookie as keyof typeof translations] as typeof translations.en);
+    setT(translations[langFromCookie as keyof typeof translations] as typeof translations.en);
 
-    const mongodbCredentials = ['MONGODB_USERNAME', 'MONGODB_PASSWORD', 'MONGODB_CLUSTER', 'MONGODB_HOST'];
+    const mongodbCredentials = [
+      'MONGODB_USERNAME',
+      'MONGODB_PASSWORD',
+      'MONGODB_CLUSTER',
+      'MONGODB_HOST',
+    ];
     const dbInfo = ['USER_DB_NAME', 'PAGE_DB_NAME'];
     const missingCredentials = mongodbCredentials.some((key) => !localStorage.getItem(key));
     const missingDbInfo = dbInfo.some((key) => !localStorage.getItem(key));
@@ -79,17 +84,25 @@ const NewRegisterForm = () => {
         fetch(`${backendUrl}/api/auth/admin`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...data, userDbName, pageDbName, mongodbCredentials, headerData, bodyData, footerData }),
+          body: JSON.stringify({
+            ...data,
+            userDbName,
+            pageDbName,
+            mongodbCredentials,
+            headerData,
+            bodyData,
+            footerData,
+          }),
         })
-          .then(response => response.json())
-          .then(result => {
+          .then((response) => response.json())
+          .then((result) => {
             if (!result.success) throw new Error(result.message || 'Registration failed');
 
             handleSuccess(true, null, 'Registration successful. Redirecting to login...');
             localStorage.clear();
             router.push('/login');
           })
-          .catch(error => {
+          .catch((error) => {
             handleError(error, error.message || 'An unexpected error occurred');
           });
       }
@@ -134,7 +147,7 @@ const NewRegisterForm = () => {
               />
               {errors.siteTitle && <p className="mt-1 text-sm text-red-600">{errors.siteTitle}</p>}
             </div>
-          
+
             {/* Email */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
@@ -175,7 +188,7 @@ const NewRegisterForm = () => {
                   <input
                     id="password"
                     name="password"
-                    type={showPassword ? "text" : "password"}
+                    type={showPassword ? 'text' : 'password'}
                     placeholder={t.register.passwordPlaceholder}
                     required
                     className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500 text-sm pr-10"

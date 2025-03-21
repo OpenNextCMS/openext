@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
 
   const { username, password, host, cluster } = mongodbCredentials;
   const baseUrl = `mongodb+srv://${username}:${password}@${cluster}.${host}.mongodb.net`;
-  
+
   try {
     // Create separate connections for each database
     const masterConnection = await mongoose.createConnection(
@@ -33,15 +33,11 @@ export async function POST(req: NextRequest) {
       masterConnection.createCollection('masterdbs'),
       userConnection.createCollection('users'),
       userConnection.createCollection('settings'),
-      pageConnection.createCollection('pages')
+      pageConnection.createCollection('pages'),
     ]);
 
     // Close connections after setup
-    await Promise.all([
-      masterConnection.close(),
-      userConnection.close(),
-      pageConnection.close()
-    ]);
+    await Promise.all([masterConnection.close(), userConnection.close(), pageConnection.close()]);
 
     return handleSuccess(true, null, 'Databases setup successful');
   } catch (error) {

@@ -1,4 +1,4 @@
-import {  NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getPageDbConnection, getPageModel } from '@/utils/db';
 
 export async function GET() {

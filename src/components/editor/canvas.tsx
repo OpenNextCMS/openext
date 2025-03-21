@@ -1,39 +1,47 @@
-"use client"
-import { useDroppable } from "@dnd-kit/core"
-import RenderBlock from "./renderblock"
-import { LayoutGrid, PlusSquare, MousePointerClick } from "lucide-react"
-import { useState } from "react"
+'use client';
+import { useDroppable } from '@dnd-kit/core';
+import RenderBlock from './renderblock';
+import { LayoutGrid, PlusSquare, MousePointerClick } from 'lucide-react';
+import { useState } from 'react';
 
 interface CanvasProps {
-  canvasBlocks: Array<{ uniqueId: string;[key: string]: any }>;
-  viewMode: "desktop" | "tablet" | "mobile";
+  canvasBlocks: Array<{
+    uniqueId: string;
+    content: string;
+    style?: Record<string, string>;
+    type: 'column' | 'text';
+  }>;
+  viewMode: 'desktop' | 'tablet' | 'mobile';
 }
 
 export default function Canvas({ canvasBlocks, viewMode }: CanvasProps) {
-  const { setNodeRef, isOver } = useDroppable({ id: "canvas" })
-  const [zoom, setZoom] = useState(100)
+  const { setNodeRef, isOver } = useDroppable({ id: 'canvas' });
+  const [zoom, setZoom] = useState(100);
 
   const handleZoomIn = () => {
-    if (zoom < 200) setZoom(zoom + 10)
-  }
+    if (zoom < 200) setZoom(zoom + 10);
+  };
 
   const handleZoomOut = () => {
-    if (zoom > 50) setZoom(zoom - 10)
-  }
+    if (zoom > 50) setZoom(zoom - 10);
+  };
 
   const getWidthClass = () => {
     switch (viewMode) {
-      case "tablet":
-        return "max-w-[768px]"; // Tablet width
-      case "mobile":
-        return "max-w-[480px]"; // Mobile landscape width
+      case 'tablet':
+        return 'max-w-[768px]'; // Tablet width
+      case 'mobile':
+        return 'max-w-[480px]'; // Mobile landscape width
       default:
-        return "max-w-full"; // Desktop width
+        return 'max-w-full'; // Desktop width
     }
-  }
+  };
 
   return (
-    <div className="flex-1 bg-muted/30 dark:bg-muted/10 overflow-auto p-4 transition-colors duration-300" ref={setNodeRef}>
+    <div
+      className="flex-1 bg-muted/30 dark:bg-muted/10 overflow-auto p-4 transition-colors duration-300"
+      ref={setNodeRef}
+    >
       <div className="max-w-screen-xl mx-auto">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold flex items-center gap-2">
@@ -42,7 +50,7 @@ export default function Canvas({ canvasBlocks, viewMode }: CanvasProps) {
           </h2>
           <div className="flex items-center gap-4">
             <div className="text-sm text-muted-foreground">
-              {canvasBlocks.length} {canvasBlocks.length === 1 ? "block" : "blocks"} added
+              {canvasBlocks.length} {canvasBlocks.length === 1 ? 'block' : 'blocks'} added
             </div>
             <div className="flex items-center gap-2">
               <button
@@ -64,9 +72,10 @@ export default function Canvas({ canvasBlocks, viewMode }: CanvasProps) {
           </div>
         </div>
         <div
-          className={`bg-background dark:bg-background w-full h-auto shadow-md p-4 rounded-lg border ${getWidthClass()} transition-all mx-auto ${isOver ? "border-primary border-dashed border-2" : "border-border"
-            } `}
-          style={{ transform: `scale(${zoom / 100})`, transformOrigin: "top left" }}
+          className={`bg-background dark:bg-background w-full h-auto shadow-md p-4 rounded-lg border ${getWidthClass()} transition-all mx-auto ${
+            isOver ? 'border-primary border-dashed border-2' : 'border-border'
+          } `}
+          style={{ transform: `scale(${zoom / 100})`, transformOrigin: 'top left' }}
         >
           {canvasBlocks.length > 0 ? (
             canvasBlocks.map((block) => <RenderBlock key={block.uniqueId} block={block} />)
@@ -85,10 +94,10 @@ export default function Canvas({ canvasBlocks, viewMode }: CanvasProps) {
                     Drag and drop blocks from the sidebar to start building your page layout
                   </p>
                   <div className="text-sm text-muted-foreground">
-                    Tip: Click the{" "}
+                    Tip: Click the{' '}
                     <span className="inline-flex items-center mx-1 px-2 py-1 rounded bg-muted">
                       <PlusSquare className="h-3 w-3 mr-1" /> Add Block
-                    </span>{" "}
+                    </span>{' '}
                     button to add new blocks
                   </div>
                 </>
@@ -98,6 +107,5 @@ export default function Canvas({ canvasBlocks, viewMode }: CanvasProps) {
         </div>
       </div>
     </div>
-  )
+  );
 }
-
