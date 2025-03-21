@@ -33,6 +33,7 @@ interface Page {
   isPublished: boolean
   lastModified: string
 }
+const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000"
 
 export default function PageManagement() {
   const [pageData, setPageData] = useState<Omit<Page, "_id" | "lastModified">>({
@@ -55,7 +56,6 @@ export default function PageManagement() {
   const [activeTab, setActiveTab] = useState("page-list")
   const [filteredPages, setFilteredPages] = useState<Page[]>([])
 
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000"
 
   const fetchPages = async () => {
     setIsLoading(true)
