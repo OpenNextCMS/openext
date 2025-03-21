@@ -221,7 +221,7 @@ export default function LeftSidebar() {
                     </Button>
                   </CollapsibleTrigger>
                   <FileText className="h-4 w-4 text-primary" />
-                  <span className="font-medium">Pages</span>
+                  <span className="font-medium text-sm">Pages</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <TooltipProvider>
@@ -277,7 +277,7 @@ export default function LeftSidebar() {
                       key={page.id}
                       className="flex items-center justify-between rounded-md px-2 py-2 hover:bg-muted transition-colors"
                     >
-                      <span className="truncate">{page.pageName}</span>
+                      <span className="truncate text-sm">{page.pageName}</span>
                       <div className="flex items-center">
                         <TooltipProvider>
                           <Tooltip>
@@ -340,7 +340,7 @@ export default function LeftSidebar() {
                     </Button>
                   </CollapsibleTrigger>
                   <Layers className="h-4 w-4 text-primary" />
-                  <span className="font-medium">Layers</span>
+                  <span className="font-medium text-sm">Layers</span>
                 </div>
               </div>
               <CollapsibleContent>
@@ -348,7 +348,7 @@ export default function LeftSidebar() {
                   <div className="flex items-center gap-2 pl-4 py-1 hover:bg-muted rounded-md transition-colors">
                     <ChevronRight className="h-4 w-4" />
                     <input type="checkbox" className="h-4 w-4" readOnly />
-                    <span>Body</span>
+                    <span className="text-sm">Body</span>
                   </div>
                 </div>
               </CollapsibleContent>
@@ -361,7 +361,7 @@ export default function LeftSidebar() {
                     <ChevronRight className="h-4 w-4" />
                   </Button>
                   <Layout className="h-4 w-4 text-primary" />
-                  <span className="font-medium">My Design</span>
+                  <span className="font-medium text-sm">My Design</span>
                 </div>
               </div>
             </Collapsible>
