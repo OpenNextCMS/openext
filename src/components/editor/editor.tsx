@@ -51,7 +51,7 @@ export default function Editor() {
     if (!over) return;
 
     const blockData: BlockData = {
-      ...active.data.current as BlockData,
+      ...(active.data.current as BlockData),
       uniqueId: uuidv4(),
     };
 
@@ -63,7 +63,12 @@ export default function Editor() {
       if (over.data.current?.type === 'column') {
         return prev.map((block) =>
           over.data.current
-            ? updateNestedBlock(block, over.data.current.blockId, over.data.current.columnIndex, blockData)
+            ? updateNestedBlock(
+                block,
+                over.data.current.blockId,
+                over.data.current.columnIndex,
+                blockData
+              )
             : block
         );
       }
@@ -111,16 +116,21 @@ export default function Editor() {
                 setIsOpen(false);
               }}
             >
-              {showLeftSidebar ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+              {showLeftSidebar ? (
+                <ChevronLeft className="h-4 w-4" />
+              ) : (
+                <ChevronRight className="h-4 w-4" />
+              )}
             </Button>
           </div>
 
-          <div className={`transition-all duration-300 ${showLeftSidebar ? 'w-64 border-r border-border' : 'w-0'}`}>
+          <div
+            className={`transition-all duration-300 ${showLeftSidebar ? 'w-64 border-r border-border' : 'w-0'}`}
+          >
             <div className={`h-full ${!showLeftSidebar ? 'invisible' : ''}`}>
               <Suspense fallback={<div>Loading Sidebar...</div>}>
                 <LeftSidebar />
               </Suspense>
-
             </div>
           </div>
 
@@ -131,7 +141,9 @@ export default function Editor() {
             <Canvas canvasBlocks={canvasBlocks} viewMode={viewMode} />
           </div>
 
-          <div className={`transition-all duration-300 ${showRightSidebar ? 'w-64 border-l border-border' : 'w-0'}`}>
+          <div
+            className={`transition-all duration-300 ${showRightSidebar ? 'w-64 border-l border-border' : 'w-0'}`}
+          >
             <div className={`h-full ${!showRightSidebar ? 'invisible' : ''}`}>
               <RightSidebar />
             </div>
@@ -144,7 +156,11 @@ export default function Editor() {
               className={`absolute ${showRightSidebar ? 'right-64 rounded-l-full' : 'right-2 rounded-full'} top-2.5 z-10 h-8 w-8 border shadow-md transition-all duration-300 dark:border-border dark:bg-background`}
               onClick={() => setShowRightSidebar(!showRightSidebar)}
             >
-              {showRightSidebar ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+              {showRightSidebar ? (
+                <ChevronRight className="h-4 w-4" />
+              ) : (
+                <ChevronLeft className="h-4 w-4" />
+              )}
             </Button>
           </div>
         </div>

@@ -72,7 +72,15 @@ const RenderBlock = ({ block }: { block: Block }) => {
   return null; // Unknown block
 };
 
-const ColumnDropZone = ({ children, block, columnIndex }: { children: React.ReactNode; block: Block; columnIndex: number }) => {
+const ColumnDropZone = ({
+  children,
+  block,
+  columnIndex,
+}: {
+  children: React.ReactNode;
+  block: Block;
+  columnIndex: number;
+}) => {
   const { setNodeRef, isOver } = useDroppable({
     id: `${block.uniqueId}-column-${columnIndex}`,
     data: { type: 'column', blockId: block.uniqueId, columnIndex },
@@ -81,10 +89,11 @@ const ColumnDropZone = ({ children, block, columnIndex }: { children: React.Reac
   return (
     <div
       ref={setNodeRef}
-      className={`flex-1 border rounded-md p-3 min-h-[150px] transition-colors ${isOver
-        ? 'bg-primary/10 border-primary border-dashed'
-        : 'bg-muted/20 hover:bg-muted/30 border-border'
-        }`}
+      className={`flex-1 border rounded-md p-3 min-h-[150px] transition-colors ${
+        isOver
+          ? 'bg-primary/10 border-primary border-dashed'
+          : 'bg-muted/20 hover:bg-muted/30 border-border'
+      }`}
     >
       {isOver && Array.isArray(children) && children.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-full animate-pulse">
