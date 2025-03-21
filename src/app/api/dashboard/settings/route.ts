@@ -10,7 +10,7 @@ export async function GET() {
     const token = cookieStore.get('token')?.value;
 
     if (!token) {
-      console.error("❌ No token found in cookies");
+      console.error('❌ No token found in cookies');
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }
 
@@ -23,21 +23,24 @@ export async function GET() {
     const email = decodedToken.email;
 
     if (!email) {
-      console.error("❌ Token is missing email:", decodedToken);
+      console.error('❌ Token is missing email:', decodedToken);
       return NextResponse.json({ success: false, message: 'Invalid token' }, { status: 401 });
     }
 
     const userDb = await getUserDbConnection();
     if (!userDb) {
-      console.error("❌ Failed to connect to database");
-      return NextResponse.json({ success: false, message: 'Database connection error' }, { status: 500 });
+      console.error('❌ Failed to connect to database');
+      return NextResponse.json(
+        { success: false, message: 'Database connection error' },
+        { status: 500 }
+      );
     }
 
     const UserModel = userDb.model('User');
     const user = await UserModel.findOne({ email }).exec();
 
     if (!user) {
-      console.error("❌ User not found in database:", email);
+      console.error('❌ User not found in database:', email);
       return NextResponse.json({ success: false, message: 'User not found' }, { status: 404 });
     }
 
@@ -46,9 +49,8 @@ export async function GET() {
     const settings = await SettingsModel.findOne({}).exec();
 
     return NextResponse.json({ success: true, data: { user, settings } });
-
   } catch (error) {
-    console.error("❌ Server error in /api/dashboard/settings:", error);
+    console.error('❌ Server error in /api/dashboard/settings:', error);
     return NextResponse.json({ success: false, message: 'Server error' }, { status: 500 });
   }
 }
@@ -59,7 +61,7 @@ export async function POST(req: NextRequest) {
     const token = cookieStore.get('token')?.value;
 
     if (!token) {
-      console.error("❌ No token found in cookies");
+      console.error('❌ No token found in cookies');
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }
 
@@ -72,7 +74,7 @@ export async function POST(req: NextRequest) {
     const email = decodedToken.email;
 
     if (!email) {
-      console.error("❌ Token is missing email:", decodedToken);
+      console.error('❌ Token is missing email:', decodedToken);
       return NextResponse.json({ success: false, message: 'Invalid token' }, { status: 401 });
     }
 
@@ -98,9 +100,9 @@ export async function POST(req: NextRequest) {
     if (settings) {
       Object.assign(settings, settingsData, { siteTitle });
       if (activeTheme !== undefined) {
-        settings.themes = settings.themes.map(theme => ({
+        settings.themes = settings.themes.map((theme) => ({
           ...theme,
-          isActive: theme.name === activeTheme
+          isActive: theme.name === activeTheme,
         }));
       }
       // Update maxFileSize in config if provided
@@ -109,9 +111,11 @@ export async function POST(req: NextRequest) {
           key: string;
           value: string;
         }
-        const maxFileSizeConfig = settingsData.config.find((c: ConfigItem) => c.key === 'maxFileSize');
+        const maxFileSizeConfig = settingsData.config.find(
+          (c: ConfigItem) => c.key === 'maxFileSize'
+        );
         if (maxFileSizeConfig) {
-          const existingConfig = settings.config.find(c => c.key === 'maxFileSize');
+          const existingConfig = settings.config.find((c) => c.key === 'maxFileSize');
           if (existingConfig) {
             existingConfig.value = maxFileSizeConfig.value;
           } else {
@@ -122,20 +126,23 @@ export async function POST(req: NextRequest) {
     } else {
       settings = new SettingsModel({ siteTitle, ...settingsData });
       if (activeTheme) {
-        settings.themes = settings.themes.map(theme => ({
+        settings.themes = settings.themes.map((theme) => ({
           ...theme,
-          isActive: theme.name === activeTheme
+          isActive: theme.name === activeTheme,
         }));
       }
       // Add default maxFileSize if not provided
-      if (!settings.config.find(c => c.key === 'maxFileSize')) {
+      if (!settings.config.find((c) => c.key === 'maxFileSize')) {
         settings.config.push({ key: 'maxFileSize', value: '5mb' });
       }
     }
     await settings.save();
 
-    return NextResponse.json({ success: true, data: { user, settings }, message: 'Settings updated successfully' });
-
+    return NextResponse.json({
+      success: true,
+      data: { user, settings },
+      message: 'Settings updated successfully',
+    });
   } catch (error: unknown) {
     console.error('Settings update error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Error updating settings';

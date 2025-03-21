@@ -1,10 +1,10 @@
-"use client"
+'use client';
 
-import { useEffect, useState } from "react"
-import { translations } from "../../../public/locales/translations"
-import Cookies from "js-cookie"
-import { useRouter } from "next/navigation"
-import { handleError } from "@/utils/errorHandler"
+import { useEffect, useState, useCallback } from 'react';
+import { translations } from '../../../public/locales/translations';
+import Cookies from 'js-cookie';
+import { useRouter } from 'next/navigation';
+import { handleError } from '@/utils/errorHandler';
 import {
   Activity,
   BarChart3,
@@ -13,37 +13,44 @@ import {
   LayoutDashboard,
   Settings,
   Users,
-} from "lucide-react"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Progress } from "@/components/ui/progress"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Skeleton } from "@/components/ui/skeleton"
-import { CartesianGrid, Line, LineChart, ResponsiveContainer, XAxis, YAxis } from "recharts"
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
+} from 'lucide-react';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Skeleton } from '@/components/ui/skeleton';
+import { CartesianGrid, Line, LineChart, ResponsiveContainer, XAxis, YAxis } from 'recharts';
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 
 export default function DashboardPage() {
-  const [t, setT] = useState(translations.en)
-  const [error] = useState("")
-  const [loading, setLoading] = useState(true)
+  const [t, setT] = useState(translations.en);
+  const [error] = useState('');
+  const [loading, setLoading] = useState(true);
   const [dbStatus, setDbStatus] = useState({
     masterDbConnected: false,
     userDbConnected: false,
     pageDbConnected: false,
-  })
-  const router = useRouter()
+  });
+  const router = useRouter();
 
   // Mock data for charts and stats
   const activityData = [
-    { day: "Mon", visits: 45, engagement: 30 },
-    { day: "Tue", visits: 52, engagement: 42 },
-    { day: "Wed", visits: 48, engagement: 35 },
-    { day: "Thu", visits: 61, engagement: 55 },
-    { day: "Fri", visits: 55, engagement: 40 },
-    { day: "Sat", visits: 33, engagement: 22 },
-    { day: "Sun", visits: 40, engagement: 30 },
-  ]
+    { day: 'Mon', visits: 45, engagement: 30 },
+    { day: 'Tue', visits: 52, engagement: 42 },
+    { day: 'Wed', visits: 48, engagement: 35 },
+    { day: 'Thu', visits: 61, engagement: 55 },
+    { day: 'Fri', visits: 55, engagement: 40 },
+    { day: 'Sat', visits: 33, engagement: 22 },
+    { day: 'Sun', visits: 40, engagement: 30 },
+  ];
 
   const stats = {
     totalUsers: 1248,
@@ -51,68 +58,69 @@ export default function DashboardPage() {
     totalPages: 324,
     completionRate: 78,
     lastUpdated: new Date().toLocaleString(),
-  }
+  };
 
   useEffect(() => {
-    const langFromCookie = Cookies.get("selectedLanguage") || "en"
+    const langFromCookie = Cookies.get('selectedLanguage') || 'en';
     setT(translations[langFromCookie as keyof typeof translations] as typeof translations.en);
 
-    const message = Cookies.get("message")
+    const message = Cookies.get('message');
     if (message) {
-      handleError(null, message)
-      Cookies.remove("message")
+      handleError(null, message);
+      Cookies.remove('message');
     }
-  }, [])
+  }, []);
 
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000"
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
 
-  const clearAllCookies = async () => {
+  const clearAllCookies = useCallback(async () => {
     try {
       const response = await fetch(`${backendUrl}/api/clear-cookies`, {
-        method: "POST",
-      })
+        method: 'POST',
+      });
       if (!response.ok) {
-        console.error("Failed to clear cookies")
+        console.error('Failed to clear cookies');
       }
     } catch (error) {
-      console.error("Error clearing cookies:", error)
+      console.error('Error clearing cookies:', error);
     }
-  }
+  }, [backendUrl]);
 
   useEffect(() => {
     const checkDbAndRedirect = async () => {
       try {
-        setLoading(true)
-        const apiUrl = backendUrl === 'http://localhost:3000' ? '/api/verify-connection' : '/api/api-sync';
+        setLoading(true);
+        const apiUrl =
+          backendUrl === 'http://localhost:3000' ? '/api/verify-connection' : '/api/api-sync';
         const response = await fetch(`http://localhost:3000${apiUrl}`);
 
         if (!response.ok) {
-          const errorText = await response.text()
-          throw new Error(`Failed to fetch database connection status: ${errorText}`)
+          const errorText = await response.text();
+          throw new Error(`Failed to fetch database connection status: ${errorText}`);
         }
 
-        const data = await response.json()
-        setDbStatus(data)
+        const data = await response.json();
+        setDbStatus(data);
 
         if (!data.masterDbConnected || !data.userDbConnected || !data.pageDbConnected) {
-          handleError(null, "Database Connection not Established")
-          await clearAllCookies()
-          router.push("/language")
+          handleError(null, 'Database Connection not Established');
+          await clearAllCookies();
+          router.push('/language');
         }
       } catch (error) {
-        handleError(error, "Error checking database connections")
-        await clearAllCookies()
-        router.push("/language")
+        handleError(error, 'Error checking database connections');
+        await clearAllCookies();
+        router.push('/language');
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    checkDbAndRedirect()
-  }, [router, backendUrl])
+    checkDbAndRedirect();
+  }, [router, backendUrl, clearAllCookies]);
 
   if (loading) {
-    return <DashboardSkeleton />
+    return <DashboardSkeleton />;
   }
 
   return (
@@ -204,19 +212,32 @@ export default function DashboardPage() {
                     <ChartContainer
                       config={{
                         visits: {
-                          label: "Visits",
-                          color: "hsl(var(--chart-1))",
+                          label: 'Visits',
+                          color: 'hsl(var(--chart-1))',
                         },
                         engagement: {
-                          label: "Engagement",
-                          color: "hsl(var(--chart-2))",
+                          label: 'Engagement',
+                          color: 'hsl(var(--chart-2))',
                         },
                       }}
                     >
                       <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={activityData} margin={{ top: 5, right: 10, left: 10, bottom: 0 }}>
-                          <XAxis dataKey="day" tickLine={false} axisLine={false} tick={{ fontSize: 12 }} />
-                          <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 12 }} width={30} />
+                        <LineChart
+                          data={activityData}
+                          margin={{ top: 5, right: 10, left: 10, bottom: 0 }}
+                        >
+                          <XAxis
+                            dataKey="day"
+                            tickLine={false}
+                            axisLine={false}
+                            tick={{ fontSize: 12 }}
+                          />
+                          <YAxis
+                            tickLine={false}
+                            axisLine={false}
+                            tick={{ fontSize: 12 }}
+                            width={30}
+                          />
                           <CartesianGrid strokeDasharray="3 3" vertical={false} />
                           <ChartTooltip content={<ChartTooltipContent />} />
                           <Line
@@ -254,7 +275,10 @@ export default function DashboardPage() {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     {[1, 2, 3, 4].map((_, i) => (
-                      <div key={i} className="flex items-start gap-4 pb-4 border-b last:border-0 last:pb-0">
+                      <div
+                        key={i}
+                        className="flex items-start gap-4 pb-4 border-b last:border-0 last:pb-0"
+                      >
                         <div className="bg-primary/10 p-2 rounded-full">
                           <Activity className="h-4 w-4 text-primary" />
                         </div>
@@ -279,10 +303,10 @@ export default function DashboardPage() {
                   </CardHeader>
                   <CardContent className="grid grid-cols-2 gap-4">
                     {[
-                      { icon: Users, label: "Manage Users" },
-                      { icon: FileText, label: "Create Page" },
-                      { icon: BarChart3, label: "View Reports" },
-                      { icon: Settings, label: "System Settings" },
+                      { icon: Users, label: 'Manage Users' },
+                      { icon: FileText, label: 'Create Page' },
+                      { icon: BarChart3, label: 'View Reports' },
+                      { icon: Settings, label: 'System Settings' },
                     ].map((action, i) => (
                       <Button key={i} variant="outline" className="h-24 flex flex-col gap-2">
                         <action.icon className="h-6 w-6" />
@@ -323,20 +347,20 @@ export default function DashboardPage() {
           <div className="flex gap-2">
             <div>
               <span>Master DB:</span>
-              <span className={dbStatus.masterDbConnected ? "text-green-500" : "text-red-500"}>
-                {dbStatus.masterDbConnected ? "Connected" : "Disconnected"}
+              <span className={dbStatus.masterDbConnected ? 'text-green-500' : 'text-red-500'}>
+                {dbStatus.masterDbConnected ? 'Connected' : 'Disconnected'}
               </span>
             </div>
             <div>
               <span>User DB:</span>
-              <span className={dbStatus.userDbConnected ? "text-green-500" : "text-red-500"}>
-                {dbStatus.userDbConnected ? "Connected" : "Disconnected"}
+              <span className={dbStatus.userDbConnected ? 'text-green-500' : 'text-red-500'}>
+                {dbStatus.userDbConnected ? 'Connected' : 'Disconnected'}
               </span>
             </div>
             <div>
               <span>Page DB:</span>
-              <span className={dbStatus.pageDbConnected ? "text-green-500" : "text-red-500"}>
-                {dbStatus.pageDbConnected ? "Connected" : "Disconnected"}
+              <span className={dbStatus.pageDbConnected ? 'text-green-500' : 'text-red-500'}>
+                {dbStatus.pageDbConnected ? 'Connected' : 'Disconnected'}
               </span>
             </div>
           </div>
@@ -346,13 +370,15 @@ export default function DashboardPage() {
             </div>
             <div>
               <span>Powered By: </span>
-              <a href="https://aviraltrendzpvtltd.com" className="text-blue-600">https://aviraltrendzpvtltd.com</a>
+              <a href="https://aviraltrendzpvtltd.com" className="text-blue-600">
+                https://aviraltrendzpvtltd.com
+              </a>
             </div>
           </div>
         </footer>
       </div>
     </div>
-  )
+  );
 }
 
 function DashboardSkeleton() {
@@ -450,6 +476,5 @@ function DashboardSkeleton() {
         </main>
       </div>
     </div>
-  )
+  );
 }
-

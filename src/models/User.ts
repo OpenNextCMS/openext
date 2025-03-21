@@ -19,24 +19,27 @@ export interface IUser extends mongoose.Document {
   profilePicturePath?: string;
 }
 
-const userSchema = new mongoose.Schema({
-  username: { type: String, required: true, unique: true },
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-  phoneNumber: { type: String },
-  role: { type: Number, required: true },
-  // NEW profile fields
-  firstName: { type: String },
-  lastName: { type: String },
-  nickname: { type: String },
-  displayName: { type: String },
-  website: { type: String },
-  bio: { type: String },
-  active: { type: Boolean, default: true },  // Add this line
-  profilePicturePath: { type: String, select: true }, // Ensure this field is included
-}, {
-  timestamps: true
-});
+const userSchema = new mongoose.Schema(
+  {
+    username: { type: String, required: true, unique: true },
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    phoneNumber: { type: String },
+    role: { type: Number, required: true },
+    // NEW profile fields
+    firstName: { type: String },
+    lastName: { type: String },
+    nickname: { type: String },
+    displayName: { type: String },
+    website: { type: String },
+    bio: { type: String },
+    active: { type: Boolean, default: true }, // Add this line
+    profilePicturePath: { type: String, select: true }, // Ensure this field is included
+  },
+  {
+    timestamps: true,
+  }
+);
 
 export default mongoose.models.User || mongoose.model<IUser>('User', userSchema);
 export { userSchema };

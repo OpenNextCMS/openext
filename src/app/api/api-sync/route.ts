@@ -31,7 +31,7 @@ export const GET = async () => {
       throw new Error(`Failed to verify connection: ${errorText}`);
     }
 
-    const data = await response.json() as {
+    const data = (await response.json()) as {
       masterDbConnected: boolean;
       userDbConnected: boolean;
       pageDbConnected: boolean;
@@ -58,11 +58,11 @@ export const GET = async () => {
 
     fs.writeFileSync(envPath, updatedEnv);
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       masterDbConnected,
       userDbConnected,
       pageDbConnected,
-      dbConnection 
+      dbConnection,
     });
   } catch (error) {
     console.error(`Error in API sync: ${(error as Error).message}`);

@@ -1,6 +1,6 @@
 // app/components/Documentation/FolderStructureSection.tsx
 export default function FolderStructureSection() {
-    const folderStructure = `+---public
+  const folderStructure = `+---public
 |   +---flags
 |   |       ar.png
 |   |       bn.png
@@ -299,12 +299,12 @@ export default function FolderStructureSection() {
             successHandler.ts
             utils.ts`;
 
-    return (
-        <section id="structure" className="pt-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Folder Structure</h2>
-            <pre className="bg-gray-800 text-gray-100 p-6 rounded-lg overflow-x-auto text-sm">
-                {folderStructure}
-            </pre>
-        </section>
-    );
+  return (
+    <section id="structure" className="pt-12">
+      <h2 className="text-2xl font-bold text-gray-900 mb-6">Folder Structure</h2>
+      <pre className="bg-gray-800 text-gray-100 p-6 rounded-lg overflow-x-auto text-sm">
+        {folderStructure}
+      </pre>
+    </section>
+  );
 }

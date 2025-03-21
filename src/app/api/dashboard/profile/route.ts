@@ -26,7 +26,10 @@ export async function GET() {
     }
     const userDb = await getUserDbConnection();
     if (!userDb) {
-      return NextResponse.json({ success: false, message: 'Database connection error' }, { status: 500 });
+      return NextResponse.json(
+        { success: false, message: 'Database connection error' },
+        { status: 500 }
+      );
     }
     const UserModel = userDb.model<IUser>('User');
     const response = await AuthService.getUserByEmail(email, UserModel);
@@ -65,15 +68,27 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, message: 'User not found' }, { status: 404 });
     }
     if (newEmail !== originalUser.email) {
-      const emailExists = await UserModel.findOne({ email: newEmail, _id: { $ne: originalUser._id } }).maxTimeMS(5000);
+      const emailExists = await UserModel.findOne({
+        email: newEmail,
+        _id: { $ne: originalUser._id },
+      }).maxTimeMS(5000);
       if (emailExists) {
-        return NextResponse.json({ success: false, message: 'Email already in use' }, { status: 400 });
+        return NextResponse.json(
+          { success: false, message: 'Email already in use' },
+          { status: 400 }
+        );
       }
     }
     if (username !== originalUser.username) {
-      const usernameExists = await UserModel.findOne({ username, _id: { $ne: originalUser._id } }).maxTimeMS(5000);
+      const usernameExists = await UserModel.findOne({
+        username,
+        _id: { $ne: originalUser._id },
+      }).maxTimeMS(5000);
       if (usernameExists) {
-        return NextResponse.json({ success: false, message: 'Username already in use' }, { status: 400 });
+        return NextResponse.json(
+          { success: false, message: 'Username already in use' },
+          { status: 400 }
+        );
       }
     }
     originalUser.username = username;
@@ -101,21 +116,24 @@ export async function POST(req: NextRequest) {
     const response = NextResponse.json({
       success: true,
       data: originalUser,
-      message: 'Profile updated successfully'
+      message: 'Profile updated successfully',
     });
-    
+
     response.cookies.set('token', newToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      maxAge: 86400
+      maxAge: 86400,
     });
 
     return response;
   } catch (error: unknown) {
-    return NextResponse.json({
-      success: false,
-      message: (error instanceof Error ? error.message : 'Error updating profile')
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: false,
+        message: error instanceof Error ? error.message : 'Error updating profile',
+      },
+      { status: 500 }
+    );
   }
 }

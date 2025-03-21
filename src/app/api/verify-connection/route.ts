@@ -1,9 +1,16 @@
-import {  NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import mongoose from 'mongoose';
 import fs from 'fs/promises';
 import path from 'path';
 
-const { MONGODB_USERNAME, MONGODB_PASSWORD, MONGODB_HOST, MONGODB_CLUSTER, USER_DB_NAME, PAGE_DB_NAME } = process.env;
+const {
+  MONGODB_USERNAME,
+  MONGODB_PASSWORD,
+  MONGODB_HOST,
+  MONGODB_CLUSTER,
+  USER_DB_NAME,
+  PAGE_DB_NAME,
+} = process.env;
 
 const masterDbUri = `mongodb+srv://${MONGODB_USERNAME}:${MONGODB_PASSWORD}@${MONGODB_CLUSTER}.${MONGODB_HOST}.mongodb.net/master?retryWrites=true&w=majority`;
 const userDbUri = `mongodb+srv://${MONGODB_USERNAME}:${MONGODB_PASSWORD}@${MONGODB_CLUSTER}.${MONGODB_HOST}.mongodb.net/${USER_DB_NAME}?retryWrites=true&w=majority`;
@@ -17,7 +24,7 @@ async function checkConnection(uri: string) {
     }
     const dbList = await connection.db.admin().listDatabases();
     const dbName = uri.split('/').pop()?.split('?')[0];
-    const dbExists = dbList.databases.some(db => db.name === dbName);
+    const dbExists = dbList.databases.some((db) => db.name === dbName);
     await connection.close();
     return dbExists;
   } catch (error) {
@@ -34,7 +41,9 @@ async function updateEnvFile(dbConnection: boolean, isRegistration: boolean) {
       .replace(/dbConnection=.*/, `dbConnection=${dbConnection}`)
       .replace(/isRegistration=.*/, `isRegistration=${isRegistration}`);
     await fs.writeFile(envPath, newEnvContent, 'utf-8');
-    console.log(`Updated .env with dbConnection=${dbConnection} and isRegistration=${isRegistration}`);
+    console.log(
+      `Updated .env with dbConnection=${dbConnection} and isRegistration=${isRegistration}`
+    );
   } catch (error) {
     console.error('Error updating .env file:', error);
   }
@@ -42,7 +51,14 @@ async function updateEnvFile(dbConnection: boolean, isRegistration: boolean) {
 
 export async function GET() {
   try {
-    if (!MONGODB_USERNAME || !MONGODB_PASSWORD || !MONGODB_HOST || !MONGODB_CLUSTER || !USER_DB_NAME || !PAGE_DB_NAME) {
+    if (
+      !MONGODB_USERNAME ||
+      !MONGODB_PASSWORD ||
+      !MONGODB_HOST ||
+      !MONGODB_CLUSTER ||
+      !USER_DB_NAME ||
+      !PAGE_DB_NAME
+    ) {
       throw new Error('Missing required environment variables');
     }
 
@@ -63,13 +79,16 @@ export async function GET() {
       masterDbConnected,
       userDbConnected,
       pageDbConnected,
-      dbConnection
+      dbConnection,
     });
   } catch (error) {
     console.error('Error handling database connection check:', error);
     await updateEnvFile(false, false);
-    return NextResponse.json({
-      error: 'Internal Server Error',
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: 'Internal Server Error',
+      },
+      { status: 500 }
+    );
   }
 }

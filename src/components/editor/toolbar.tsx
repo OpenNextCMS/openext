@@ -1,6 +1,6 @@
-"use client"
+'use client';
 
-import { Button } from "@/components/ui/button"
+import { Button } from '@/components/ui/button';
 import {
   RedoIcon as ArrowRedo,
   UndoIcon as ArrowUndo,
@@ -13,15 +13,21 @@ import {
   Settings,
   Trash,
   Save,
-} from "lucide-react"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { Separator } from "@/components/ui/separator"
+} from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Separator } from '@/components/ui/separator';
 // import { ThemeToggle } from "./theme-toggle"
 
 interface ToolbarProps {
   toggleSidebar: () => void;
-  onViewChange: (value: "desktop" | "tablet" | "mobile") => void;
+  onViewChange: (value: 'desktop' | 'tablet' | 'mobile') => void;
 }
 
 export default function Toolbar({ toggleSidebar, onViewChange }: ToolbarProps) {
@@ -31,7 +37,11 @@ export default function Toolbar({ toggleSidebar, onViewChange }: ToolbarProps) {
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10 hover:text-primary">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 hover:bg-primary/10 hover:text-primary"
+              >
                 <RotateCcw className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
@@ -44,7 +54,11 @@ export default function Toolbar({ toggleSidebar, onViewChange }: ToolbarProps) {
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10 hover:text-primary">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 hover:bg-primary/10 hover:text-primary"
+              >
                 <ArrowUndo className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
@@ -57,7 +71,11 @@ export default function Toolbar({ toggleSidebar, onViewChange }: ToolbarProps) {
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10 hover:text-primary">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 hover:bg-primary/10 hover:text-primary"
+              >
                 <ArrowRedo className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
@@ -72,7 +90,11 @@ export default function Toolbar({ toggleSidebar, onViewChange }: ToolbarProps) {
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10 hover:text-primary">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 hover:bg-primary/10 hover:text-primary"
+              >
                 <Eye className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
@@ -85,7 +107,11 @@ export default function Toolbar({ toggleSidebar, onViewChange }: ToolbarProps) {
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10 hover:text-primary">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 hover:bg-primary/10 hover:text-primary"
+              >
                 <Fullscreen className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
@@ -100,7 +126,11 @@ export default function Toolbar({ toggleSidebar, onViewChange }: ToolbarProps) {
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10 hover:text-primary">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 hover:bg-primary/10 hover:text-primary"
+              >
                 <Code className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
@@ -113,7 +143,11 @@ export default function Toolbar({ toggleSidebar, onViewChange }: ToolbarProps) {
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10 hover:text-primary">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 hover:bg-primary/10 hover:text-primary"
+              >
                 <Download className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
@@ -128,7 +162,11 @@ export default function Toolbar({ toggleSidebar, onViewChange }: ToolbarProps) {
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10 hover:text-primary">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 hover:bg-primary/10 hover:text-primary"
+              >
                 <Trash className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
@@ -141,7 +179,11 @@ export default function Toolbar({ toggleSidebar, onViewChange }: ToolbarProps) {
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10 hover:text-primary">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 hover:bg-primary/10 hover:text-primary"
+              >
                 <Settings className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
@@ -150,7 +192,6 @@ export default function Toolbar({ toggleSidebar, onViewChange }: ToolbarProps) {
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
-
       </div>
 
       <div>
@@ -183,7 +224,7 @@ export default function Toolbar({ toggleSidebar, onViewChange }: ToolbarProps) {
         <div className="mr-3">
           <Select
             defaultValue="desktop"
-            onValueChange={(value) => onViewChange(value as "desktop" | "tablet" | "mobile")}
+            onValueChange={(value) => onViewChange(value as 'desktop' | 'tablet' | 'mobile')}
           >
             <SelectTrigger className="w-[120px]">
               <SelectValue placeholder="View" />
@@ -197,6 +238,5 @@ export default function Toolbar({ toggleSidebar, onViewChange }: ToolbarProps) {
         </div>
       </div>
     </div>
-  )
+  );
 }
-

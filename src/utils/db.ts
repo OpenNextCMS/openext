@@ -10,12 +10,7 @@ let pageDb: mongoose.Connection | null = null;
 let masterDb: mongoose.Connection | null = null;
 
 async function createConnectionUri(dbName: string) {
-  const {
-    MONGODB_USERNAME,
-    MONGODB_PASSWORD,
-    MONGODB_HOST,
-    MONGODB_CLUSTER,
-  } = process.env;
+  const { MONGODB_USERNAME, MONGODB_PASSWORD, MONGODB_HOST, MONGODB_CLUSTER } = process.env;
 
   if (!MONGODB_USERNAME || !MONGODB_PASSWORD || !MONGODB_HOST || !MONGODB_CLUSTER) {
     throw new Error('MongoDB environment variables are not set');
@@ -63,7 +58,7 @@ export const getUserDbConnection = async () => {
           { name: 'SuperAdmin', value: 0 },
           { name: 'Admin', value: 1 },
           { name: 'Editor', value: 2 },
-          { name: 'Author', value: 3 }
+          { name: 'Author', value: 3 },
         ];
         for (const role of roles) {
           await RoleModel.create(role);
@@ -89,7 +84,9 @@ export const getUserDbConnection = async () => {
           themes: ITheme[];
         }
 
-        const themeExists: boolean = (settings as ISettingsDocument).themes.some((theme: ITheme) => theme.name === 'openNextDefault');
+        const themeExists: boolean = (settings as ISettingsDocument).themes.some(
+          (theme: ITheme) => theme.name === 'openNextDefault'
+        );
         if (!themeExists) {
           settings.themes.push({ name: 'openNextDefault', isActive: true });
           await settings.save();
@@ -101,7 +98,7 @@ export const getUserDbConnection = async () => {
           timeZone: 'UTC',
           dateFormat: 'F j, Y',
           timeFormat: 'g:i a',
-          themes: [{ name: 'openNextDefault', isActive: true }]
+          themes: [{ name: 'openNextDefault', isActive: true }],
         });
       }
 
@@ -133,7 +130,7 @@ export async function getPageDbConnection() {
   if (!PAGE_DB_NAME) {
     throw new Error('PAGE_DB_NAME environment variable is not set');
   }
-  
+
   if (!pageDb) {
     const uri = await createConnectionUri(PAGE_DB_NAME);
     pageDb = await mongoose.createConnection(uri, {
@@ -176,7 +173,8 @@ export function getSettingsModel() {
   return userDb.model<ISettings>('Settings');
 }
 
-export function getPageModel(pageDb: mongoose.Connection) { // UPDATED
+export function getPageModel(pageDb: mongoose.Connection) {
+  // UPDATED
   if (!pageDb) {
     throw new Error('Page database connection not initialized');
   }
@@ -185,12 +183,8 @@ export function getPageModel(pageDb: mongoose.Connection) { // UPDATED
 
 // Helper function to close all connections
 export async function closeAllConnections() {
-  await Promise.all([
-    userDb?.close(),
-    pageDb?.close(),
-    masterDb?.close()
-  ]);
-  
+  await Promise.all([userDb?.close(), pageDb?.close(), masterDb?.close()]);
+
   userDb = null;
   pageDb = null;
   masterDb = null;

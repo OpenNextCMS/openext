@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document, Types } from "mongoose";
+import mongoose, { Schema, Document, Types } from 'mongoose';
 
 interface Attribute {
   [key: string]: string;
@@ -36,25 +36,25 @@ const ElementSchema = new Schema<Element>({
   text: { type: String },
   attributes: { type: Schema.Types.Mixed },
   events: { type: Schema.Types.Mixed },
-  children: [{ type: Schema.Types.Mixed }]
+  children: [{ type: Schema.Types.Mixed }],
 });
 
 const ComponentSchema = new Schema<Component>({
   name: { type: String, required: true },
-  data: { type: ElementSchema, required: true } // Store each component's structure
+  data: { type: ElementSchema, required: true }, // Store each component's structure
 });
 
 const PageSchema = new Schema<PageDocument>(
   {
     pageName: { type: String, required: true, trim: true },
-    createdBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    createdBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     isPublished: { type: Boolean, default: false },
     lastModified: { type: Date, default: Date.now },
     preHeading: { type: String },
     description: { type: String },
     seoName: { type: String },
     seoMeta: { type: String },
-    component: [ComponentSchema] // Array of components
+    component: [ComponentSchema], // Array of components
   },
   { timestamps: true }
 );
@@ -63,7 +63,7 @@ const PageSchema = new Schema<PageDocument>(
 PageSchema.index({ siteName: 1, createdBy: 1 });
 PageSchema.index({ pageName: 1, createdBy: 1 });
 
-const PageModel = mongoose.models.Page || mongoose.model<PageDocument>("Page", PageSchema);
+const PageModel = mongoose.models.Page || mongoose.model<PageDocument>('Page', PageSchema);
 
 export default PageModel;
 export { PageSchema };

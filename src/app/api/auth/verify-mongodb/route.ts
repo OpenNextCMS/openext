@@ -7,7 +7,10 @@ export async function POST(req: NextRequest) {
   const { username, password, host, cluster } = await req.json();
 
   if (!username || !password || !host || !cluster) {
-    return handleError(new Error('All MongoDB credentials are required'), 'All MongoDB credentials are required');
+    return handleError(
+      new Error('All MongoDB credentials are required'),
+      'All MongoDB credentials are required'
+    );
   }
 
   const mongodbUrl = `mongodb+srv://${username}:${password}@${cluster}.${host}.mongodb.net/?retryWrites=true&w=majority&appName=${cluster}`;
@@ -15,7 +18,7 @@ export async function POST(req: NextRequest) {
   try {
     // Attempt to connect to the MongoDB database
     await mongoose.connect(mongodbUrl);
-    
+
     // If successful, disconnect
     await mongoose.disconnect();
 

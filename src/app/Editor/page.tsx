@@ -1,12 +1,12 @@
-"use client"
+'use client';
 
-import Editor from "@/components/editor/editor"
-import { ThemeProvider } from "next-themes"
+import Editor from '@/components/editor/editor';
+import { ThemeProvider } from 'next-themes';
 
 export default function LayoutWrapper() {
-    return (
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-            <Editor />
-        </ThemeProvider>
-    )
+  return (
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      <Editor />
+    </ThemeProvider>
+  );
 }

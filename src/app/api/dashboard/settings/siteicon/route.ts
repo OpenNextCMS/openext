@@ -1,37 +1,37 @@
-import { NextResponse } from 'next/server'
-import { createWriteStream, mkdirSync, existsSync } from 'fs'
-import { join } from 'path'
+import { NextResponse } from 'next/server';
+import { createWriteStream, mkdirSync, existsSync } from 'fs';
+import { join } from 'path';
 
 export async function POST(request: Request) {
-  const formData = await request.formData()
-  const file = formData.get('file') as File
+  const formData = await request.formData();
+  const file = formData.get('file') as File;
 
   if (!file) {
-    return NextResponse.json({ error: 'No file received' }, { status: 400 })
+    return NextResponse.json({ error: 'No file received' }, { status: 400 });
   }
 
-  const buffer = Buffer.from(await file.arrayBuffer())
+  const buffer = Buffer.from(await file.arrayBuffer());
   // Use the original file name directly.
-  const filename = file.name
-  const uploadDir = join(process.cwd(), 'public/siteicon')
-  
+  const filename = file.name;
+  const uploadDir = join(process.cwd(), 'public/siteicon');
+
   if (!existsSync(uploadDir)) {
     mkdirSync(uploadDir, { recursive: true });
   }
 
-  const filePath = join(uploadDir, filename)
+  const filePath = join(uploadDir, filename);
 
   try {
-    const writeStream = createWriteStream(filePath)
-    writeStream.write(buffer)
-    writeStream.end()
+    const writeStream = createWriteStream(filePath);
+    writeStream.write(buffer);
+    writeStream.end();
 
     // Return only the filename for storage in the database.
-    return NextResponse.json({ 
+    return NextResponse.json({
       success: true,
-      fileName: filename 
-    })
-  } catch{
-    return NextResponse.json({ error: 'Error saving siteicon' }, { status: 500 })
+      fileName: filename,
+    });
+  } catch {
+    return NextResponse.json({ error: 'Error saving siteicon' }, { status: 500 });
   }
 }

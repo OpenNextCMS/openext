@@ -14,14 +14,14 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [credentials, setCredentials] = useState({
     identifier: '',
-    password: ''
+    password: '',
   });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const langFromCookie = Cookies.get('selectedLanguage') || 'en';
-  setT(translations[langFromCookie as keyof typeof translations] as typeof translations.en);
+    setT(translations[langFromCookie as keyof typeof translations] as typeof translations.en);
 
     const message = Cookies.get('message');
     if (message) {
@@ -38,12 +38,13 @@ export default function LoginPage() {
       console.error('Failed to clear cookies');
     }
   };
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000'; 
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
 
   useEffect(() => {
     const checkDbAndRedirect = async () => {
       try {
-        const apiUrl = backendUrl === 'http://localhost:3000' ? '/api/verify-connection' : '/api/api-sync';
+        const apiUrl =
+          backendUrl === 'http://localhost:3000' ? '/api/verify-connection' : '/api/api-sync';
         const response = await fetch(`http://localhost:3000${apiUrl}`);
         if (!response.ok) {
           const errorText = await response.text();
@@ -66,18 +67,18 @@ export default function LoginPage() {
     };
 
     checkDbAndRedirect();
-  }, [router]);
+  }, [router, backendUrl]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setCredentials(prev => ({
+    setCredentials((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
   const togglePasswordVisibility = () => {
-    setShowPassword(prev => !prev);
+    setShowPassword((prev) => !prev);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -156,7 +157,11 @@ export default function LoginPage() {
                 className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer"
                 onClick={togglePasswordVisibility}
               >
-                {showPassword ? <EyeOff className="h-5 w-5 text-gray-500" /> : <Eye className="h-5 w-5 text-gray-500" />}
+                {showPassword ? (
+                  <EyeOff className="h-5 w-5 text-gray-500" />
+                ) : (
+                  <Eye className="h-5 w-5 text-gray-500" />
+                )}
               </div>
             </div>
           </div>

@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
 
     const { userDbName, pageDbName, mongodbCredentials, footerData, headerData, bodyData } = body; // UPDATED
     const { username, password, host, cluster } = mongodbCredentials;
-    
+
     // Create connection URIs
     const masterDbUri = `mongodb+srv://${username}:${password}@${cluster}.${host}.mongodb.net/master?retryWrites=true&w=majority&appName=${cluster}`;
     const userDbUri = `mongodb+srv://${username}:${password}@${cluster}.${host}.mongodb.net/${userDbName}?retryWrites=true&w=majority&appName=${cluster}`;
@@ -31,20 +31,20 @@ export async function POST(req: NextRequest) {
     userDbConnection = await mongoose.createConnection(userDbUri, {
       serverSelectionTimeoutMS: 30000,
       connectTimeoutMS: 30000,
-      socketTimeoutMS: 30000
+      socketTimeoutMS: 30000,
     });
 
     masterConnection = await mongoose.createConnection(masterDbUri, {
       serverSelectionTimeoutMS: 30000,
       connectTimeoutMS: 30000,
-      socketTimeoutMS: 30000
+      socketTimeoutMS: 30000,
     });
 
     // Initialize pageDb connection
     pageDbConnection = await mongoose.createConnection(pageDbUri, {
       serverSelectionTimeoutMS: 30000,
       connectTimeoutMS: 30000,
-      socketTimeoutMS: 30000
+      socketTimeoutMS: 30000,
     });
 
     // Initialize models
@@ -63,36 +63,36 @@ export async function POST(req: NextRequest) {
     }
 
     // Store the database names and URI in the master database
-    const masterDbDoc = new MasterDbModel({ 
-      userDbName, 
-      pageDbName, 
-      userDbUri, 
-      pageDbUri
+    const masterDbDoc = new MasterDbModel({
+      userDbName,
+      pageDbName,
+      userDbUri,
+      pageDbUri,
     });
 
     await masterDbDoc.save({ wtimeout: 30000 });
 
     // NEW: Seed page data in pageDb
     const jsonData = {
-      pageName: "Default Page",
+      pageName: 'Default Page',
       createdBy: authData.user._id, // Use the newly created user's ObjectId
       isPublished: true,
-      preHeading: "Welcome to OpenNext",
-      description: "This is a default page created during registration.",
-      seoName: "OpenNext",
-      seoMeta: "OpenNext is a React framework for the web.",
+      preHeading: 'Welcome to OpenNext',
+      description: 'This is a default page created during registration.',
+      seoName: 'OpenNext',
+      seoMeta: 'OpenNext is a React framework for the web.',
       component: [
         {
-          name: "header",
-          data: headerData // UPDATED
+          name: 'header',
+          data: headerData, // UPDATED
         },
         {
-          name: "body",
-          data: bodyData // UPDATED
+          name: 'body',
+          data: bodyData, // UPDATED
         },
         {
-          name: "footer",
-          data: footerData // UPDATED
+          name: 'footer',
+          data: footerData, // UPDATED
         },
       ],
     };
@@ -101,7 +101,7 @@ export async function POST(req: NextRequest) {
 
     // Write the MongoDB credentials to the .env file
     const envPath = path.join(process.cwd(), '.env');
-    
+
     // Check if .env file exists, if not create it
     try {
       await fs.access(envPath);
@@ -133,7 +133,7 @@ export async function POST(req: NextRequest) {
         message: 'Registration successful',
         data: authData.user,
         role: authData.user.role,
-        isRegistration: 'successful'
+        isRegistration: 'successful',
       }),
       { status: 201 }
     );
@@ -143,7 +143,7 @@ export async function POST(req: NextRequest) {
       JSON.stringify({
         success: false,
         message: error instanceof Error ? error.message : 'Registration failed',
-        isRegistration: 'failed'
+        isRegistration: 'failed',
       }),
       { status: 500 }
     );

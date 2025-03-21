@@ -106,3 +106,13 @@ export interface TroubleshootingItem {
   issue: string;
   solution: string;
 }
+
+export interface ApiEndpointProps {
+  apiNumber: number;
+  color: string;
+  method: string;
+  path: string;
+  description: string;
+  request?: string | object;
+  response?: object;
+}

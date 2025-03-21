@@ -1,27 +1,27 @@
-"use client"
+'use client';
 
-import { Clock, Save } from "lucide-react"
-import { useEffect, useState } from "react"
+import { Clock, Save } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 export default function StatusBar() {
-  const [currentTime, setCurrentTime] = useState(new Date())
-  const [lastSaved, setLastSaved] = useState<Date | null>(null)
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setCurrentTime(new Date())
-    }, 1000)
+      setCurrentTime(new Date());
+    }, 1000);
 
-    return () => clearInterval(timer)
-  }, [])
+    return () => clearInterval(timer);
+  }, []);
 
   const formatTime = (date: Date): string => {
-    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-  }
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
 
   const handleSave = () => {
-    setLastSaved(new Date())
-  }
+    setLastSaved(new Date());
+  };
 
   return (
     <div className="h-6 border-t flex items-center justify-between px-4 text-xs text-muted-foreground bg-muted/20">
@@ -44,6 +44,5 @@ export default function StatusBar() {
         <button onClick={handleSave} hidden></button>
       </div>
     </div>
-  )
+  );
 }
-
