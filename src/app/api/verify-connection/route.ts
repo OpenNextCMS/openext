@@ -59,7 +59,9 @@ async function updateEnvFile(dbConnection: boolean, isRegistration: boolean) {
       .replace(/dbConnection=.*/, `dbConnection=${dbConnection}`)
       .replace(/isRegistration=.*/, `isRegistration=${isRegistration}`);
     await fs.writeFile(envPath, newEnvContent, 'utf-8');
-    console.log(`Updated .env with dbConnection=${dbConnection} and isRegistration=${isRegistration}`);
+    console.log(
+      `Updated .env with dbConnection=${dbConnection} and isRegistration=${isRegistration}`
+    );
   } catch (error) {
     console.error('Error updating .env file:', error);
   }
@@ -97,6 +99,12 @@ export async function GET() {
   } catch (error) {
     console.error('Error handling database connection check:', error);
     await updateEnvFile(false, false);
+    return NextResponse.json(
+      {
+        error: 'Internal Server Error',
+      },
+      { status: 500 }
+    );
     return NextResponse.json(
       {
         error: 'Internal Server Error',

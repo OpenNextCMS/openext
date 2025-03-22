@@ -8,10 +8,26 @@ import path from 'path';
 dotenv.config();
 
 export async function POST() {
-  const { MONGODB, MONGODB_USERNAME, MONGODB_PASSWORD, MONGODB_HOST, MONGODB_CLUSTER, MONGODB_AUTH_MECH } = process.env;
+  const {
+    MONGODB,
+    MONGODB_USERNAME,
+    MONGODB_PASSWORD,
+    MONGODB_HOST,
+    MONGODB_CLUSTER,
+    MONGODB_AUTH_MECH,
+  } = process.env;
 
-  if (!MONGODB || !MONGODB_USERNAME || !MONGODB_PASSWORD || !MONGODB_HOST || (MONGODB === 'atlas' && !MONGODB_CLUSTER)) {
-    return handleError(new Error('MongoDB credentials are missing'), 'MongoDB credentials are missing');
+  if (
+    !MONGODB ||
+    !MONGODB_USERNAME ||
+    !MONGODB_PASSWORD ||
+    !MONGODB_HOST ||
+    (MONGODB === 'atlas' && !MONGODB_CLUSTER)
+  ) {
+    return handleError(
+      new Error('MongoDB credentials are missing'),
+      'MongoDB credentials are missing'
+    );
   }
 
   // Function to generate a connection URL based on MongoDB type
@@ -25,7 +41,7 @@ export async function POST() {
   };
 
   try {
-    const masterDbUrl = getDbUrl("master");
+    const masterDbUrl = getDbUrl('master');
     const masterDbConnection = await mongoose.createConnection(masterDbUrl).asPromise();
 
     if (!masterDbConnection.db) {
@@ -36,8 +52,8 @@ export async function POST() {
     const { databases } = await admin.listDatabases();
 
     // Filter out system databases
-    const nonSystemDatabases = databases.filter(db =>
-      !['admin', 'local', 'config'].includes(db.name)
+    const nonSystemDatabases = databases.filter(
+      (db) => !['admin', 'local', 'config'].includes(db.name)
     );
 
     // Drop each non-system database sequentially

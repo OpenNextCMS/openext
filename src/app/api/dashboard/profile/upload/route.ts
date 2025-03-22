@@ -11,7 +11,10 @@ export async function POST(req: NextRequest) {
   const userId = formData.get('userId') as string; // Assume userId is sent in the form data
 
   if (!file || !userId) {
-    return NextResponse.json({ success: false, message: 'File or userId missing' }, { status: 400 });
+    return NextResponse.json(
+      { success: false, message: 'File or userId missing' },
+      { status: 400 }
+    );
   }
 
   const arrayBuffer = await file.arrayBuffer();
@@ -56,7 +59,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(result);
     } catch (error) {
       console.error('Error communicating with external backend:', error);
-      return NextResponse.json({ success: false, message: 'External backend error' }, { status: 500 });
+      return NextResponse.json(
+        { success: false, message: 'External backend error' },
+        { status: 500 }
+      );
     }
   }
 

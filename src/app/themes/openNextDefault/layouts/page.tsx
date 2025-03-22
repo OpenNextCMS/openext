@@ -1,5 +1,5 @@
 // pages/index.tsx
-"use client"
+'use client';
 
 import Header from '../components/Header';
 import Body from '../components/Body';

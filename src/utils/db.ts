@@ -73,6 +73,7 @@ export const getUserDbConnection = async () => {
           { name: 'Admin', value: 1 },
           { name: 'Editor', value: 2 },
           { name: 'Author', value: 3 },
+          { name: 'Author', value: 3 },
         ];
         for (const role of roles) {
           await RoleModel.create(role);

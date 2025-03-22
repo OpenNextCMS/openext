@@ -1,5 +1,5 @@
-import { useEffect, useState, JSX } from "react";
-import styles from "../public/assets/css/footer.module.css";
+import { useEffect, useState, JSX } from 'react';
+import styles from '../public/assets/css/footer.module.css';
 
 interface ElementAttributes {
   id?: string;
@@ -30,8 +30,7 @@ const renderElement = (element: ElementNode) => {
   );
 };
 
-
-const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000"
+const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
 
 const Footer = () => {
   const [pageData, setPageData] = useState<ElementNode | null>(null);
@@ -41,7 +40,9 @@ const Footer = () => {
       try {
         const res = await fetch(`${backendUrl}/api/pages/get-pages`);
         const data = await res.json();
-        const bodyComponent = data[0].component.find((comp: { name: string }) => comp.name === 'footer').data;
+        const bodyComponent = data[0].component.find(
+          (comp: { name: string }) => comp.name === 'footer'
+        ).data;
         setPageData(bodyComponent);
       } catch (error) {
         console.error('Failed to fetch page data:', error);

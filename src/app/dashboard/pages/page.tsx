@@ -1,7 +1,7 @@
-"use client"
+'use client';
 
-import { useState, useEffect } from "react"
-import type React from "react"
+import { useState, useEffect } from 'react';
+import type React from 'react';
 import {
   PlusCircle,
   Loader2,
@@ -13,175 +13,193 @@ import {
   XCircle,
   Edit,
   FileQuestion,
-} from "lucide-react"
-import { toast } from "sonner"
+} from 'lucide-react';
+import { toast } from 'sonner';
 
-import { Tabs, TabsContent } from "@/components/ui/tabs"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Button } from "@/components/ui/button"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Tabs, TabsContent } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface Page {
-  _id: string
-  pageName: string
-  createdBy: string
-  isPublished: boolean
-  lastModified: string
+  _id: string;
+  pageName: string;
+  createdBy: string;
+  isPublished: boolean;
+  lastModified: string;
 }
-const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000"
+const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
 
 export default function PageManagement() {
-  const [pageData, setPageData] = useState<Omit<Page, "_id" | "lastModified">>({
-    pageName: "",
-    createdBy: "",
+  const [pageData, setPageData] = useState<Omit<Page, '_id' | 'lastModified'>>({
+    pageName: '',
+    createdBy: '',
     isPublished: false,
-  })
+  });
 
-  const [pages, setPages] = useState<Page[]>([])
-  const [isLoading, setIsLoading] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [searchTerm, setSearchTerm] = useState("")
-  const [error, setError] = useState<string | null>(null)
-  const [selectedPage, setSelectedPage] = useState<Page | null>(null)
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [pages, setPages] = useState<Page[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [selectedPage, setSelectedPage] = useState<Page | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editForm, setEditForm] = useState({
-    pageName: "",
+    pageName: '',
     isPublished: false,
-  })
-  const [activeTab, setActiveTab] = useState("page-list")
-  const [filteredPages, setFilteredPages] = useState<Page[]>([])
-
+  });
+  const [activeTab, setActiveTab] = useState('page-list');
+  const [filteredPages, setFilteredPages] = useState<Page[]>([]);
 
   const fetchPages = async () => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const response = await fetch(`${backendUrl}/api/pages/get-pages`)
-      if (!response.ok) throw new Error("Failed to fetch pages")
-      const data = await response.json()
-      setPages(data || [])
-      setFilteredPages(data.pages || [])
+      const response = await fetch(`${backendUrl}/api/pages/get-pages`);
+      if (!response.ok) throw new Error('Failed to fetch pages');
+      const data = await response.json();
+      setPages(data || []);
+      setFilteredPages(data.pages || []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch pages")
-      toast.error("Failed to load pages")
+      setError(err instanceof Error ? err.message : 'Failed to fetch pages');
+      toast.error('Failed to load pages');
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-    fetchPages()
-  }, [])
+    fetchPages();
+  }, []);
 
   useEffect(() => {
-    if (searchTerm.trim() === "") {
-      setFilteredPages(pages)
+    if (searchTerm.trim() === '') {
+      setFilteredPages(pages);
     } else {
       const filtered = pages.filter(
         (page) =>
           page.pageName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          page.createdBy.toLowerCase().includes(searchTerm.toLowerCase()),
-      )
-      setFilteredPages(filtered)
+          page.createdBy.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setFilteredPages(filtered);
     }
-  }, [searchTerm, pages])
+  }, [searchTerm, pages]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target
-    setPageData((prev) => ({ ...prev, [name]: value }))
-  }
+    const { name, value } = e.target;
+    setPageData((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsSubmitting(true)
+    e.preventDefault();
+    setIsSubmitting(true);
     try {
       const res = await fetch(`${backendUrl}/api/pages/add-page`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(pageData),
-      })
+      });
       if (res.ok) {
-        await res.json()
+        await res.json();
         setPageData({
-          pageName: "",
-          createdBy: "",
+          pageName: '',
+          createdBy: '',
           isPublished: false,
-        })
-        toast.success("Page added successfully")
-        setActiveTab("page-list")
-        fetchPages()
+        });
+        toast.success('Page added successfully');
+        setActiveTab('page-list');
+        fetchPages();
       } else {
-        console.error("Failed to add page")
-        toast.error("Failed to add page")
+        console.error('Failed to add page');
+        toast.error('Failed to add page');
       }
     } catch (error) {
-      console.error("Error adding page:", error)
-      toast.error("Error adding page")
+      console.error('Error adding page:', error);
+      toast.error('Error adding page');
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   const handlePageUpdate = async (pageId: string, updates: { isPublished?: boolean }) => {
     try {
       const response = await fetch(`${backendUrl}/api/pages/update-page/${pageId}`, {
-        method: "PATCH",
+        method: 'PATCH',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify(updates),
-      })
+      });
 
-      if (!response.ok) throw new Error("Failed to update page")
+      if (!response.ok) throw new Error('Failed to update page');
 
-      toast.success("Page updated successfully")
-      fetchPages()
+      toast.success('Page updated successfully');
+      fetchPages();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to update page")
-      toast.error("Failed to update page")
+      setError(err instanceof Error ? err.message : 'Failed to update page');
+      toast.error('Failed to update page');
     }
-  }
+  };
 
   const openEditModal = (page: Page) => {
-    setSelectedPage(page)
+    setSelectedPage(page);
     setEditForm({
       pageName: page.pageName,
       isPublished: page.isPublished,
-    })
-    setIsEditModalOpen(true)
-  }
+    });
+    setIsEditModalOpen(true);
+  };
 
   const handleEditSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!selectedPage) return
+    e.preventDefault();
+    if (!selectedPage) return;
 
     try {
       const response = await fetch(`${backendUrl}/api/pages/update-page/${selectedPage._id}`, {
-        method: "PATCH",
+        method: 'PATCH',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify(editForm),
-      })
+      });
 
-      if (!response.ok) throw new Error("Failed to update page")
+      if (!response.ok) throw new Error('Failed to update page');
 
-      setIsEditModalOpen(false)
-      toast.success("Page updated successfully")
-      fetchPages()
+      setIsEditModalOpen(false);
+      toast.success('Page updated successfully');
+      fetchPages();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to update page")
-      toast.error("Failed to update page")
+      setError(err instanceof Error ? err.message : 'Failed to update page');
+      toast.error('Failed to update page');
     }
-  }
+  };
 
   const handleEditPage = (pageId: string) => {
-    window.open(`/Editor?pageId=${pageId}`)
-  }
+    window.open(`/Editor?pageId=${pageId}`);
+  };
 
   return (
     <div className="container mx-auto py-8 px-4">
@@ -192,14 +210,17 @@ export default function PageManagement() {
         </div>
         <div className="mt-4 md:mt-0">
           <Button
-            variant={activeTab === "add-page" ? "default" : "outline"}
-            onClick={() => setActiveTab("add-page")}
+            variant={activeTab === 'add-page' ? 'default' : 'outline'}
+            onClick={() => setActiveTab('add-page')}
             className="mr-2"
           >
             <FileText className="mr-2 h-4 w-4" />
             Add Page
           </Button>
-          <Button variant={activeTab === "page-list" ? "default" : "outline"} onClick={() => setActiveTab("page-list")}>
+          <Button
+            variant={activeTab === 'page-list' ? 'default' : 'outline'}
+            onClick={() => setActiveTab('page-list')}
+          >
             <Files className="mr-2 h-4 w-4" />
             Page List
           </Button>
@@ -219,7 +240,6 @@ export default function PageManagement() {
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
                   <div className="space-y-2">
                     <Label htmlFor="pageName">Page Name</Label>
                     <Input
@@ -252,8 +272,10 @@ export default function PageManagement() {
                     <Label htmlFor="isPublished">Publication Status</Label>
                     <Select
                       name="isPublished"
-                      value={pageData.isPublished ? "true" : "false"}
-                      onValueChange={(value) => setPageData((prev) => ({ ...prev, isPublished: value === "true" }))}
+                      value={pageData.isPublished ? 'true' : 'false'}
+                      onValueChange={(value) =>
+                        setPageData((prev) => ({ ...prev, isPublished: value === 'true' }))
+                      }
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select Status" />
@@ -356,7 +378,7 @@ export default function PageManagement() {
                             </TableCell>
                             <TableCell>{page.createdBy}</TableCell>
                             <TableCell>
-                              <Badge variant={page.isPublished ? "default" : "secondary"}>
+                              <Badge variant={page.isPublished ? 'default' : 'secondary'}>
                                 {page.isPublished ? (
                                   <span className="flex items-center">
                                     <CheckCircle className="mr-1 h-3 w-3" />
@@ -370,20 +392,32 @@ export default function PageManagement() {
                                 )}
                               </Badge>
                             </TableCell>
-                            <TableCell>{new Date(page.lastModified).toLocaleDateString()}</TableCell>
+                            <TableCell>
+                              {new Date(page.lastModified).toLocaleDateString()}
+                            </TableCell>
                             <TableCell className="text-right">
                               <div className="flex justify-end gap-2">
-                                <Button onClick={() => handleEditPage(page._id)} variant="outline" size="sm">
+                                <Button
+                                  onClick={() => handleEditPage(page._id)}
+                                  variant="outline"
+                                  size="sm"
+                                >
                                   <Edit className="h-3.5 w-3.5 mr-1" />
                                   Edit Content
                                 </Button>
-                                <Button onClick={() => openEditModal(page)} variant="outline" size="sm">
+                                <Button
+                                  onClick={() => openEditModal(page)}
+                                  variant="outline"
+                                  size="sm"
+                                >
                                   <FileText className="h-3.5 w-3.5 mr-1" />
                                   Edit Details
                                 </Button>
                                 <Button
-                                  onClick={() => handlePageUpdate(page._id, { isPublished: !page.isPublished })}
-                                  variant={page.isPublished ? "secondary" : "default"}
+                                  onClick={() =>
+                                    handlePageUpdate(page._id, { isPublished: !page.isPublished })
+                                  }
+                                  variant={page.isPublished ? 'secondary' : 'default'}
                                   size="sm"
                                 >
                                   {page.isPublished ? (
@@ -410,7 +444,11 @@ export default function PageManagement() {
                               {searchTerm ? (
                                 <>
                                   <p>No pages match your search</p>
-                                  <Button variant="link" onClick={() => setSearchTerm("")} className="h-auto p-0 mt-1">
+                                  <Button
+                                    variant="link"
+                                    onClick={() => setSearchTerm('')}
+                                    className="h-auto p-0 mt-1"
+                                  >
                                     Clear search
                                   </Button>
                                 </>
@@ -459,8 +497,10 @@ export default function PageManagement() {
               <div className="space-y-2">
                 <Label htmlFor="edit-status">Publication Status</Label>
                 <Select
-                  value={editForm.isPublished ? "true" : "false"}
-                  onValueChange={(value) => setEditForm({ ...editForm, isPublished: value === "true" })}
+                  value={editForm.isPublished ? 'true' : 'false'}
+                  onValueChange={(value) =>
+                    setEditForm({ ...editForm, isPublished: value === 'true' })
+                  }
                 >
                   <SelectTrigger id="edit-status">
                     <SelectValue placeholder="Select Status" />
@@ -482,6 +522,5 @@ export default function PageManagement() {
         </DialogContent>
       </Dialog>
     </div>
-  )
+  );
 }
-

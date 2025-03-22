@@ -1,95 +1,105 @@
-"use client"
+'use client';
 
-import { useSearchParams } from "next/navigation"
-import { ChevronDown, ChevronRight, Layers, MoreVertical, Plus, Settings, X, FileText, Layout } from "lucide-react"
-import { useEffect, useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { toast } from "sonner"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { useSearchParams } from 'next/navigation';
+import {
+  ChevronDown,
+  ChevronRight,
+  Layers,
+  MoreVertical,
+  Plus,
+  Settings,
+  X,
+  FileText,
+  Layout,
+} from 'lucide-react';
+import { useEffect, useState, useCallback } from 'react';
+import { Button } from '@/components/ui/button';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { toast } from 'sonner';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface Page {
-  id: string
-  pageName: string
-  preHeading: string
-  description: string
-  seoName: string
-  seoMeta: string
+  id: string;
+  pageName: string;
+  preHeading: string;
+  description: string;
+  seoName: string;
+  seoMeta: string;
 }
 
 export default function LeftSidebar() {
-  const searchParams = useSearchParams()
+  const searchParams = useSearchParams();
   // const pageIdFromUrl = searchParams.get("pageId")
-  const pageIdFromUrl = searchParams ? searchParams.get("pageId") : null
-  const [pagesOpen, setPagesOpen] = useState(true)
-  const [layersOpen, setLayersOpen] = useState(true)
+  const pageIdFromUrl = searchParams ? searchParams.get('pageId') : null;
+  const [pagesOpen, setPagesOpen] = useState(true);
+  const [layersOpen, setLayersOpen] = useState(true);
   const [pages, setPages] = useState<Page[]>([
     {
-      id: "home",
-      pageName: "Home",
-      preHeading: "Welcome",
-      description: "This is a default page",
-      seoName: "OpenNext",
-      seoMeta: "OpenNext is a new CMS type Website.",
+      id: 'home',
+      pageName: 'Home',
+      preHeading: 'Welcome',
+      description: 'This is a default page',
+      seoName: 'OpenNext',
+      seoMeta: 'OpenNext is a new CMS type Website.',
     },
-  ])
+  ]);
   const [pageId, setPageId] = useState<Page>({
-    id: "home",
-    pageName: "Home",
-    preHeading: "Welcome",
-    description: "This is a default page",
-    seoName: "OpenNext",
-    seoMeta: "OpenNext is a new CMS type Website.",
-  })
-  const [newPageName, setNewPageName] = useState("")
-  const [dialogOpen, setDialogOpen] = useState(false)
-  const [openPage, setOpenPage] = useState(false)
+    id: 'home',
+    pageName: 'Home',
+    preHeading: 'Welcome',
+    description: 'This is a default page',
+    seoName: 'OpenNext',
+    seoMeta: 'OpenNext is a new CMS type Website.',
+  });
+  const [newPageName, setNewPageName] = useState('');
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [openPage, setOpenPage] = useState(false);
 
   const addNewPage = () => {
     if (newPageName.trim()) {
       const newPage: Page = {
         id: `page-${Date.now()}`,
         pageName: newPageName.trim(),
-        preHeading: "",
-        description: "",
-        seoName: "",
-        seoMeta: "",
-      }
-      setPages([...pages, newPage])
-      setNewPageName("")
-      setDialogOpen(false)
-      toast.success(`Page "${newPageName.trim()}" created successfully`)
+        preHeading: '',
+        description: '',
+        seoName: '',
+        seoMeta: '',
+      };
+      setPages([...pages, newPage]);
+      setNewPageName('');
+      setDialogOpen(false);
+      toast.success(`Page "${newPageName.trim()}" created successfully`);
     }
-  }
+  };
 
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
 
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000"
-
-  const fetchPageById = async (id: string) => {
-    setIsLoading(true)
+  const fetchPageById = useCallback(async () => {
     try {
-      const response = await fetch(`${backendUrl}/api/pages/get-pages`)
-      if (!response.ok) throw new Error("Failed to fetch pages")
-      const data = await response.json()
-      setPages(data || [])
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch pages")
-      toast.error("Failed to load pages")
-    } finally {
-      setIsLoading(false)
+      const response = await fetch(`${backendUrl}/api/pages/get-pages`);
+      if (!response.ok) throw new Error('Failed to fetch pages');
+      const data = await response.json();
+      setPages(data || []);
+    } catch {
+      toast.error('Failed to load pages');
     }
-  }
+  }, [backendUrl]);
 
   useEffect(() => {
     if (pageIdFromUrl) {
-      fetchPageById(pageIdFromUrl)
+      fetchPageById();
     }
-  }, [pageIdFromUrl])
+  }, [pageIdFromUrl, fetchPageById]);
 
   return (
     <div className="flex h-full flex-col bg-background">
@@ -102,7 +112,12 @@ export default function LeftSidebar() {
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button variant="ghost" size="icon" onClick={() => setOpenPage(false)} className="hover:bg-muted">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setOpenPage(false)}
+                        className="hover:bg-muted"
+                      >
                         <X className="h-4 w-4" />
                       </Button>
                     </TooltipTrigger>
@@ -118,14 +133,26 @@ export default function LeftSidebar() {
                   <Label htmlFor="name" className="text-sm font-medium">
                     Name
                   </Label>
-                  <Input id="name" type="text" value={pageId.pageName || ""} readOnly className="bg-muted/40" />
+                  <Input
+                    id="name"
+                    type="text"
+                    value={pageId.pageName || ''}
+                    readOnly
+                    className="bg-muted/40"
+                  />
                 </div>
 
                 <div className="flex flex-col gap-2">
                   <Label htmlFor="preHead" className="text-sm font-medium">
                     Pre-Heading
                   </Label>
-                  <Input id="preHead" type="text" value={pageId.preHeading || ""} readOnly className="bg-muted/40" />
+                  <Input
+                    id="preHead"
+                    type="text"
+                    value={pageId.preHeading || ''}
+                    readOnly
+                    className="bg-muted/40"
+                  />
                 </div>
 
                 <div className="flex flex-col gap-2">
@@ -136,7 +163,7 @@ export default function LeftSidebar() {
                     id="description"
                     className="min-h-[80px] rounded-md border bg-muted/40 p-3 text-sm"
                     rows={3}
-                    value={pageId.description || ""}
+                    value={pageId.description || ''}
                     readOnly
                   />
                 </div>
@@ -145,7 +172,13 @@ export default function LeftSidebar() {
                   <Label htmlFor="seoName" className="text-sm font-medium">
                     SEO Title
                   </Label>
-                  <Input id="seoName" type="text" value={pageId.seoName || ""} readOnly className="bg-muted/40" />
+                  <Input
+                    id="seoName"
+                    type="text"
+                    value={pageId.seoName || ''}
+                    readOnly
+                    className="bg-muted/40"
+                  />
                 </div>
 
                 <div className="flex flex-col gap-2">
@@ -156,7 +189,7 @@ export default function LeftSidebar() {
                     id="seoMeta"
                     className="min-h-[80px] rounded-md border bg-muted/40 p-3 text-sm"
                     rows={3}
-                    value={pageId.seoMeta || ""}
+                    value={pageId.seoMeta || ''}
                     readOnly
                   />
                 </div>
@@ -171,12 +204,20 @@ export default function LeftSidebar() {
           </div>
 
           <div className="p-2">
-            <Collapsible open={pagesOpen} onOpenChange={setPagesOpen} className="rounded-lg border mb-3">
+            <Collapsible
+              open={pagesOpen}
+              onOpenChange={setPagesOpen}
+              className="rounded-lg border mb-3"
+            >
               <div className="flex items-center justify-between p-3">
                 <div className="flex items-center gap-2">
                   <CollapsibleTrigger asChild>
                     <Button variant="ghost" size="icon" className="h-6 w-6 p-0">
-                      {pagesOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                      {pagesOpen ? (
+                        <ChevronDown className="h-4 w-4" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4" />
+                      )}
                     </Button>
                   </CollapsibleTrigger>
                   <FileText className="h-4 w-4 text-primary" />
@@ -246,8 +287,8 @@ export default function LeftSidebar() {
                                 size="icon"
                                 className="h-7 w-7 hover:bg-primary/10 hover:text-primary"
                                 onClick={() => {
-                                  setOpenPage(true)
-                                  setPageId(page)
+                                  setOpenPage(true);
+                                  setPageId(page);
                                 }}
                               >
                                 <Settings className="h-4 w-4" />
@@ -282,12 +323,20 @@ export default function LeftSidebar() {
               </CollapsibleContent>
             </Collapsible>
 
-            <Collapsible open={layersOpen} onOpenChange={setLayersOpen} className="rounded-lg border mb-3">
+            <Collapsible
+              open={layersOpen}
+              onOpenChange={setLayersOpen}
+              className="rounded-lg border mb-3"
+            >
               <div className="flex items-center justify-between p-3">
                 <div className="flex items-center gap-2">
                   <CollapsibleTrigger asChild>
                     <Button variant="ghost" size="icon" className="h-6 w-6 p-0">
-                      {layersOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                      {layersOpen ? (
+                        <ChevronDown className="h-4 w-4" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4" />
+                      )}
                     </Button>
                   </CollapsibleTrigger>
                   <Layers className="h-4 w-4 text-primary" />
@@ -320,5 +369,5 @@ export default function LeftSidebar() {
         </div>
       )}
     </div>
-  )
+  );
 }

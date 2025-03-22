@@ -13,30 +13,37 @@ export async function POST(req: NextRequest) {
     if (mongoDB === 'atlas') {
       // Validate Atlas credentials
       if (!username || !password || !host || !cluster) {
-        return handleError(new Error('All MongoDB Atlas credentials are required'), 'All MongoDB Atlas credentials are required');
+        return handleError(
+          new Error('All MongoDB Atlas credentials are required'),
+          'All MongoDB Atlas credentials are required'
+        );
       }
 
       // Construct MongoDB Atlas URL
       mongodbUrl = `mongodb+srv://${username}:${password}@${cluster}.${host}.mongodb.net/?retryWrites=true&w=majority&appName=${cluster}`;
       successMessage = 'MongoDB Atlas connection successful';
-    } 
-    else if (mongoDB === 'compass') {
+    } else if (mongoDB === 'compass') {
       // Validate Compass credentials
       if (!username || !password || !host) {
-        return handleError(new Error('All MongoDB Compass credentials are required'), 'All MongoDB Compass credentials are required');
+        return handleError(
+          new Error('All MongoDB Compass credentials are required'),
+          'All MongoDB Compass credentials are required'
+        );
       }
 
       // Construct MongoDB Compass URL
       mongodbUrl = `mongodb://${username}:${password}@${host}/?authMechanism=${authMech}`;
       successMessage = 'MongoDB Compass connection successful';
-    } 
-    else {
-      return handleError(new Error('Invalid MongoDB type'), 'Invalid MongoDB type. Must be "atlas" or "compass"');
+    } else {
+      return handleError(
+        new Error('Invalid MongoDB type'),
+        'Invalid MongoDB type. Must be "atlas" or "compass"'
+      );
     }
 
     // Attempt to connect to the MongoDB database
     await mongoose.connect(mongodbUrl);
-    
+
     // If successful, disconnect
     await mongoose.disconnect();
 

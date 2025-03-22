@@ -1,57 +1,71 @@
 // components/ProfileUploader.tsx
-'use client'
+'use client';
 
-import { useState, useCallback } from 'react'
-import { useDropzone } from 'react-dropzone'
-import { User } from 'lucide-react'
-import { toast } from 'react-hot-toast'
+import { useState, useCallback } from 'react';
+import Image from 'next/image';
+import { useDropzone } from 'react-dropzone';
+import { User } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 
-export function ProfileUploader({ avatarUrl, onUpload, userId }: {
-  avatarUrl: string | null
-  onUpload: (url: string) => void
-  userId: string // Add userId as a prop
+export function ProfileUploader({
+  avatarUrl,
+  onUpload,
+  userId,
+}: {
+  avatarUrl: string | null;
+  onUpload: (url: string) => void;
+  userId: string; // Add userId as a prop
 }) {
-  const [isUploading, setIsUploading] = useState(false)
+  const [isUploading, setIsUploading] = useState(false);
 
-  const onDrop = useCallback(async (acceptedFiles: File[]) => {
-    const file = acceptedFiles[0]
-    if (file) {
-      setIsUploading(true)
-      const formData = new FormData()
-      formData.append('file', file)
-      formData.append('userId', userId) // Include userId in the form data
+  const onDrop = useCallback(
+    async (acceptedFiles: File[]) => {
+      const file = acceptedFiles[0];
+      if (file) {
+        setIsUploading(true);
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('userId', userId); // Include userId in the form data
 
-      try {
-        const response = await fetch('/api/dashboard/profile/upload', {
-          method: 'POST',
-          body: formData
-        })
-        const data = await response.json()
-        onUpload(data.filePath)
-        localStorage.setItem('avatarUrl', data.filePath)
-        toast.success('Profile image uploaded successfully!')
-      } catch (error) {
-        console.error('Upload failed:', error)
-        toast.error('Failed to upload profile image.')
-      } finally {
-        setIsUploading(false)
+        try {
+          const response = await fetch('/api/dashboard/profile/upload', {
+            method: 'POST',
+            body: formData,
+          });
+          const data = await response.json();
+          onUpload(data.filePath);
+          localStorage.setItem('avatarUrl', data.filePath);
+          toast.success('Profile image uploaded successfully!');
+        } catch (error) {
+          console.error('Upload failed:', error);
+          toast.error('Failed to upload profile image.');
+        } finally {
+          setIsUploading(false);
+        }
       }
-    }
-  }, [onUpload, userId])
+    },
+    [onUpload, userId]
+  );
 
   const { getRootProps, getInputProps } = useDropzone({
     onDrop,
     accept: {
-      'image/*': ['.png', '.jpg', '.jpeg', '.gif']
+      'image/*': ['.png', '.jpg', '.jpeg', '.gif'],
     },
-    maxFiles: 1
-  })
+    maxFiles: 1,
+  });
 
   return (
     <div className="flex items-center gap-6">
       <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
         {avatarUrl ? (
-          <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
+          <Image
+            src={avatarUrl}
+            alt="Profile"
+            className="w-full h-full object-cover"
+            width={96}
+            height={96}
+          />
         ) : (
           <User className="w-12 h-12 text-gray-500" />
         )}
@@ -72,5 +86,5 @@ export function ProfileUploader({ avatarUrl, onUpload, userId }: {
         </p>
       </div>
     </div>
-  )
+  );
 }

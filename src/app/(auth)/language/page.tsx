@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import Body  from '@/components/LanguageSelector/body'
-import Marq from '@/components/LanguageSelector/marq'
-import React from 'react'
+import Body from '@/components/LanguageSelector/body';
+import Marq from '@/components/LanguageSelector/marq';
+import React from 'react';
 
 export default function page() {
   return (
@@ -10,5 +10,5 @@ export default function page() {
       <Body />
       <Marq />
     </div>
-  )
+  );
 }

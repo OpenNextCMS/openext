@@ -23,15 +23,28 @@ const NewRegisterForm = () => {
   useEffect(() => {
     const langFromCookie = Cookies.get('selectedLanguage') || 'en';
     setT(translations[langFromCookie as keyof typeof translations] as typeof translations.en);
+    setT(translations[langFromCookie as keyof typeof translations] as typeof translations.en);
 
     const mongoDB = localStorage.getItem('MONGODB');
     let missingCredentials = false;
 
     if (mongoDB === 'atlas') {
-      const atlasCredentials = ['MONGODB_USERNAME', 'MONGODB_PASSWORD', 'MONGODB_HOST', 'MONGODB_CLUSTER', 'MONGODB'];
+      const atlasCredentials = [
+        'MONGODB_USERNAME',
+        'MONGODB_PASSWORD',
+        'MONGODB_HOST',
+        'MONGODB_CLUSTER',
+        'MONGODB',
+      ];
       missingCredentials = atlasCredentials.some((key) => !localStorage.getItem(key));
     } else if (mongoDB === 'compass') {
-      const compassCredentials = ['MONGODB_USERNAME', 'MONGODB_PASSWORD', 'MONGODB_HOST', 'MONGODB_AUTH_MECH', 'MONGODB'];
+      const compassCredentials = [
+        'MONGODB_USERNAME',
+        'MONGODB_PASSWORD',
+        'MONGODB_HOST',
+        'MONGODB_AUTH_MECH',
+        'MONGODB',
+      ];
       missingCredentials = compassCredentials.some((key) => !localStorage.getItem(key));
     }
 
@@ -69,8 +82,7 @@ const NewRegisterForm = () => {
             password: localStorage.getItem('MONGODB_PASSWORD'),
             host: localStorage.getItem('MONGODB_HOST'),
             cluster: localStorage.getItem('MONGODB_CLUSTER'),
-            mongoDB : localStorage.getItem('MONGODB'),
-
+            mongoDB: localStorage.getItem('MONGODB'),
           };
         } else if (mongoDB === 'compass') {
           return {
@@ -78,7 +90,7 @@ const NewRegisterForm = () => {
             password: localStorage.getItem('MONGODB_PASSWORD'),
             host: localStorage.getItem('MONGODB_HOST'),
             authMech: localStorage.getItem('MONGODB_AUTH_MECH'),
-            mongoDB : localStorage.getItem('MONGODB'),
+            mongoDB: localStorage.getItem('MONGODB'),
           };
         }
         return {};
@@ -104,17 +116,25 @@ const NewRegisterForm = () => {
         fetch(`${backendUrl}/api/auth/admin`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...data, userDbName, pageDbName, mongodbCredentials, headerData, bodyData, footerData }),
+          body: JSON.stringify({
+            ...data,
+            userDbName,
+            pageDbName,
+            mongodbCredentials,
+            headerData,
+            bodyData,
+            footerData,
+          }),
         })
-          .then(response => response.json())
-          .then(result => {
+          .then((response) => response.json())
+          .then((result) => {
             if (!result.success) throw new Error(result.message || 'Registration failed');
 
             handleSuccess(true, null, 'Registration successful. Redirecting to login...');
             localStorage.clear();
             router.push('/login');
           })
-          .catch(error => {
+          .catch((error) => {
             handleError(error, error.message || 'An unexpected error occurred');
           });
       }
@@ -159,7 +179,7 @@ const NewRegisterForm = () => {
               />
               {errors.siteTitle && <p className="mt-1 text-sm text-red-600">{errors.siteTitle}</p>}
             </div>
-          
+
             {/* Email */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
@@ -200,7 +220,7 @@ const NewRegisterForm = () => {
                   <input
                     id="password"
                     name="password"
-                    type={showPassword ? "text" : "password"}
+                    type={showPassword ? 'text' : 'password'}
                     placeholder={t.register.passwordPlaceholder}
                     required
                     className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500 text-sm pr-10"

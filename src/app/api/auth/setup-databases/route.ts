@@ -14,20 +14,20 @@ export async function POST(req: NextRequest) {
   const { username, password, host, cluster, authMech, mongoDB } = mongodbCredentials;
 
   let baseUrl;
-  let connectionOptions = {}; 
+  let connectionOptions = {};
 
   if (mongoDB === 'atlas') {
     baseUrl = `mongodb+srv://${username}:${password}@${cluster}.${host}.mongodb.net`;
     connectionOptions = {
       retryWrites: true,
       w: 'majority',
-      appName: cluster
+      appName: cluster,
     };
   } else if (mongoDB === 'compass') {
-    baseUrl = `mongodb://${username}:${password}@${host}`;  // Remove "?authSource=admin"
+    baseUrl = `mongodb://${username}:${password}@${host}`; // Remove "?authSource=admin"
     connectionOptions = {
-      authSource: "admin", // Pass authSource separately
-      authMechanism: authMech
+      authSource: 'admin', // Pass authSource separately
+      authMechanism: authMech,
     };
   } else {
     return handleError(null, 'Invalid MongoDB type');
@@ -35,29 +35,28 @@ export async function POST(req: NextRequest) {
 
   try {
     const masterConnection = await mongoose.createConnection(
-      `${baseUrl}/master?`, connectionOptions
+      `${baseUrl}/master?`,
+      connectionOptions
     );
 
     const userConnection = await mongoose.createConnection(
-      `${baseUrl}/${userDbName}?`, connectionOptions
+      `${baseUrl}/${userDbName}?`,
+      connectionOptions
     );
 
     const pageConnection = await mongoose.createConnection(
-      `${baseUrl}/${pageDbName}?`, connectionOptions
+      `${baseUrl}/${pageDbName}?`,
+      connectionOptions
     );
 
     await Promise.all([
       masterConnection.createCollection('masterdbs'),
       userConnection.createCollection('users'),
       userConnection.createCollection('settings'),
-      pageConnection.createCollection('pages')
+      pageConnection.createCollection('pages'),
     ]);
 
-    await Promise.all([
-      masterConnection.close(),
-      userConnection.close(),
-      pageConnection.close()
-    ]);
+    await Promise.all([masterConnection.close(), userConnection.close(), pageConnection.close()]);
 
     return handleSuccess(true, null, 'Databases setup successful');
   } catch (error) {

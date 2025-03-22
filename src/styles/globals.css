@@ -4,10 +4,10 @@
 @tailwind utilities;
 
 :root {
-  --primary-color: #3B82F6;
-  --secondary-color: #10B981;
-  --background-color: #F3F4F6;
-  --text-color: #1F2937;
+  --primary-color: #3b82f6;
+  --secondary-color: #10b981;
+  --background-color: #f3f4f6;
+  --text-color: #1f2937;
 }
 
 * {
@@ -23,7 +23,8 @@ body {
   line-height: 1.6;
 }
 
-input, button {
+input,
+button {
   transition: all 0.3s ease;
 }
 
@@ -110,8 +111,6 @@ input, button {
   background: var(--primary-color);
   border-radius: 4px;
 }
-
-
 
 @layer base {
   * {
