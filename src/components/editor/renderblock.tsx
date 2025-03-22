@@ -1,6 +1,6 @@
 'use client';
 import { useDroppable } from '@dnd-kit/core';
-import { GripVertical, Type, Columns, MousePointerClick } from 'lucide-react';
+import { GripVertical, Type, Columns, MousePointerClick, Edit2, Eraser, Trash2, Heart } from 'lucide-react';
 
 interface Block {
   type: 'column' | 'text';
@@ -17,12 +17,17 @@ const RenderBlock = ({ block }: { block: Block }) => {
           <Columns className="h-3 w-3 mr-1" />
           <span>Column Layout</span>
         </div>
-        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10 flex gap-1">
+        <div className="absolute -top-3 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10 flex gap-1">
           <button className="bg-primary text-primary-foreground text-xs px-2 py-1 rounded hover:bg-primary/90 transition-colors">
-            Edit
+            <Edit2 className="h-4 w-4" />
           </button>
           <button className="bg-destructive text-destructive-foreground text-xs px-2 py-1 rounded hover:bg-destructive/90 transition-colors">
-            Remove
+            <Trash2 className="h-4 w-4" />
+          </button>
+        </div>
+        <div className="absolute -bottom-3 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10 flex gap-1">
+          <button className="bg-primary text-primary-foreground text-xs p-2 rounded-full hover:bg-primary/90 transition-colors">
+            <Heart className="h-4 w-4" />
           </button>
         </div>
         <div className="flex gap-4 border p-4 rounded-lg shadow-sm group-hover:shadow-md transition-all group-hover:border-primary">
@@ -56,10 +61,10 @@ const RenderBlock = ({ block }: { block: Block }) => {
         </div>
         <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10 flex gap-1">
           <button className="bg-primary text-primary-foreground text-xs px-2 py-1 rounded hover:bg-primary/90 transition-colors">
-            Edit
+            <Edit2 className="h-4 w-4" />
           </button>
           <button className="bg-destructive text-destructive-foreground text-xs px-2 py-1 rounded hover:bg-destructive/90 transition-colors">
-            Remove
+            <Trash2 className="h-4 w-4" />
           </button>
         </div>
         <div className="p-4 border rounded-lg shadow-sm group-hover:shadow-md transition-all group-hover:border-primary">
@@ -89,11 +94,10 @@ const ColumnDropZone = ({
   return (
     <div
       ref={setNodeRef}
-      className={`flex-1 border rounded-md p-3 min-h-[150px] transition-colors ${
-        isOver
-          ? 'bg-primary/10 border-primary border-dashed'
-          : 'bg-muted/20 hover:bg-muted/30 border-border'
-      }`}
+      className={`flex-1 border rounded-md p-3 min-h-[150px] transition-colors ${isOver
+        ? 'bg-primary/10 border-primary border-dashed'
+        : 'bg-muted/20 hover:bg-muted/30 border-border'
+        }`}
     >
       {isOver && Array.isArray(children) && children.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-full animate-pulse">
