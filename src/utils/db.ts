@@ -1,35 +1,52 @@
 import mongoose from 'mongoose';
 import { IUser, userSchema } from '@/models/User';
-// Removed Profile and its schema import
 import { ISettings, settingsSchema } from '@/models/Settings';
 import { PageSchema, PageDocument } from '@/models/Page';
-import { roleSchema } from '@/models/Role'; // NEW import
+import { roleSchema } from '@/models/Role';
 
 let userDb: mongoose.Connection | null = null;
 let pageDb: mongoose.Connection | null = null;
 let masterDb: mongoose.Connection | null = null;
 
 async function createConnectionUri(dbName: string) {
-  const { MONGODB_USERNAME, MONGODB_PASSWORD, MONGODB_HOST, MONGODB_CLUSTER } = process.env;
+  const {
+    MONGODB_USERNAME,
+    MONGODB_PASSWORD,
+    MONGODB_HOST,
+    MONGODB_CLUSTER,
+    MONGODB_AUTH_MECH,
+    MONGODB,
+  } = process.env;
 
-  if (!MONGODB_USERNAME || !MONGODB_PASSWORD || !MONGODB_HOST || !MONGODB_CLUSTER) {
+  if (!MONGODB_USERNAME || !MONGODB_PASSWORD || !MONGODB_HOST || !MONGODB) {
     throw new Error('MongoDB environment variables are not set');
   }
 
-  return `mongodb+srv://${MONGODB_USERNAME}:${MONGODB_PASSWORD}@${MONGODB_CLUSTER}.${MONGODB_HOST}.mongodb.net/${dbName}?retryWrites=true&w=majority`;
+  if (MONGODB === 'atlas') {
+    if (!MONGODB_CLUSTER) {
+      throw new Error('MONGODB_CLUSTER is required for Atlas');
+    }
+    return `mongodb+srv://${MONGODB_USERNAME}:${MONGODB_PASSWORD}@${MONGODB_CLUSTER}.${MONGODB_HOST}.mongodb.net/${dbName}?retryWrites=true&w=majority`;
+  } else if (MONGODB === 'compass') {
+    if (!MONGODB_AUTH_MECH) {
+      throw new Error('MONGODB_AUTH_MECH is required for Compass');
+    }
+    return `mongodb://${MONGODB_USERNAME}:${MONGODB_PASSWORD}@${MONGODB_HOST}/${dbName}?authMechanism=${MONGODB_AUTH_MECH}&authSource=admin`;
+  } else {
+    throw new Error('Invalid MONGODB value in .env file');
+  }
 }
 
 export async function getMasterDbConnection() {
   if (!masterDb) {
     const uri = await createConnectionUri('master');
     masterDb = await mongoose.createConnection(uri);
-    // Removed role seeding from master DB
   }
   return masterDb;
 }
 
 export const getUserDbConnection = async () => {
-  const USER_DB_NAME = process.env.USER_DB_NAME || 'users'; // Default to 'users' if not set
+  const USER_DB_NAME = process.env.USER_DB_NAME || 'users';
 
   if (!USER_DB_NAME) {
     throw new Error('USER_DB_NAME environment variable is not set');
@@ -40,17 +57,14 @@ export const getUserDbConnection = async () => {
       const uri = await createConnectionUri(USER_DB_NAME);
       userDb = await mongoose.createConnection(uri, {
         maxPoolSize: 10,
-        serverSelectionTimeoutMS: 30000, // Increase timeout to 30 seconds
-        socketTimeoutMS: 45000, // Increase socket timeout to 45 seconds
+        serverSelectionTimeoutMS: 30000,
+        socketTimeoutMS: 45000,
       });
 
-      // Initialize models only if they don't exist
       if (!userDb.models.User) {
         userDb.model<IUser>('User', userSchema);
       }
-      // Removed Profile, Settings model initialization remains
 
-      // NEW: Seed roles in user DB if not already seeded
       const RoleModel = userDb.models.Role || userDb.model('Role', roleSchema);
       const existingCount = await RoleModel.countDocuments({});
       if (existingCount === 0) {
@@ -59,6 +73,7 @@ export const getUserDbConnection = async () => {
           { name: 'Admin', value: 1 },
           { name: 'Editor', value: 2 },
           { name: 'Author', value: 3 },
+          { name: 'Author', value: 3 },
         ];
         for (const role of roles) {
           await RoleModel.create(role);
@@ -66,7 +81,6 @@ export const getUserDbConnection = async () => {
         console.log('Roles seeded in user DB.');
       }
 
-      // NEW: Set default theme as active in settings
       const SettingsModel = userDb.models.Settings || userDb.model('Settings', settingsSchema);
       const settings = await SettingsModel.findOne({});
       if (settings) {
@@ -134,17 +148,15 @@ export async function getPageDbConnection() {
   if (!pageDb) {
     const uri = await createConnectionUri(PAGE_DB_NAME);
     pageDb = await mongoose.createConnection(uri, {
-      serverSelectionTimeoutMS: 30000, // Increase timeout to 30 seconds
+      serverSelectionTimeoutMS: 30000,
       socketTimeoutMS: 45000,
       maxPoolSize: 10,
     });
 
-    // Initialize models only if they don't exist
     if (!pageDb.models.Page) {
-      pageDb.model<PageDocument>('Page', PageSchema); // Ensure Page schema is registered
+      pageDb.model<PageDocument>('Page', PageSchema);
     }
 
-    // Handle connection errors
     pageDb.on('error', (error) => {
       console.error('MongoDB page database connection error:', error);
       pageDb = null;
@@ -174,17 +186,14 @@ export function getSettingsModel() {
 }
 
 export function getPageModel(pageDb: mongoose.Connection) {
-  // UPDATED
   if (!pageDb) {
     throw new Error('Page database connection not initialized');
   }
   return pageDb.model<PageDocument>('Page');
 }
 
-// Helper function to close all connections
 export async function closeAllConnections() {
   await Promise.all([userDb?.close(), pageDb?.close(), masterDb?.close()]);
-
   userDb = null;
   pageDb = null;
   masterDb = null;
