@@ -46,6 +46,7 @@ export default function MongoDBSetup() {
     const savedCluster = localStorage.getItem("MONGODB_CLUSTER")
     const savedMongoDB = localStorage.getItem("MONGODB")
     const savedAuthMech = localStorage.getItem("MONGODB_AUTH_MECH")
+    const savedMongoAcc = localStorage.getItem("MONGO_ACC")
 
     if (savedUsername) {
       setUsername(savedUsername)
@@ -71,6 +72,9 @@ export default function MongoDBSetup() {
       setAuthMech(savedAuthMech)
       setFormData((prev) => ({ ...prev, authMech: savedAuthMech }))
     }
+    if (savedMongoAcc) {
+      setMongoAcc(savedMongoAcc === "true")
+    }
 
     // Trigger animation after component mounts
     setTimeout(() => {
@@ -85,12 +89,17 @@ export default function MongoDBSetup() {
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000"
 
     try {
+      // Construct payload based on connection type
+      const payload = mongoAcc
+        ? { username, password, host, mongoDB, authMech } // For Compass
+        : { username, password, host, cluster, mongoDB } // For Atlas
+
       const response = await fetch(`${backendUrl}/api/auth/verify-mongodb`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ username, password, host, cluster }),
+        body: JSON.stringify(payload),
       })
 
       if (!response.ok) {
@@ -170,7 +179,12 @@ export default function MongoDBSetup() {
           className={`flex justify-center mt-4 mb-2 gap-2 transition-opacity duration-500 delay-200 ${isVisible ? "opacity-100" : "opacity-0"}`}
         >
           <button
-            onClick={() => { setMongoAcc(true), setMongoDB("compass") }}
+            onClick={() => { 
+              setMongoAcc(true)
+              setMongoDB("compass")
+              localStorage.setItem("MONGO_ACC", "true")
+              localStorage.setItem("MONGODB", "compass")
+            }}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 ${mongoAcc ? "bg-black text-white shadow-md" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
           >
@@ -178,7 +192,12 @@ export default function MongoDBSetup() {
             <span className="text-sm">MongoDB Compass</span>
           </button>
           <button
-            onClick={() => { setMongoAcc(false), setMongoDB("atlas") }}
+            onClick={() => { 
+              setMongoAcc(false)
+              setMongoDB("atlas")
+              localStorage.setItem("MONGO_ACC", "false")
+              localStorage.setItem("MONGODB", "atlas")
+            }}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 ${!mongoAcc ? "bg-black text-white shadow-md" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
           >

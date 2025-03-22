@@ -22,11 +22,20 @@ const NewRegisterForm = () => {
 
   useEffect(() => {
     const langFromCookie = Cookies.get('selectedLanguage') || 'en';
-  setT(translations[langFromCookie as keyof typeof translations] as typeof translations.en);
+    setT(translations[langFromCookie as keyof typeof translations] as typeof translations.en);
 
-    const mongodbCredentials = ['MONGODB_USERNAME', 'MONGODB_PASSWORD', 'MONGODB_CLUSTER', 'MONGODB_HOST'];
+    const mongoDB = localStorage.getItem('MONGODB');
+    let missingCredentials = false;
+
+    if (mongoDB === 'atlas') {
+      const atlasCredentials = ['MONGODB_USERNAME', 'MONGODB_PASSWORD', 'MONGODB_HOST', 'MONGODB_CLUSTER', 'MONGODB'];
+      missingCredentials = atlasCredentials.some((key) => !localStorage.getItem(key));
+    } else if (mongoDB === 'compass') {
+      const compassCredentials = ['MONGODB_USERNAME', 'MONGODB_PASSWORD', 'MONGODB_HOST', 'MONGODB_AUTH_MECH', 'MONGODB'];
+      missingCredentials = compassCredentials.some((key) => !localStorage.getItem(key));
+    }
+
     const dbInfo = ['USER_DB_NAME', 'PAGE_DB_NAME'];
-    const missingCredentials = mongodbCredentials.some((key) => !localStorage.getItem(key));
     const missingDbInfo = dbInfo.some((key) => !localStorage.getItem(key));
 
     if (missingCredentials || missingDbInfo) {
@@ -52,12 +61,28 @@ const NewRegisterForm = () => {
     try {
       registerSchema.parse(data);
 
-      const mongodbCredentials = {
-        username: localStorage.getItem('MONGODB_USERNAME'),
-        password: localStorage.getItem('MONGODB_PASSWORD'),
-        host: localStorage.getItem('MONGODB_HOST'),
-        cluster: localStorage.getItem('MONGODB_CLUSTER'),
-      };
+      const mongodbCredentials = (() => {
+        const mongoDB = localStorage.getItem('MONGODB');
+        if (mongoDB === 'atlas') {
+          return {
+            username: localStorage.getItem('MONGODB_USERNAME'),
+            password: localStorage.getItem('MONGODB_PASSWORD'),
+            host: localStorage.getItem('MONGODB_HOST'),
+            cluster: localStorage.getItem('MONGODB_CLUSTER'),
+            mongoDB : localStorage.getItem('MONGODB'),
+
+          };
+        } else if (mongoDB === 'compass') {
+          return {
+            username: localStorage.getItem('MONGODB_USERNAME'),
+            password: localStorage.getItem('MONGODB_PASSWORD'),
+            host: localStorage.getItem('MONGODB_HOST'),
+            authMech: localStorage.getItem('MONGODB_AUTH_MECH'),
+            mongoDB : localStorage.getItem('MONGODB'),
+          };
+        }
+        return {};
+      })();
 
       const userDbName = localStorage.getItem('USER_DB_NAME');
       const pageDbName = localStorage.getItem('PAGE_DB_NAME');
