@@ -20,12 +20,23 @@ export async function POST(req: NextRequest) {
     const validatedData = registerSchema.parse(body);
 
     const { userDbName, pageDbName, mongodbCredentials, footerData, headerData, bodyData } = body; // UPDATED
-    const { username, password, host, cluster } = mongodbCredentials;
+    const { username, password, host, cluster, authMech, mongoDB } = mongodbCredentials;
 
-    // Create connection URIs
-    const masterDbUri = `mongodb+srv://${username}:${password}@${cluster}.${host}.mongodb.net/master?retryWrites=true&w=majority&appName=${cluster}`;
-    const userDbUri = `mongodb+srv://${username}:${password}@${cluster}.${host}.mongodb.net/${userDbName}?retryWrites=true&w=majority&appName=${cluster}`;
-    const pageDbUri = `mongodb+srv://${username}:${password}@${cluster}.${host}.mongodb.net/${pageDbName}?retryWrites=true&w=majority&appName=${cluster}`;
+    let masterDbUri, userDbUri, pageDbUri;
+    if (mongoDB === 'atlas') {
+      masterDbUri = `mongodb+srv://${username}:${password}@${cluster}.${host}.mongodb.net/master?retryWrites=true&w=majority&appName=${cluster}`;
+      userDbUri = `mongodb+srv://${username}:${password}@${cluster}.${host}.mongodb.net/${userDbName}?retryWrites=true&w=majority&appName=${cluster}`;
+      pageDbUri = `mongodb+srv://${username}:${password}@${cluster}.${host}.mongodb.net/${pageDbName}?retryWrites=true&w=majority&appName=${cluster}`;
+    } else if (mongoDB === 'compass') {
+      masterDbUri = `mongodb://${username}:${password}@${host}/master?authMechanism=${authMech}&authSource=admin`;
+      userDbUri = `mongodb://${username}:${password}@${host}/${userDbName}?authMechanism=${authMech}&authSource=admin`;
+      pageDbUri = `mongodb://${username}:${password}@${host}/${pageDbName}?authMechanism=${authMech}&authSource=admin`;
+    } else {
+      return new Response(
+        JSON.stringify({ success: false, message: 'Invalid MongoDB type', registration: 'failed' }),
+        { status: 400 }
+      );
+    }
 
     // Initialize database connections with timeout settings
     userDbConnection = await mongoose.createConnection(userDbUri, {
@@ -112,20 +123,44 @@ export async function POST(req: NextRequest) {
     // Generate a random JWT secret
     const jwtSecret = crypto.randomBytes(32).toString('hex');
 
-    const envContent = `
-    # NEXT CMS UNCOMMENT BELOW FOR EXTERNAL BACKEND USE (External APIs only)
-    # NEXT_PUBLIC_BACKEND_URL=http://localhost:5000
-    JWT_SECRET=${jwtSecret}
-    MONGODB_USERNAME=${username}
-    MONGODB_PASSWORD=${password}
-    MONGODB_HOST=${host}
-    MONGODB_CLUSTER=${cluster}
-    USER_DB_NAME=${userDbName}
-    PAGE_DB_NAME=${pageDbName}
-    isRegistration=true
-    dbConnection=true
-    `;
-    await fs.writeFile(envPath, envContent.trim(), { flag: 'w' });
+    let envContent;
+    if (mongoDB === 'atlas') {
+      envContent = `
+      # NEXT CMS UNCOMMENT BELOW FOR EXTERNAL BACKEND USE (External APIs only)
+      # NEXT_PUBLIC_BACKEND_URL=http://localhost:5000
+      JWT_SECRET=${jwtSecret}
+      MONGODB_USERNAME=${username}
+      MONGODB_PASSWORD=${password}
+      MONGODB_HOST=${host}
+      MONGODB_CLUSTER=${cluster}
+      MONGODB=${mongoDB}
+      USER_DB_NAME=${userDbName}
+      PAGE_DB_NAME=${pageDbName}
+      isRegistration=true
+      dbConnection=true
+      `;
+    } else if (mongoDB === 'compass') {
+      envContent = `
+      # NEXT CMS UNCOMMENT BELOW FOR EXTERNAL BACKEND USE (External APIs only)
+      # NEXT_PUBLIC_BACKEND_URL=http://localhost:5000
+      JWT_SECRET=${jwtSecret}
+      MONGODB_USERNAME=${username}
+      MONGODB_PASSWORD=${password}
+      MONGODB_HOST=${host}
+      MONGODB_AUTH_MECH=${authMech}
+      MONGODB=${mongoDB}
+      USER_DB_NAME=${userDbName}
+      PAGE_DB_NAME=${pageDbName}
+      isRegistration=true
+      dbConnection=true
+      `;
+    }
+
+    if (envContent) {
+      await fs.writeFile(envPath, envContent.trim(), { flag: 'w' });
+    } else {
+      throw new Error('envContent is undefined');
+    }
 
     return new Response(
       JSON.stringify({
