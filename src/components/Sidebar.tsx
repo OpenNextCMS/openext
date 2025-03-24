@@ -44,6 +44,12 @@ const navItems = [
     links: [{ label: 'Add Themes', icon: PlusCircle, path: '/dashboard/themes' }],
   },
   {
+    label: 'Plugins',
+    icon: Palette,
+    path: '/dashboard/plugins',
+    links: [],
+  },
+  {
     label: 'User',
     icon: User,
     path: '/dashboard/users',
