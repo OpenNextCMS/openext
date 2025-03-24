@@ -153,7 +153,7 @@ export default function AddThemePage() {
         </div>
 
         <Tabs defaultValue="upload" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-8">
+          <TabsList className="grid w-full grid-cols-2 mb-8 h-auto">
             <TabsTrigger value="upload" className="text-base py-3">
               <Upload className="w-4 h-4 mr-2" />
               Upload Theme
