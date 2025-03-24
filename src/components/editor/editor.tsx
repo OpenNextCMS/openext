@@ -28,6 +28,7 @@ export default function Editor() {
   const [isOpen, setIsOpen] = useState(false);
   const [canvasBlocks, setCanvasBlocks] = useState<BlockData[]>([]);
   const [viewMode, setViewMode] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
+  const [showButton, setShowButton] = useState(true);
 
   useEffect(() => {
     document.body.style.overflow = 'hidden';
@@ -39,6 +40,7 @@ export default function Editor() {
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
     setShowLeftSidebar(false);
+    setShowButton(!showButton);
   };
 
   const handleViewChange = (mode: 'desktop' | 'tablet' | 'mobile') => {
@@ -64,11 +66,11 @@ export default function Editor() {
         return prev.map((block) =>
           over.data.current
             ? updateNestedBlock(
-                block,
-                over.data.current.blockId,
-                over.data.current.columnIndex,
-                blockData
-              )
+              block,
+              over.data.current.blockId,
+              over.data.current.columnIndex,
+              blockData
+            )
             : block
         );
       }
@@ -106,23 +108,25 @@ export default function Editor() {
     <div className="flex h-screen w-screen flex-col overflow-hidden bg-background text-foreground transition-colors duration-300">
       <DndContext onDragEnd={handleDragEnd}>
         <div className="flex h-full overflow-hidden">
-          <div className="relative">
-            <Button
-              variant="outline"
-              size="icon"
-              className={`absolute ${showLeftSidebar ? 'left-64 rounded-r-full' : 'left-2 rounded-full'} top-3.5 z-10 h-8 w-8 border shadow-md transition-all duration-300 dark:border-border dark:bg-background`}
-              onClick={() => {
-                setShowLeftSidebar(!showLeftSidebar);
-                setIsOpen(false);
-              }}
-            >
-              {showLeftSidebar ? (
-                <ChevronLeft className="h-4 w-4" />
-              ) : (
-                <ChevronRight className="h-4 w-4" />
-              )}
-            </Button>
-          </div>
+          {showButton && (
+            <div className="relative">
+              <Button
+                variant="outline"
+                size="icon"
+                className={`absolute ${showLeftSidebar ? 'left-64 rounded-r-full' : 'left-2 rounded-full'} top-3.5 z-10 h-8 w-8 border shadow-md transition-all duration-300 dark:border-border dark:bg-background`}
+                onClick={() => {
+                  setShowLeftSidebar(!showLeftSidebar);
+                  setIsOpen(false);
+                }}
+              >
+                {showLeftSidebar ? (
+                  <ChevronLeft className="h-4 w-4" />
+                ) : (
+                  <ChevronRight className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
+          )}
 
           <div
             className={`transition-all duration-300 ${showLeftSidebar ? 'w-64 border-r border-border' : 'w-0'}`}

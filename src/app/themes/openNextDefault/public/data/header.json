@@ -17,7 +17,7 @@
                             "tag": "img",
                             "className": "logoImage",
                             "attributes": {
-                                "src": "/siteicon/openNext.png",
+                                "src": "/img/openNext.png",
                                 "alt": "OpenNext Logo"
                             }
                         }
