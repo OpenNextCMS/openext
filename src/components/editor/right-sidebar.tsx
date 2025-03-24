@@ -55,7 +55,6 @@ export default function RightSidebar() {
           </TabsList>
         </div>
 
-        {/* <ScrollArea className="h-full overflow-auto"> */}
         <TabsContent value="styles" className="p-0 m-0 h-full">
           <div className="p-4 space-y-3">
             {/* Spacing */}
@@ -64,7 +63,7 @@ export default function RightSidebar() {
               onOpenChange={setSpacingOpen}
               className="rounded-lg border mt-4"
             >
-              <div className="flex items-center justify-between p-3">
+              <div className="flex items-center justify-between p-2">
                 <div className="flex items-center gap-2">
                   <CollapsibleTrigger asChild>
                     <Button variant="ghost" size="icon" className="h-6 w-6 p-0">
@@ -123,7 +122,7 @@ export default function RightSidebar() {
               onOpenChange={setDisplayOpen}
               className="rounded-lg border"
             >
-              <div className="flex items-center justify-between p-3">
+              <div className="flex items-center justify-between p-2">
                 <div className="flex items-center gap-2">
                   <CollapsibleTrigger asChild>
                     <Button variant="ghost" size="icon" className="h-6 w-6 p-0">
@@ -243,7 +242,7 @@ export default function RightSidebar() {
               onOpenChange={setBgOpen}
               className="rounded-lg border"
             >
-              <div className="flex items-center justify-between p-3">
+              <div className="flex items-center justify-between p-2">
                 <div className="flex items-center gap-2">
                   <CollapsibleTrigger asChild>
                     <Button variant="ghost" size="icon" className="h-6 w-6 p-0">
@@ -334,7 +333,7 @@ export default function RightSidebar() {
               onOpenChange={setSizeOpen}
               className="rounded-lg border"
             >
-              <div className="flex items-center justify-between p-3">
+              <div className="flex items-center justify-between p-2">
                 <div className="flex items-center gap-2">
                   <CollapsibleTrigger asChild>
                     <Button variant="ghost" size="icon" className="h-6 w-6 p-0">
@@ -466,7 +465,7 @@ export default function RightSidebar() {
               onOpenChange={setFontOpen}
               className="rounded-lg border"
             >
-              <div className="flex items-center justify-between p-3">
+              <div className="flex items-center justify-between p-2">
                 <div className="flex items-center gap-2">
                   <CollapsibleTrigger asChild>
                     <Button variant="ghost" size="icon" className="h-6 w-6 p-0">
@@ -621,7 +620,7 @@ export default function RightSidebar() {
               onOpenChange={setBorderOpen}
               className="rounded-lg border"
             >
-              <div className="flex items-center justify-between p-3">
+              <div className="flex items-center justify-between p-2">
                 <div className="flex items-center gap-2">
                   <CollapsibleTrigger asChild>
                     <Button variant="ghost" size="icon" className="h-6 w-6 p-0">
@@ -708,7 +707,7 @@ export default function RightSidebar() {
               onOpenChange={setEffectsOpen}
               className="rounded-lg border"
             >
-              <div className="flex items-center justify-between p-3">
+              <div className="flex items-center justify-between p-2">
                 <div className="flex items-center gap-2">
                   <CollapsibleTrigger asChild>
                     <Button variant="ghost" size="icon" className="h-6 w-6 p-0">
@@ -803,7 +802,7 @@ export default function RightSidebar() {
               onOpenChange={setPositionOpen}
               className="rounded-lg border"
             >
-              <div className="flex items-center justify-between p-3">
+              <div className="flex items-center justify-between p-2">
                 <div className="flex items-center gap-2">
                   <CollapsibleTrigger asChild>
                     <Button variant="ghost" size="icon" className="h-6 w-6 p-0">
@@ -931,7 +930,6 @@ export default function RightSidebar() {
             </ul>
           </div>
         </TabsContent>
-        {/* </ScrollArea> */}
       </Tabs>
     </div>
   );
