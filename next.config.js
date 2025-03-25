@@ -1,5 +1,7 @@
 module.exports = {
-  // ...existing code...
+  images: {
+    domains: ['localhost'], // Add 'localhost' as a valid domain
+  },
   async rewrites() {
     return [
       {
