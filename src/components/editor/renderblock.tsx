@@ -26,7 +26,7 @@ const RenderBlock = ({ block }: { block: Block }) => {
           </button>
         </div>
         <div className="absolute -bottom-3 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10 flex gap-1">
-          <button className="bg-primary text-primary-foreground text-xs p-2 rounded-full hover:bg-primary/90 transition-colors">
+          <button className="bg-primary text-primary-foreground text-xs p-2 rounded-full hover:bg-primary/90 transition-colors hover:text-yellow-500">
             <Heart className="h-4 w-4" />
           </button>
         </div>
