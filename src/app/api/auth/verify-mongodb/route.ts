@@ -6,7 +6,7 @@ import { handleSuccess } from '@/utils/successHandler'; // Import success handle
 export async function POST(req: NextRequest) {
   try {
     const requestBody = await req.json();
-    const { mongoDB, username, password, host, cluster, authMech } = requestBody;
+    const { mongoDB, username, password, host, cluster, authMech, authSource } = requestBody;
     let mongodbUrl = '';
     let successMessage = '';
 
@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
       }
 
       // Construct MongoDB Compass URL
-      mongodbUrl = `mongodb://${username}:${password}@${host}/?authMechanism=${authMech}`;
+      mongodbUrl = `mongodb://${username}:${password}@${host}/?authMechanism=${authMech}&authSource=${authSource}`;
       successMessage = 'MongoDB Compass connection successful';
     } else {
       return handleError(

@@ -15,6 +15,7 @@ export async function POST() {
     MONGODB_HOST,
     MONGODB_CLUSTER,
     MONGODB_AUTH_MECH,
+    MONGODB_AUTH_SOURCE,
   } = process.env;
 
   if (
@@ -35,7 +36,7 @@ export async function POST() {
     if (MONGODB === 'atlas') {
       return `mongodb+srv://${MONGODB_USERNAME}:${MONGODB_PASSWORD}@${MONGODB_CLUSTER}.${MONGODB_HOST}.mongodb.net/${dbName}?retryWrites=true&w=majority&appName=${MONGODB_CLUSTER}`;
     } else if (MONGODB === 'compass') {
-      return `mongodb://${MONGODB_USERNAME}:${MONGODB_PASSWORD}@${MONGODB_HOST}/${dbName}?authMechanism=${MONGODB_AUTH_MECH}&authSource=admin`;
+      return `mongodb://${MONGODB_USERNAME}:${MONGODB_PASSWORD}@${MONGODB_HOST}/${dbName}?authMechanism=${MONGODB_AUTH_MECH}&authSource=${MONGODB_AUTH_SOURCE}`;
     }
     throw new Error('Invalid MongoDB type');
   };
