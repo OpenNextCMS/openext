@@ -9,6 +9,7 @@ const {
   MONGODB_HOST,
   MONGODB_CLUSTER,
   MONGODB_AUTH_MECH,
+  MONGODB_AUTH_SOURCE,
   MONGODB,
   USER_DB_NAME,
   PAGE_DB_NAME,
@@ -28,7 +29,7 @@ function createConnectionUri(dbName: string) {
     if (!MONGODB_AUTH_MECH) {
       throw new Error('MONGODB_AUTH_MECH is required for Compass');
     }
-    return `mongodb://${MONGODB_USERNAME}:${MONGODB_PASSWORD}@${MONGODB_HOST}/${dbName}?authMechanism=${MONGODB_AUTH_MECH}&authSource=admin`;
+    return `mongodb://${MONGODB_USERNAME}:${MONGODB_PASSWORD}@${MONGODB_HOST}/${dbName}?authMechanism=${MONGODB_AUTH_MECH}&authSource=${MONGODB_AUTH_SOURCE}`;
   } else {
     throw new Error('Invalid MONGODB value in .env file');
   }

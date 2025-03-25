@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
     return handleError(null, 'All fields are required');
   }
 
-  const { username, password, host, cluster, authMech, mongoDB } = mongodbCredentials;
+  const { username, password, host, cluster, authMech, mongoDB, authSource } = mongodbCredentials;
 
   let baseUrl;
   let connectionOptions = {};
@@ -24,9 +24,9 @@ export async function POST(req: NextRequest) {
       appName: cluster,
     };
   } else if (mongoDB === 'compass') {
-    baseUrl = `mongodb://${username}:${password}@${host}`; // Remove "?authSource=admin"
+    baseUrl = `mongodb://${username}:${password}@${host}`;
     connectionOptions = {
-      authSource: 'admin', // Pass authSource separately
+      authSource: authSource, 
       authMechanism: authMech,
     };
   } else {

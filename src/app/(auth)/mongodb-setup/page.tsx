@@ -251,7 +251,7 @@ export default function MongoDBSetup() {
                   <span className="text-red-500">{formData.host || '<hostName>'}</span>
                   <span>/?authMechanism=</span>
                   <span className="text-purple-500">{formData.authMech || '<authMech>'}</span>
-                  <span>/?authSource=</span>
+                  <span>&authSource=</span>
                   <span className="text-yellow-500">{formData.authSource || '<authSource>'}</span>
                 </code>
               </div>
@@ -277,6 +277,9 @@ export default function MongoDBSetup() {
                   <span>authSource</span>
                 </div>
               </div>
+              <p className="text-xs mt-4">
+                  <strong>Note:</strong> In Host, If Localhost Is Not Working Then Write 127.0.0.1
+                </p>
             </div>
           ) : (
             <div>

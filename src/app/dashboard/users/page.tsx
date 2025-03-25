@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type React from 'react';
 import {
   PlusCircle,
@@ -115,8 +115,7 @@ export default function UserManagementDashboard() {
     fetchRoles();
   }, [backendUrl]);
 
-  // Fetch users for the user list
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     setIsLoading(true);
     try {
       const response = await fetch(`${backendUrl}/api/sub-users/get-users`);
@@ -130,11 +129,11 @@ export default function UserManagementDashboard() {
     } finally {
       setIsLoading(false);
     }
-  };
-
+  }, [backendUrl]); // Depend only on `backendUrl`
+  
   useEffect(() => {
     fetchUsers();
-  });
+  }, [fetchUsers]);
 
   // Filter users based on search term
   useEffect(() => {

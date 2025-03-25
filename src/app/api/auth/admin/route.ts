@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
     const validatedData = registerSchema.parse(body);
 
     const { userDbName, pageDbName, mongodbCredentials, footerData, headerData, bodyData } = body; // UPDATED
-    const { username, password, host, cluster, authMech, mongoDB } = mongodbCredentials;
+    const { username, password, host, cluster, authMech, mongoDB, authSource } = mongodbCredentials;
 
     let masterDbUri, userDbUri, pageDbUri;
     if (mongoDB === 'atlas') {
@@ -28,9 +28,9 @@ export async function POST(req: NextRequest) {
       userDbUri = `mongodb+srv://${username}:${password}@${cluster}.${host}.mongodb.net/${userDbName}?retryWrites=true&w=majority&appName=${cluster}`;
       pageDbUri = `mongodb+srv://${username}:${password}@${cluster}.${host}.mongodb.net/${pageDbName}?retryWrites=true&w=majority&appName=${cluster}`;
     } else if (mongoDB === 'compass') {
-      masterDbUri = `mongodb://${username}:${password}@${host}/master?authMechanism=${authMech}&authSource=admin`;
-      userDbUri = `mongodb://${username}:${password}@${host}/${userDbName}?authMechanism=${authMech}&authSource=admin`;
-      pageDbUri = `mongodb://${username}:${password}@${host}/${pageDbName}?authMechanism=${authMech}&authSource=admin`;
+      masterDbUri = `mongodb://${username}:${password}@${host}/master?authMechanism=${authMech}&authSource=${authSource}`;
+      userDbUri = `mongodb://${username}:${password}@${host}/${userDbName}?authMechanism=${authMech}&authSource=${authSource}`;
+      pageDbUri = `mongodb://${username}:${password}@${host}/${pageDbName}?authMechanism=${authMech}&authSource=${authSource}`;
     } else {
       return new Response(
         JSON.stringify({ success: false, message: 'Invalid MongoDB type', registration: 'failed' }),
@@ -148,6 +148,7 @@ export async function POST(req: NextRequest) {
       MONGODB_PASSWORD=${password}
       MONGODB_HOST=${host}
       MONGODB_AUTH_MECH=${authMech}
+      MONGODB_AUTH_SOURCE=${authSource}
       MONGODB=${mongoDB}
       USER_DB_NAME=${userDbName}
       PAGE_DB_NAME=${pageDbName}

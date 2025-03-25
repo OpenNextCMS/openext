@@ -43,6 +43,7 @@ const NewRegisterForm = () => {
         'MONGODB_PASSWORD',
         'MONGODB_HOST',
         'MONGODB_AUTH_MECH',
+        'MONGODB_AUTH_SOURCE',
         'MONGODB',
       ];
       missingCredentials = compassCredentials.some((key) => !localStorage.getItem(key));
@@ -90,6 +91,7 @@ const NewRegisterForm = () => {
             password: localStorage.getItem('MONGODB_PASSWORD'),
             host: localStorage.getItem('MONGODB_HOST'),
             authMech: localStorage.getItem('MONGODB_AUTH_MECH'),
+            authSource: localStorage.getItem('MONGODB_AUTH_SOURCE'),
             mongoDB: localStorage.getItem('MONGODB'),
           };
         }
