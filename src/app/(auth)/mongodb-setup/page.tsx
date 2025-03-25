@@ -17,6 +17,7 @@ export default function MongoDBSetup() {
   const [cluster, setCluster] = useState('');
   const [mongoDB, setMongoDB] = useState('compass');
   const [authMech, setAuthMech] = useState('');
+  const [authSource, setAuthSource] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [t, setT] = useState(translations.en);
@@ -32,6 +33,7 @@ export default function MongoDBSetup() {
     host: '',
     mongoDB: 'compass',
     authMech: 'Default',
+    authSource: '',
   });
 
   useEffect(() => {
@@ -46,6 +48,7 @@ export default function MongoDBSetup() {
     const savedCluster = localStorage.getItem('MONGODB_CLUSTER');
     const savedMongoDB = localStorage.getItem('MONGODB');
     const savedAuthMech = localStorage.getItem('MONGODB_AUTH_MECH');
+    const savedAuthSource = localStorage.getItem('MONGODB_AUTH_SOURCE');
     const savedMongoAcc = localStorage.getItem('MONGO_ACC');
 
     if (savedUsername) {
@@ -72,6 +75,10 @@ export default function MongoDBSetup() {
       setAuthMech(savedAuthMech);
       setFormData((prev) => ({ ...prev, authMech: savedAuthMech }));
     }
+    if (savedAuthSource) {
+      setAuthSource(savedAuthSource);
+      setFormData((prev) => ({ ...prev, authSource: savedAuthSource }));
+    }
     if (savedMongoAcc) {
       setMongoAcc(savedMongoAcc === 'true');
     }
@@ -91,7 +98,7 @@ export default function MongoDBSetup() {
     try {
       // Construct payload based on connection type
       const payload = mongoAcc
-        ? { username, password, host, mongoDB, authMech } // For Compass
+        ? { username, password, host, mongoDB, authMech, authSource } // For Compass
         : { username, password, host, cluster, mongoDB }; // For Atlas
 
       const response = await fetch(`${backendUrl}/api/auth/verify-mongodb`, {
@@ -118,6 +125,7 @@ export default function MongoDBSetup() {
         localStorage.setItem('MONGODB_CLUSTER', cluster);
         localStorage.setItem('MONGODB', mongoDB);
         localStorage.setItem('MONGODB_AUTH_MECH', authMech);
+        localStorage.setItem('MONGODB_AUTH_SOURCE', authSource);
         handleSuccess(
           true,
           null,
@@ -168,6 +176,9 @@ export default function MongoDBSetup() {
       case 'authMech':
         setAuthMech(value);
         break;
+      case 'authSource':
+        setAuthSource(value);
+        break;
     }
   };
 
@@ -195,11 +206,10 @@ export default function MongoDBSetup() {
               localStorage.setItem('MONGO_ACC', 'true');
               localStorage.setItem('MONGODB', 'compass');
             }}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 ${
-              mongoAcc
-                ? 'bg-black text-white shadow-md'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 ${mongoAcc
+              ? 'bg-black text-white shadow-md'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
           >
             <Home size={18} />
             <span className="text-sm">MongoDB Compass</span>
@@ -211,11 +221,10 @@ export default function MongoDBSetup() {
               localStorage.setItem('MONGO_ACC', 'false');
               localStorage.setItem('MONGODB', 'atlas');
             }}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 ${
-              !mongoAcc
-                ? 'bg-black text-white shadow-md'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 ${!mongoAcc
+              ? 'bg-black text-white shadow-md'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
           >
             <Server size={18} />
             <span className="text-sm">MongoDB Atlas</span>
@@ -242,9 +251,11 @@ export default function MongoDBSetup() {
                   <span className="text-red-500">{formData.host || '<hostName>'}</span>
                   <span>/?authMechanism=</span>
                   <span className="text-purple-500">{formData.authMech || '<authMech>'}</span>
+                  <span>/?authSource=</span>
+                  <span className="text-yellow-500">{formData.authSource || '<authSource>'}</span>
                 </code>
               </div>
-              <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
+              <div className="mt-4 grid grid-cols-3 gap-2 text-sm">
                 <div className="flex items-center">
                   <div className="w-3 h-3 bg-blue-600 rounded-full mr-2"></div>
                   <span>Username</span>
@@ -260,6 +271,10 @@ export default function MongoDBSetup() {
                 <div className="flex items-center">
                   <div className="w-3 h-3 bg-purple-600 rounded-full mr-2"></div>
                   <span>authMechanism</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="w-3 h-3 bg-yellow-600 rounded-full mr-2"></div>
+                  <span>authSource</span>
                 </div>
               </div>
             </div>
@@ -314,17 +329,15 @@ export default function MongoDBSetup() {
                 <div className="relative inline-flex items-center p-1 rounded-md cursor-pointer">
                   <div className="flex border border-black rounded-md overflow-hidden">
                     <button
-                      className={`px-3 py-1 transition-all duration-300 ${
-                        toggle ? 'bg-black text-white' : 'bg-transparent text-black'
-                      }`}
+                      className={`px-3 py-1 transition-all duration-300 ${toggle ? 'bg-black text-white' : 'bg-transparent text-black'
+                        }`}
                       onClick={() => setToggle(true)}
                     >
                       Yes
                     </button>
                     <button
-                      className={`px-4 py-1 transition-all duration-300 ${
-                        toggle ? 'bg-transparent text-black' : 'bg-black text-white'
-                      }`}
+                      className={`px-4 py-1 transition-all duration-300 ${toggle ? 'bg-transparent text-black' : 'bg-black text-white'
+                        }`}
                       onClick={() => setToggle(false)}
                     >
                       No
@@ -350,7 +363,7 @@ export default function MongoDBSetup() {
             <form onSubmit={handleSubmit}>
               {mongoAcc ? (
                 <div
-                  className={`grid grid-cols-2 gap-4 mt-6 transition-all duration-500 delay-500 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+                  className={`grid grid-cols-3 gap-4 mt-6 transition-all duration-500 delay-500 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
                 >
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
@@ -400,7 +413,7 @@ export default function MongoDBSetup() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      authMechanism
+                      Auth Mechanism
                     </label>
                     <select
                       name="authMech"
@@ -412,6 +425,20 @@ export default function MongoDBSetup() {
                       <option value="SCRAM-SHA-1">SCRAM-SHA-1</option>
                       <option value="SCRAM-SHA-256">SCRAM-SHA-256</option>
                     </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Auth Source
+                    </label>
+                    <input
+                      name="authSource"
+                      type="text"
+                      required
+                      value={formData.authSource}
+                      onChange={handleChange}
+                      placeholder={"Enter authSource"}
+                      className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500 text-sm transition-all duration-300"
+                    />
                   </div>
                 </div>
               ) : (
