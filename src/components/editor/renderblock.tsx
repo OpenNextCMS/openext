@@ -1,6 +1,9 @@
 'use client';
 import { useDroppable } from '@dnd-kit/core';
-import { GripVertical, Type, Columns, MousePointerClick, Edit2, Eraser, Trash2, Heart } from 'lucide-react';
+import { GripVertical, Type, Columns, MousePointerClick, Edit2, Trash2, Heart } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Button } from '../ui/button';
+
 
 interface Block {
   type: 'column' | 'text';
@@ -18,17 +21,44 @@ const RenderBlock = ({ block }: { block: Block }) => {
           <span>Column Layout</span>
         </div>
         <div className="absolute -top-3 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10 flex gap-1">
-          <button className="bg-primary text-primary-foreground text-xs px-2 py-1 rounded hover:bg-primary/90 transition-colors">
-            <Edit2 className="h-4 w-4" />
-          </button>
-          <button className="bg-destructive text-destructive-foreground text-xs px-2 py-1 rounded hover:bg-destructive/90 transition-colors">
-            <Trash2 className="h-4 w-4" />
-          </button>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button className="bg-primary text-primary-foreground text-xs px-2 py-1 rounded hover:bg-primary/90 transition-colors">
+                  <Edit2 className="h-4 w-4" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Edit</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button className="bg-destructive text-destructive-foreground text-xs px-2 py-1 rounded hover:bg-destructive/90 transition-colors">
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Delete</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
         <div className="absolute -bottom-3 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10 flex gap-1">
-          <button className="bg-primary text-primary-foreground text-xs p-2 rounded-full hover:bg-primary/90 transition-colors hover:text-yellow-500">
-            <Heart className="h-4 w-4" />
-          </button>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button className="bg-primary text-primary-foreground text-xs p-2 rounded-full hover:bg-primary/90 transition-colors hover:text-yellow-500">
+                  <Heart className="h-4 w-4" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>My Design</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
         <div className="flex gap-4 border p-4 rounded-lg shadow-sm group-hover:shadow-md transition-all group-hover:border-primary">
           {block.children?.map((childBlocks, index) => (
