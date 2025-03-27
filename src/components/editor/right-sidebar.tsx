@@ -1,6 +1,6 @@
 'use client';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Pointer, Palette, Sliders, ChevronDown, ChevronRight, History, PaletteIcon, Droplets, Link, Plus } from 'lucide-react';
+import { Pointer, Palette, Sliders, ChevronDown, ChevronRight, Link, Plus, Square, SquareDashed } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/collapsible';
 import { Button } from '../ui/button';
 import { useState } from 'react';
@@ -14,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../ui/select';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 
 export default function RightSidebar() {
@@ -26,9 +27,61 @@ export default function RightSidebar() {
   const [effectsOpen, setEffectsOpen] = useState(false);
   const [positionOpen, setPositionOpen] = useState(false);
   const [boxShadow, setBoxShadow] = useState('none');
-  const [spacingOpen, setSpacingOpen] = useState(false);
   const [colorMode] = useState('solid');
 
+  // Spacing
+  const [spacingOpen, setSpacingOpen] = useState(false);
+  const [spacingMargin, setSpacingMargin] = useState(false);
+  const [spacingPadding, setSpacingPadding] = useState(false);
+  const [margin, setMargin] = useState({
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+  });
+  const [padding, setPadding] = useState({
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+  });
+  const marginChanges = (value: string, position: 'top' | 'right' | 'bottom' | 'left' | 'all') => {
+    if (spacingMargin) {
+      setMargin((prev) => ({
+        ...prev,
+        [position]: value,
+      }));
+    }
+    else {
+      setMargin((prev) => ({
+        ...prev,
+        top: Number(value),
+        right: Number(value),
+        bottom: Number(value),
+        left: Number(value),
+      }));
+    }
+  }
+  const paddingChanges = (value: string, position: 'top' | 'right' | 'bottom' | 'left' | 'all') => {
+    if (spacingPadding) {
+      setPadding((prev) => ({
+        ...prev,
+        [position]: value,
+      }));
+    }
+    else {
+      setPadding((prev) => ({
+        ...prev,
+        top: Number(value),
+        right: Number(value),
+        bottom: Number(value),
+        left: Number(value),
+      }));
+    }
+  }
+
+  localStorage.setItem('margin', JSON.stringify(margin));
+  localStorage.setItem('padding', JSON.stringify(padding));
 
   const boxShadowPresets = [
     { name: 'None', value: 'none' },
@@ -79,37 +132,94 @@ export default function RightSidebar() {
               </div>
               <CollapsibleContent>
                 <div className="px-3 pb-3">
-                  <div className="aspect-square relative border border-dashed rounded-md p-8 mb-3">
-                    <div className="absolute inset-0 flex items-center justify-center text-xs opacity-70">
-                      Margin
-                    </div>
-                    <div className="h-full w-full border relative bg-background rounded-md p-8">
-                      <div className="absolute inset-0 flex items-center justify-center text-xs opacity-70">
-                        Padding
-                      </div>
-                      <div className="h-full w-full bg-primary/20 rounded-sm flex items-center justify-center text-xs">
-                        Content
-                      </div>
-                    </div>
-                  </div>
                   <div>
                     <div>
-                      <Label className="text-xs mb-1.5 block m-2">Margin</Label>
-                      <div className="grid grid-cols-2 gap-2">
-                        <Input placeholder="Top" className="h-7 text-xs" />
-                        <Input placeholder="Right" className="h-7 text-xs" />
-                        <Input placeholder="Bottom" className="h-7 text-xs" />
-                        <Input placeholder="Left" className="h-7 text-xs" />
+                      <div className='flex items-center justify-between'>
+                        <Label className="text-xs mb-1.5 block m-2">Margin</Label>
+                        <div className="flex items-center gap-2">
+                          <button onClick={() => setSpacingMargin(false)}>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Square className="h-4 w-4" />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>All</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </button>
+                          <button onClick={() => setSpacingMargin(true)}>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <SquareDashed className="h-4 w-4" />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Custom</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </button>
+                        </div>
                       </div>
+                      {spacingMargin ? (
+                        <div className="grid grid-cols-2 gap-2">
+                          <Input placeholder="Top" className="h-7 text-xs" onChange={(e) => marginChanges(e.target.value, 'top')} />
+                          <Input placeholder="Right" className="h-7 text-xs" onChange={(e) => marginChanges(e.target.value, 'right')} />
+                          <Input placeholder="Bottom" className="h-7 text-xs" onChange={(e) => marginChanges(e.target.value, 'bottom')} />
+                          <Input placeholder="Left" className="h-7 text-xs" onChange={(e) => marginChanges(e.target.value, 'left')} />
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-2 gap-2">
+                          <Input placeholder="margin" className="h-7 text-xs" onChange={(e) => marginChanges(e.target.value, 'all')} />
+                        </div>
+                      )}
                     </div>
                     <div>
-                      <Label className="text-xs mb-1.5 block m-2">Padding</Label>
-                      <div className="grid grid-cols-2 gap-2">
-                        <Input placeholder="Top" className="h-7 text-xs" />
-                        <Input placeholder="Right" className="h-7 text-xs" />
-                        <Input placeholder="Bottom" className="h-7 text-xs" />
-                        <Input placeholder="Left" className="h-7 text-xs" />
+                      <div className='flex items-center justify-between mt-1'>
+                        <Label className="text-xs mb-1.5 block m-2">Padding</Label>
+                        <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2">
+                            <button onClick={() => setSpacingPadding(false)}>
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Square className="h-4 w-4" />
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>All</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </button>
+                            <button onClick={() => setSpacingPadding(true)}>
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <SquareDashed className="h-4 w-4" />
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Custom</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </button>
+                          </div>
+                        </div>
                       </div>
+                      {spacingPadding ? (
+                        <div className="grid grid-cols-2 gap-2">
+                          <Input placeholder="Top" className="h-7 text-xs" onChange={(e) => paddingChanges(e.target.value, 'top')} />
+                          <Input placeholder="Right" className="h-7 text-xs" onChange={(e) => paddingChanges(e.target.value, 'right')} />
+                          <Input placeholder="Bottom" className="h-7 text-xs" onChange={(e) => paddingChanges(e.target.value, 'bottom')} />
+                          <Input placeholder="Left" className="h-7 text-xs" onChange={(e) => paddingChanges(e.target.value, 'left')} />
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-2 gap-2">
+                          <Input placeholder="padding" className="h-7 text-xs" onChange={(e) => paddingChanges(e.target.value, 'all')} />
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
