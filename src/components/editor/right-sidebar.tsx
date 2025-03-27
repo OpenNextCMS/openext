@@ -1,6 +1,6 @@
 'use client';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Pointer, Palette, Sliders, ChevronDown, ChevronRight, History, PaletteIcon, Droplets, Link } from 'lucide-react';
+import { Pointer, Palette, Sliders, ChevronDown, ChevronRight, History, PaletteIcon, Droplets, Link, Plus } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/collapsible';
 import { Button } from '../ui/button';
 import { useState } from 'react';
@@ -914,20 +914,98 @@ export default function RightSidebar() {
         </TabsContent>
 
         <TabsContent value="properties" className="h-full overflow-auto p-4">
-          <div className="rounded-lg border p-4 bg-muted/20">
-            <div className="flex items-center gap-2 mb-4">
-              <h3 className="text-sm font-medium">Selection</h3>
-              <Pointer className="h-4 w-4" />
+          <div className="space-y-4">
+            <div className="rounded-lg border p-4 bg-muted/20">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-medium flex items-center gap-2">
+                  <Pointer className="h-4 w-4" />
+                  Element Properties
+                </h3>
+                <Button variant="outline" size="sm" className="h-7 text-xs">
+                  Apply to All
+                </Button>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex flex-col gap-1.5">
+                  <Label htmlFor="element-id" className="text-xs">Element ID</Label>
+                  <Input id="element-id" placeholder="Enter element ID" className="h-8 text-sm" />
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <Label htmlFor="element-class" className="text-xs">CSS Classes</Label>
+                  <Input id="element-class" placeholder="Enter CSS classes" className="h-8 text-sm" />
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <Label htmlFor="element-link" className="text-xs">Link URL</Label>
+                  <Input id="element-link" placeholder="https://example.com" className="h-8 text-sm" />
+                </div>
+
+                <div className="flex items-center gap-2 mt-2">
+                  <input type="checkbox" id="new-tab" className="h-4 w-4" />
+                  <Label htmlFor="new-tab" className="text-xs">Open in new tab</Label>
+                </div>
+              </div>
             </div>
 
-            <p className="text-sm text-muted-foreground mb-4">
-              You don&apos;t have any selected element.
-            </p>
+            <div className="rounded-lg border p-4">
+              <h3 className="text-sm font-medium mb-3">Accessibility</h3>
+              <div className="space-y-3">
+                <div className="flex flex-col gap-1.5">
+                  <Label htmlFor="aria-label" className="text-xs">ARIA Label</Label>
+                  <Input id="aria-label" placeholder="Describe element purpose" className="h-8 text-sm" />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <Label htmlFor="aria-role" className="text-xs">ARIA Role</Label>
+                  <select id="aria-role" className="h-8 rounded-md border border-input bg-background px-3 py-1 text-sm">
+                    <option value="">None</option>
+                    <option value="button">Button</option>
+                    <option value="link">Link</option>
+                    <option value="heading">Heading</option>
+                    <option value="img">Image</option>
+                  </select>
+                </div>
+              </div>
+            </div>
 
-            <ul className="list-disc pl-5 text-sm space-y-2 text-muted-foreground">
-              <li>Select an element from the canvas.</li>
-              <li>Pick any style from the Style Catalog.</li>
-            </ul>
+            <div className="rounded-lg border p-4">
+              <h3 className="text-sm font-medium mb-3">Custom Attributes</h3>
+              <div className="space-y-3">
+                <div className="grid grid-cols-4 gap-2">
+                  <div className="col-span-2">
+                    <Input placeholder="Name" className="h-8 text-sm" />
+                  </div>
+                  <div className="col-span-2">
+                    <Input placeholder="Value" className="h-8 text-sm" />
+                  </div>
+                </div>
+                <Button variant="outline" size="sm" className="w-full h-8 text-xs">
+                  <Plus className="h-3.5 w-3.5 mr-1" /> Add Attribute
+                </Button>
+              </div>
+            </div>
+
+            <div className="rounded-lg border p-4">
+              <h3 className="text-sm font-medium mb-3">Events</h3>
+              <div className="space-y-3">
+                <div className="flex flex-col gap-1.5">
+                  <Label className="text-xs">On Click</Label>
+                  <Select defaultValue="none">
+                    <SelectTrigger className="h-8 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">None</SelectItem>
+                      <SelectItem value="link">Navigate to URL</SelectItem>
+                      <SelectItem value="modal">Open Modal</SelectItem>
+                      <SelectItem value="submit">Submit Form</SelectItem>
+                      <SelectItem value="custom">Custom JavaScript</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
           </div>
         </TabsContent>
       </Tabs>
