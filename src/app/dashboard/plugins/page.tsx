@@ -306,6 +306,10 @@ export default function PluginManagementPage() {
 
         <Tabs defaultValue="installed" className="w-full">
           <TabsList className="grid w-full grid-cols-3 mb-8 h-auto">
+            <TabsTrigger value="upload" className="text-base py-3">
+              <Upload className="w-4 h-4 mr-2" />
+              Upload Plugin
+            </TabsTrigger>
             <TabsTrigger value="installed" className="text-base py-3">
               <Package className="w-4 h-4 mr-2" />
               Installed Plugins
@@ -313,10 +317,6 @@ export default function PluginManagementPage() {
             <TabsTrigger value="marketplace" className="text-base py-3">
               <Download className="w-4 h-4 mr-2" />
               Plugin Marketplace
-            </TabsTrigger>
-            <TabsTrigger value="upload" className="text-base py-3">
-              <Upload className="w-4 h-4 mr-2" />
-              Upload Plugin
             </TabsTrigger>
           </TabsList>
 
@@ -452,8 +452,8 @@ export default function PluginManagementPage() {
                                     <svg
                                       key={i}
                                       className={`w-4 h-4 ${i < Math.floor(plugin.rating)
-                                          ? "text-yellow-400 fill-yellow-400"
-                                          : "text-gray-300 fill-gray-300"
+                                        ? "text-yellow-400 fill-yellow-400"
+                                        : "text-gray-300 fill-gray-300"
                                         }`}
                                       xmlns="http://www.w3.org/2000/svg"
                                       viewBox="0 0 24 24"
@@ -495,10 +495,10 @@ export default function PluginManagementPage() {
                 <CardContent className="pb-0">
                   <div
                     className={`relative rounded-lg p-8 transition-all duration-300 ease-in-out ${isDragging
-                        ? "bg-primary/10 border-2 border-dashed border-primary"
-                        : file
-                          ? "bg-success/10 border-2 border-dashed border-success"
-                          : "bg-muted/30 border-2 border-dashed border-muted-foreground/30 hover:border-primary/50 hover:bg-muted/50"
+                      ? "bg-primary/10 border-2 border-dashed border-primary"
+                      : file
+                        ? "bg-success/10 border-2 border-dashed border-success"
+                        : "bg-muted/30 border-2 border-dashed border-muted-foreground/30 hover:border-primary/50 hover:bg-muted/50"
                       }`}
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
@@ -543,10 +543,10 @@ export default function PluginManagementPage() {
                         >
                           <div
                             className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${uploadStatus === "success"
-                                ? "bg-success/20"
-                                : uploadStatus === "error"
-                                  ? "bg-destructive/20"
-                                  : "bg-primary/10"
+                              ? "bg-success/20"
+                              : uploadStatus === "error"
+                                ? "bg-destructive/20"
+                                : "bg-primary/10"
                               }`}
                           >
                             {uploadStatus === "success" ? (
