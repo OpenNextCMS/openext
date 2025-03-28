@@ -1,6 +1,6 @@
 'use client';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Pointer, Palette, Sliders, ChevronDown, ChevronRight, Link, Plus, Square, SquareDashed } from 'lucide-react';
+import { Pointer, Palette, Sliders, ChevronDown, ChevronRight, Link, Plus, Square, SquareDashed, ArrowBigUp, ArrowBigDown, ArrowBigRight, ArrowBigLeft } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/collapsible';
 import { Button } from '../ui/button';
 import { useState } from 'react';
@@ -18,12 +18,10 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 
 
 export default function RightSidebar() {
-  const [displayOpen, setDisplayOpen] = useState(false);
   const [bgOpen, setBgOpen] = useState(false);
   const [sizeOpen, setSizeOpen] = useState(false);
   const [fontOpen, setFontOpen] = useState(false);
   const [borderOpen, setBorderOpen] = useState(false);
-  const [displayFlex, setDisplayFlex] = useState(false);
   const [effectsOpen, setEffectsOpen] = useState(false);
   const [positionOpen, setPositionOpen] = useState(false);
   const [boxShadow, setBoxShadow] = useState('none');
@@ -82,6 +80,16 @@ export default function RightSidebar() {
 
   localStorage.setItem('margin', JSON.stringify(margin));
   localStorage.setItem('padding', JSON.stringify(padding));
+
+  // Display
+  const [displayOpen, setDisplayOpen] = useState(false);
+  const [displayFlex, setDisplayFlex] = useState(false);
+  const [display, setDisplay] = useState('none');
+
+  const displayChanges = (value: string) => {
+    setDisplay(value);
+    setDisplayFlex(value === 'flex');
+  }
 
   const boxShadowPresets = [
     { name: 'None', value: 'none' },
@@ -250,7 +258,7 @@ export default function RightSidebar() {
                 <div className="px-3 pb-3">
                   <div className="flex items-center gap-2 mb-3">
                     <Label className="text-xs w-16">Display</Label>
-                    <Select defaultValue="none" onValueChange={(value) => setDisplayFlex(value === 'flex')}>
+                    <Select defaultValue="none" onValueChange={(value) => displayChanges(value)}>
                       <SelectTrigger className="h-8 text-xs flex-1">
                         <SelectValue />
                       </SelectTrigger>
@@ -266,19 +274,40 @@ export default function RightSidebar() {
                   </div>
                   {displayFlex && (
                     <div className="space-y-2">
-                      <div className="flex items-center gap-2">
+                      <div>
                         <Label className="text-xs w-16">Direction</Label>
-                        <Select defaultValue="row">
-                          <SelectTrigger className="h-8 text-xs flex-1">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="row">row</SelectItem>
-                            <SelectItem value="row-reverse">row-reverse</SelectItem>
-                            <SelectItem value="column">column</SelectItem>
-                            <SelectItem value="column-reverse">column-reverse</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <div>
+                        <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="outline" size="sm" className="h-8 text-xs">
+                                  <ArrowBigDown className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Vertical</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="outline" size="sm" className="h-8 text-xs">
+                                  <ArrowBigUp className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Vertical-Reverse</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                          <Button variant="outline" size="sm" className="h-8 text-xs">
+                            <ArrowBigRight className="h-4 w-4" />
+                          </Button>
+                          <Button variant="outline" size="sm" className="h-8 text-xs">
+                            <ArrowBigLeft className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
                       <div className="flex items-center gap-2">
                         <Label className="text-xs w-16">Align</Label>
