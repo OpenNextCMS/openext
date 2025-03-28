@@ -25,7 +25,6 @@ export default function RightSidebar() {
   const [effectsOpen, setEffectsOpen] = useState(false);
   const [positionOpen, setPositionOpen] = useState(false);
   const [boxShadow, setBoxShadow] = useState('none');
-  const [colorMode] = useState('solid');
 
   // Spacing
   const [spacingOpen, setSpacingOpen] = useState(false);
@@ -77,6 +76,9 @@ export default function RightSidebar() {
       }));
     }
   }
+
+  // Background
+  const [bgOption, setBgOption] = useState('color');
 
   localStorage.setItem('margin', JSON.stringify(margin));
   localStorage.setItem('padding', JSON.stringify(padding));
@@ -525,16 +527,34 @@ export default function RightSidebar() {
               </div>
               <CollapsibleContent>
                 <div className="px-3 pb-3">
-                  <div className="flex flex-col gap-3">
+                  <div className="space-y-3">
                     <div className="space-y-1.5">
-                      <Label className="text-xs">Color</Label>
-                      <div className="flex gap-2">
-                        <div className="w-7 h-7 rounded-md border bg-primary"></div>
-                        <Input className="h-8 text-xs flex-1" value="#0070f3" />
-                      </div>
+                      <Label className="text-xs">Background Type</Label>
+                      <Select defaultValue="color" onValueChange={(value) => setBgOption(value)}>
+                        <SelectTrigger className="h-8 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="color">Color</SelectItem>
+                          <SelectItem value="gradient">Gradient</SelectItem>
+                          <SelectItem value="image">Image</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
 
-                    {colorMode === 'gradient' && (
+                    {/* Background Color */}
+                    {bgOption === 'color' && (
+                      <div className="space-y-1.5">
+                        <Label className="text-xs">Color</Label>
+                        <div className="flex gap-2">
+                          <div className="w-7 h-7 rounded-md border bg-primary"></div>
+                          <Input className="h-8 text-xs flex-1" value="#0070f3" />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Gradient Options */}
+                    {bgOption === 'gradient' && (
                       <div className="space-y-1.5">
                         <Label className="text-xs">Gradient Type</Label>
                         <Select defaultValue="linear">
@@ -550,45 +570,47 @@ export default function RightSidebar() {
                       </div>
                     )}
 
-                    <div className="space-y-1.5">
-                      <Label className="text-xs">Image</Label>
-                      <div className="flex gap-2">
-                        <Input className="h-8 text-xs flex-1" placeholder="URL or select file" />
-                        <Button variant="outline" className="h-8 text-xs">Browse</Button>
+                    {/* Background Image */}
+                    {bgOption === 'image' && (
+                      <div className="space-y-1.5">
+                        <Label className="text-xs">Image</Label>
+                        <div className="flex gap-2">
+                          <Input className="h-8 text-xs flex-1" placeholder="URL or select file" />
+                          <Button variant="outline" className="h-8 text-xs">Browse</Button>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <Label className="text-xs mb-1.5 block">Size</Label>
+                            <Select defaultValue="cover">
+                              <SelectTrigger className="h-8 text-xs">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="cover">cover</SelectItem>
+                                <SelectItem value="contain">contain</SelectItem>
+                                <SelectItem value="auto">auto</SelectItem>
+                                <SelectItem value="100%">100%</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div>
+                            <Label className="text-xs mb-1.5 block">Position</Label>
+                            <Select defaultValue="center">
+                              <SelectTrigger className="h-8 text-xs">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="center">center</SelectItem>
+                                <SelectItem value="top">top</SelectItem>
+                                <SelectItem value="right">right</SelectItem>
+                                <SelectItem value="bottom">bottom</SelectItem>
+                                <SelectItem value="left">left</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <Label className="text-xs mb-1.5 block">Size</Label>
-                        <Select defaultValue="cover">
-                          <SelectTrigger className="h-8 text-xs">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="cover">cover</SelectItem>
-                            <SelectItem value="contain">contain</SelectItem>
-                            <SelectItem value="auto">auto</SelectItem>
-                            <SelectItem value="100%">100%</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div>
-                        <Label className="text-xs mb-1.5 block">Position</Label>
-                        <Select defaultValue="center">
-                          <SelectTrigger className="h-8 text-xs">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="center">center</SelectItem>
-                            <SelectItem value="top">top</SelectItem>
-                            <SelectItem value="right">right</SelectItem>
-                            <SelectItem value="bottom">bottom</SelectItem>
-                            <SelectItem value="left">left</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
+                    )}
                   </div>
                 </div>
               </CollapsibleContent>
