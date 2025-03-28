@@ -1,6 +1,6 @@
 'use client';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Pointer, Palette, Sliders, ChevronDown, ChevronRight, Link, Plus, Square, SquareDashed, ArrowBigUp, ArrowBigDown, ArrowBigRight, ArrowBigLeft } from 'lucide-react';
+import { Pointer, Palette, Sliders, ChevronDown, ChevronRight, Link, Plus, Square, SquareDashed, ArrowBigUp, ArrowBigDown, ArrowBigRight, ArrowBigLeft, AlignHorizontalJustifyStart, AlignHorizontalJustifyCenter, AlignHorizontalJustifyEnd, AlignVerticalSpaceAround, AlignEndHorizontal, AlignStartHorizontal, AlignCenterHorizontal, AlignHorizontalSpaceBetween, AlignHorizontalSpaceAround } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/collapsible';
 import { Button } from '../ui/button';
 import { useState } from 'react';
@@ -116,6 +116,7 @@ export default function RightSidebar() {
           </TabsList>
         </div>
 
+        {/* Styles */}
         <TabsContent value="styles" className="p-0 m-0 h-full">
           <div className="p-4 space-y-3">
             {/* Spacing */}
@@ -274,10 +275,11 @@ export default function RightSidebar() {
                   </div>
                   {displayFlex && (
                     <div className="space-y-2">
+                      {/* Direction */}
                       <div>
                         <Label className="text-xs w-16">Direction</Label>
-                        <div>
-                        <TooltipProvider>
+                        <div className='flex gap-2'>
+                          <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <Button variant="outline" size="sm" className="h-8 text-xs">
@@ -285,7 +287,7 @@ export default function RightSidebar() {
                                 </Button>
                               </TooltipTrigger>
                               <TooltipContent>
-                                <p>Vertical</p>
+                                <p>Row</p>
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
@@ -297,49 +299,173 @@ export default function RightSidebar() {
                                 </Button>
                               </TooltipTrigger>
                               <TooltipContent>
-                                <p>Vertical-Reverse</p>
+                                <p>Row-Reverse</p>
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
-                          <Button variant="outline" size="sm" className="h-8 text-xs">
-                            <ArrowBigRight className="h-4 w-4" />
-                          </Button>
-                          <Button variant="outline" size="sm" className="h-8 text-xs">
-                            <ArrowBigLeft className="h-4 w-4" />
-                          </Button>
+
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="outline" size="sm" className="h-8 text-xs">
+                                  <ArrowBigRight className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Column</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="outline" size="sm" className="h-8 text-xs">
+                                  <ArrowBigLeft className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Column-Reverse</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
+
+                      {/* Align */}
+                      <div>
                         <Label className="text-xs w-16">Align</Label>
-                        <Select defaultValue="center">
-                          <SelectTrigger className="h-8 text-xs flex-1">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="flex-start">flex-start</SelectItem>
-                            <SelectItem value="center">center</SelectItem>
-                            <SelectItem value="flex-end">flex-end</SelectItem>
-                            <SelectItem value="stretch">stretch</SelectItem>
-                            <SelectItem value="baseline">baseline</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <div className='flex gap-2'>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="outline" size="sm" className="h-8 text-xs">
+                                  <AlignStartHorizontal className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Start</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="outline" size="sm" className="h-8 text-xs">
+                                  <AlignCenterHorizontal className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Center</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="outline" size="sm" className="h-8 text-xs">
+                                  <AlignEndHorizontal className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>End</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="outline" size="sm" className="h-8 text-xs">
+                                  <AlignVerticalSpaceAround className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Stretch</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2">
+
+                      {/* Justify */}
+                      <div>
                         <Label className="text-xs w-16">Justify</Label>
-                        <Select defaultValue="space-between">
-                          <SelectTrigger className="h-8 text-xs flex-1">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="flex-start">flex-start</SelectItem>
-                            <SelectItem value="center">center</SelectItem>
-                            <SelectItem value="flex-end">flex-end</SelectItem>
-                            <SelectItem value="space-between">space-between</SelectItem>
-                            <SelectItem value="space-around">space-around</SelectItem>
-                            <SelectItem value="space-evenly">space-evenly</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <div className='grid grid-cols-3 gap-2'>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="outline" size="sm" className="h-8 text-xs">
+                                  <AlignHorizontalJustifyStart className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Start</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="outline" size="sm" className="h-8 text-xs">
+                                  <AlignHorizontalJustifyCenter className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Center</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="outline" size="sm" className="h-8 text-xs">
+                                  <AlignHorizontalJustifyEnd className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>End</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="outline" size="sm" className="h-8 text-xs">
+                                  <AlignHorizontalSpaceBetween className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Space Between</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="outline" size="sm" className="h-8 text-xs">
+                                  <AlignHorizontalSpaceAround className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Space Between</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="outline" size="sm" className="h-8 text-xs">
+                                  <AlignHorizontalSpaceAround className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Space Evenly</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
                       </div>
+
+                      {/* Wrap */}
                       <div className="flex items-center gap-2">
                         <Label className="text-xs w-16">Wrap</Label>
                         <Select defaultValue="nowrap">
@@ -353,6 +479,8 @@ export default function RightSidebar() {
                           </SelectContent>
                         </Select>
                       </div>
+
+                      {/* Gap */}
                       <div className="flex items-center gap-2">
                         <Label className="text-xs w-16">Gap</Label>
                         <div className="flex gap-2 flex-1">
@@ -1052,6 +1180,7 @@ export default function RightSidebar() {
           </div>
         </TabsContent>
 
+        {/* Properties */}
         <TabsContent value="properties" className="h-full overflow-auto p-4">
           <div className="space-y-4">
             <div className="rounded-lg border p-4 bg-muted/20">
