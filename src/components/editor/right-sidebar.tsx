@@ -1,6 +1,6 @@
 'use client';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Pointer, Palette, Sliders, ChevronDown, ChevronRight, History, PaletteIcon, Droplets, Link, Plus } from 'lucide-react';
+import { Pointer, Palette, Sliders, ChevronDown, ChevronRight, Link, Plus, Square, SquareDashed, ArrowBigUp, ArrowBigDown, ArrowBigRight, ArrowBigLeft, AlignHorizontalJustifyStart, AlignHorizontalJustifyCenter, AlignHorizontalJustifyEnd, AlignVerticalSpaceAround, AlignEndHorizontal, AlignStartHorizontal, AlignCenterHorizontal, AlignHorizontalSpaceBetween, AlignHorizontalSpaceAround } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/collapsible';
 import { Button } from '../ui/button';
 import { useState } from 'react';
@@ -14,21 +14,84 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../ui/select';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 
 export default function RightSidebar() {
-  const [displayOpen, setDisplayOpen] = useState(false);
   const [bgOpen, setBgOpen] = useState(false);
   const [sizeOpen, setSizeOpen] = useState(false);
   const [fontOpen, setFontOpen] = useState(false);
   const [borderOpen, setBorderOpen] = useState(false);
-  const [displayFlex, setDisplayFlex] = useState(false);
   const [effectsOpen, setEffectsOpen] = useState(false);
   const [positionOpen, setPositionOpen] = useState(false);
   const [boxShadow, setBoxShadow] = useState('none');
-  const [spacingOpen, setSpacingOpen] = useState(false);
-  const [colorMode] = useState('solid');
 
+  // Spacing
+  const [spacingOpen, setSpacingOpen] = useState(false);
+  const [spacingMargin, setSpacingMargin] = useState(false);
+  const [spacingPadding, setSpacingPadding] = useState(false);
+  const [margin, setMargin] = useState({
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+  });
+  const [padding, setPadding] = useState({
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+  });
+  const marginChanges = (value: string, position: 'top' | 'right' | 'bottom' | 'left' | 'all') => {
+    if (spacingMargin) {
+      setMargin((prev) => ({
+        ...prev,
+        [position]: value,
+      }));
+    }
+    else {
+      setMargin((prev) => ({
+        ...prev,
+        top: Number(value),
+        right: Number(value),
+        bottom: Number(value),
+        left: Number(value),
+      }));
+    }
+  }
+  const paddingChanges = (value: string, position: 'top' | 'right' | 'bottom' | 'left' | 'all') => {
+    if (spacingPadding) {
+      setPadding((prev) => ({
+        ...prev,
+        [position]: value,
+      }));
+    }
+    else {
+      setPadding((prev) => ({
+        ...prev,
+        top: Number(value),
+        right: Number(value),
+        bottom: Number(value),
+        left: Number(value),
+      }));
+    }
+  }
+
+  // Background
+  const [bgOption, setBgOption] = useState('color');
+
+  localStorage.setItem('margin', JSON.stringify(margin));
+  localStorage.setItem('padding', JSON.stringify(padding));
+
+  // Display
+  const [displayOpen, setDisplayOpen] = useState(false);
+  const [displayFlex, setDisplayFlex] = useState(false);
+  const [display, setDisplay] = useState('none');
+
+  const displayChanges = (value: string) => {
+    setDisplay(value);
+    setDisplayFlex(value === 'flex');
+  }
 
   const boxShadowPresets = [
     { name: 'None', value: 'none' },
@@ -55,6 +118,7 @@ export default function RightSidebar() {
           </TabsList>
         </div>
 
+        {/* Styles */}
         <TabsContent value="styles" className="p-0 m-0 h-full">
           <div className="p-4 space-y-3">
             {/* Spacing */}
@@ -79,37 +143,94 @@ export default function RightSidebar() {
               </div>
               <CollapsibleContent>
                 <div className="px-3 pb-3">
-                  <div className="aspect-square relative border border-dashed rounded-md p-8 mb-3">
-                    <div className="absolute inset-0 flex items-center justify-center text-xs opacity-70">
-                      Margin
-                    </div>
-                    <div className="h-full w-full border relative bg-background rounded-md p-8">
-                      <div className="absolute inset-0 flex items-center justify-center text-xs opacity-70">
-                        Padding
-                      </div>
-                      <div className="h-full w-full bg-primary/20 rounded-sm flex items-center justify-center text-xs">
-                        Content
-                      </div>
-                    </div>
-                  </div>
                   <div>
                     <div>
-                      <Label className="text-xs mb-1.5 block m-2">Margin</Label>
-                      <div className="grid grid-cols-2 gap-2">
-                        <Input placeholder="Top" className="h-7 text-xs" />
-                        <Input placeholder="Right" className="h-7 text-xs" />
-                        <Input placeholder="Bottom" className="h-7 text-xs" />
-                        <Input placeholder="Left" className="h-7 text-xs" />
+                      <div className='flex items-center justify-between'>
+                        <Label className="text-xs mb-1.5 block m-2">Margin</Label>
+                        <div className="flex items-center gap-2">
+                          <button onClick={() => setSpacingMargin(false)}>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Square className="h-4 w-4" />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>All</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </button>
+                          <button onClick={() => setSpacingMargin(true)}>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <SquareDashed className="h-4 w-4" />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Custom</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </button>
+                        </div>
                       </div>
+                      {spacingMargin ? (
+                        <div className="grid grid-cols-2 gap-2">
+                          <Input placeholder="Top" className="h-7 text-xs" onChange={(e) => marginChanges(e.target.value, 'top')} />
+                          <Input placeholder="Right" className="h-7 text-xs" onChange={(e) => marginChanges(e.target.value, 'right')} />
+                          <Input placeholder="Bottom" className="h-7 text-xs" onChange={(e) => marginChanges(e.target.value, 'bottom')} />
+                          <Input placeholder="Left" className="h-7 text-xs" onChange={(e) => marginChanges(e.target.value, 'left')} />
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-2 gap-2">
+                          <Input placeholder="margin" className="h-7 text-xs" onChange={(e) => marginChanges(e.target.value, 'all')} />
+                        </div>
+                      )}
                     </div>
                     <div>
-                      <Label className="text-xs mb-1.5 block m-2">Padding</Label>
-                      <div className="grid grid-cols-2 gap-2">
-                        <Input placeholder="Top" className="h-7 text-xs" />
-                        <Input placeholder="Right" className="h-7 text-xs" />
-                        <Input placeholder="Bottom" className="h-7 text-xs" />
-                        <Input placeholder="Left" className="h-7 text-xs" />
+                      <div className='flex items-center justify-between mt-1'>
+                        <Label className="text-xs mb-1.5 block m-2">Padding</Label>
+                        <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2">
+                            <button onClick={() => setSpacingPadding(false)}>
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Square className="h-4 w-4" />
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>All</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </button>
+                            <button onClick={() => setSpacingPadding(true)}>
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <SquareDashed className="h-4 w-4" />
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Custom</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </button>
+                          </div>
+                        </div>
                       </div>
+                      {spacingPadding ? (
+                        <div className="grid grid-cols-2 gap-2">
+                          <Input placeholder="Top" className="h-7 text-xs" onChange={(e) => paddingChanges(e.target.value, 'top')} />
+                          <Input placeholder="Right" className="h-7 text-xs" onChange={(e) => paddingChanges(e.target.value, 'right')} />
+                          <Input placeholder="Bottom" className="h-7 text-xs" onChange={(e) => paddingChanges(e.target.value, 'bottom')} />
+                          <Input placeholder="Left" className="h-7 text-xs" onChange={(e) => paddingChanges(e.target.value, 'left')} />
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-2 gap-2">
+                          <Input placeholder="padding" className="h-7 text-xs" onChange={(e) => paddingChanges(e.target.value, 'all')} />
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -140,7 +261,7 @@ export default function RightSidebar() {
                 <div className="px-3 pb-3">
                   <div className="flex items-center gap-2 mb-3">
                     <Label className="text-xs w-16">Display</Label>
-                    <Select defaultValue="none" onValueChange={(value) => setDisplayFlex(value === 'flex')}>
+                    <Select defaultValue="none" onValueChange={(value) => displayChanges(value)}>
                       <SelectTrigger className="h-8 text-xs flex-1">
                         <SelectValue />
                       </SelectTrigger>
@@ -156,51 +277,197 @@ export default function RightSidebar() {
                   </div>
                   {displayFlex && (
                     <div className="space-y-2">
-                      <div className="flex items-center gap-2">
+                      {/* Direction */}
+                      <div>
                         <Label className="text-xs w-16">Direction</Label>
-                        <Select defaultValue="row">
-                          <SelectTrigger className="h-8 text-xs flex-1">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="row">row</SelectItem>
-                            <SelectItem value="row-reverse">row-reverse</SelectItem>
-                            <SelectItem value="column">column</SelectItem>
-                            <SelectItem value="column-reverse">column-reverse</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <div className='flex gap-2'>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="outline" size="sm" className="h-8 text-xs">
+                                  <ArrowBigDown className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Row</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="outline" size="sm" className="h-8 text-xs">
+                                  <ArrowBigUp className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Row-Reverse</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="outline" size="sm" className="h-8 text-xs">
+                                  <ArrowBigRight className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Column</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="outline" size="sm" className="h-8 text-xs">
+                                  <ArrowBigLeft className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Column-Reverse</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2">
+
+                      {/* Align */}
+                      <div>
                         <Label className="text-xs w-16">Align</Label>
-                        <Select defaultValue="center">
-                          <SelectTrigger className="h-8 text-xs flex-1">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="flex-start">flex-start</SelectItem>
-                            <SelectItem value="center">center</SelectItem>
-                            <SelectItem value="flex-end">flex-end</SelectItem>
-                            <SelectItem value="stretch">stretch</SelectItem>
-                            <SelectItem value="baseline">baseline</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <div className='flex gap-2'>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="outline" size="sm" className="h-8 text-xs">
+                                  <AlignStartHorizontal className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Start</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="outline" size="sm" className="h-8 text-xs">
+                                  <AlignCenterHorizontal className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Center</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="outline" size="sm" className="h-8 text-xs">
+                                  <AlignEndHorizontal className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>End</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="outline" size="sm" className="h-8 text-xs">
+                                  <AlignVerticalSpaceAround className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Stretch</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2">
+
+                      {/* Justify */}
+                      <div>
                         <Label className="text-xs w-16">Justify</Label>
-                        <Select defaultValue="space-between">
-                          <SelectTrigger className="h-8 text-xs flex-1">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="flex-start">flex-start</SelectItem>
-                            <SelectItem value="center">center</SelectItem>
-                            <SelectItem value="flex-end">flex-end</SelectItem>
-                            <SelectItem value="space-between">space-between</SelectItem>
-                            <SelectItem value="space-around">space-around</SelectItem>
-                            <SelectItem value="space-evenly">space-evenly</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <div className='grid grid-cols-3 gap-2'>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="outline" size="sm" className="h-8 text-xs">
+                                  <AlignHorizontalJustifyStart className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Start</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="outline" size="sm" className="h-8 text-xs">
+                                  <AlignHorizontalJustifyCenter className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Center</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="outline" size="sm" className="h-8 text-xs">
+                                  <AlignHorizontalJustifyEnd className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>End</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="outline" size="sm" className="h-8 text-xs">
+                                  <AlignHorizontalSpaceBetween className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Space Between</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="outline" size="sm" className="h-8 text-xs">
+                                  <AlignHorizontalSpaceAround className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Space Between</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="outline" size="sm" className="h-8 text-xs">
+                                  <AlignHorizontalSpaceAround className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Space Evenly</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
                       </div>
+
+                      {/* Wrap */}
                       <div className="flex items-center gap-2">
                         <Label className="text-xs w-16">Wrap</Label>
                         <Select defaultValue="nowrap">
@@ -214,6 +481,8 @@ export default function RightSidebar() {
                           </SelectContent>
                         </Select>
                       </div>
+
+                      {/* Gap */}
                       <div className="flex items-center gap-2">
                         <Label className="text-xs w-16">Gap</Label>
                         <div className="flex gap-2 flex-1">
@@ -258,16 +527,34 @@ export default function RightSidebar() {
               </div>
               <CollapsibleContent>
                 <div className="px-3 pb-3">
-                  <div className="flex flex-col gap-3">
+                  <div className="space-y-3">
                     <div className="space-y-1.5">
-                      <Label className="text-xs">Color</Label>
-                      <div className="flex gap-2">
-                        <div className="w-7 h-7 rounded-md border bg-primary"></div>
-                        <Input className="h-8 text-xs flex-1" value="#0070f3" />
-                      </div>
+                      <Label className="text-xs">Background Type</Label>
+                      <Select defaultValue="color" onValueChange={(value) => setBgOption(value)}>
+                        <SelectTrigger className="h-8 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="color">Color</SelectItem>
+                          <SelectItem value="gradient">Gradient</SelectItem>
+                          <SelectItem value="image">Image</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
 
-                    {colorMode === 'gradient' && (
+                    {/* Background Color */}
+                    {bgOption === 'color' && (
+                      <div className="space-y-1.5">
+                        <Label className="text-xs">Color</Label>
+                        <div className="flex gap-2">
+                          <div className="w-7 h-7 rounded-md border bg-primary"></div>
+                          <Input className="h-8 text-xs flex-1" value="#0070f3" />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Gradient Options */}
+                    {bgOption === 'gradient' && (
                       <div className="space-y-1.5">
                         <Label className="text-xs">Gradient Type</Label>
                         <Select defaultValue="linear">
@@ -283,45 +570,47 @@ export default function RightSidebar() {
                       </div>
                     )}
 
-                    <div className="space-y-1.5">
-                      <Label className="text-xs">Image</Label>
-                      <div className="flex gap-2">
-                        <Input className="h-8 text-xs flex-1" placeholder="URL or select file" />
-                        <Button variant="outline" className="h-8 text-xs">Browse</Button>
+                    {/* Background Image */}
+                    {bgOption === 'image' && (
+                      <div className="space-y-1.5">
+                        <Label className="text-xs">Image</Label>
+                        <div className="flex gap-2">
+                          <Input className="h-8 text-xs flex-1" placeholder="URL or select file" />
+                          <Button variant="outline" className="h-8 text-xs">Browse</Button>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <Label className="text-xs mb-1.5 block">Size</Label>
+                            <Select defaultValue="cover">
+                              <SelectTrigger className="h-8 text-xs">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="cover">cover</SelectItem>
+                                <SelectItem value="contain">contain</SelectItem>
+                                <SelectItem value="auto">auto</SelectItem>
+                                <SelectItem value="100%">100%</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div>
+                            <Label className="text-xs mb-1.5 block">Position</Label>
+                            <Select defaultValue="center">
+                              <SelectTrigger className="h-8 text-xs">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="center">center</SelectItem>
+                                <SelectItem value="top">top</SelectItem>
+                                <SelectItem value="right">right</SelectItem>
+                                <SelectItem value="bottom">bottom</SelectItem>
+                                <SelectItem value="left">left</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <Label className="text-xs mb-1.5 block">Size</Label>
-                        <Select defaultValue="cover">
-                          <SelectTrigger className="h-8 text-xs">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="cover">cover</SelectItem>
-                            <SelectItem value="contain">contain</SelectItem>
-                            <SelectItem value="auto">auto</SelectItem>
-                            <SelectItem value="100%">100%</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div>
-                        <Label className="text-xs mb-1.5 block">Position</Label>
-                        <Select defaultValue="center">
-                          <SelectTrigger className="h-8 text-xs">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="center">center</SelectItem>
-                            <SelectItem value="top">top</SelectItem>
-                            <SelectItem value="right">right</SelectItem>
-                            <SelectItem value="bottom">bottom</SelectItem>
-                            <SelectItem value="left">left</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
+                    )}
                   </div>
                 </div>
               </CollapsibleContent>
@@ -913,6 +1202,7 @@ export default function RightSidebar() {
           </div>
         </TabsContent>
 
+        {/* Properties */}
         <TabsContent value="properties" className="h-full overflow-auto p-4">
           <div className="space-y-4">
             <div className="rounded-lg border p-4 bg-muted/20">
