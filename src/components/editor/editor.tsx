@@ -12,6 +12,12 @@ import { v4 as uuidv4 } from 'uuid';
 import Toolbar from './toolbar';
 import StatusBar from './status-bar';
 import { Suspense } from 'react';
+import { useAppDispatch, useAppSelector } from '@/redux/hooks';
+import {
+  addBlock,
+  addBlockToColumn,
+  setViewMode
+} from '@/redux/canvasSlice';
 
 interface BlockData {
   uniqueId: string;
@@ -19,16 +25,17 @@ interface BlockData {
   type: 'column' | 'text';
   children?: BlockData[][];
   style?: Record<string, string>;
-  [key: string]: unknown;
+  icon?: string; // Only allow string for icon names, not React elements
 }
 
 export default function Editor() {
   const [showLeftSidebar, setShowLeftSidebar] = useState(true);
   const [showRightSidebar, setShowRightSidebar] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
-  const [canvasBlocks, setCanvasBlocks] = useState<BlockData[]>([]);
-  const [viewMode, setViewMode] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
   const [showButton, setShowButton] = useState(true);
+  const dispatch = useAppDispatch();
+  const canvasBlocks = useAppSelector((state) => state.canvas.blocks);
+  const viewMode = useAppSelector((state) => state.canvas.viewMode);
 
   useEffect(() => {
     document.body.style.overflow = 'hidden';
@@ -52,57 +59,85 @@ export default function Editor() {
 
     if (!over) return;
 
-    const blockData: BlockData = {
-      ...(active.data.current as BlockData),
-      uniqueId: uuidv4(),
-    };
+    const blockData = active.data.current;
 
-    setCanvasBlocks((prev) => {
-      if (over.id === 'canvas') {
-        return [...prev, blockData];
-      }
+    if (over.id === 'canvas') {
+      console.log('Adding new block to canvas root');
 
-      if (over.data.current?.type === 'column') {
-        return prev.map((block) =>
-          over.data.current
-            ? updateNestedBlock(
-              block,
-              over.data.current.blockId,
-              over.data.current.columnIndex,
-              blockData
-            )
-            : block
-        );
-      }
-
-      return prev;
-    });
-  };
-
-  const updateNestedBlock = (
-    block: BlockData,
-    targetBlockId: string,
-    columnIndex: number,
-    newBlock: BlockData
-  ): BlockData => {
-    if (block.uniqueId === targetBlockId) {
-      const updatedChildren = [...(block.children || [])];
-      updatedChildren[columnIndex] = [...(updatedChildren[columnIndex] || []), newBlock];
-
-      return { ...block, children: updatedChildren };
-    }
-
-    if (block.children) {
-      return {
-        ...block,
-        children: block.children.map((col) =>
-          col.map((child) => updateNestedBlock(child, targetBlockId, columnIndex, newBlock))
-        ),
+      const newBlock = {
+        content: blockData?.content || '',
+        type: blockData?.type || 'text',
+        icon: blockData?.id || 'defaultIcon',
+        uniqueId: uuidv4(),
+        style: blockData?.style || {},
+        // Add children for column blocks
+        ...(blockData?.type === 'column' ? {
+          children: blockData.id === '1-column' ? [[]] :
+            blockData.id === '2-column' ? [[], []] :
+              blockData.id === '3-column' ? [[], [], []] : []
+        } : {})
       };
+
+      dispatch(addBlock(newBlock));
+      console.log('Block payload before dispatch:', newBlock);
     }
 
-    return block;
+    // Similar modification for column addition logic
+    if (over.data.current?.type === 'column') {
+      console.log('Adding block to column');
+      const blockData = {
+        ...active.data.current,
+        icon: active.data.current?.id || 'defaultIcon',
+        content: active.data.current?.content || '',
+        type: active.data.current?.type || 'text',
+        style: active.data.current?.style || {},
+        uniqueId: uuidv4(),
+        // Add children for column blocks
+        ...(active.data.current?.type === 'column' ? {
+          children: active.data.current.id === '1-column' ? [[]] :
+            active.data.current.id === '2-column' ? [[], []] :
+              active.data.current.id === '3-column' ? [[], [], []] : []
+        } : {})
+      };
+
+      console.log('Block payload for column:', blockData);
+
+      const actionPayload = {
+        targetBlockId: over.data.current.blockId,
+        columnIndex: over.data.current.columnIndex,
+        newBlock: blockData
+      };
+
+      console.log('Full action payload:', actionPayload);
+
+      dispatch(addBlockToColumn(actionPayload));
+    }
   };
+
+  // const updateNestedBlock = (
+  //   block: BlockData,
+  //   targetBlockId: string,
+  //   columnIndex: number,
+  //   newBlock: BlockData
+  // ): BlockData => {
+  //   if (block.uniqueId === targetBlockId) {
+  //     const updatedChildren = [...(block.children || [])];
+  //     updatedChildren[columnIndex] = [...(updatedChildren[columnIndex] || []), newBlock];
+
+  //     return { ...block, children: updatedChildren };
+  //   }
+
+  //   if (block.children) {
+  //     return {
+  //       ...block,
+  //       children: block.children.map((col) =>
+  //         col.map((child) => updateNestedBlock(child, targetBlockId, columnIndex, newBlock))
+  //       ),
+  //     };
+  //   }
+
+  //   return block;
+  // };
 
   return (
     <div className="flex h-screen w-screen flex-col overflow-hidden bg-background text-foreground transition-colors duration-300">

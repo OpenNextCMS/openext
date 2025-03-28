@@ -1,15 +1,39 @@
 'use client';
-import DraggableBlock from './draggableblock';
+import React, { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { X, Search, LayoutGrid, Type, Image as ImageIcon, Heading2, Grip } from 'lucide-react';
+import {
+  X, Search, LayoutGrid, Type, Image as ImageIcon,
+  Heading2, Grip
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import DraggableBlock from './draggableblock';
+
+interface Block {
+  id: string;
+  label: string;
+  type: 'column' | 'text';
+  children?: unknown[];
+  content?: string;
+  icon: React.ReactNode;
+  description: string;
+  uniqueId?: string;
+  style?: Record<string, string>;
+}
 
 const blockCategories: Record<string, Block[]> = {
   layout: [
+    {
+      id: '1-column',
+      label: '1 Column Layout',
+      type: 'column',
+      children: [[]],
+      content: '',
+      icon: <LayoutGrid className="h-4 w-4 mr-2 text-primary" />,
+      description: 'Two equal width columns',
+    },
     {
       id: '2-column',
       label: '2 Column Layout',
@@ -61,15 +85,6 @@ interface BlockProps {
   toggleSidebar: () => void;
 }
 
-interface Block {
-  id: string;
-  label: string;
-  type: string;
-  children?: unknown[];
-  content?: string;
-  icon: React.ReactNode; // Use React.ReactNode instead of JSX.Element
-  description: string;
-}
 
 export default function Block({ toggleSidebar }: BlockProps) {
   const [searchTerm, setSearchTerm] = useState('');
@@ -217,13 +232,16 @@ export default function Block({ toggleSidebar }: BlockProps) {
 }
 
 function BlockItem({ block }: { block: Block }) {
+  const enhancedBlock = {
+    ...block,
+    uniqueId: uuidv4(),
+    style: {},
+  };
+
   return (
-    <div className="group rounded-lg border hover:border-primary transition-colors p-2">
-      <div className="flex items-center mb-1">
-        {block.icon}
-        <DraggableBlock block={{ ...block, id: uuidv4() }} />
-      </div>
-      <p className="text-xs text-muted-foreground pl-8">{block.description}</p>
+    <div className="group rounded-lg border hover:border-primary transition-colors p-2 flex items-center">
+      {block.icon}
+      <DraggableBlock block={enhancedBlock} />
     </div>
   );
 }

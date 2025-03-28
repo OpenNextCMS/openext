@@ -1,21 +1,47 @@
 'use client';
 import { useDroppable } from '@dnd-kit/core';
-import { GripVertical, Type, Columns, MousePointerClick, Edit2, Eraser, Trash2, Heart } from 'lucide-react';
+import {
+  GripVertical, Type, MousePointerClick,
+  Edit2, Trash2, Heart, LayoutGrid,
+  Heading2, Image as ImageIcon, PlusSquare
+} from 'lucide-react';
 
 interface Block {
   type: 'column' | 'text';
   uniqueId: string;
   children?: Block[][];
   content?: string;
+  icon?: string; // Add icon identifier
+  style?: string; // Allow string or number for style values
 }
 
+// Icon mapping function
+const getIconForBlock = (iconId?: string) => {
+  const iconMap = {
+    'text': <Type className="h-4 w-4 text-primary" />,
+    'heading': <Heading2 className="h-4 w-4 text-primary" />,
+    'image': <ImageIcon className="h-4 w-4 text-primary" />,
+    '1-column': <LayoutGrid className="h-4 w-4 text-primary" />,
+    '2-column': <LayoutGrid className="h-4 w-4 text-primary" />,
+    '3-column': <LayoutGrid className="h-4 w-4 text-primary" />,
+    'defaultIcon': <PlusSquare className="h-4 w-4 text-primary" />
+  };
+
+  return iconMap[iconId as keyof typeof iconMap] || iconMap['defaultIcon'];
+};
+
 const RenderBlock = ({ block }: { block: Block }) => {
+
   if (block.type === 'column') {
     return (
-      <div className="relative group mb-6">
+      <div
+        className={`relative group mb-6 ${block.style}`}
+      // className="relative group mb-6"
+      // style={block.style}
+      >
         <div className="absolute -top-3 left-2 bg-primary text-primary-foreground text-xs px-2 py-1 rounded flex items-center opacity-0 group-hover:opacity-100 transition-opacity z-10">
-          <Columns className="h-3 w-3 mr-1" />
-          <span>Column Layout</span>
+          {getIconForBlock(block.icon)}
+          <span className="ml-1">Column Layout</span>
         </div>
         <div className="absolute -top-3 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10 flex gap-1">
           <button className="bg-primary text-primary-foreground text-xs px-2 py-1 rounded hover:bg-primary/90 transition-colors">
@@ -54,10 +80,13 @@ const RenderBlock = ({ block }: { block: Block }) => {
 
   if (block.type === 'text') {
     return (
-      <div className="relative group mb-4">
+      <div
+        className="relative group mb-4"
+      // style={block.style}
+      >
         <div className="absolute -top-3 left-2 bg-primary text-primary-foreground text-xs px-2 py-1 rounded flex items-center opacity-0 group-hover:opacity-100 transition-opacity z-10">
-          <Type className="h-3 w-3 mr-1" />
-          <span>Text Block</span>
+          {getIconForBlock(block.icon)}
+          <span className="ml-1">Text Block</span>
         </div>
         <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10 flex gap-1">
           <button className="bg-primary text-primary-foreground text-xs px-2 py-1 rounded hover:bg-primary/90 transition-colors">
