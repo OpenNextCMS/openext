@@ -2,8 +2,6 @@
 import { useDroppable } from '@dnd-kit/core';
 import { GripVertical, Type, Columns, MousePointerClick, Edit2, Trash2, Heart } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Button } from '../ui/button';
-
 
 interface Block {
   type: 'column' | 'text';
@@ -124,10 +122,11 @@ const ColumnDropZone = ({
   return (
     <div
       ref={setNodeRef}
-      className={`flex-1 border rounded-md p-3 min-h-[150px] transition-colors ${isOver
-        ? 'bg-primary/10 border-primary border-dashed'
-        : 'bg-muted/20 hover:bg-muted/30 border-border'
-        }`}
+      className={`flex-1 border rounded-md p-3 min-h-[150px] transition-colors ${
+        isOver
+          ? 'bg-primary/10 border-primary border-dashed'
+          : 'bg-muted/20 hover:bg-muted/30 border-border'
+      }`}
     >
       {isOver && Array.isArray(children) && children.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-full animate-pulse">

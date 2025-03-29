@@ -130,7 +130,7 @@ export default function UserManagementDashboard() {
       setIsLoading(false);
     }
   }, [backendUrl]); // Depend only on `backendUrl`
-  
+
   useEffect(() => {
     fetchUsers();
   }, [fetchUsers]);

@@ -66,11 +66,11 @@ export default function Editor() {
         return prev.map((block) =>
           over.data.current
             ? updateNestedBlock(
-              block,
-              over.data.current.blockId,
-              over.data.current.columnIndex,
-              blockData
-            )
+                block,
+                over.data.current.blockId,
+                over.data.current.columnIndex,
+                blockData
+              )
             : block
         );
       }

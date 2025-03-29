@@ -16,7 +16,7 @@ async function createConnectionUri(dbName: string) {
     MONGODB_CLUSTER,
     MONGODB_AUTH_MECH,
     MONGODB_AUTH_SOURCE,
-    MONGODB
+    MONGODB,
   } = process.env;
 
   if (!MONGODB_USERNAME || !MONGODB_PASSWORD || !MONGODB_HOST || !MONGODB) {
