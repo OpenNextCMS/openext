@@ -2,8 +2,6 @@
 import { useDroppable } from '@dnd-kit/core';
 import { GripVertical, Type, Columns, MousePointerClick, Edit2, Trash2, Heart } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Button } from '../ui/button';
-
 
 interface Block {
   type: 'column' | 'text';
