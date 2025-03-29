@@ -3,7 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Pointer, Palette, Sliders, ChevronDown, ChevronRight, Link, Plus, Square, SquareDashed, ArrowBigUp, ArrowBigDown, ArrowBigRight, ArrowBigLeft, AlignHorizontalJustifyStart, AlignHorizontalJustifyCenter, AlignHorizontalJustifyEnd, AlignVerticalSpaceAround, AlignEndHorizontal, AlignStartHorizontal, AlignCenterHorizontal, AlignHorizontalSpaceBetween, AlignHorizontalSpaceAround } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/collapsible';
 import { Button } from '../ui/button';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Label } from '../ui/label';
 import { Input } from '../ui/input';
 
@@ -80,16 +80,18 @@ export default function RightSidebar() {
   // Background
   const [bgOption, setBgOption] = useState('color');
 
-  localStorage.setItem('margin', JSON.stringify(margin));
-  localStorage.setItem('padding', JSON.stringify(padding));
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('margin', JSON.stringify(margin));
+      localStorage.setItem('padding', JSON.stringify(padding));
+    }
+  }, [margin, padding]);
 
   // Display
   const [displayOpen, setDisplayOpen] = useState(false);
   const [displayFlex, setDisplayFlex] = useState(false);
-  const [display, setDisplay] = useState('none');
 
   const displayChanges = (value: string) => {
-    setDisplay(value);
     setDisplayFlex(value === 'flex');
   }
 
