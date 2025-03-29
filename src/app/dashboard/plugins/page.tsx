@@ -1,9 +1,9 @@
-"use client"
+'use client';
 
-import type React from "react"
+import type React from 'react';
 
-import { useState, useRef } from "react"
-import { handleSuccess } from "@/utils/successHandler"
+import { useState, useRef } from 'react';
+import { handleSuccess } from '@/utils/successHandler';
 import {
   Loader2,
   Upload,
@@ -20,16 +20,23 @@ import {
   RefreshCw,
   PlusCircle,
   Settings,
-} from "lucide-react"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Progress } from "@/components/ui/progress"
-import { motion, AnimatePresence } from "framer-motion"
-import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Input } from "@/components/ui/input"
-import { Switch } from "@/components/ui/switch"
-import { Label } from "@/components/ui/label"
+} from 'lucide-react';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardFooter,
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import {
   Dialog,
   DialogContent,
@@ -37,216 +44,221 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+} from '@/components/ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 // Mock data for installed plugins
 const installedPlugins = [
   {
-    id: "1",
-    name: "Data Visualizer",
-    version: "1.2.0",
-    description: "Advanced data visualization tools with interactive charts and graphs",
-    author: "DataViz Inc.",
+    id: '1',
+    name: 'Data Visualizer',
+    version: '1.2.0',
+    description: 'Advanced data visualization tools with interactive charts and graphs',
+    author: 'DataViz Inc.',
     isActive: true,
     hasUpdate: false,
-    icon: "📊",
+    icon: '📊',
   },
   {
-    id: "2",
-    name: "Content Editor Pro",
-    version: "2.1.5",
-    description: "Enhanced content editing capabilities with markdown support",
-    author: "EditMaster",
+    id: '2',
+    name: 'Content Editor Pro',
+    version: '2.1.5',
+    description: 'Enhanced content editing capabilities with markdown support',
+    author: 'EditMaster',
     isActive: true,
     hasUpdate: true,
-    icon: "✏️",
+    icon: '✏️',
   },
   {
-    id: "3",
-    name: "SEO Optimizer",
-    version: "1.0.3",
-    description: "Optimize your content for search engines with real-time suggestions",
-    author: "SEO Tools Ltd",
+    id: '3',
+    name: 'SEO Optimizer',
+    version: '1.0.3',
+    description: 'Optimize your content for search engines with real-time suggestions',
+    author: 'SEO Tools Ltd',
     isActive: false,
     hasUpdate: false,
-    icon: "🔍",
+    icon: '🔍',
   },
-]
+];
 
 // Mock data for marketplace plugins
 const marketplacePlugins = [
   {
-    id: "4",
-    name: "Social Media Integration",
-    version: "3.0.1",
-    description: "Connect and share content directly to social media platforms",
-    author: "SocialConnect",
-    downloads: "10.5k",
+    id: '4',
+    name: 'Social Media Integration',
+    version: '3.0.1',
+    description: 'Connect and share content directly to social media platforms',
+    author: 'SocialConnect',
+    downloads: '10.5k',
     rating: 4.7,
-    icon: "🌐",
+    icon: '🌐',
   },
   {
-    id: "5",
-    name: "Advanced Analytics",
-    version: "2.2.0",
-    description: "Comprehensive analytics dashboard with user behavior tracking",
-    author: "AnalyticsHub",
-    downloads: "8.2k",
+    id: '5',
+    name: 'Advanced Analytics',
+    version: '2.2.0',
+    description: 'Comprehensive analytics dashboard with user behavior tracking',
+    author: 'AnalyticsHub',
+    downloads: '8.2k',
     rating: 4.5,
-    icon: "📈",
+    icon: '📈',
   },
   {
-    id: "6",
-    name: "Form Builder",
-    version: "1.5.2",
-    description: "Drag and drop form builder with validation and submission handling",
-    author: "FormCraft",
-    downloads: "15.3k",
+    id: '6',
+    name: 'Form Builder',
+    version: '1.5.2',
+    description: 'Drag and drop form builder with validation and submission handling',
+    author: 'FormCraft',
+    downloads: '15.3k',
     rating: 4.9,
-    icon: "📝",
+    icon: '📝',
   },
-]
+];
 
 export default function PluginManagementPage() {
-  const [file, setFile] = useState<File | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
-  const [isDragging, setIsDragging] = useState(false)
-  const [uploadProgress, setUploadProgress] = useState(0)
-  const [uploadStatus, setUploadStatus] = useState<"idle" | "success" | "error">("idle")
-  const [searchTerm, setSearchTerm] = useState("")
+  const [file, setFile] = useState<File | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadStatus, setUploadStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [searchTerm, setSearchTerm] = useState('');
   const [activePlugins, setActivePlugins] = useState(
     installedPlugins.reduce(
       (acc, plugin) => {
-        acc[plugin.id] = plugin.isActive
-        return acc
+        acc[plugin.id] = plugin.isActive;
+        return acc;
       },
-      {} as Record<string, boolean>,
-    ),
-  )
-  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
-  const [installedPluginsList, setInstalledPluginsList] = useState(installedPlugins)
-  const fileInputRef = useRef<HTMLInputElement>(null)
+      {} as Record<string, boolean>
+    )
+  );
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [installedPluginsList, setInstalledPluginsList] = useState(installedPlugins);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.length) {
-      setFile(e.target.files[0])
-      setUploadStatus("idle")
+      setFile(e.target.files[0]);
+      setUploadStatus('idle');
     }
-  }
+  };
 
   const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragging(true)
-  }
+    e.preventDefault();
+    setIsDragging(true);
+  };
 
   const handleDragLeave = () => {
-    setIsDragging(false)
-  }
+    setIsDragging(false);
+  };
 
   const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragging(false)
+    e.preventDefault();
+    setIsDragging(false);
     if (e.dataTransfer.files?.length) {
-      setFile(e.dataTransfer.files[0])
-      setUploadStatus("idle")
+      setFile(e.dataTransfer.files[0]);
+      setUploadStatus('idle');
     }
-  }
+  };
 
   const handleUpload = async () => {
-    if (!file) return
+    if (!file) return;
 
-    setIsLoading(true)
-    setUploadProgress(0)
+    setIsLoading(true);
+    setUploadProgress(0);
 
     // Simulate progress for better UX
     const progressInterval = setInterval(() => {
       setUploadProgress((prev) => {
         if (prev >= 95) {
-          clearInterval(progressInterval)
-          return 95
+          clearInterval(progressInterval);
+          return 95;
         }
-        return prev + 5
-      })
-    }, 200)
+        return prev + 5;
+      });
+    }, 200);
 
     try {
       // Extract ZIP file and validate plugin structure
-      const formData = new FormData()
-      formData.append("file", file)
+      const formData = new FormData();
+      formData.append('file', file);
 
       // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000))
+      await new Promise((resolve) => setTimeout(resolve, 2000));
 
-      clearInterval(progressInterval)
-      setUploadProgress(100)
+      clearInterval(progressInterval);
+      setUploadProgress(100);
 
       // Simulate successful upload
-      setUploadStatus("success")
-      handleSuccess(true, null, "Plugin uploaded successfully")
+      setUploadStatus('success');
+      handleSuccess(true, null, 'Plugin uploaded successfully');
 
       // Add the new plugin to installed plugins (in a real app, this would come from the API)
       const newPlugin = {
         id: `new-${Date.now()}`,
-        name: file.name.replace(".zip", ""),
-        version: "1.0.0",
-        description: "Custom plugin uploaded by user",
-        author: "You",
+        name: file.name.replace('.zip', ''),
+        version: '1.0.0',
+        description: 'Custom plugin uploaded by user',
+        author: 'You',
         isActive: true,
         hasUpdate: false,
-        icon: "🧩",
-      }
+        icon: '🧩',
+      };
 
       setTimeout(() => {
-        setInstalledPluginsList([newPlugin, ...installedPluginsList])
-        setActivePlugins({ ...activePlugins, [newPlugin.id]: true })
-        setFile(null)
-        setUploadProgress(0)
-      }, 1000)
+        setInstalledPluginsList([newPlugin, ...installedPluginsList]);
+        setActivePlugins({ ...activePlugins, [newPlugin.id]: true });
+        setFile(null);
+        setUploadProgress(0);
+      }, 1000);
     } catch (error) {
-      clearInterval(progressInterval)
-      setUploadProgress(0)
-      setUploadStatus("error")
-      handleSuccess(false, null, "Plugin upload error")
-      return error
+      clearInterval(progressInterval);
+      setUploadProgress(0);
+      setUploadStatus('error');
+      handleSuccess(false, null, 'Plugin upload error');
+      return error;
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const resetUpload = () => {
-    setFile(null)
-    setUploadProgress(0)
-    setUploadStatus("idle")
-  }
+    setFile(null);
+    setUploadProgress(0);
+    setUploadStatus('idle');
+  };
 
   const triggerFileInput = () => {
-    fileInputRef.current?.click()
-  }
+    fileInputRef.current?.click();
+  };
 
   const togglePluginStatus = (id: string) => {
     setActivePlugins((prev) => ({
       ...prev,
       [id]: !prev[id],
-    }))
+    }));
 
-    handleSuccess(true, null, `Plugin ${activePlugins[id] ? "disabled" : "enabled"} successfully`)
-  }
+    handleSuccess(true, null, `Plugin ${activePlugins[id] ? 'disabled' : 'enabled'} successfully`);
+  };
 
   const deletePlugin = (id: string) => {
-    setInstalledPluginsList((prev) => prev.filter((plugin) => plugin.id !== id))
-    handleSuccess(true, null, "Plugin deleted successfully")
-    setConfirmDeleteId(null)
-  }
+    setInstalledPluginsList((prev) => prev.filter((plugin) => plugin.id !== id));
+    handleSuccess(true, null, 'Plugin deleted successfully');
+    setConfirmDeleteId(null);
+  };
 
   const installPlugin = (id: string) => {
-    const pluginToInstall = marketplacePlugins.find((plugin) => plugin.id === id)
-    if (!pluginToInstall) return
+    const pluginToInstall = marketplacePlugins.find((plugin) => plugin.id === id);
+    if (!pluginToInstall) return;
 
     // Check if already installed
     if (installedPluginsList.some((plugin) => plugin.name === pluginToInstall.name)) {
-      handleSuccess(false, null, "Plugin already installed")
-      return
+      handleSuccess(false, null, 'Plugin already installed');
+      return;
     }
 
     // Convert marketplace plugin to installed plugin
@@ -254,44 +266,44 @@ export default function PluginManagementPage() {
       ...pluginToInstall,
       isActive: true,
       hasUpdate: false,
-    }
+    };
 
-    setInstalledPluginsList((prev) => [newInstalledPlugin, ...prev])
+    setInstalledPluginsList((prev) => [newInstalledPlugin, ...prev]);
     setActivePlugins((prev) => ({
       ...prev,
       [id]: true,
-    }))
+    }));
 
-    handleSuccess(true, null, "Plugin installed successfully")
-  }
+    handleSuccess(true, null, 'Plugin installed successfully');
+  };
 
   const updatePlugin = (id: string) => {
     setInstalledPluginsList((prev) =>
       prev.map((plugin) =>
         plugin.id === id
           ? {
-            ...plugin,
-            version: `${Number.parseInt(plugin.version.split(".")[0]) + 1}.0.0`,
-            hasUpdate: false,
-          }
-          : plugin,
-      ),
-    )
+              ...plugin,
+              version: `${Number.parseInt(plugin.version.split('.')[0]) + 1}.0.0`,
+              hasUpdate: false,
+            }
+          : plugin
+      )
+    );
 
-    handleSuccess(true, null, "Plugin updated successfully")
-  }
+    handleSuccess(true, null, 'Plugin updated successfully');
+  };
 
   const filteredInstalledPlugins = installedPluginsList.filter(
     (plugin) =>
       plugin.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      plugin.description.toLowerCase().includes(searchTerm.toLowerCase()),
-  )
+      plugin.description.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const filteredMarketplacePlugins = marketplacePlugins.filter(
     (plugin) =>
       plugin.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      plugin.description.toLowerCase().includes(searchTerm.toLowerCase()),
-  )
+      plugin.description.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="container mx-auto py-12 px-4">
@@ -299,7 +311,8 @@ export default function PluginManagementPage() {
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold tracking-tight mb-3">Plugin Management</h1>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Extend your workspace functionality with plugins. Install from the marketplace or upload custom plugins.
+            Extend your workspace functionality with plugins. Install from the marketplace or upload
+            custom plugins.
           </p>
         </div>
 
@@ -354,7 +367,8 @@ export default function PluginManagementPage() {
                   </div>
                   <h3 className="text-xl font-medium mb-2">No plugins installed</h3>
                   <p className="text-muted-foreground mb-6">
-                    You haven&apos;t installed any plugins yet. Browse the marketplace to find plugins or upload your own.
+                    You haven&apos;t installed any plugins yet. Browse the marketplace to find
+                    plugins or upload your own.
                   </p>
                   <Button asChild>
                     <TabsTrigger value="marketplace">Browse Marketplace</TabsTrigger>
@@ -376,10 +390,12 @@ export default function PluginManagementPage() {
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
                                   <h3 className="text-lg font-semibold">{plugin.name}</h3>
-                                  <Badge variant={activePlugins[plugin.id] ? "default" : "outline"}>
-                                    {activePlugins[plugin.id] ? "Active" : "Inactive"}
+                                  <Badge variant={activePlugins[plugin.id] ? 'default' : 'outline'}>
+                                    {activePlugins[plugin.id] ? 'Active' : 'Inactive'}
                                   </Badge>
-                                  {plugin.hasUpdate && <Badge variant="secondary">Update Available</Badge>}
+                                  {plugin.hasUpdate && (
+                                    <Badge variant="secondary">Update Available</Badge>
+                                  )}
                                 </div>
                               </div>
                               <p className="text-sm text-muted-foreground mt-1">
@@ -397,17 +413,25 @@ export default function PluginManagementPage() {
                               onCheckedChange={() => togglePluginStatus(plugin.id)}
                             />
                             <Label htmlFor={`plugin-status-${plugin.id}`}>
-                              {activePlugins[plugin.id] ? "Enabled" : "Disabled"}
+                              {activePlugins[plugin.id] ? 'Enabled' : 'Disabled'}
                             </Label>
                           </div>
                           <div className="flex gap-2">
                             {plugin.hasUpdate && (
-                              <Button variant="outline" size="sm" onClick={() => updatePlugin(plugin.id)}>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => updatePlugin(plugin.id)}
+                              >
                                 <RefreshCw className="w-4 h-4 mr-2" />
                                 Update
                               </Button>
                             )}
-                            <Button variant="outline" size="sm" onClick={() => setConfirmDeleteId(plugin.id)}>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setConfirmDeleteId(plugin.id)}
+                            >
                               <Trash2 className="w-4 h-4 mr-2" />
                               Remove
                             </Button>
@@ -443,17 +467,20 @@ export default function PluginManagementPage() {
                             <div className="flex items-center gap-4 mt-2">
                               <div className="flex items-center">
                                 <Download className="w-4 h-4 mr-1 text-muted-foreground" />
-                                <span className="text-sm text-muted-foreground">{plugin.downloads}</span>
+                                <span className="text-sm text-muted-foreground">
+                                  {plugin.downloads}
+                                </span>
                               </div>
                               <div className="flex items-center">
                                 <div className="flex">
                                   {Array.from({ length: 5 }).map((_, i) => (
                                     <svg
                                       key={i}
-                                      className={`w-4 h-4 ${i < Math.floor(plugin.rating)
-                                        ? "text-yellow-400 fill-yellow-400"
-                                        : "text-gray-300 fill-gray-300"
-                                        }`}
+                                      className={`w-4 h-4 ${
+                                        i < Math.floor(plugin.rating)
+                                          ? 'text-yellow-400 fill-yellow-400'
+                                          : 'text-gray-300 fill-gray-300'
+                                      }`}
                                       xmlns="http://www.w3.org/2000/svg"
                                       viewBox="0 0 24 24"
                                     >
@@ -461,7 +488,9 @@ export default function PluginManagementPage() {
                                     </svg>
                                   ))}
                                 </div>
-                                <span className="text-sm text-muted-foreground ml-1">{plugin.rating}</span>
+                                <span className="text-sm text-muted-foreground ml-1">
+                                  {plugin.rating}
+                                </span>
                               </div>
                             </div>
                           </div>
@@ -488,17 +517,20 @@ export default function PluginManagementPage() {
                     <FileZip className="w-5 h-5 mr-2 text-primary" />
                     Plugin Upload
                   </CardTitle>
-                  <CardDescription>Upload a .zip file containing your custom plugin</CardDescription>
+                  <CardDescription>
+                    Upload a .zip file containing your custom plugin
+                  </CardDescription>
                 </CardHeader>
 
                 <CardContent className="pb-0">
                   <div
-                    className={`relative rounded-lg p-8 transition-all duration-300 ease-in-out ${isDragging
-                      ? "bg-primary/10 border-2 border-dashed border-primary"
-                      : file
-                        ? "bg-success/10 border-2 border-dashed border-success"
-                        : "bg-muted/30 border-2 border-dashed border-muted-foreground/30 hover:border-primary/50 hover:bg-muted/50"
-                      }`}
+                    className={`relative rounded-lg p-8 transition-all duration-300 ease-in-out ${
+                      isDragging
+                        ? 'bg-primary/10 border-2 border-dashed border-primary'
+                        : file
+                          ? 'bg-success/10 border-2 border-dashed border-success'
+                          : 'bg-muted/30 border-2 border-dashed border-muted-foreground/30 hover:border-primary/50 hover:bg-muted/50'
+                    }`}
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
@@ -524,7 +556,9 @@ export default function PluginManagementPage() {
                           <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
                             <Upload className="w-8 h-8 text-primary" />
                           </div>
-                          <h3 className="text-lg font-medium mb-2">Drop your plugin package here</h3>
+                          <h3 className="text-lg font-medium mb-2">
+                            Drop your plugin package here
+                          </h3>
                           <p className="text-sm text-muted-foreground text-center max-w-xs">
                             Drag and drop your .zip file here or click to browse your files
                           </p>
@@ -541,39 +575,44 @@ export default function PluginManagementPage() {
                           className="flex flex-col items-center justify-center py-4"
                         >
                           <div
-                            className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${uploadStatus === "success"
-                              ? "bg-success/20"
-                              : uploadStatus === "error"
-                                ? "bg-destructive/20"
-                                : "bg-primary/10"
-                              }`}
+                            className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${
+                              uploadStatus === 'success'
+                                ? 'bg-success/20'
+                                : uploadStatus === 'error'
+                                  ? 'bg-destructive/20'
+                                  : 'bg-primary/10'
+                            }`}
                           >
-                            {uploadStatus === "success" ? (
+                            {uploadStatus === 'success' ? (
                               <CheckCircle2 className="w-8 h-8 text-success" />
-                            ) : uploadStatus === "error" ? (
+                            ) : uploadStatus === 'error' ? (
                               <AlertCircle className="w-8 h-8 text-destructive" />
                             ) : (
                               <FileZip className="w-8 h-8 text-primary" />
                             )}
                           </div>
                           <h3 className="text-lg font-medium mb-1">{file.name}</h3>
-                          <p className="text-sm text-muted-foreground">{(file.size / 1024).toFixed(2)} KB</p>
+                          <p className="text-sm text-muted-foreground">
+                            {(file.size / 1024).toFixed(2)} KB
+                          </p>
 
                           {uploadProgress > 0 && (
                             <div className="w-full mt-4">
                               <Progress value={uploadProgress} className="h-2" />
-                              <p className="text-xs text-right mt-1 text-muted-foreground">{uploadProgress}%</p>
+                              <p className="text-xs text-right mt-1 text-muted-foreground">
+                                {uploadProgress}%
+                              </p>
                             </div>
                           )}
 
-                          {uploadStatus === "success" && (
+                          {uploadStatus === 'success' && (
                             <p className="text-sm text-success mt-2 flex items-center">
                               <CheckCircle2 className="w-4 h-4 mr-1" />
                               Upload successful
                             </p>
                           )}
 
-                          {uploadStatus === "error" && (
+                          {uploadStatus === 'error' && (
                             <p className="text-sm text-destructive mt-2 flex items-center">
                               <AlertCircle className="w-4 h-4 mr-1" />
                               Upload failed
@@ -588,12 +627,17 @@ export default function PluginManagementPage() {
                 <CardFooter className="flex justify-between pt-6">
                   {file ? (
                     <div className="flex w-full gap-3">
-                      <Button variant="outline" onClick={resetUpload} disabled={isLoading} className="flex-1">
+                      <Button
+                        variant="outline"
+                        onClick={resetUpload}
+                        disabled={isLoading}
+                        className="flex-1"
+                      >
                         Reset
                       </Button>
                       <Button
                         onClick={handleUpload}
-                        disabled={isLoading || uploadStatus === "success"}
+                        disabled={isLoading || uploadStatus === 'success'}
                         className="flex-1"
                       >
                         {isLoading ? (
@@ -601,7 +645,7 @@ export default function PluginManagementPage() {
                             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                             Uploading...
                           </>
-                        ) : uploadStatus === "success" ? (
+                        ) : uploadStatus === 'success' ? (
                           <>
                             <CheckCircle2 className="w-4 h-4 mr-2" />
                             Uploaded
@@ -632,7 +676,9 @@ export default function PluginManagementPage() {
                       </div>
                       <div>
                         <h3 className="text-xl font-semibold">Extend Your Workspace</h3>
-                        <p className="text-muted-foreground">Add new features and functionality with plugins</p>
+                        <p className="text-muted-foreground">
+                          Add new features and functionality with plugins
+                        </p>
                       </div>
                     </div>
 
@@ -640,15 +686,15 @@ export default function PluginManagementPage() {
                       {[
                         {
                           icon: <PlusCircle className="w-5 h-5 text-primary" />,
-                          text: "Add custom functionality to your workspace",
+                          text: 'Add custom functionality to your workspace',
                         },
                         {
                           icon: <Power className="w-5 h-5 text-primary" />,
-                          text: "Enable or disable plugins as needed",
+                          text: 'Enable or disable plugins as needed',
                         },
                         {
                           icon: <RefreshCw className="w-5 h-5 text-primary" />,
-                          text: "Keep plugins updated with the latest features",
+                          text: 'Keep plugins updated with the latest features',
                         },
                       ].map((item, index) => (
                         <li key={index} className="flex items-start">
@@ -660,7 +706,8 @@ export default function PluginManagementPage() {
 
                     <div className="pt-4">
                       <p className="text-sm font-medium">
-                        Plugins are securely sandboxed and reviewed for safety before being added to the marketplace.
+                        Plugins are securely sandboxed and reviewed for safety before being added to
+                        the marketplace.
                       </p>
                     </div>
                   </div>
@@ -675,8 +722,8 @@ export default function PluginManagementPage() {
             <div className="flex-1">
               <h2 className="text-3xl font-bold tracking-tight mb-2">Become a Plugin Developer</h2>
               <p className="text-muted-foreground max-w-xl">
-                Create and share your custom plugins with the community. Build tools that help others enhance their
-                workflow.
+                Create and share your custom plugins with the community. Build tools that help
+                others enhance their workflow.
               </p>
             </div>
             <div className="mt-6 md:mt-0">
@@ -702,7 +749,10 @@ export default function PluginManagementPage() {
             <Button variant="outline" onClick={() => setConfirmDeleteId(null)}>
               Cancel
             </Button>
-            <Button variant="destructive" onClick={() => confirmDeleteId && deletePlugin(confirmDeleteId)}>
+            <Button
+              variant="destructive"
+              onClick={() => confirmDeleteId && deletePlugin(confirmDeleteId)}
+            >
               <Trash2 className="w-4 h-4 mr-2" />
               Remove Plugin
             </Button>
@@ -710,6 +760,5 @@ export default function PluginManagementPage() {
         </DialogContent>
       </Dialog>
     </div>
-  )
+  );
 }
-
