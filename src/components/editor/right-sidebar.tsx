@@ -25,7 +25,7 @@ import {
 } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/collapsible';
 import { Button } from '../ui/button';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Label } from '../ui/label';
 import { Input } from '../ui/input';
 
@@ -95,9 +95,12 @@ export default function RightSidebar() {
   // Background
   const [bgOption, setBgOption] = useState('color');
 
-  localStorage.setItem('margin', JSON.stringify(margin));
-  localStorage.setItem('padding', JSON.stringify(padding));
-
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('margin', JSON.stringify(margin));
+      localStorage.setItem('padding', JSON.stringify(padding));
+    }
+  }, [margin, padding]);
   // Display
   const [displayOpen, setDisplayOpen] = useState(false);
   const [displayFlex, setDisplayFlex] = useState(false);
