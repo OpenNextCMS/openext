@@ -1,22 +1,38 @@
 'use client';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Pointer, Palette, Sliders, ChevronDown, ChevronRight, Link, Plus, Square, SquareDashed, ArrowBigUp, ArrowBigDown, ArrowBigRight, ArrowBigLeft, AlignHorizontalJustifyStart, AlignHorizontalJustifyCenter, AlignHorizontalJustifyEnd, AlignVerticalSpaceAround, AlignEndHorizontal, AlignStartHorizontal, AlignCenterHorizontal, AlignHorizontalSpaceBetween, AlignHorizontalSpaceAround } from 'lucide-react';
+import {
+  Pointer,
+  Palette,
+  Sliders,
+  ChevronDown,
+  ChevronRight,
+  Link,
+  Plus,
+  Square,
+  SquareDashed,
+  ArrowBigUp,
+  ArrowBigDown,
+  ArrowBigRight,
+  ArrowBigLeft,
+  AlignHorizontalJustifyStart,
+  AlignHorizontalJustifyCenter,
+  AlignHorizontalJustifyEnd,
+  AlignVerticalSpaceAround,
+  AlignEndHorizontal,
+  AlignStartHorizontal,
+  AlignCenterHorizontal,
+  AlignHorizontalSpaceBetween,
+  AlignHorizontalSpaceAround,
+} from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/collapsible';
 import { Button } from '../ui/button';
 import { useState } from 'react';
 import { Label } from '../ui/label';
 import { Input } from '../ui/input';
 
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '../ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import IconHover from '../ReusableComponents/IconHover';
-import SizeInput, { SelectSize } from '../ReusableComponents/SizeInput'
-
+import SizeInput, { SelectSize } from '../ReusableComponents/SizeInput';
 
 export default function RightSidebar() {
   const [bgOpen, setBgOpen] = useState(false);
@@ -49,8 +65,7 @@ export default function RightSidebar() {
         ...prev,
         [position]: value,
       }));
-    }
-    else {
+    } else {
       setMargin((prev) => ({
         ...prev,
         top: Number(value),
@@ -59,15 +74,14 @@ export default function RightSidebar() {
         left: Number(value),
       }));
     }
-  }
+  };
   const paddingChanges = (value: string, position: 'top' | 'right' | 'bottom' | 'left' | 'all') => {
     if (spacingPadding) {
       setPadding((prev) => ({
         ...prev,
         [position]: value,
       }));
-    }
-    else {
+    } else {
       setPadding((prev) => ({
         ...prev,
         top: Number(value),
@@ -76,7 +90,7 @@ export default function RightSidebar() {
         left: Number(value),
       }));
     }
-  }
+  };
 
   // Background
   const [bgOption, setBgOption] = useState('color');
@@ -92,7 +106,7 @@ export default function RightSidebar() {
   const displayChanges = (value: string) => {
     setDisplay(value);
     setDisplayFlex(value === 'flex');
-  }
+  };
 
   const boxShadowPresets = [
     { name: 'None', value: 'none' },
@@ -146,32 +160,55 @@ export default function RightSidebar() {
                 <div className="px-3 pb-3">
                   <div>
                     <div>
-                      <div className='flex items-center justify-between'>
+                      <div className="flex items-center justify-between">
                         <Label className="text-xs mb-1.5 block m-2">Margin</Label>
                         <div className="flex items-center gap-2">
                           <button onClick={() => setSpacingMargin(false)}>
                             <IconHover icon={<Square className="h-4 w-4" />} iconName={'All'} />
                           </button>
                           <button onClick={() => setSpacingMargin(true)}>
-                            <IconHover icon={<SquareDashed className="h-4 w-4" />} iconName={'Custom'} />
+                            <IconHover
+                              icon={<SquareDashed className="h-4 w-4" />}
+                              iconName={'Custom'}
+                            />
                           </button>
                         </div>
                       </div>
                       {spacingMargin ? (
                         <div className="grid grid-cols-2 gap-2">
-                          <Input placeholder="Top" className="h-7 text-xs" onChange={(e) => marginChanges(e.target.value, 'top')} />
-                          <Input placeholder="Right" className="h-7 text-xs" onChange={(e) => marginChanges(e.target.value, 'right')} />
-                          <Input placeholder="Bottom" className="h-7 text-xs" onChange={(e) => marginChanges(e.target.value, 'bottom')} />
-                          <Input placeholder="Left" className="h-7 text-xs" onChange={(e) => marginChanges(e.target.value, 'left')} />
+                          <Input
+                            placeholder="Top"
+                            className="h-7 text-xs"
+                            onChange={(e) => marginChanges(e.target.value, 'top')}
+                          />
+                          <Input
+                            placeholder="Right"
+                            className="h-7 text-xs"
+                            onChange={(e) => marginChanges(e.target.value, 'right')}
+                          />
+                          <Input
+                            placeholder="Bottom"
+                            className="h-7 text-xs"
+                            onChange={(e) => marginChanges(e.target.value, 'bottom')}
+                          />
+                          <Input
+                            placeholder="Left"
+                            className="h-7 text-xs"
+                            onChange={(e) => marginChanges(e.target.value, 'left')}
+                          />
                         </div>
                       ) : (
                         <div className="grid grid-cols-2 gap-2">
-                          <Input placeholder="margin" className="h-7 text-xs" onChange={(e) => marginChanges(e.target.value, 'all')} />
+                          <Input
+                            placeholder="margin"
+                            className="h-7 text-xs"
+                            onChange={(e) => marginChanges(e.target.value, 'all')}
+                          />
                         </div>
                       )}
                     </div>
                     <div>
-                      <div className='flex items-center justify-between mt-1'>
+                      <div className="flex items-center justify-between mt-1">
                         <Label className="text-xs mb-1.5 block m-2">Padding</Label>
                         <div className="flex items-center gap-2">
                           <div className="flex items-center gap-2">
@@ -179,21 +216,44 @@ export default function RightSidebar() {
                               <IconHover icon={<Square className="h-4 w-4" />} iconName={'All'} />
                             </button>
                             <button onClick={() => setSpacingPadding(true)}>
-                              <IconHover icon={<SquareDashed className="h-4 w-4" />} iconName={'Custom'} />
+                              <IconHover
+                                icon={<SquareDashed className="h-4 w-4" />}
+                                iconName={'Custom'}
+                              />
                             </button>
                           </div>
                         </div>
                       </div>
                       {spacingPadding ? (
                         <div className="grid grid-cols-2 gap-2">
-                          <Input placeholder="Top" className="h-7 text-xs" onChange={(e) => paddingChanges(e.target.value, 'top')} />
-                          <Input placeholder="Right" className="h-7 text-xs" onChange={(e) => paddingChanges(e.target.value, 'right')} />
-                          <Input placeholder="Bottom" className="h-7 text-xs" onChange={(e) => paddingChanges(e.target.value, 'bottom')} />
-                          <Input placeholder="Left" className="h-7 text-xs" onChange={(e) => paddingChanges(e.target.value, 'left')} />
+                          <Input
+                            placeholder="Top"
+                            className="h-7 text-xs"
+                            onChange={(e) => paddingChanges(e.target.value, 'top')}
+                          />
+                          <Input
+                            placeholder="Right"
+                            className="h-7 text-xs"
+                            onChange={(e) => paddingChanges(e.target.value, 'right')}
+                          />
+                          <Input
+                            placeholder="Bottom"
+                            className="h-7 text-xs"
+                            onChange={(e) => paddingChanges(e.target.value, 'bottom')}
+                          />
+                          <Input
+                            placeholder="Left"
+                            className="h-7 text-xs"
+                            onChange={(e) => paddingChanges(e.target.value, 'left')}
+                          />
                         </div>
                       ) : (
                         <div className="grid grid-cols-2 gap-2">
-                          <Input placeholder="padding" className="h-7 text-xs" onChange={(e) => paddingChanges(e.target.value, 'all')} />
+                          <Input
+                            placeholder="padding"
+                            className="h-7 text-xs"
+                            onChange={(e) => paddingChanges(e.target.value, 'all')}
+                          />
                         </div>
                       )}
                     </div>
@@ -245,18 +305,30 @@ export default function RightSidebar() {
                       {/* Direction */}
                       <div>
                         <Label className="text-xs w-16">Direction</Label>
-                        <div className='flex gap-2'>
+                        <div className="flex gap-2">
                           <Button variant="outline" size="sm" className="h-8 text-xs">
-                            <IconHover icon={<ArrowBigDown className="h-4 w-4" />} iconName={'Row'} />
+                            <IconHover
+                              icon={<ArrowBigDown className="h-4 w-4" />}
+                              iconName={'Row'}
+                            />
                           </Button>
                           <Button variant="outline" size="sm" className="h-8 text-xs">
-                            <IconHover icon={<ArrowBigUp className="h-4 w-4" />} iconName={'Row-Reverse'} />
+                            <IconHover
+                              icon={<ArrowBigUp className="h-4 w-4" />}
+                              iconName={'Row-Reverse'}
+                            />
                           </Button>
                           <Button variant="outline" size="sm" className="h-8 text-xs">
-                            <IconHover icon={<ArrowBigRight className="h-4 w-4" />} iconName={'Column'} />
+                            <IconHover
+                              icon={<ArrowBigRight className="h-4 w-4" />}
+                              iconName={'Column'}
+                            />
                           </Button>
                           <Button variant="outline" size="sm" className="h-8 text-xs">
-                            <IconHover icon={<ArrowBigLeft className="h-4 w-4" />} iconName={'Column-Reverse'} />
+                            <IconHover
+                              icon={<ArrowBigLeft className="h-4 w-4" />}
+                              iconName={'Column-Reverse'}
+                            />
                           </Button>
                         </div>
                       </div>
@@ -264,18 +336,30 @@ export default function RightSidebar() {
                       {/* Align */}
                       <div>
                         <Label className="text-xs w-16">Align</Label>
-                        <div className='flex gap-2'>
+                        <div className="flex gap-2">
                           <Button variant="outline" size="sm" className="h-8 text-xs">
-                            <IconHover icon={<AlignStartHorizontal className="h-4 w-4" />} iconName={'Start'} />
+                            <IconHover
+                              icon={<AlignStartHorizontal className="h-4 w-4" />}
+                              iconName={'Start'}
+                            />
                           </Button>
                           <Button variant="outline" size="sm" className="h-8 text-xs">
-                            <IconHover icon={<AlignCenterHorizontal className="h-4 w-4" />} iconName={'Center'} />
+                            <IconHover
+                              icon={<AlignCenterHorizontal className="h-4 w-4" />}
+                              iconName={'Center'}
+                            />
                           </Button>
                           <Button variant="outline" size="sm" className="h-8 text-xs">
-                            <IconHover icon={<AlignEndHorizontal className="h-4 w-4" />} iconName={'End'} />
+                            <IconHover
+                              icon={<AlignEndHorizontal className="h-4 w-4" />}
+                              iconName={'End'}
+                            />
                           </Button>
                           <Button variant="outline" size="sm" className="h-8 text-xs">
-                            <IconHover icon={<AlignVerticalSpaceAround className="h-4 w-4" />} iconName={'Stretch'} />
+                            <IconHover
+                              icon={<AlignVerticalSpaceAround className="h-4 w-4" />}
+                              iconName={'Stretch'}
+                            />
                           </Button>
                         </div>
                       </div>
@@ -283,24 +367,42 @@ export default function RightSidebar() {
                       {/* Justify */}
                       <div>
                         <Label className="text-xs w-16">Justify</Label>
-                        <div className='grid grid-cols-3 gap-2'>
+                        <div className="grid grid-cols-3 gap-2">
                           <Button variant="outline" size="sm" className="h-8 text-xs">
-                            <IconHover icon={<AlignHorizontalJustifyStart className="h-4 w-4" />} iconName={'Start'} />
+                            <IconHover
+                              icon={<AlignHorizontalJustifyStart className="h-4 w-4" />}
+                              iconName={'Start'}
+                            />
                           </Button>
                           <Button variant="outline" size="sm" className="h-8 text-xs">
-                            <IconHover icon={<AlignHorizontalJustifyCenter className="h-4 w-4" />} iconName={'Center'} />
+                            <IconHover
+                              icon={<AlignHorizontalJustifyCenter className="h-4 w-4" />}
+                              iconName={'Center'}
+                            />
                           </Button>
                           <Button variant="outline" size="sm" className="h-8 text-xs">
-                            <IconHover icon={<AlignHorizontalJustifyEnd className="h-4 w-4" />} iconName={'End'} />
+                            <IconHover
+                              icon={<AlignHorizontalJustifyEnd className="h-4 w-4" />}
+                              iconName={'End'}
+                            />
                           </Button>
                           <Button variant="outline" size="sm" className="h-8 text-xs">
-                            <IconHover icon={<AlignHorizontalSpaceBetween className="h-4 w-4" />} iconName={'Space Between'} />
+                            <IconHover
+                              icon={<AlignHorizontalSpaceBetween className="h-4 w-4" />}
+                              iconName={'Space Between'}
+                            />
                           </Button>
                           <Button variant="outline" size="sm" className="h-8 text-xs">
-                            <IconHover icon={<AlignHorizontalSpaceAround className="h-4 w-4" />} iconName={'Space Around'} />
+                            <IconHover
+                              icon={<AlignHorizontalSpaceAround className="h-4 w-4" />}
+                              iconName={'Space Around'}
+                            />
                           </Button>
                           <Button variant="outline" size="sm" className="h-8 text-xs">
-                            <IconHover icon={<AlignHorizontalSpaceAround className="h-4 w-4" />} iconName={'Space Evenly'} />
+                            <IconHover
+                              icon={<AlignHorizontalSpaceAround className="h-4 w-4" />}
+                              iconName={'Space Evenly'}
+                            />
                           </Button>
                         </div>
                       </div>
@@ -324,7 +426,15 @@ export default function RightSidebar() {
                       <div className="flex items-center gap-2">
                         <Label className="text-xs w-16">Gap</Label>
                         <div className="flex gap-2 flex-1">
-                          <SizeInput placeholder="8" defaultValue="px" options={[{ label: 'px', value: 'px' }, { label: 'rem', value: 'rem' }, { label: '%', value: '%' }]} />
+                          <SizeInput
+                            placeholder="8"
+                            defaultValue="px"
+                            options={[
+                              { label: 'px', value: 'px' },
+                              { label: 'rem', value: 'rem' },
+                              { label: '%', value: '%' },
+                            ]}
+                          />
                         </div>
                       </div>
                     </div>
@@ -334,11 +444,7 @@ export default function RightSidebar() {
             </Collapsible>
 
             {/* Background */}
-            <Collapsible
-              open={bgOpen}
-              onOpenChange={setBgOpen}
-              className="rounded-lg border"
-            >
+            <Collapsible open={bgOpen} onOpenChange={setBgOpen} className="rounded-lg border">
               <div className="flex items-center justify-between p-2">
                 <div className="flex items-center gap-2">
                   <CollapsibleTrigger asChild>
@@ -375,7 +481,7 @@ export default function RightSidebar() {
                       <div className="space-y-1.5">
                         <Label className="text-xs">Color</Label>
                         <div className="flex gap-2">
-                          <Input className="h-8 text-xs flex-1" type='color' />
+                          <Input className="h-8 text-xs flex-1" type="color" />
                         </div>
                       </div>
                     )}
@@ -403,7 +509,9 @@ export default function RightSidebar() {
                         <Label className="text-xs">Image</Label>
                         <div className="flex gap-2">
                           <Input className="h-8 text-xs flex-1" placeholder="URL or select file" />
-                          <Button variant="outline" className="h-8 text-xs">Browse</Button>
+                          <Button variant="outline" className="h-8 text-xs">
+                            Browse
+                          </Button>
                         </div>
                         <div className="grid grid-cols-2 gap-3">
                           <div>
@@ -444,11 +552,7 @@ export default function RightSidebar() {
             </Collapsible>
 
             {/* Size */}
-            <Collapsible
-              open={sizeOpen}
-              onOpenChange={setSizeOpen}
-              className="rounded-lg border"
-            >
+            <Collapsible open={sizeOpen} onOpenChange={setSizeOpen} className="rounded-lg border">
               <div className="flex items-center justify-between p-2">
                 <div className="flex items-center gap-2">
                   <CollapsibleTrigger asChild>
@@ -460,10 +564,17 @@ export default function RightSidebar() {
                       )}
                     </Button>
                   </CollapsibleTrigger>
-                  <div className='flex items-center justify-between gap-12'>
+                  <div className="flex items-center justify-between gap-12">
                     <span className="font-medium text-sm">Size</span>
                     <CollapsibleContent>
-                      <SelectSize defaultValue="px" options={[{ label: 'px', value: 'px' }, { label: 'rem', value: 'rem' }, { label: '%', value: '%' }]} />
+                      <SelectSize
+                        defaultValue="px"
+                        options={[
+                          { label: 'px', value: 'px' },
+                          { label: 'rem', value: 'rem' },
+                          { label: '%', value: '%' },
+                        ]}
+                      />
                     </CollapsibleContent>
                   </div>
                 </div>
@@ -474,13 +585,13 @@ export default function RightSidebar() {
                     <div className="col-span-2">
                       <Label className="text-xs mb-1.5 block">Width</Label>
                       <div className="flex gap-2 border border-border rounded-md">
-                        <Input placeholder='8' />
+                        <Input placeholder="8" />
                       </div>
                     </div>
                     <div className="col-span-2">
                       <Label className="text-xs mb-1.5 block">Height</Label>
                       <div className="flex gap-2 border border-border rounded-md">
-                        <Input placeholder='8' />
+                        <Input placeholder="8" />
                       </div>
                     </div>
                   </div>
@@ -488,25 +599,25 @@ export default function RightSidebar() {
                     <div>
                       <Label className="text-xs mb-1.5 block">Min Width</Label>
                       <div className="flex gap-2 border border-border rounded-md">
-                        <Input placeholder='8' />
+                        <Input placeholder="8" />
                       </div>
                     </div>
                     <div>
                       <Label className="text-xs mb-1.5 block">Max Width</Label>
                       <div className="flex gap-2 border border-border rounded-md">
-                        <Input placeholder='8' />
+                        <Input placeholder="8" />
                       </div>
                     </div>
                     <div>
                       <Label className="text-xs mb-1.5 block">Min Height</Label>
                       <div className="flex gap-2 border border-border rounded-md">
-                        <Input placeholder='8' />
+                        <Input placeholder="8" />
                       </div>
                     </div>
                     <div>
                       <Label className="text-xs mb-1.5 block">Max Height</Label>
                       <div className="flex gap-2">
-                        <Input placeholder='8' />
+                        <Input placeholder="8" />
                       </div>
                     </div>
                   </div>
@@ -515,11 +626,7 @@ export default function RightSidebar() {
             </Collapsible>
 
             {/* Font */}
-            <Collapsible
-              open={fontOpen}
-              onOpenChange={setFontOpen}
-              className="rounded-lg border"
-            >
+            <Collapsible open={fontOpen} onOpenChange={setFontOpen} className="rounded-lg border">
               <div className="flex items-center justify-between p-2">
                 <div className="flex items-center gap-2">
                   <CollapsibleTrigger asChild>
@@ -655,7 +762,9 @@ export default function RightSidebar() {
                     <div className="space-y-1.5">
                       <Label className="text-xs">Text Decoration</Label>
                       <div className="grid grid-cols-2 gap-2">
-                        <Button variant="outline" size="sm" className="h-8 text-xs flex-1">None</Button>
+                        <Button variant="outline" size="sm" className="h-8 text-xs flex-1">
+                          None
+                        </Button>
                         <Button variant="outline" size="sm" className="h-8 text-xs flex-1">
                           <span className="underline">Underline</span>
                         </Button>
@@ -695,7 +804,7 @@ export default function RightSidebar() {
                     <div className="grid grid-cols-2 gap-2">
                       <div>
                         <Label className="text-xs mb-1.5 block">Color</Label>
-                        <Input className="h-8 text-xs flex-1" type='color' />
+                        <Input className="h-8 text-xs flex-1" type="color" />
                       </div>
                       <div>
                         <Label className="text-xs mb-1.5 block">Width</Label>
@@ -786,8 +895,10 @@ export default function RightSidebar() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {boxShadowPresets.map(preset => (
-                            <SelectItem key={preset.name} value={preset.value}>{preset.name}</SelectItem>
+                          {boxShadowPresets.map((preset) => (
+                            <SelectItem key={preset.name} value={preset.value}>
+                              {preset.name}
+                            </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
@@ -984,23 +1095,39 @@ export default function RightSidebar() {
 
               <div className="space-y-3">
                 <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="element-id" className="text-xs">Element ID</Label>
+                  <Label htmlFor="element-id" className="text-xs">
+                    Element ID
+                  </Label>
                   <Input id="element-id" placeholder="Enter element ID" className="h-8 text-sm" />
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="element-class" className="text-xs">CSS Classes</Label>
-                  <Input id="element-class" placeholder="Enter CSS classes" className="h-8 text-sm" />
+                  <Label htmlFor="element-class" className="text-xs">
+                    CSS Classes
+                  </Label>
+                  <Input
+                    id="element-class"
+                    placeholder="Enter CSS classes"
+                    className="h-8 text-sm"
+                  />
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="element-link" className="text-xs">Link URL</Label>
-                  <Input id="element-link" placeholder="https://example.com" className="h-8 text-sm" />
+                  <Label htmlFor="element-link" className="text-xs">
+                    Link URL
+                  </Label>
+                  <Input
+                    id="element-link"
+                    placeholder="https://example.com"
+                    className="h-8 text-sm"
+                  />
                 </div>
 
                 <div className="flex items-center gap-2 mt-2">
                   <input type="checkbox" id="new-tab" className="h-4 w-4" />
-                  <Label htmlFor="new-tab" className="text-xs">Open in new tab</Label>
+                  <Label htmlFor="new-tab" className="text-xs">
+                    Open in new tab
+                  </Label>
                 </div>
               </div>
             </div>
@@ -1009,12 +1136,23 @@ export default function RightSidebar() {
               <h3 className="text-sm font-medium mb-3">Accessibility</h3>
               <div className="space-y-3">
                 <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="aria-label" className="text-xs">ARIA Label</Label>
-                  <Input id="aria-label" placeholder="Describe element purpose" className="h-8 text-sm" />
+                  <Label htmlFor="aria-label" className="text-xs">
+                    ARIA Label
+                  </Label>
+                  <Input
+                    id="aria-label"
+                    placeholder="Describe element purpose"
+                    className="h-8 text-sm"
+                  />
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="aria-role" className="text-xs">ARIA Role</Label>
-                  <select id="aria-role" className="h-8 rounded-md border border-input bg-background px-3 py-1 text-sm">
+                  <Label htmlFor="aria-role" className="text-xs">
+                    ARIA Role
+                  </Label>
+                  <select
+                    id="aria-role"
+                    className="h-8 rounded-md border border-input bg-background px-3 py-1 text-sm"
+                  >
                     <option value="">None</option>
                     <option value="button">Button</option>
                     <option value="link">Link</option>
