@@ -4,29 +4,41 @@ import { useEffect, useState } from 'react';
 
 export default function DynamicTitle() {
   const [title, setTitle] = useState('Loading...');
-  // const [desc, setDesc] = useState("Loading...");
+  const [icon, setIcon] = useState('/favicon.ico'); // Default favicon
 
   useEffect(() => {
-    async function fetchTitle() {
+    async function fetchSiteSettings() {
       try {
         const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
         const res = await fetch(`${backendUrl}/api/dashboard/settings`);
         const data = await res.json();
+
         setTitle(data?.data?.settings?.siteTitle || 'Next.js Setup Project');
-        // setDesc(data?.data?.settings?.description || "Comprehensive Next.js Project Setup");
+        setIcon(data?.data?.settings?.siteIcon || '/img/openNext.png');
       } catch (error) {
-        console.error('Failed to fetch site title:', error);
+        console.error('Failed to fetch site settings:', error);
         setTitle('Next.js Setup Project');
-        // setDesc("Comprehensive Next.js Project Setup");
+        setIcon('/favicon.ico');
       }
     }
 
-    fetchTitle();
+    fetchSiteSettings();
   }, []);
 
   useEffect(() => {
     document.title = title;
-  }, [title]);
+
+    // Update favicon dynamically
+    const link: HTMLLinkElement | null = document.querySelector("link[rel~='icon']");
+    if (link) {
+      link.href = icon;
+    } else {
+      const newLink = document.createElement('link');
+      newLink.rel = 'icon';
+      newLink.href = icon;
+      document.head.appendChild(newLink);
+    }
+  }, [title, icon]);
 
   return null;
 }
