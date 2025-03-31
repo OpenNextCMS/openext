@@ -375,8 +375,7 @@ export default function RightSidebar() {
                       <div className="space-y-1.5">
                         <Label className="text-xs">Color</Label>
                         <div className="flex gap-2">
-                          <div className="w-7 h-7 rounded-md border bg-primary"></div>
-                          <Input className="h-8 text-xs flex-1" value="#0070f3" />
+                          <Input className="h-8 text-xs flex-1" type='color' />
                         </div>
                       </div>
                     )}
