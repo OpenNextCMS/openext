@@ -101,10 +101,8 @@ export default function RightSidebar() {
   // Display
   const [displayOpen, setDisplayOpen] = useState(false);
   const [displayFlex, setDisplayFlex] = useState(false);
-  const [display, setDisplay] = useState('none');
 
   const displayChanges = (value: string) => {
-    setDisplay(value);
     setDisplayFlex(value === 'flex');
   };
 
