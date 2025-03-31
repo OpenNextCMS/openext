@@ -3,7 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Pointer, Palette, Sliders, ChevronDown, ChevronRight, Link, Plus, Square, SquareDashed, ArrowBigUp, ArrowBigDown, ArrowBigRight, ArrowBigLeft, AlignHorizontalJustifyStart, AlignHorizontalJustifyCenter, AlignHorizontalJustifyEnd, AlignVerticalSpaceAround, AlignEndHorizontal, AlignStartHorizontal, AlignCenterHorizontal, AlignHorizontalSpaceBetween, AlignHorizontalSpaceAround } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/collapsible';
 import { Button } from '../ui/button';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Label } from '../ui/label';
 import { Input } from '../ui/input';
 
@@ -14,8 +14,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../ui/select';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import IconHover from '../ReusableComponents/IconHover';
+import SizeInput, { SelectSize } from '../ReusableComponents/SizeInput'
 
 
 export default function RightSidebar() {
@@ -81,12 +81,9 @@ export default function RightSidebar() {
   // Background
   const [bgOption, setBgOption] = useState('color');
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('margin', JSON.stringify(margin));
-      localStorage.setItem('padding', JSON.stringify(padding));
-    }
-  }, [margin, padding]);
+  localStorage.setItem('margin', JSON.stringify(margin));
+  localStorage.setItem('padding', JSON.stringify(padding));
+
   // Display
   const [displayOpen, setDisplayOpen] = useState(false);
   const [displayFlex, setDisplayFlex] = useState(false);
@@ -327,17 +324,7 @@ export default function RightSidebar() {
                       <div className="flex items-center gap-2">
                         <Label className="text-xs w-16">Gap</Label>
                         <div className="flex gap-2 flex-1">
-                          <Input className="h-8 text-xs" placeholder="8" />
-                          <Select defaultValue="px">
-                            <SelectTrigger className="h-8 text-xs w-20">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="px">px</SelectItem>
-                              <SelectItem value="rem">rem</SelectItem>
-                              <SelectItem value="%">%</SelectItem>
-                            </SelectContent>
-                          </Select>
+                          <SizeInput placeholder="8" defaultValue="px" options={[{ label: 'px', value: 'px' }, { label: 'rem', value: 'rem' }, { label: '%', value: '%' }]} />
                         </div>
                       </div>
                     </div>
@@ -474,44 +461,27 @@ export default function RightSidebar() {
                       )}
                     </Button>
                   </CollapsibleTrigger>
-                  <span className="font-medium text-sm">Size</span>
+                  <div className='flex items-center justify-between gap-12'>
+                    <span className="font-medium text-sm">Size</span>
+                    <CollapsibleContent>
+                      <SelectSize defaultValue="px" options={[{ label: 'px', value: 'px' }, { label: 'rem', value: 'rem' }, { label: '%', value: '%' }]} />
+                    </CollapsibleContent>
+                  </div>
                 </div>
               </div>
               <CollapsibleContent>
-                <div className="px-3 pb-3">
+                <div className="px-3 pb-3 mt-3">
                   <div className="grid grid-cols-4 gap-3 mb-3">
                     <div className="col-span-2">
                       <Label className="text-xs mb-1.5 block">Width</Label>
                       <div className="flex gap-2 border border-border rounded-md">
-                        <Input className="h-8 text-xs border-none" />
-                        <Select defaultValue="px">
-                          <SelectTrigger className="h-8 text-xs w-16 border-none">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="px">px</SelectItem>
-                            <SelectItem value="%">%</SelectItem>
-                            <SelectItem value="rem">rem</SelectItem>
-                            <SelectItem value="vw">vw</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <Input placeholder='8' />
                       </div>
                     </div>
                     <div className="col-span-2">
                       <Label className="text-xs mb-1.5 block">Height</Label>
                       <div className="flex gap-2 border border-border rounded-md">
-                        <Input className="h-8 text-xs border-none" />
-                        <Select defaultValue="px">
-                          <SelectTrigger className="h-8 text-xs w-16 border-none">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="px">px</SelectItem>
-                            <SelectItem value="%">%</SelectItem>
-                            <SelectItem value="rem">rem</SelectItem>
-                            <SelectItem value="vw">vw</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <Input placeholder='8' />
                       </div>
                     </div>
                   </div>
@@ -519,69 +489,25 @@ export default function RightSidebar() {
                     <div>
                       <Label className="text-xs mb-1.5 block">Min Width</Label>
                       <div className="flex gap-2 border border-border rounded-md">
-                        <Input className="h-8 text-xs border-none" />
-                        <Select defaultValue="px">
-                          <SelectTrigger className="h-8 text-xs w-16 border-none">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="px">px</SelectItem>
-                            <SelectItem value="%">%</SelectItem>
-                            <SelectItem value="rem">rem</SelectItem>
-                            <SelectItem value="vw">vw</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <Input placeholder='8' />
                       </div>
                     </div>
                     <div>
                       <Label className="text-xs mb-1.5 block">Max Width</Label>
                       <div className="flex gap-2 border border-border rounded-md">
-                        <Input className="h-8 text-xs border-none" />
-                        <Select defaultValue="px">
-                          <SelectTrigger className="h-8 text-xs w-16 border-none">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="px">px</SelectItem>
-                            <SelectItem value="%">%</SelectItem>
-                            <SelectItem value="rem">rem</SelectItem>
-                            <SelectItem value="vw">vw</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <Input placeholder='8' />
                       </div>
                     </div>
                     <div>
                       <Label className="text-xs mb-1.5 block">Min Height</Label>
                       <div className="flex gap-2 border border-border rounded-md">
-                        <Input className="h-8 text-xs border-none" />
-                        <Select defaultValue="px">
-                          <SelectTrigger className="h-8 text-xs w-16 border-none">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="px">px</SelectItem>
-                            <SelectItem value="%">%</SelectItem>
-                            <SelectItem value="rem">rem</SelectItem>
-                            <SelectItem value="vw">vw</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <Input placeholder='8' />
                       </div>
                     </div>
                     <div>
                       <Label className="text-xs mb-1.5 block">Max Height</Label>
-                      <div className="flex gap-2 border border-border rounded-md">
-                        <Input className="h-8 text-xs border-none" />
-                        <Select defaultValue="px">
-                          <SelectTrigger className="h-8 text-xs w-16 border-none">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="px">px</SelectItem>
-                            <SelectItem value="%">%</SelectItem>
-                            <SelectItem value="rem">rem</SelectItem>
-                            <SelectItem value="vw">vw</SelectItem>
-                          </SelectContent>
-                        </Select>
+                      <div className="flex gap-2">
+                        <Input placeholder='8' />
                       </div>
                     </div>
                   </div>
