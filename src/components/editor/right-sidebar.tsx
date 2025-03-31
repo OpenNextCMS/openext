@@ -6,7 +6,6 @@ import {
   Sliders,
   ChevronDown,
   ChevronRight,
-  Link,
   Plus,
   Square,
   SquareDashed,
@@ -31,7 +30,9 @@ import { Label } from '../ui/label';
 import { Input } from '../ui/input';
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import IconHover from '../ReusableComponents/IconHover';
+import InputSelect, { SelectSize } from '../ReusableComponents/SizeInput';
+import SelectComp from '../ReusableComponents/SelectComp';
 
 export default function RightSidebar() {
   const [bgOpen, setBgOpen] = useState(false);
@@ -100,7 +101,6 @@ export default function RightSidebar() {
       localStorage.setItem('padding', JSON.stringify(padding));
     }
   }, [margin, padding]);
-
   // Display
   const [displayOpen, setDisplayOpen] = useState(false);
   const [displayFlex, setDisplayFlex] = useState(false);
@@ -165,28 +165,13 @@ export default function RightSidebar() {
                         <Label className="text-xs mb-1.5 block m-2">Margin</Label>
                         <div className="flex items-center gap-2">
                           <button onClick={() => setSpacingMargin(false)}>
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Square className="h-4 w-4" />
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>All</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
+                            <IconHover icon={<Square className="h-4 w-4" />} iconName={'All'} />
                           </button>
                           <button onClick={() => setSpacingMargin(true)}>
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <SquareDashed className="h-4 w-4" />
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>Custom</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
+                            <IconHover
+                              icon={<SquareDashed className="h-4 w-4" />}
+                              iconName={'Custom'}
+                            />
                           </button>
                         </div>
                       </div>
@@ -229,28 +214,13 @@ export default function RightSidebar() {
                         <div className="flex items-center gap-2">
                           <div className="flex items-center gap-2">
                             <button onClick={() => setSpacingPadding(false)}>
-                              <TooltipProvider>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <Square className="h-4 w-4" />
-                                  </TooltipTrigger>
-                                  <TooltipContent>
-                                    <p>All</p>
-                                  </TooltipContent>
-                                </Tooltip>
-                              </TooltipProvider>
+                              <IconHover icon={<Square className="h-4 w-4" />} iconName={'All'} />
                             </button>
                             <button onClick={() => setSpacingPadding(true)}>
-                              <TooltipProvider>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <SquareDashed className="h-4 w-4" />
-                                  </TooltipTrigger>
-                                  <TooltipContent>
-                                    <p>Custom</p>
-                                  </TooltipContent>
-                                </Tooltip>
-                              </TooltipProvider>
+                              <IconHover
+                                icon={<SquareDashed className="h-4 w-4" />}
+                                iconName={'Custom'}
+                              />
                             </button>
                           </div>
                         </div>
@@ -337,55 +307,30 @@ export default function RightSidebar() {
                       <div>
                         <Label className="text-xs w-16">Direction</Label>
                         <div className="flex gap-2">
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button variant="outline" size="sm" className="h-8 text-xs">
-                                  <ArrowBigDown className="h-4 w-4" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Row</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button variant="outline" size="sm" className="h-8 text-xs">
-                                  <ArrowBigUp className="h-4 w-4" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Row-Reverse</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button variant="outline" size="sm" className="h-8 text-xs">
-                                  <ArrowBigRight className="h-4 w-4" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Column</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button variant="outline" size="sm" className="h-8 text-xs">
-                                  <ArrowBigLeft className="h-4 w-4" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Column-Reverse</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
+                          <Button variant="outline" size="sm" className="h-8 text-xs">
+                            <IconHover
+                              icon={<ArrowBigDown className="h-4 w-4" />}
+                              iconName={'Row'}
+                            />
+                          </Button>
+                          <Button variant="outline" size="sm" className="h-8 text-xs">
+                            <IconHover
+                              icon={<ArrowBigUp className="h-4 w-4" />}
+                              iconName={'Row-Reverse'}
+                            />
+                          </Button>
+                          <Button variant="outline" size="sm" className="h-8 text-xs">
+                            <IconHover
+                              icon={<ArrowBigRight className="h-4 w-4" />}
+                              iconName={'Column'}
+                            />
+                          </Button>
+                          <Button variant="outline" size="sm" className="h-8 text-xs">
+                            <IconHover
+                              icon={<ArrowBigLeft className="h-4 w-4" />}
+                              iconName={'Column-Reverse'}
+                            />
+                          </Button>
                         </div>
                       </div>
 
@@ -393,54 +338,30 @@ export default function RightSidebar() {
                       <div>
                         <Label className="text-xs w-16">Align</Label>
                         <div className="flex gap-2">
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button variant="outline" size="sm" className="h-8 text-xs">
-                                  <AlignStartHorizontal className="h-4 w-4" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Start</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button variant="outline" size="sm" className="h-8 text-xs">
-                                  <AlignCenterHorizontal className="h-4 w-4" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Center</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button variant="outline" size="sm" className="h-8 text-xs">
-                                  <AlignEndHorizontal className="h-4 w-4" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>End</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button variant="outline" size="sm" className="h-8 text-xs">
-                                  <AlignVerticalSpaceAround className="h-4 w-4" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Stretch</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
+                          <Button variant="outline" size="sm" className="h-8 text-xs">
+                            <IconHover
+                              icon={<AlignStartHorizontal className="h-4 w-4" />}
+                              iconName={'Start'}
+                            />
+                          </Button>
+                          <Button variant="outline" size="sm" className="h-8 text-xs">
+                            <IconHover
+                              icon={<AlignCenterHorizontal className="h-4 w-4" />}
+                              iconName={'Center'}
+                            />
+                          </Button>
+                          <Button variant="outline" size="sm" className="h-8 text-xs">
+                            <IconHover
+                              icon={<AlignEndHorizontal className="h-4 w-4" />}
+                              iconName={'End'}
+                            />
+                          </Button>
+                          <Button variant="outline" size="sm" className="h-8 text-xs">
+                            <IconHover
+                              icon={<AlignVerticalSpaceAround className="h-4 w-4" />}
+                              iconName={'Stretch'}
+                            />
+                          </Button>
                         </div>
                       </div>
 
@@ -448,78 +369,42 @@ export default function RightSidebar() {
                       <div>
                         <Label className="text-xs w-16">Justify</Label>
                         <div className="grid grid-cols-3 gap-2">
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button variant="outline" size="sm" className="h-8 text-xs">
-                                  <AlignHorizontalJustifyStart className="h-4 w-4" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Start</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button variant="outline" size="sm" className="h-8 text-xs">
-                                  <AlignHorizontalJustifyCenter className="h-4 w-4" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Center</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button variant="outline" size="sm" className="h-8 text-xs">
-                                  <AlignHorizontalJustifyEnd className="h-4 w-4" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>End</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button variant="outline" size="sm" className="h-8 text-xs">
-                                  <AlignHorizontalSpaceBetween className="h-4 w-4" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Space Between</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button variant="outline" size="sm" className="h-8 text-xs">
-                                  <AlignHorizontalSpaceAround className="h-4 w-4" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Space Between</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button variant="outline" size="sm" className="h-8 text-xs">
-                                  <AlignHorizontalSpaceAround className="h-4 w-4" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Space Evenly</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
+                          <Button variant="outline" size="sm" className="h-8 text-xs">
+                            <IconHover
+                              icon={<AlignHorizontalJustifyStart className="h-4 w-4" />}
+                              iconName={'Start'}
+                            />
+                          </Button>
+                          <Button variant="outline" size="sm" className="h-8 text-xs">
+                            <IconHover
+                              icon={<AlignHorizontalJustifyCenter className="h-4 w-4" />}
+                              iconName={'Center'}
+                            />
+                          </Button>
+                          <Button variant="outline" size="sm" className="h-8 text-xs">
+                            <IconHover
+                              icon={<AlignHorizontalJustifyEnd className="h-4 w-4" />}
+                              iconName={'End'}
+                            />
+                          </Button>
+                          <Button variant="outline" size="sm" className="h-8 text-xs">
+                            <IconHover
+                              icon={<AlignHorizontalSpaceBetween className="h-4 w-4" />}
+                              iconName={'Space Between'}
+                            />
+                          </Button>
+                          <Button variant="outline" size="sm" className="h-8 text-xs">
+                            <IconHover
+                              icon={<AlignHorizontalSpaceAround className="h-4 w-4" />}
+                              iconName={'Space Around'}
+                            />
+                          </Button>
+                          <Button variant="outline" size="sm" className="h-8 text-xs">
+                            <IconHover
+                              icon={<AlignHorizontalSpaceAround className="h-4 w-4" />}
+                              iconName={'Space Evenly'}
+                            />
+                          </Button>
                         </div>
                       </div>
 
@@ -542,17 +427,15 @@ export default function RightSidebar() {
                       <div className="flex items-center gap-2">
                         <Label className="text-xs w-16">Gap</Label>
                         <div className="flex gap-2 flex-1">
-                          <Input className="h-8 text-xs" placeholder="8" />
-                          <Select defaultValue="px">
-                            <SelectTrigger className="h-8 text-xs w-20">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="px">px</SelectItem>
-                              <SelectItem value="rem">rem</SelectItem>
-                              <SelectItem value="%">%</SelectItem>
-                            </SelectContent>
-                          </Select>
+                          <InputSelect
+                            placeholder="8"
+                            defaultValue="px"
+                            options={[
+                              { label: 'px', value: 'px' },
+                              { label: 'rem', value: 'rem' },
+                              { label: '%', value: '%' },
+                            ]}
+                          />
                         </div>
                       </div>
                     </div>
@@ -599,27 +482,22 @@ export default function RightSidebar() {
                       <div className="space-y-1.5">
                         <Label className="text-xs">Color</Label>
                         <div className="flex gap-2">
-                          <div className="w-7 h-7 rounded-md border bg-primary"></div>
-                          <Input className="h-8 text-xs flex-1" value="#0070f3" />
+                          <Input className="h-8 text-xs flex-1" type="color" />
                         </div>
                       </div>
                     )}
 
                     {/* Gradient Options */}
                     {bgOption === 'gradient' && (
-                      <div className="space-y-1.5">
-                        <Label className="text-xs">Gradient Type</Label>
-                        <Select defaultValue="linear">
-                          <SelectTrigger className="h-8 text-xs">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="linear">Linear</SelectItem>
-                            <SelectItem value="radial">Radial</SelectItem>
-                            <SelectItem value="conic">Conic</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
+                      <SelectComp
+                        label="Gradient Type"
+                        defaultValue="linear"
+                        options={[
+                          { label: 'Linear', value: 'linear' },
+                          { label: 'Radial', value: 'radial' },
+                          { label: 'Conic', value: 'conic' },
+                        ]}
+                      />
                     )}
 
                     {/* Background Image */}
@@ -632,37 +510,26 @@ export default function RightSidebar() {
                             Browse
                           </Button>
                         </div>
-                        <div className="grid grid-cols-2 gap-3">
-                          <div>
-                            <Label className="text-xs mb-1.5 block">Size</Label>
-                            <Select defaultValue="cover">
-                              <SelectTrigger className="h-8 text-xs">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="cover">cover</SelectItem>
-                                <SelectItem value="contain">contain</SelectItem>
-                                <SelectItem value="auto">auto</SelectItem>
-                                <SelectItem value="100%">100%</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <div>
-                            <Label className="text-xs mb-1.5 block">Position</Label>
-                            <Select defaultValue="center">
-                              <SelectTrigger className="h-8 text-xs">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="center">center</SelectItem>
-                                <SelectItem value="top">top</SelectItem>
-                                <SelectItem value="right">right</SelectItem>
-                                <SelectItem value="bottom">bottom</SelectItem>
-                                <SelectItem value="left">left</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </div>
+                        <SelectComp
+                          label="Size"
+                          defaultValue="cover"
+                          options={[
+                            { label: 'Cover', value: 'cover' },
+                            { label: 'Contain', value: 'contain' },
+                            { label: 'Auto', value: 'auto' },
+                          ]}
+                        />
+                        <SelectComp
+                          label="Position"
+                          defaultValue="center"
+                          options={[
+                            { label: 'Center', value: 'center' },
+                            { label: 'Top Left', value: 'top-left' },
+                            { label: 'Top Right', value: 'top-right' },
+                            { label: 'Bottom Left', value: 'bottom-left' },
+                            { label: 'Bottom Right', value: 'bottom-right' },
+                          ]}
+                        />
                       </div>
                     )}
                   </div>
@@ -683,44 +550,34 @@ export default function RightSidebar() {
                       )}
                     </Button>
                   </CollapsibleTrigger>
-                  <span className="font-medium text-sm">Size</span>
+                  <div className="flex items-center justify-between gap-12">
+                    <span className="font-medium text-sm">Size</span>
+                    <CollapsibleContent>
+                      <SelectSize
+                        defaultValue="px"
+                        options={[
+                          { label: 'px', value: 'px' },
+                          { label: 'rem', value: 'rem' },
+                          { label: '%', value: '%' },
+                        ]}
+                      />
+                    </CollapsibleContent>
+                  </div>
                 </div>
               </div>
               <CollapsibleContent>
-                <div className="px-3 pb-3">
+                <div className="px-3 pb-3 mt-3">
                   <div className="grid grid-cols-4 gap-3 mb-3">
                     <div className="col-span-2">
                       <Label className="text-xs mb-1.5 block">Width</Label>
                       <div className="flex gap-2 border border-border rounded-md">
-                        <Input className="h-8 text-xs border-none" />
-                        <Select defaultValue="px">
-                          <SelectTrigger className="h-8 text-xs w-16 border-none">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="px">px</SelectItem>
-                            <SelectItem value="%">%</SelectItem>
-                            <SelectItem value="rem">rem</SelectItem>
-                            <SelectItem value="vw">vw</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <Input placeholder="8" />
                       </div>
                     </div>
                     <div className="col-span-2">
                       <Label className="text-xs mb-1.5 block">Height</Label>
                       <div className="flex gap-2 border border-border rounded-md">
-                        <Input className="h-8 text-xs border-none" />
-                        <Select defaultValue="px">
-                          <SelectTrigger className="h-8 text-xs w-16 border-none">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="px">px</SelectItem>
-                            <SelectItem value="%">%</SelectItem>
-                            <SelectItem value="rem">rem</SelectItem>
-                            <SelectItem value="vw">vw</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <Input placeholder="8" />
                       </div>
                     </div>
                   </div>
@@ -728,69 +585,25 @@ export default function RightSidebar() {
                     <div>
                       <Label className="text-xs mb-1.5 block">Min Width</Label>
                       <div className="flex gap-2 border border-border rounded-md">
-                        <Input className="h-8 text-xs border-none" />
-                        <Select defaultValue="px">
-                          <SelectTrigger className="h-8 text-xs w-16 border-none">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="px">px</SelectItem>
-                            <SelectItem value="%">%</SelectItem>
-                            <SelectItem value="rem">rem</SelectItem>
-                            <SelectItem value="vw">vw</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <Input placeholder="8" />
                       </div>
                     </div>
                     <div>
                       <Label className="text-xs mb-1.5 block">Max Width</Label>
                       <div className="flex gap-2 border border-border rounded-md">
-                        <Input className="h-8 text-xs border-none" />
-                        <Select defaultValue="px">
-                          <SelectTrigger className="h-8 text-xs w-16 border-none">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="px">px</SelectItem>
-                            <SelectItem value="%">%</SelectItem>
-                            <SelectItem value="rem">rem</SelectItem>
-                            <SelectItem value="vw">vw</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <Input placeholder="8" />
                       </div>
                     </div>
                     <div>
                       <Label className="text-xs mb-1.5 block">Min Height</Label>
                       <div className="flex gap-2 border border-border rounded-md">
-                        <Input className="h-8 text-xs border-none" />
-                        <Select defaultValue="px">
-                          <SelectTrigger className="h-8 text-xs w-16 border-none">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="px">px</SelectItem>
-                            <SelectItem value="%">%</SelectItem>
-                            <SelectItem value="rem">rem</SelectItem>
-                            <SelectItem value="vw">vw</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <Input placeholder="8" />
                       </div>
                     </div>
                     <div>
                       <Label className="text-xs mb-1.5 block">Max Height</Label>
-                      <div className="flex gap-2 border border-border rounded-md">
-                        <Input className="h-8 text-xs border-none" />
-                        <Select defaultValue="px">
-                          <SelectTrigger className="h-8 text-xs w-16 border-none">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="px">px</SelectItem>
-                            <SelectItem value="%">%</SelectItem>
-                            <SelectItem value="rem">rem</SelectItem>
-                            <SelectItem value="vw">vw</SelectItem>
-                          </SelectContent>
-                        </Select>
+                      <div className="flex gap-2">
+                        <Input placeholder="8" />
                       </div>
                     </div>
                   </div>
@@ -817,134 +630,100 @@ export default function RightSidebar() {
               <CollapsibleContent>
                 <div className="px-3 pb-3">
                   <div className="space-y-3">
-                    <div className="space-y-1.5">
-                      <Label className="text-xs">Font Family</Label>
-                      <Select defaultValue="system-ui">
-                        <SelectTrigger className="h-8 text-xs w-auto">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="system-ui">System UI</SelectItem>
-                          <SelectItem value="sans-serif">Sans Serif</SelectItem>
-                          <SelectItem value="serif">Serif</SelectItem>
-                          <SelectItem value="monospace">Monospace</SelectItem>
-                          <SelectItem value="cursive">Cursive</SelectItem>
-                        </SelectContent>
-                      </Select>
+                    <SelectComp
+                      label="Font Family"
+                      defaultValue="Arial"
+                      options={[
+                        { label: 'Arial', value: 'Arial' },
+                        { label: 'Helvetica', value: 'Helvetica' },
+                        { label: 'Times New Roman', value: 'Times New Roman' },
+                        { label: 'Courier New', value: 'Courier New' },
+                      ]}
+                    />
+                    <div className="flex items-center gap-2">
+                      <Label className="text-xs w-16">Font Size</Label>
+                      <InputSelect
+                        defaultValue="px"
+                        options={[
+                          { label: 'px', value: 'px' },
+                          { label: 'rem', value: 'rem' },
+                          { label: '%', value: '%' },
+                        ]}
+                      />
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <Label className="text-xs mb-1.5 block">Font Size</Label>
-                        <div className="flex gap-2 border border-border rounded-md">
-                          <Input className="h-8 text-xs border-none" />
-                          <Select defaultValue="px">
-                            <SelectTrigger className="h-8 text-xs border-none">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="px">px</SelectItem>
-                              <SelectItem value="rem">rem</SelectItem>
-                              <SelectItem value="vw">em</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-                      <div>
-                        <Label className="text-xs mb-1.5 block">Line Height</Label>
-                        <div className="flex gap-2 border border-border rounded-md">
-                          <Input className="h-8 text-xs border-none" />
-                          <Select defaultValue="px">
-                            <SelectTrigger className="h-8 text-xs border-none">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="px">px</SelectItem>
-                              <SelectItem value="rem">rem</SelectItem>
-                              <SelectItem value="vw">em</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
+                    <div className="flex items-center gap-2">
+                      <Label className="text-xs w-16">Line Height</Label>
+                      <InputSelect
+                        defaultValue="px"
+                        options={[
+                          { label: 'px', value: 'px' },
+                          { label: 'rem', value: 'rem' },
+                          { label: '%', value: '%' },
+                        ]}
+                      />
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <Label className="text-xs mb-1.5 block">Font Weight</Label>
-                        <div className="flex gap-2 border border-border rounded-md">
-                          <Select defaultValue="400">
-                            <SelectTrigger className="h-8 text-xs">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="300">Light (300)</SelectItem>
-                              <SelectItem value="400">Regular (400)</SelectItem>
-                              <SelectItem value="500">Medium (500)</SelectItem>
-                              <SelectItem value="600">Semibold (600)</SelectItem>
-                              <SelectItem value="700">Bold (700)</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-                      <div>
-                        <Label className="text-xs mb-1.5 block">Letter Spacing</Label>
-                        <div className="flex gap-2 border border-border rounded-md">
-                          <Input className="h-8 text-xs border-none w-8" value={0} />
-                          <Select defaultValue="px">
-                            <SelectTrigger className="h-8 text-xs border-none">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="px">px</SelectItem>
-                              <SelectItem value="em">em</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
+                    <SelectComp
+                      label="Font Weight"
+                      defaultValue="400"
+                      options={[
+                        { label: 'Light (300)', value: '300' },
+                        { label: 'Regular (400)', value: '400' },
+                        { label: 'Medium (500)', value: '500' },
+                        { label: 'Semibold (600)', value: '600' },
+                        { label: 'Bold (700)', value: '700' },
+                      ]}
+                    />
+                    <SelectComp
+                      label="Font Style"
+                      defaultValue="normal"
+                      options={[
+                        { label: 'Normal', value: 'normal' },
+                        { label: 'Italic', value: 'italic' },
+                      ]}
+                    />
+                    <div className="flex items-center gap-2">
+                      <Label className="text-xs w-16">Letter Spacing</Label>
+                      <InputSelect
+                        defaultValue="px"
+                        options={[
+                          { label: 'px', value: 'px' },
+                          { label: 'rem', value: 'rem' },
+                        ]}
+                      />
                     </div>
-
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <Label className="text-xs mb-1.5 block">Text Align</Label>
-                        <Select defaultValue="left">
-                          <SelectTrigger className="h-8 text-xs">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="left">Left</SelectItem>
-                            <SelectItem value="center">Center</SelectItem>
-                            <SelectItem value="right">Right</SelectItem>
-                            <SelectItem value="justify">Justify</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div>
-                        <Label className="text-xs mb-1.5 block">Text Transform</Label>
-                        <Select defaultValue="none">
-                          <SelectTrigger className="h-8 text-xs">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="none">None</SelectItem>
-                            <SelectItem value="capitalize">Capitalize</SelectItem>
-                            <SelectItem value="uppercase">Uppercase</SelectItem>
-                            <SelectItem value="lowercase">Lowercase</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <Label className="text-xs">Text Decoration</Label>
-                      <div className="grid grid-cols-2 gap-2">
-                        <Button variant="outline" size="sm" className="h-8 text-xs flex-1">
-                          None
-                        </Button>
-                        <Button variant="outline" size="sm" className="h-8 text-xs flex-1">
-                          <span className="underline">Underline</span>
-                        </Button>
-                        <Button variant="outline" size="sm" className="h-8 text-xs flex-1">
-                          <span className="line-through">Strikethrough</span>
-                        </Button>
-                      </div>
+                    <SelectComp
+                      label="Text Align"
+                      defaultValue="left"
+                      options={[
+                        { label: 'Left', value: 'left' },
+                        { label: 'Center', value: 'center' },
+                        { label: 'Right', value: 'right' },
+                        { label: 'Justify', value: 'justify' },
+                      ]}
+                    />
+                    <SelectComp
+                      label="Text Transform"
+                      defaultValue="none"
+                      options={[
+                        { label: 'None', value: 'none' },
+                        { label: 'Capitalize', value: 'capitalize' },
+                        { label: 'Uppercase', value: 'uppercase' },
+                        { label: 'Lowercase', value: 'lowercase' },
+                      ]}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Text Decoration</Label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button variant="outline" size="sm" className="h-8 text-xs flex-1">
+                        None
+                      </Button>
+                      <Button variant="outline" size="sm" className="h-8 text-xs flex-1">
+                        <span className="underline">Underline</span>
+                      </Button>
+                      <Button variant="outline" size="sm" className="h-8 text-xs flex-1">
+                        <span className="line-through">Strikethrough</span>
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -974,58 +753,36 @@ export default function RightSidebar() {
               <CollapsibleContent>
                 <div className="px-3 pb-3">
                   <div className="space-y-3">
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <Label className="text-xs mb-1.5 block">Color</Label>
-                        <Input className="h-8 text-xs flex-1" type="color" />
-                      </div>
-                      <div>
-                        <Label className="text-xs mb-1.5 block">Width</Label>
-                        <div className="flex gap-2 border border-border rounded-md">
-                          <Input className="h-8 text-xs border-none" value="1" />
-                          <Select defaultValue="px">
-                            <SelectTrigger className="h-8 text-xs w-16 border-none">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="px">px</SelectItem>
-                              <SelectItem value="rem">rem</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
+                    <div className="flex items-center gap-2">
+                      <Label className="text-xs w-16">Color</Label>
+                      <Input className="h-8 text-xs flex-1" type="color" />
                     </div>
-
-                    <div className="space-y-1.5">
-                      <Label className="text-xs">Style</Label>
-                      <Select defaultValue="solid">
-                        <SelectTrigger className="h-8 text-xs">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="solid">Solid</SelectItem>
-                          <SelectItem value="dashed">Dashed</SelectItem>
-                          <SelectItem value="dotted">Dotted</SelectItem>
-                          <SelectItem value="double">Double</SelectItem>
-                          <SelectItem value="none">None</SelectItem>
-                        </SelectContent>
-                      </Select>
+                    <div className="flex items-center gap-2">
+                      <Label className="text-xs w-16">Width</Label>
+                      <InputSelect
+                        defaultValue="px"
+                        options={[
+                          { label: 'px', value: 'px' },
+                          { label: 'rem', value: 'rem' },
+                          { label: '%', value: '%' },
+                        ]}
+                      />
                     </div>
+                    <SelectComp
+                      label="Border Style"
+                      defaultValue="solid"
+                      options={[
+                        { label: 'Solid', value: 'solid' },
+                        { label: 'Dashed', value: 'dashed' },
+                        { label: 'Dotted', value: 'dotted' },
+                        { label: 'Double', value: 'double' },
+                        { label: 'None', value: 'none' },
+                      ]}
+                    />
 
+                    {/* Border Radius */}
                     <div className="space-y-1.5">
-                      <div className="flex items-center justify-between">
-                        <Label className="text-xs">Border Radius</Label>
-                        <div className="flex items-center gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-6 w-6 p-0"
-                            aria-label="Link values"
-                          >
-                            <Link className="h-3.5 w-3.5" />
-                          </Button>
-                        </div>
-                      </div>
+                      <Label className="text-xs">Border Radius</Label>
                       <div className="grid grid-cols-2 gap-2">
                         <Input className="h-8 text-xs" placeholder="Top Left" />
                         <Input className="h-8 text-xs" placeholder="Top Right" />
@@ -1076,60 +833,83 @@ export default function RightSidebar() {
                         </SelectContent>
                       </Select>
                     </div>
-
-                    <div className="space-y-1.5">
-                      <Label className="text-xs">Filter</Label>
-                      <Select defaultValue="none">
-                        <SelectTrigger className="h-8 text-xs">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="none">None</SelectItem>
-                          <SelectItem value="blur">Blur</SelectItem>
-                          <SelectItem value="brightness">Brightness</SelectItem>
-                          <SelectItem value="contrast">Contrast</SelectItem>
-                          <SelectItem value="grayscale">Grayscale</SelectItem>
-                          <SelectItem value="hue-rotate">Hue Rotate</SelectItem>
-                          <SelectItem value="invert">Invert</SelectItem>
-                          <SelectItem value="saturate">Saturate</SelectItem>
-                          <SelectItem value="sepia">Sepia</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <Label className="text-xs">Backdrop Filter</Label>
-                      <Select defaultValue="none">
-                        <SelectTrigger className="h-8 text-xs">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="none">None</SelectItem>
-                          <SelectItem value="blur">Blur</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <Label className="text-xs">Mix Blend Mode</Label>
-                      <Select defaultValue="normal">
-                        <SelectTrigger className="h-8 text-xs">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="normal">Normal</SelectItem>
-                          <SelectItem value="multiply">Multiply</SelectItem>
-                          <SelectItem value="screen">Screen</SelectItem>
-                          <SelectItem value="overlay">Overlay</SelectItem>
-                          <SelectItem value="darken">Darken</SelectItem>
-                          <SelectItem value="lighten">Lighten</SelectItem>
-                          <SelectItem value="color-dodge">Color Dodge</SelectItem>
-                          <SelectItem value="color-burn">Color Burn</SelectItem>
-                          <SelectItem value="difference">Difference</SelectItem>
-                          <SelectItem value="exclusion">Exclusion</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
+                    <SelectComp
+                      label="Text Shadow"
+                      defaultValue="none"
+                      options={[
+                        { label: 'None', value: 'none' },
+                        { label: 'Small', value: 'small' },
+                        { label: 'Medium', value: 'medium' },
+                        { label: 'Large', value: 'large' },
+                      ]}
+                    />
+                    <SelectComp
+                      label="Filter"
+                      defaultValue="none"
+                      options={[
+                        { label: 'None', value: 'none' },
+                        { label: 'Blur', value: 'blur' },
+                        { label: 'Brightness', value: 'brightness' },
+                        { label: 'Contrast', value: 'contrast' },
+                        { label: 'Grayscale', value: 'grayscale' },
+                        { label: 'Hue Rotate', value: 'hue-rotate' },
+                        { label: 'Invert', value: 'invert' },
+                        { label: 'Saturate', value: 'saturate' },
+                        { label: 'Sepia', value: 'sepia' },
+                      ]}
+                    />
+                    <SelectComp
+                      label="Backdrop Filter"
+                      defaultValue="none"
+                      options={[
+                        { label: 'None', value: 'none' },
+                        { label: 'Blur', value: 'blur' },
+                        { label: 'Brightness', value: 'brightness' },
+                        { label: 'Contrast', value: 'contrast' },
+                        { label: 'Grayscale', value: 'grayscale' },
+                        { label: 'Hue Rotate', value: 'hue-rotate' },
+                        { label: 'Invert', value: 'invert' },
+                        { label: 'Saturate', value: 'saturate' },
+                        { label: 'Sepia', value: 'sepia' },
+                      ]}
+                    />
+                    <SelectComp
+                      label="Opacity"
+                      defaultValue="100"
+                      options={[
+                        { label: '0%', value: '0' },
+                        { label: '25%', value: '25' },
+                        { label: '50%', value: '50' },
+                        { label: '75%', value: '75' },
+                        { label: '100%', value: '100' },
+                      ]}
+                    />
+                    <SelectComp
+                      label="Overflow"
+                      defaultValue="visible"
+                      options={[
+                        { label: 'Visible', value: 'visible' },
+                        { label: 'Hidden', value: 'hidden' },
+                        { label: 'Scroll', value: 'scroll' },
+                        { label: 'Auto', value: 'auto' },
+                      ]}
+                    />
+                    <SelectComp
+                      label="Mix Blend Mode"
+                      defaultValue="normal"
+                      options={[
+                        { label: 'Normal', value: 'normal' },
+                        { label: 'Multiply', value: 'multiply' },
+                        { label: 'Screen', value: 'screen' },
+                        { label: 'Overlay', value: 'overlay' },
+                        { label: 'Darken', value: 'darken' },
+                        { label: 'Lighten', value: 'lighten' },
+                        { label: 'Color Dodge', value: 'color-dodge' },
+                        { label: 'Color Burn', value: 'color-burn' },
+                        { label: 'Difference', value: 'difference' },
+                        { label: 'Exclusion', value: 'exclusion' },
+                      ]}
+                    />
                   </div>
                 </div>
               </CollapsibleContent>
@@ -1158,87 +938,38 @@ export default function RightSidebar() {
               <CollapsibleContent>
                 <div className="px-3 pb-3">
                   <div className="space-y-3">
-                    <div className="space-y-1.5">
-                      <Label className="text-xs">Position Type</Label>
-                      <Select defaultValue="static">
-                        <SelectTrigger className="h-8 text-xs">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="static">Static</SelectItem>
-                          <SelectItem value="relative">Relative</SelectItem>
-                          <SelectItem value="absolute">Absolute</SelectItem>
-                          <SelectItem value="fixed">Fixed</SelectItem>
-                          <SelectItem value="sticky">Sticky</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <Label className="text-xs mb-1.5 block">Top</Label>
-                        <div className="flex gap-2">
-                          <Input className="h-8 text-xs" placeholder="Auto" />
-                          <Select defaultValue="px">
-                            <SelectTrigger className="h-8 text-xs w-16">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="px">px</SelectItem>
-                              <SelectItem value="percent">%</SelectItem>
-                              <SelectItem value="rem">rem</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-                      <div>
-                        <Label className="text-xs mb-1.5 block">Right</Label>
-                        <div className="flex gap-2">
-                          <Input className="h-8 text-xs" placeholder="Auto" />
-                          <Select defaultValue="px">
-                            <SelectTrigger className="h-8 text-xs w-16">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="px">px</SelectItem>
-                              <SelectItem value="percent">%</SelectItem>
-                              <SelectItem value="rem">rem</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-                      <div>
-                        <Label className="text-xs mb-1.5 block">Bottom</Label>
-                        <div className="flex gap-2">
-                          <Input className="h-8 text-xs" placeholder="Auto" />
-                          <Select defaultValue="px">
-                            <SelectTrigger className="h-8 text-xs w-16">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="px">px</SelectItem>
-                              <SelectItem value="percent">%</SelectItem>
-                              <SelectItem value="rem">rem</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-                      <div>
-                        <Label className="text-xs mb-1.5 block">Left</Label>
-                        <div className="flex gap-2">
-                          <Input className="h-8 text-xs" placeholder="Auto" />
-                          <Select defaultValue="px">
-                            <SelectTrigger className="h-8 text-xs w-16">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="px">px</SelectItem>
-                              <SelectItem value="%">%</SelectItem>
-                              <SelectItem value="rem">rem</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
+                    <SelectComp
+                      label="Position"
+                      defaultValue="static"
+                      options={[
+                        { label: 'Static', value: 'static' },
+                        { label: 'Relative', value: 'relative' },
+                        { label: 'Absolute', value: 'absolute' },
+                        { label: 'Fixed', value: 'fixed' },
+                        { label: 'Sticky', value: 'sticky' },
+                      ]}
+                    />
+                    <div className="grid grid-cols-2 gap-2">
+                      <Input
+                        placeholder="Top"
+                        className="h-7 text-xs"
+                        onChange={(e) => marginChanges(e.target.value, 'top')}
+                      />
+                      <Input
+                        placeholder="Right"
+                        className="h-7 text-xs"
+                        onChange={(e) => marginChanges(e.target.value, 'right')}
+                      />
+                      <Input
+                        placeholder="Bottom"
+                        className="h-7 text-xs"
+                        onChange={(e) => marginChanges(e.target.value, 'bottom')}
+                      />
+                      <Input
+                        placeholder="Left"
+                        className="h-7 text-xs"
+                        onChange={(e) => marginChanges(e.target.value, 'left')}
+                      />
                     </div>
 
                     <div className="space-y-1.5">
@@ -1356,21 +1087,15 @@ export default function RightSidebar() {
             <div className="rounded-lg border p-4">
               <h3 className="text-sm font-medium mb-3">Events</h3>
               <div className="space-y-3">
-                <div className="flex flex-col gap-1.5">
-                  <Label className="text-xs">On Click</Label>
-                  <Select defaultValue="none">
-                    <SelectTrigger className="h-8 text-xs">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">None</SelectItem>
-                      <SelectItem value="link">Navigate to URL</SelectItem>
-                      <SelectItem value="modal">Open Modal</SelectItem>
-                      <SelectItem value="submit">Submit Form</SelectItem>
-                      <SelectItem value="custom">Custom JavaScript</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                <SelectComp
+                  label="On Click"
+                  defaultValue="none"
+                  options={[
+                    { label: 'None', value: 'none' },
+                    { label: 'Alert', value: 'alert' },
+                    { label: 'Redirect', value: 'redirect' },
+                  ]}
+                />
               </div>
             </div>
           </div>
