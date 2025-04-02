@@ -369,83 +369,93 @@ export default function MongoDBSetup() {
           ) : (
             <form onSubmit={handleSubmit}>
               {mongoAcc ? (
-                <div
-                  className={`grid grid-cols-3 gap-4 mt-6 transition-all duration-500 delay-500 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
-                >
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
-                    <input
-                      name="username"
-                      type="text"
-                      required
-                      value={formData.username}
-                      onChange={handleChange}
-                      placeholder={t.mongodbSetup.usernamePlaceholder}
-                      className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500 text-sm transition-all duration-300"
-                    />
-                  </div>
-                  <div className="relative">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-                    <div className="relative">
+                <div>
+                  <div
+                    className={`grid grid-cols-2 gap-4 mt-6 transition-all duration-500 delay-500 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+                  >
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Username
+                      </label>
                       <input
-                        name="password"
-                        type={showPassword ? 'text' : 'password'}
+                        name="username"
+                        type="text"
                         required
-                        value={formData.password}
+                        value={formData.username}
                         onChange={handleChange}
-                        placeholder={t.mongodbSetup.passwordPlaceholder}
+                        placeholder={t.mongodbSetup.usernamePlaceholder}
                         className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500 text-sm transition-all duration-300"
                       />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword((prev) => !prev)}
-                        className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700 transition duration-150 ease-in-out"
-                        aria-label={t.mongodbSetup.togglePasswordVisibility}
-                      >
-                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                      </button>
+                    </div>
+                    <div className="relative">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Password
+                      </label>
+                      <div className="relative">
+                        <input
+                          name="password"
+                          type={showPassword ? 'text' : 'password'}
+                          required
+                          value={formData.password}
+                          onChange={handleChange}
+                          placeholder={t.mongodbSetup.passwordPlaceholder}
+                          className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500 text-sm transition-all duration-300"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword((prev) => !prev)}
+                          className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700 transition duration-150 ease-in-out"
+                          aria-label={t.mongodbSetup.togglePasswordVisibility}
+                        >
+                          {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        </button>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Host</label>
+                      <input
+                        name="host"
+                        type="text"
+                        required
+                        value={formData.host}
+                        onChange={handleChange}
+                        placeholder={t.mongodbSetup.hostPlaceholder}
+                        className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500 text-sm transition-all duration-300"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Auth Source
+                      </label>
+                      <input
+                        name="authSource"
+                        type="text"
+                        required
+                        value={formData.authSource}
+                        onChange={handleChange}
+                        placeholder={'Enter authSource'}
+                        className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500 text-sm transition-all duration-300"
+                      />
                     </div>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Host</label>
-                    <input
-                      name="host"
-                      type="text"
-                      required
-                      value={formData.host}
-                      onChange={handleChange}
-                      placeholder={t.mongodbSetup.hostPlaceholder}
-                      className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500 text-sm transition-all duration-300"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Auth Mechanism
-                    </label>
-                    <select
-                      name="authMech"
-                      value={formData.authMech}
-                      onChange={handleChange}
-                      className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm bg-white focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500 text-sm transition-all duration-300"
-                    >
-                      <option value="Default">Default</option>
-                      <option value="SCRAM-SHA-1">SCRAM-SHA-1</option>
-                      <option value="SCRAM-SHA-256">SCRAM-SHA-256</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Auth Source
-                    </label>
-                    <input
-                      name="authSource"
-                      type="text"
-                      required
-                      value={formData.authSource}
-                      onChange={handleChange}
-                      placeholder={'Enter authSource'}
-                      className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500 text-sm transition-all duration-300"
-                    />
+                  <div
+                    className={`mt-6 transition-all duration-500 delay-500 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+                  >
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Auth Mechanism
+                      </label>
+                      <select
+                        name="authMech"
+                        value={formData.authMech}
+                        onChange={handleChange}
+                        className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm bg-white focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500 text-sm transition-all duration-300"
+                      >
+                        <option value="Default">Default</option>
+                        <option value="SCRAM-SHA-1">SCRAM-SHA-1</option>
+                        <option value="SCRAM-SHA-256">SCRAM-SHA-256</option>
+                      </select>
+                    </div>
                   </div>
                 </div>
               ) : (

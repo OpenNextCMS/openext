@@ -140,8 +140,6 @@ export default function PluginManagementPage() {
   const [installedPluginsList, setInstalledPluginsList] = useState(installedPlugins);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
-
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.length) {
       setFile(e.target.files[0]);
@@ -222,6 +220,7 @@ export default function PluginManagementPage() {
       setUploadProgress(0);
       setUploadStatus('error');
       handleSuccess(false, null, 'Plugin upload error');
+      return error;
     } finally {
       setIsLoading(false);
     }
@@ -317,8 +316,12 @@ export default function PluginManagementPage() {
           </p>
         </div>
 
-        <Tabs defaultValue="installed" className="w-full">
+        <Tabs defaultValue="upload" className="w-full">
           <TabsList className="grid w-full grid-cols-3 mb-8 h-auto">
+            <TabsTrigger value="upload" className="text-base py-3">
+              <Upload className="w-4 h-4 mr-2" />
+              Upload Plugin
+            </TabsTrigger>
             <TabsTrigger value="installed" className="text-base py-3">
               <Package className="w-4 h-4 mr-2" />
               Installed Plugins
@@ -326,10 +329,6 @@ export default function PluginManagementPage() {
             <TabsTrigger value="marketplace" className="text-base py-3">
               <Download className="w-4 h-4 mr-2" />
               Plugin Marketplace
-            </TabsTrigger>
-            <TabsTrigger value="upload" className="text-base py-3">
-              <Upload className="w-4 h-4 mr-2" />
-              Upload Plugin
             </TabsTrigger>
           </TabsList>
 
@@ -368,8 +367,8 @@ export default function PluginManagementPage() {
                   </div>
                   <h3 className="text-xl font-medium mb-2">No plugins installed</h3>
                   <p className="text-muted-foreground mb-6">
-                    You haven't installed any plugins yet. Browse the marketplace to find plugins or
-                    upload your own.
+                    You haven&apos;t installed any plugins yet. Browse the marketplace to find
+                    plugins or upload your own.
                   </p>
                   <Button asChild>
                     <TabsTrigger value="marketplace">Browse Marketplace</TabsTrigger>
