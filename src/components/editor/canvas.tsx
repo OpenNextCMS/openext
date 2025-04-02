@@ -8,7 +8,7 @@ interface CanvasProps {
   canvasBlocks: Array<{
     uniqueId: string;
     content: string;
-    style?: Record<string, string>;
+    style?: string;
     type: 'column' | 'text';
   }>;
   viewMode: 'desktop' | 'tablet' | 'mobile';

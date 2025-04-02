@@ -1,74 +1,17 @@
 'use client';
-import DraggableBlock from './draggableblock';
+import React, { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { X, Search, LayoutGrid, Type, Image as ImageIcon, Heading2, Grip } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useState } from 'react';
+import { X, Search, Grip } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
-
-const blockCategories: Record<string, Block[]> = {
-  layout: [
-    {
-      id: '2-column',
-      label: '2 Column Layout',
-      type: 'column',
-      children: [[], []],
-      content: '',
-      icon: <LayoutGrid className="h-4 w-4 mr-2 text-primary" />,
-      description: 'Two equal width columns',
-    },
-    {
-      id: '3-column',
-      label: '3 Column Layout',
-      type: 'column',
-      children: [[], [], []],
-      content: '',
-      icon: <LayoutGrid className="h-4 w-4 mr-2 text-primary" />,
-      description: 'Three equal width columns',
-    },
-  ],
-  content: [
-    {
-      id: 'text',
-      label: 'Text Block',
-      type: 'text',
-      content: 'Demo Data for Text Block',
-      icon: <Type className="h-4 w-4 mr-2 text-primary" />,
-      description: 'Regular paragraph text',
-    },
-    {
-      id: 'heading',
-      label: 'Heading Block',
-      type: 'text',
-      content: 'Heading Block',
-      icon: <Heading2 className="h-4 w-4 mr-2 text-primary" />,
-      description: 'Section heading',
-    },
-    {
-      id: 'image',
-      label: 'Image Block',
-      type: 'text',
-      content: 'Image Placeholder',
-      icon: <ImageIcon className="h-4 w-4 mr-2 text-primary" aria-hidden="true" />,
-      description: 'Image with caption',
-    },
-  ],
-};
+import DraggableBlock from './draggableblock';
+import { blockCategories } from '@/components/editor/data/blockCategories';
+import type { Block } from '@/types/index';
 
 interface BlockProps {
   toggleSidebar: () => void;
-}
-
-interface Block {
-  id: string;
-  label: string;
-  type: string;
-  children?: unknown[];
-  content?: string;
-  icon: React.ReactNode; // Use React.ReactNode instead of JSX.Element
-  description: string;
 }
 
 export default function Block({ toggleSidebar }: BlockProps) {
@@ -217,13 +160,16 @@ export default function Block({ toggleSidebar }: BlockProps) {
 }
 
 function BlockItem({ block }: { block: Block }) {
+  const enhancedBlock = {
+    ...block,
+    uniqueId: uuidv4(),
+    style: {},
+  };
+
   return (
-    <div className="group rounded-lg border hover:border-primary transition-colors p-2">
-      <div className="flex items-center mb-1">
-        {block.icon}
-        <DraggableBlock block={{ ...block, id: uuidv4() }} />
-      </div>
-      <p className="text-xs text-muted-foreground pl-8">{block.description}</p>
+    <div className="group rounded-lg border hover:border-primary transition-colors p-2 flex items-center">
+      {block.icon}
+      <DraggableBlock block={enhancedBlock} />
     </div>
   );
 }

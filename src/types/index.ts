@@ -1,4 +1,5 @@
 // src/types/index.ts
+import { ReactNode } from 'react';
 
 export interface MongoDBConfig {
   username: string;
@@ -115,4 +116,20 @@ export interface ApiEndpointProps {
   description: string;
   request?: string | object;
   response?: object;
+}
+
+export interface Block {
+  id: string;
+  label: string;
+  type: 'column' | 'text';
+  children?: unknown[];
+  content?: string;
+  icon: ReactNode;
+  description: string;
+  uniqueId?: string;
+  style?: Record<string, string>;
+}
+
+export interface BlockRendererProps {
+  block: Block;
 }
