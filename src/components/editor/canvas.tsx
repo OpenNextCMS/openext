@@ -9,7 +9,7 @@ interface CanvasProps {
     uniqueId: string;
     content: string;
     style?: string;
-    type: 'column' | 'text';
+    type: 'column' | 'text'; // Ensure this matches the expected types
   }>;
   viewMode: 'desktop' | 'tablet' | 'mobile';
 }
@@ -72,13 +72,24 @@ export default function Canvas({ canvasBlocks, viewMode }: CanvasProps) {
           </div>
         </div>
         <div
-          className={`bg-background dark:bg-background w-full h-auto shadow-md p-4 rounded-lg border ${getWidthClass()} transition-all mx-auto ${
-            isOver ? 'border-primary border-dashed border-2' : 'border-border'
-          } `}
+          className={`bg-background dark:bg-background w-full h-auto shadow-md p-4 rounded-lg border ${getWidthClass()} transition-all mx-auto ${isOver ? 'border-primary border-dashed border-2' : 'border-border'
+            } `}
           style={{ transform: `scale(${zoom / 100})`, transformOrigin: 'top left' }}
         >
           {canvasBlocks.length > 0 ? (
-            canvasBlocks.map((block) => <RenderBlock key={block.uniqueId} block={block} />)
+            canvasBlocks.map((block) => (
+              <RenderBlock
+                key={block.uniqueId}
+                block={{
+                  id: block.uniqueId,
+                  label: block.content,
+                  icon: '', // Provide a default or appropriate icon
+                  description: '', // Provide a default or appropriate description
+                  ...block,
+                  style: block.style ? JSON.parse(block.style) : undefined, // Convert style string to object
+                }}
+              />
+            ))
           ) : (
             <div className="flex flex-col items-center justify-center h-[750px] border-2 border-dashed rounded-lg p-6">
               {isOver ? (

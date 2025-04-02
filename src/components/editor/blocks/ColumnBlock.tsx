@@ -1,24 +1,25 @@
 'use client';
 
 import { GripVertical, Edit2, Trash2, Heart } from 'lucide-react';
-import { BlockRendererProps } from '@/types/index';
+import type { BlockRendererProps, Block } from '@/types/index';
 import { getIconForBlock } from './icons';
 import { ColumnDropZone } from './ColumnDropZone';
 import RenderBlock from '../renderblock';
 import { useAppDispatch } from '@/redux/hooks';
 import { removeBlock } from '@/redux/canvasSlice';
 
+
 export const ColumnBlock = ({ block }: BlockRendererProps) => {
   const dispatch = useAppDispatch();
 
   const handleRemove = () => {
-    dispatch(removeBlock(block.uniqueId));
+    dispatch(removeBlock(block.uniqueId ?? ''));
   };
 
   return (
     <div className={`relative group mb-6 ${block.style}`}>
       <div className="absolute -top-3 left-2 bg-primary text-primary-foreground text-xs px-2 py-1 rounded flex items-center opacity-0 group-hover:opacity-100 transition-opacity z-10">
-        {getIconForBlock(block.icon)}
+        {getIconForBlock(block.icon as string | undefined)}
         <span className="ml-1">Column Layout</span>
       </div>
       <div className="absolute -top-3 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10 flex gap-1">
@@ -38,10 +39,12 @@ export const ColumnBlock = ({ block }: BlockRendererProps) => {
         </button>
       </div>
       <div className="flex gap-4 border p-4 rounded-lg shadow-sm group-hover:shadow-md transition-all group-hover:border-primary">
-        {block.children?.map((childBlocks, index) => (
+        {block.children?.map((childBlocks: Block[], index) => (
           <ColumnDropZone key={`${block.uniqueId}-col-${index}`} columnIndex={index} block={block}>
             {childBlocks.length > 0 ? (
-              childBlocks.map((child) => <RenderBlock key={child.uniqueId} block={child} />)
+              childBlocks.map((child: Block) => (
+                <RenderBlock key={child.uniqueId} block={child} />
+              ))
             ) : (
               <div className="flex flex-col items-center justify-center p-4 text-muted-foreground">
                 <GripVertical className="h-5 w-5 mb-2" />
