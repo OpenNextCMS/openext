@@ -122,7 +122,7 @@ export interface Block {
   id: string;
   label: string;
   type: 'column' | 'text';
-  children?: unknown[];
+  children?: Block[][]; // Specify that children is an array of arrays of Block
   content?: string;
   icon: ReactNode;
   description: string;

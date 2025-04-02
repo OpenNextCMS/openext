@@ -224,7 +224,7 @@ export default function Toolbar({ toggleSidebar, onViewChange }: ToolbarProps) {
         <div className="mr-3">
           <Select
             defaultValue="desktop"
-            onValueChange={(value) => onViewChange(value as 'desktop' | 'tablet' | 'mobile')}
+            onValueChange={(value: string) => onViewChange(value as 'desktop' | 'tablet' | 'mobile')}
           >
             <SelectTrigger className="w-[120px]">
               <SelectValue placeholder="View" />

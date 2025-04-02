@@ -69,15 +69,15 @@ export default function Editor() {
         // Add children for column blocks
         ...(blockData?.type === 'column'
           ? {
-              children:
-                blockData.id === '1-column'
-                  ? [[]]
-                  : blockData.id === '2-column'
-                    ? [[], []]
-                    : blockData.id === '3-column'
-                      ? [[], [], []]
-                      : [],
-            }
+            children:
+              blockData.id === '1-column'
+                ? [[]]
+                : blockData.id === '2-column'
+                  ? [[], []]
+                  : blockData.id === '3-column'
+                    ? [[], [], []]
+                    : [],
+          }
           : {}),
       };
 
@@ -98,15 +98,15 @@ export default function Editor() {
         // Add children for column blocks
         ...(active.data.current?.type === 'column'
           ? {
-              children:
-                active.data.current.id === '1-column'
-                  ? [[]]
-                  : active.data.current.id === '2-column'
-                    ? [[], []]
-                    : active.data.current.id === '3-column'
-                      ? [[], [], []]
-                      : [],
-            }
+            children:
+              active.data.current.id === '1-column'
+                ? [[]]
+                : active.data.current.id === '2-column'
+                  ? [[], []]
+                  : active.data.current.id === '3-column'
+                    ? [[], [], []]
+                    : [],
+          }
           : {}),
       };
 

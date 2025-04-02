@@ -10,13 +10,13 @@ export const TextBlock = ({ block }: BlockRendererProps) => {
   const dispatch = useAppDispatch();
 
   const handleRemove = () => {
-    dispatch(removeBlock(block.uniqueId));
+    dispatch(removeBlock(block.uniqueId ?? ''));
   };
 
   return (
     <div className="relative group mb-4">
       <div className="absolute -top-3 left-2 bg-primary text-primary-foreground text-xs px-2 py-1 rounded flex items-center opacity-0 group-hover:opacity-100 transition-opacity z-10">
-        {getIconForBlock(block.icon)}
+        {getIconForBlock(block.icon as string | undefined)}
         <span className="ml-1">Text Block</span>
       </div>
       <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10 flex gap-1">
