@@ -72,8 +72,9 @@ export default function Canvas({ canvasBlocks, viewMode }: CanvasProps) {
           </div>
         </div>
         <div
-          className={`bg-background dark:bg-background w-full h-auto shadow-md p-4 rounded-lg border ${getWidthClass()} transition-all mx-auto ${isOver ? 'border-primary border-dashed border-2' : 'border-border'
-            } `}
+          className={`bg-background dark:bg-background w-full h-auto shadow-md p-4 rounded-lg border ${getWidthClass()} transition-all mx-auto ${
+            isOver ? 'border-primary border-dashed border-2' : 'border-border'
+          } `}
           style={{ transform: `scale(${zoom / 100})`, transformOrigin: 'top left' }}
         >
           {canvasBlocks.length > 0 ? (

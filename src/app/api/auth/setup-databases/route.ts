@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
   } else if (mongoDB === 'compass') {
     baseUrl = `mongodb://${username}:${password}@${host}`;
     connectionOptions = {
-      authSource: authSource, 
+      authSource: authSource,
       authMechanism: authMech,
     };
   } else {

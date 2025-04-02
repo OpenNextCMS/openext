@@ -206,10 +206,11 @@ export default function MongoDBSetup() {
               localStorage.setItem('MONGO_ACC', 'true');
               localStorage.setItem('MONGODB', 'compass');
             }}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 ${mongoAcc
-              ? 'bg-black text-white shadow-md'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 ${
+              mongoAcc
+                ? 'bg-black text-white shadow-md'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
           >
             <Home size={18} />
             <span className="text-sm">MongoDB Compass</span>
@@ -221,10 +222,11 @@ export default function MongoDBSetup() {
               localStorage.setItem('MONGO_ACC', 'false');
               localStorage.setItem('MONGODB', 'atlas');
             }}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 ${!mongoAcc
-              ? 'bg-black text-white shadow-md'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 ${
+              !mongoAcc
+                ? 'bg-black text-white shadow-md'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
           >
             <Server size={18} />
             <span className="text-sm">MongoDB Atlas</span>
@@ -278,8 +280,8 @@ export default function MongoDBSetup() {
                 </div>
               </div>
               <p className="text-xs mt-4">
-                  <strong>Note:</strong> In Host, If Localhost Is Not Working Then Write 127.0.0.1
-                </p>
+                <strong>Note:</strong> In Host, If Localhost Is Not Working Then Write 127.0.0.1
+              </p>
             </div>
           ) : (
             <div>
@@ -332,15 +334,17 @@ export default function MongoDBSetup() {
                 <div className="relative inline-flex items-center p-1 rounded-md cursor-pointer">
                   <div className="flex border border-black rounded-md overflow-hidden">
                     <button
-                      className={`px-3 py-1 transition-all duration-300 ${toggle ? 'bg-black text-white' : 'bg-transparent text-black'
-                        }`}
+                      className={`px-3 py-1 transition-all duration-300 ${
+                        toggle ? 'bg-black text-white' : 'bg-transparent text-black'
+                      }`}
                       onClick={() => setToggle(true)}
                     >
                       Yes
                     </button>
                     <button
-                      className={`px-4 py-1 transition-all duration-300 ${toggle ? 'bg-transparent text-black' : 'bg-black text-white'
-                        }`}
+                      className={`px-4 py-1 transition-all duration-300 ${
+                        toggle ? 'bg-transparent text-black' : 'bg-black text-white'
+                      }`}
                       onClick={() => setToggle(false)}
                     >
                       No
@@ -439,7 +443,7 @@ export default function MongoDBSetup() {
                       required
                       value={formData.authSource}
                       onChange={handleChange}
-                      placeholder={"Enter authSource"}
+                      placeholder={'Enter authSource'}
                       className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500 text-sm transition-all duration-300"
                     />
                   </div>

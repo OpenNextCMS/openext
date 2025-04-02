@@ -1,143 +1,19 @@
 'use client';
-import { useDroppable } from '@dnd-kit/core';
-import {
-  GripVertical, Type, MousePointerClick,
-  Edit2, Trash2, Heart, LayoutGrid,
-  Heading2, Image as ImageIcon, PlusSquare
-} from 'lucide-react';
 
-interface Block {
-  type: 'column' | 'text';
-  uniqueId: string;
-  children?: Block[][];
-  content?: string;
-  icon?: string; // Add icon identifier
-  style?: string; // Allow string or number for style values
-}
-
-// Icon mapping function
-const getIconForBlock = (iconId?: string) => {
-  const iconMap = {
-    'text': <Type className="h-4 w-4 text-primary" />,
-    'heading': <Heading2 className="h-4 w-4 text-primary" />,
-    'image': <ImageIcon className="h-4 w-4 text-primary" />,
-    '1-column': <LayoutGrid className="h-4 w-4 text-primary" />,
-    '2-column': <LayoutGrid className="h-4 w-4 text-primary" />,
-    '3-column': <LayoutGrid className="h-4 w-4 text-primary" />,
-    'defaultIcon': <PlusSquare className="h-4 w-4 text-primary" />
-  };
-
-  return iconMap[iconId as keyof typeof iconMap] || iconMap['defaultIcon'];
-};
+import type { Block } from '@/types/index';
+import { ColumnBlock } from './blocks/ColumnBlock';
+import { TextBlock } from './blocks/TextBlock';
 
 const RenderBlock = ({ block }: { block: Block }) => {
-
   if (block.type === 'column') {
-    return (
-      <div
-        className={`relative group mb-6 ${block.style}`}
-      // className="relative group mb-6"
-      // style={block.style}
-      >
-        <div className="absolute -top-3 left-2 bg-primary text-primary-foreground text-xs px-2 py-1 rounded flex items-center opacity-0 group-hover:opacity-100 transition-opacity z-10">
-          {getIconForBlock(block.icon)}
-          <span className="ml-1">Column Layout</span>
-        </div>
-        <div className="absolute -top-3 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10 flex gap-1">
-          <button className="bg-primary text-primary-foreground text-xs px-2 py-1 rounded hover:bg-primary/90 transition-colors">
-            <Edit2 className="h-4 w-4" />
-          </button>
-          <button className="bg-destructive text-destructive-foreground text-xs px-2 py-1 rounded hover:bg-destructive/90 transition-colors">
-            <Trash2 className="h-4 w-4" />
-          </button>
-        </div>
-        <div className="absolute -bottom-3 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10 flex gap-1">
-          <button className="bg-primary text-primary-foreground text-xs p-2 rounded-full hover:bg-primary/90 transition-colors hover:text-yellow-500">
-            <Heart className="h-4 w-4" />
-          </button>
-        </div>
-        <div className="flex gap-4 border p-4 rounded-lg shadow-sm group-hover:shadow-md transition-all group-hover:border-primary">
-          {block.children?.map((childBlocks, index) => (
-            <ColumnDropZone
-              key={`${block.uniqueId}-col-${index}`}
-              columnIndex={index}
-              block={block}
-            >
-              {childBlocks.length > 0 ? (
-                childBlocks.map((child) => <RenderBlock key={child.uniqueId} block={child} />)
-              ) : (
-                <div className="flex flex-col items-center justify-center p-4 text-muted-foreground">
-                  <GripVertical className="h-5 w-5 mb-2" />
-                  <p className="text-sm">Drop blocks here</p>
-                </div>
-              )}
-            </ColumnDropZone>
-          ))}
-        </div>
-      </div>
-    );
+    return <ColumnBlock block={block} />;
   }
 
   if (block.type === 'text') {
-    return (
-      <div
-        className="relative group mb-4"
-      // style={block.style}
-      >
-        <div className="absolute -top-3 left-2 bg-primary text-primary-foreground text-xs px-2 py-1 rounded flex items-center opacity-0 group-hover:opacity-100 transition-opacity z-10">
-          {getIconForBlock(block.icon)}
-          <span className="ml-1">Text Block</span>
-        </div>
-        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10 flex gap-1">
-          <button className="bg-primary text-primary-foreground text-xs px-2 py-1 rounded hover:bg-primary/90 transition-colors">
-            <Edit2 className="h-4 w-4" />
-          </button>
-          <button className="bg-destructive text-destructive-foreground text-xs px-2 py-1 rounded hover:bg-destructive/90 transition-colors">
-            <Trash2 className="h-4 w-4" />
-          </button>
-        </div>
-        <div className="p-4 border rounded-lg shadow-sm group-hover:shadow-md transition-all group-hover:border-primary">
-          {block.content}
-        </div>
-      </div>
-    );
+    return <TextBlock block={block} />;
   }
 
-  return null; // Unknown block
-};
-
-const ColumnDropZone = ({
-  children,
-  block,
-  columnIndex,
-}: {
-  children: React.ReactNode;
-  block: Block;
-  columnIndex: number;
-}) => {
-  const { setNodeRef, isOver } = useDroppable({
-    id: `${block.uniqueId}-column-${columnIndex}`,
-    data: { type: 'column', blockId: block.uniqueId, columnIndex },
-  });
-
-  return (
-    <div
-      ref={setNodeRef}
-      className={`flex-1 border rounded-md p-3 min-h-[150px] transition-colors ${isOver
-        ? 'bg-primary/10 border-primary border-dashed'
-        : 'bg-muted/20 hover:bg-muted/30 border-border'
-        }`}
-    >
-      {isOver && Array.isArray(children) && children.length === 0 ? (
-        <div className="flex flex-col items-center justify-center h-full animate-pulse">
-          <MousePointerClick className="h-5 w-5 text-primary mb-2" />
-          <p className="text-sm text-primary">Drop here</p>
-        </div>
-      ) : (
-        children
-      )}
-    </div>
-  );
+  return null; // Unknown block type
 };
 
 export default RenderBlock;

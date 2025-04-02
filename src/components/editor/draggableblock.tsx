@@ -44,14 +44,10 @@ const DraggableBlock = ({ block }: { block: Block }) => {
       className="flex items-center w-full text-left cursor-grab transition-colors duration-200 group-hover:text-primary"
     >
       {/* Render icon if available */}
-      {block.icon && typeof block.icon === 'object' && (
-        <span className="mr-2">{block.icon}</span>
-      )}
+      {block.icon && typeof block.icon === 'object' && <span className="mr-2">{block.icon}</span>}
 
       {/* Render block label */}
-      <span className="truncate text-sm">
-        {block.label}
-      </span>
+      <span className="truncate text-sm">{block.label}</span>
     </div>
   );
 };

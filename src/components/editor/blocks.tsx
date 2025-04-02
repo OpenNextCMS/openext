@@ -1,90 +1,18 @@
 'use client';
 import React, { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import {
-  X, Search, LayoutGrid, Type, Image as ImageIcon,
-  Heading2, Grip
-} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { X, Search, Grip } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import DraggableBlock from './draggableblock';
-
-interface Block {
-  id: string;
-  label: string;
-  type: 'column' | 'text';
-  children?: unknown[];
-  content?: string;
-  icon: React.ReactNode;
-  description: string;
-  uniqueId?: string;
-  style?: Record<string, string>;
-}
-
-const blockCategories: Record<string, Block[]> = {
-  layout: [
-    {
-      id: '1-column',
-      label: '1 Column Layout',
-      type: 'column',
-      children: [[]],
-      content: '',
-      icon: <LayoutGrid className="h-4 w-4 mr-2 text-primary" />,
-      description: 'Two equal width columns',
-    },
-    {
-      id: '2-column',
-      label: '2 Column Layout',
-      type: 'column',
-      children: [[], []],
-      content: '',
-      icon: <LayoutGrid className="h-4 w-4 mr-2 text-primary" />,
-      description: 'Two equal width columns',
-    },
-    {
-      id: '3-column',
-      label: '3 Column Layout',
-      type: 'column',
-      children: [[], [], []],
-      content: '',
-      icon: <LayoutGrid className="h-4 w-4 mr-2 text-primary" />,
-      description: 'Three equal width columns',
-    },
-  ],
-  content: [
-    {
-      id: 'text',
-      label: 'Text Block',
-      type: 'text',
-      content: 'Demo Data for Text Block',
-      icon: <Type className="h-4 w-4 mr-2 text-primary" />,
-      description: 'Regular paragraph text',
-    },
-    {
-      id: 'heading',
-      label: 'Heading Block',
-      type: 'text',
-      content: 'Heading Block',
-      icon: <Heading2 className="h-4 w-4 mr-2 text-primary" />,
-      description: 'Section heading',
-    },
-    {
-      id: 'image',
-      label: 'Image Block',
-      type: 'text',
-      content: 'Image Placeholder',
-      icon: <ImageIcon className="h-4 w-4 mr-2 text-primary" aria-hidden="true" />,
-      description: 'Image with caption',
-    },
-  ],
-};
+import { blockCategories } from '@/components/editor/data/blockCategories';
+import type { Block } from '@/types/index';
 
 interface BlockProps {
   toggleSidebar: () => void;
 }
-
 
 export default function Block({ toggleSidebar }: BlockProps) {
   const [searchTerm, setSearchTerm] = useState('');

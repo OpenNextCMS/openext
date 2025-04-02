@@ -1,20 +1,23 @@
 'use client';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Pointer, Palette, Sliders, ChevronDown, ChevronRight, History, PaletteIcon, Droplets, Link } from 'lucide-react';
+import {
+  Pointer,
+  Palette,
+  Sliders,
+  ChevronDown,
+  ChevronRight,
+  History,
+  PaletteIcon,
+  Droplets,
+  Link,
+} from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/collapsible';
 import { Button } from '../ui/button';
 import { useState } from 'react';
 import { Label } from '../ui/label';
 import { Input } from '../ui/input';
 
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '../ui/select';
-
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 
 export default function RightSidebar() {
   const [displayOpen, setDisplayOpen] = useState(false);
@@ -28,7 +31,6 @@ export default function RightSidebar() {
   const [boxShadow, setBoxShadow] = useState('none');
   const [spacingOpen, setSpacingOpen] = useState(false);
   const [colorMode] = useState('solid');
-
 
   const boxShadowPresets = [
     { name: 'None', value: 'none' },
@@ -140,7 +142,10 @@ export default function RightSidebar() {
                 <div className="px-3 pb-3">
                   <div className="flex items-center gap-2 mb-3">
                     <Label className="text-xs w-16">Display</Label>
-                    <Select defaultValue="none" onValueChange={(value) => setDisplayFlex(value === 'flex')}>
+                    <Select
+                      defaultValue="none"
+                      onValueChange={(value) => setDisplayFlex(value === 'flex')}
+                    >
                       <SelectTrigger className="h-8 text-xs flex-1">
                         <SelectValue />
                       </SelectTrigger>
@@ -237,11 +242,7 @@ export default function RightSidebar() {
             </Collapsible>
 
             {/* Background */}
-            <Collapsible
-              open={bgOpen}
-              onOpenChange={setBgOpen}
-              className="rounded-lg border"
-            >
+            <Collapsible open={bgOpen} onOpenChange={setBgOpen} className="rounded-lg border">
               <div className="flex items-center justify-between p-2">
                 <div className="flex items-center gap-2">
                   <CollapsibleTrigger asChild>
@@ -287,7 +288,9 @@ export default function RightSidebar() {
                       <Label className="text-xs">Image</Label>
                       <div className="flex gap-2">
                         <Input className="h-8 text-xs flex-1" placeholder="URL or select file" />
-                        <Button variant="outline" className="h-8 text-xs">Browse</Button>
+                        <Button variant="outline" className="h-8 text-xs">
+                          Browse
+                        </Button>
                       </div>
                     </div>
 
@@ -328,11 +331,7 @@ export default function RightSidebar() {
             </Collapsible>
 
             {/* Size */}
-            <Collapsible
-              open={sizeOpen}
-              onOpenChange={setSizeOpen}
-              className="rounded-lg border"
-            >
+            <Collapsible open={sizeOpen} onOpenChange={setSizeOpen} className="rounded-lg border">
               <div className="flex items-center justify-between p-2">
                 <div className="flex items-center gap-2">
                   <CollapsibleTrigger asChild>
@@ -460,11 +459,7 @@ export default function RightSidebar() {
             </Collapsible>
 
             {/* Font */}
-            <Collapsible
-              open={fontOpen}
-              onOpenChange={setFontOpen}
-              className="rounded-lg border"
-            >
+            <Collapsible open={fontOpen} onOpenChange={setFontOpen} className="rounded-lg border">
               <div className="flex items-center justify-between p-2">
                 <div className="flex items-center gap-2">
                   <CollapsibleTrigger asChild>
@@ -600,7 +595,9 @@ export default function RightSidebar() {
                     <div className="space-y-1.5">
                       <Label className="text-xs">Text Decoration</Label>
                       <div className="grid grid-cols-2 gap-2">
-                        <Button variant="outline" size="sm" className="h-8 text-xs flex-1">None</Button>
+                        <Button variant="outline" size="sm" className="h-8 text-xs flex-1">
+                          None
+                        </Button>
                         <Button variant="outline" size="sm" className="h-8 text-xs flex-1">
                           <span className="underline">Underline</span>
                         </Button>
@@ -640,7 +637,7 @@ export default function RightSidebar() {
                     <div className="grid grid-cols-2 gap-2">
                       <div>
                         <Label className="text-xs mb-1.5 block">Color</Label>
-                        <Input className="h-8 text-xs flex-1" type='color' />
+                        <Input className="h-8 text-xs flex-1" type="color" />
                       </div>
                       <div>
                         <Label className="text-xs mb-1.5 block">Width</Label>
@@ -731,8 +728,10 @@ export default function RightSidebar() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {boxShadowPresets.map(preset => (
-                            <SelectItem key={preset.name} value={preset.value}>{preset.name}</SelectItem>
+                          {boxShadowPresets.map((preset) => (
+                            <SelectItem key={preset.name} value={preset.value}>
+                              {preset.name}
+                            </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>

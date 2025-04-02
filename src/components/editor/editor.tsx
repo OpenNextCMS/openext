@@ -13,20 +13,16 @@ import Toolbar from './toolbar';
 import StatusBar from './status-bar';
 import { Suspense } from 'react';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
-import {
-  addBlock,
-  addBlockToColumn,
-  setViewMode
-} from '@/redux/canvasSlice';
+import { addBlock, addBlockToColumn, setViewMode } from '@/redux/canvasSlice';
 
-interface BlockData {
-  uniqueId: string;
-  content: string;
-  type: 'column' | 'text';
-  children?: BlockData[][];
-  style?: Record<string, string>;
-  icon?: string; // Only allow string for icon names, not React elements
-}
+// interface BlockData {
+//   uniqueId: string;
+//   content: string;
+//   type: 'column' | 'text';
+//   children?: BlockData[][];
+//   style?: Record<string, string>;
+//   icon?: string; // Only allow string for icon names, not React elements
+// }
 
 export default function Editor() {
   const [showLeftSidebar, setShowLeftSidebar] = useState(true);
@@ -71,11 +67,18 @@ export default function Editor() {
         uniqueId: uuidv4(),
         style: blockData?.style || {},
         // Add children for column blocks
-        ...(blockData?.type === 'column' ? {
-          children: blockData.id === '1-column' ? [[]] :
-            blockData.id === '2-column' ? [[], []] :
-              blockData.id === '3-column' ? [[], [], []] : []
-        } : {})
+        ...(blockData?.type === 'column'
+          ? {
+              children:
+                blockData.id === '1-column'
+                  ? [[]]
+                  : blockData.id === '2-column'
+                    ? [[], []]
+                    : blockData.id === '3-column'
+                      ? [[], [], []]
+                      : [],
+            }
+          : {}),
       };
 
       dispatch(addBlock(newBlock));
@@ -93,11 +96,18 @@ export default function Editor() {
         style: active.data.current?.style || {},
         uniqueId: uuidv4(),
         // Add children for column blocks
-        ...(active.data.current?.type === 'column' ? {
-          children: active.data.current.id === '1-column' ? [[]] :
-            active.data.current.id === '2-column' ? [[], []] :
-              active.data.current.id === '3-column' ? [[], [], []] : []
-        } : {})
+        ...(active.data.current?.type === 'column'
+          ? {
+              children:
+                active.data.current.id === '1-column'
+                  ? [[]]
+                  : active.data.current.id === '2-column'
+                    ? [[], []]
+                    : active.data.current.id === '3-column'
+                      ? [[], [], []]
+                      : [],
+            }
+          : {}),
       };
 
       console.log('Block payload for column:', blockData);
@@ -105,7 +115,7 @@ export default function Editor() {
       const actionPayload = {
         targetBlockId: over.data.current.blockId,
         columnIndex: over.data.current.columnIndex,
-        newBlock: blockData
+        newBlock: blockData,
       };
 
       console.log('Full action payload:', actionPayload);

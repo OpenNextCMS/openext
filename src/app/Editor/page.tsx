@@ -14,6 +14,6 @@ export default function LayoutWrapper() {
           <Editor />
         </ThemeProvider>
       </PersistGate>
-    </Provider >
+    </Provider>
   );
 }
