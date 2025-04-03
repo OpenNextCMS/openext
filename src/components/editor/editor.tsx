@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { DndContext, DragEndEvent } from '@dnd-kit/core';
 import LeftSidebar from './left-sidebar';
 import RightSidebar from './right-sidebar';
-import Block from './blocks';
+import Blocks from './blocks';
 import Canvas from './canvas';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
@@ -13,16 +13,21 @@ import Toolbar from './toolbar';
 import StatusBar from './status-bar';
 import { Suspense } from 'react';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
-import { addBlock, addBlockToColumn, setViewMode } from '@/redux/canvasSlice';
+import { addBlock, addBlockToColumn } from '@/redux/canvasSlice';
+import { BlockDragData, Block } from '@/types/index';
 
-// interface BlockData {
-//   uniqueId: string;
-//   content: string;
-//   type: 'column' | 'text';
-//   children?: BlockData[][];
-//   style?: Record<string, string>;
-//   icon?: string; // Only allow string for icon names, not React elements
-// }
+// Define action creator for setViewMode
+const setViewMode = (mode: 'desktop' | 'tablet' | 'mobile') => ({
+  type: 'canvas/setViewMode',
+  payload: mode
+});
+
+// Define types for DroppableData
+interface DroppableData {
+  type?: string;
+  blockId?: string;
+  columnIndex?: number;
+}
 
 export default function Editor() {
   const [showLeftSidebar, setShowLeftSidebar] = useState(true);
@@ -47,7 +52,7 @@ export default function Editor() {
   };
 
   const handleViewChange = (mode: 'desktop' | 'tablet' | 'mobile') => {
-    setViewMode(mode);
+    dispatch(setViewMode(mode));
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -55,19 +60,21 @@ export default function Editor() {
 
     if (!over) return;
 
-    const blockData = active.data.current;
+    // Type-safe handling of the data
+    const blockData = active.data.current as BlockDragData;
+    const overData = over.data.current as DroppableData;
 
     if (over.id === 'canvas') {
       console.log('Adding new block to canvas root');
 
       const newBlock = {
         content: blockData?.content || '',
-        type: blockData?.type || 'text',
+        type: blockData?.type === 'text' || blockData?.type === 'column' ? (blockData.type as 'text' | 'column') : 'text',
         icon: blockData?.id || 'defaultIcon',
         uniqueId: uuidv4(),
-        style: blockData?.style || {},
+        style: typeof blockData?.style === 'string' ? blockData.style : undefined,
         // Add children for column blocks
-        ...(blockData?.type === 'column'
+        ...(blockData?.type === 'column'  // Compare the actual string value
           ? {
             children:
               blockData.id === '1-column'
@@ -85,25 +92,28 @@ export default function Editor() {
       console.log('Block payload before dispatch:', newBlock);
     }
 
-    // Similar modification for column addition logic
-    if (over.data.current?.type === 'column') {
+    // Column addition logic with proper typing
+    if (overData?.type === 'column') {
       console.log('Adding block to column');
+
+      const activeData = active.data.current as BlockDragData;
+
       const blockData = {
-        ...active.data.current,
-        icon: active.data.current?.id || 'defaultIcon',
-        content: active.data.current?.content || '',
-        type: active.data.current?.type || 'text',
-        style: active.data.current?.style || {},
+        ...activeData,
+        icon: activeData?.id || 'defaultIcon',
+        content: activeData?.content || '',
+        type: activeData?.type === 'text' || activeData?.type === 'column' ? (activeData.type as 'text' | 'column') : 'text',
+        style: typeof activeData?.style === 'string' ? activeData.style : undefined,
         uniqueId: uuidv4(),
         // Add children for column blocks
-        ...(active.data.current?.type === 'column'
+        ...(activeData?.type === 'column'
           ? {
             children:
-              active.data.current.id === '1-column'
+              activeData.id === '1-column'
                 ? [[]]
-                : active.data.current.id === '2-column'
+                : activeData.id === '2-column'
                   ? [[], []]
-                  : active.data.current.id === '3-column'
+                  : activeData.id === '3-column'
                     ? [[], [], []]
                     : [],
           }
@@ -113,8 +123,8 @@ export default function Editor() {
       console.log('Block payload for column:', blockData);
 
       const actionPayload = {
-        targetBlockId: over.data.current.blockId,
-        columnIndex: over.data.current.columnIndex,
+        targetBlockId: overData.blockId || '',
+        columnIndex: overData.columnIndex || 0,
         newBlock: blockData,
       };
 
@@ -123,31 +133,6 @@ export default function Editor() {
       dispatch(addBlockToColumn(actionPayload));
     }
   };
-
-  // const updateNestedBlock = (
-  //   block: BlockData,
-  //   targetBlockId: string,
-  //   columnIndex: number,
-  //   newBlock: BlockData
-  // ): BlockData => {
-  //   if (block.uniqueId === targetBlockId) {
-  //     const updatedChildren = [...(block.children || [])];
-  //     updatedChildren[columnIndex] = [...(updatedChildren[columnIndex] || []), newBlock];
-
-  //     return { ...block, children: updatedChildren };
-  //   }
-
-  //   if (block.children) {
-  //     return {
-  //       ...block,
-  //       children: block.children.map((col) =>
-  //         col.map((child) => updateNestedBlock(child, targetBlockId, columnIndex, newBlock))
-  //       ),
-  //     };
-  //   }
-
-  //   return block;
-  // };
 
   return (
     <div className="flex h-screen w-screen flex-col overflow-hidden bg-background text-foreground transition-colors duration-300">
@@ -183,11 +168,11 @@ export default function Editor() {
             </div>
           </div>
 
-          {isOpen && <Block toggleSidebar={toggleSidebar} />}
+          {isOpen && <Blocks toggleSidebar={toggleSidebar} />}
 
           <div className="flex flex-1 flex-col overflow-hidden">
             <Toolbar toggleSidebar={toggleSidebar} onViewChange={handleViewChange} />
-            <Canvas canvasBlocks={canvasBlocks} viewMode={viewMode} />
+            <Canvas canvasBlocks={canvasBlocks as Block[]} viewMode={viewMode} />
           </div>
 
           <div

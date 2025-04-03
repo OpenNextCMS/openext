@@ -1,7 +1,13 @@
 import { LayoutGrid, Type, Heading2, Image as ImageIcon } from 'lucide-react';
 import { Block } from '@/types/index';
+import { ReactNode } from 'react';
 
-export const blockCategories: Record<string, Block[]> = {
+// Helper type for block categories that use ReactNode for icon
+type BlockWithReactNodeIcon = Omit<Block, 'icon'> & {
+  icon: ReactNode;
+};
+
+export const blockCategories: Record<string, BlockWithReactNodeIcon[]> = {
   layout: [
     {
       id: '1-column',
@@ -10,7 +16,7 @@ export const blockCategories: Record<string, Block[]> = {
       children: [[]],
       content: '',
       icon: <LayoutGrid className="h-4 w-4 mr-2 text-primary" />,
-      description: 'Two equal width columns',
+      description: 'Single column layout',
     },
     {
       id: '2-column',

@@ -14,7 +14,7 @@ interface BlockProps {
   toggleSidebar: () => void;
 }
 
-export default function Block({ toggleSidebar }: BlockProps) {
+export default function Blocks({ toggleSidebar }: BlockProps) {
   const [searchTerm, setSearchTerm] = useState('');
 
   const getFilteredBlocks = (blocks: Block[]): Block[] => {
