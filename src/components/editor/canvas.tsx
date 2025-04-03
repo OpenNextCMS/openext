@@ -3,14 +3,10 @@ import { useDroppable } from '@dnd-kit/core';
 import RenderBlock from './renderblock';
 import { LayoutGrid, PlusSquare, MousePointerClick } from 'lucide-react';
 import { useState } from 'react';
+import { Block } from '@/types/index';
 
 interface CanvasProps {
-  canvasBlocks: Array<{
-    uniqueId: string;
-    content: string;
-    style?: string;
-    type: 'column' | 'text'; // Ensure this matches the expected types
-  }>;
+  canvasBlocks: Block[];
   viewMode: 'desktop' | 'tablet' | 'mobile';
 }
 
@@ -77,19 +73,7 @@ export default function Canvas({ canvasBlocks, viewMode }: CanvasProps) {
           style={{ transform: `scale(${zoom / 100})`, transformOrigin: 'top left' }}
         >
           {canvasBlocks.length > 0 ? (
-            canvasBlocks.map((block) => (
-              <RenderBlock
-                key={block.uniqueId}
-                block={{
-                  id: block.uniqueId,
-                  label: block.content,
-                  icon: '', // Provide a default or appropriate icon
-                  description: '', // Provide a default or appropriate description
-                  ...block,
-                  style: block.style ? JSON.parse(block.style) : undefined, // Convert style string to object
-                }}
-              />
-            ))
+            canvasBlocks.map((block) => <RenderBlock key={block.uniqueId} block={block} />)
           ) : (
             <div className="flex flex-col items-center justify-center h-[750px] border-2 border-dashed rounded-lg p-6">
               {isOver ? (

@@ -117,17 +117,25 @@ export interface ApiEndpointProps {
   request?: string | object;
   response?: object;
 }
-
+export type ColumnChild = Block[];
 export interface Block {
   id: string;
   label: string;
   type: 'column' | 'text';
-  children?: Block[][]; // Specify that children is an array of arrays of Block
+  children?: ColumnChild[]; // Updated type for children
   content?: string;
   icon: ReactNode;
   description: string;
   uniqueId?: string;
   style?: Record<string, string>;
+}
+
+export interface BlockDragData {
+  id?: string;
+  type?: string;
+  content?: string;
+  style?: Record<string, string> | string;
+  // Add other properties that might be needed during drag operations
 }
 
 export interface BlockRendererProps {
