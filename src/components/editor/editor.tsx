@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { DndContext, DragEndEvent } from '@dnd-kit/core';
 import LeftSidebar from './left-sidebar';
 import RightSidebar from './right-sidebar';
-import Block from './blocks';
+import Blocks from './blocks';
 import Canvas from './canvas';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
@@ -12,23 +12,31 @@ import { v4 as uuidv4 } from 'uuid';
 import Toolbar from './toolbar';
 import StatusBar from './status-bar';
 import { Suspense } from 'react';
+import { useAppDispatch, useAppSelector } from '@/redux/hooks';
+import { addBlock, addBlockToColumn } from '@/redux/canvasSlice';
+import { BlockDragData, Block } from '@/types/index';
 
-interface BlockData {
-  uniqueId: string;
-  content: string;
-  type: 'column' | 'text';
-  children?: BlockData[][];
-  style?: Record<string, string>;
-  [key: string]: unknown;
+// Define action creator for setViewMode
+const setViewMode = (mode: 'desktop' | 'tablet' | 'mobile') => ({
+  type: 'canvas/setViewMode',
+  payload: mode
+});
+
+// Define types for DroppableData
+interface DroppableData {
+  type?: string;
+  blockId?: string;
+  columnIndex?: number;
 }
 
 export default function Editor() {
   const [showLeftSidebar, setShowLeftSidebar] = useState(true);
   const [showRightSidebar, setShowRightSidebar] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
-  const [canvasBlocks, setCanvasBlocks] = useState<BlockData[]>([]);
-  const [viewMode, setViewMode] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
   const [showButton, setShowButton] = useState(true);
+  const dispatch = useAppDispatch();
+  const canvasBlocks = useAppSelector((state) => state.canvas.blocks);
+  const viewMode = useAppSelector((state) => state.canvas.viewMode);
 
   useEffect(() => {
     document.body.style.overflow = 'hidden';
@@ -44,7 +52,7 @@ export default function Editor() {
   };
 
   const handleViewChange = (mode: 'desktop' | 'tablet' | 'mobile') => {
-    setViewMode(mode);
+    dispatch(setViewMode(mode));
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -52,56 +60,78 @@ export default function Editor() {
 
     if (!over) return;
 
-    const blockData: BlockData = {
-      ...(active.data.current as BlockData),
-      uniqueId: uuidv4(),
-    };
+    // Type-safe handling of the data
+    const blockData = active.data.current as BlockDragData;
+    const overData = over.data.current as DroppableData;
 
-    setCanvasBlocks((prev) => {
-      if (over.id === 'canvas') {
-        return [...prev, blockData];
-      }
+    if (over.id === 'canvas') {
+      console.log('Adding new block to canvas root');
 
-      if (over.data.current?.type === 'column') {
-        return prev.map((block) =>
-          over.data.current
-            ? updateNestedBlock(
-                block,
-                over.data.current.blockId,
-                over.data.current.columnIndex,
-                blockData
-              )
-            : block
-        );
-      }
-
-      return prev;
-    });
-  };
-
-  const updateNestedBlock = (
-    block: BlockData,
-    targetBlockId: string,
-    columnIndex: number,
-    newBlock: BlockData
-  ): BlockData => {
-    if (block.uniqueId === targetBlockId) {
-      const updatedChildren = [...(block.children || [])];
-      updatedChildren[columnIndex] = [...(updatedChildren[columnIndex] || []), newBlock];
-
-      return { ...block, children: updatedChildren };
-    }
-
-    if (block.children) {
-      return {
-        ...block,
-        children: block.children.map((col) =>
-          col.map((child) => updateNestedBlock(child, targetBlockId, columnIndex, newBlock))
-        ),
+      const newBlock = {
+        content: blockData?.content || '',
+        type: blockData?.type === 'text' || blockData?.type === 'column' ? (blockData.type as 'text' | 'column') : 'text',
+        icon: blockData?.id || 'defaultIcon',
+        uniqueId: uuidv4(),
+        style: typeof blockData?.style === 'string' ? blockData.style : undefined,
+        // Add children for column blocks
+        ...(blockData?.type === 'column'  // Compare the actual string value
+          ? {
+            children:
+              blockData.id === '1-column'
+                ? [[]]
+                : blockData.id === '2-column'
+                  ? [[], []]
+                  : blockData.id === '3-column'
+                    ? [[], [], []]
+                    : [],
+          }
+          : {}),
       };
+
+      dispatch(addBlock(newBlock));
+      console.log('Block payload before dispatch:', newBlock);
     }
 
-    return block;
+    // Column addition logic with proper typing
+    if (overData?.type === 'column') {
+      console.log('Adding block to column');
+
+      const activeData = active.data.current as BlockDragData;
+
+      const blockData = {
+        ...activeData,
+        icon: activeData?.id || 'defaultIcon',
+        content: activeData?.content || '',
+        type: activeData?.type === 'text' || activeData?.type === 'column' ? (activeData.type as 'text' | 'column') : 'text',
+        style: typeof activeData?.style === 'string' ? activeData.style : undefined,
+        uniqueId: uuidv4(),
+        // Add children for column blocks
+        ...(activeData?.type === 'column'
+          ? {
+            children:
+              activeData.id === '1-column'
+                ? [[]]
+                : activeData.id === '2-column'
+                  ? [[], []]
+                  : activeData.id === '3-column'
+                    ? [[], [], []]
+                    : [],
+          }
+          : {}),
+      };
+
+      console.log('Block payload for column:', blockData);
+
+      const actionPayload = {
+        targetBlockId: overData.blockId || '',
+        columnIndex: overData.columnIndex || 0,
+        newBlock: blockData,
+      };
+
+      console.log('Full action payload:', actionPayload);
+
+      dispatch(addBlockToColumn(actionPayload));
+    }
   };
 
   return (
@@ -138,11 +168,11 @@ export default function Editor() {
             </div>
           </div>
 
-          {isOpen && <Block toggleSidebar={toggleSidebar} />}
+          {isOpen && <Blocks toggleSidebar={toggleSidebar} />}
 
           <div className="flex flex-1 flex-col overflow-hidden">
             <Toolbar toggleSidebar={toggleSidebar} onViewChange={handleViewChange} />
-            <Canvas canvasBlocks={canvasBlocks} viewMode={viewMode} />
+            <Canvas canvasBlocks={canvasBlocks as Block[]} viewMode={viewMode} />
           </div>
 
           <div
