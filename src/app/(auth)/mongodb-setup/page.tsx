@@ -100,7 +100,7 @@ export default function MongoDBSetup() {
       const payload = mongoAcc
         ? { username, password, host, mongoDB, authMech, authSource } // For Compass
         : { username, password, host, cluster, mongoDB }; // For Atlas
-
+  
       const response = await fetch(`${backendUrl}/api/auth/verify-mongodb`, {
         method: 'POST',
         headers: {
@@ -108,7 +108,6 @@ export default function MongoDBSetup() {
         },
         body: JSON.stringify(payload),
       });
-
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(errorText || t.mongodbSetup.generalError);
@@ -154,7 +153,6 @@ export default function MongoDBSetup() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
-    console.log('Changing:', name, 'to', value);
 
     // Update the corresponding state variable
     switch (name) {
