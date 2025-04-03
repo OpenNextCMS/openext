@@ -48,7 +48,7 @@ export async function GET() {
     // Removed userId filter, now retrieve the settings document without filtering
     const settings = await SettingsModel.findOne({}).exec();
 
-    return NextResponse.json({ success: true, data: { user, settings } });
+    return NextResponse.json({ success: true, data: { settings } });
   } catch (error) {
     console.error('❌ Server error in /api/dashboard/settings:', error);
     return NextResponse.json({ success: false, message: 'Server error' }, { status: 500 });
@@ -140,7 +140,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      data: { user, settings },
+      data: { settings },
       message: 'Settings updated successfully',
     });
   } catch (error: unknown) {
