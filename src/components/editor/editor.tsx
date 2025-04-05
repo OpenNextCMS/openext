@@ -90,6 +90,7 @@ export default function Editor() {
             }
           : {}),
       };
+
       dispatch(addBlock(newBlock));
       console.log('Block payload before dispatch:', newBlock);
     }
