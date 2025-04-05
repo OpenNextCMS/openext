@@ -1,9 +1,7 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
-import {
-  X,
-} from 'lucide-react';
+import { X } from 'lucide-react';
 import { useEffect, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
