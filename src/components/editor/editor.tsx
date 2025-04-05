@@ -19,7 +19,7 @@ import { BlockDragData, Block } from '@/types/index';
 // Define action creator for setViewMode
 const setViewMode = (mode: 'desktop' | 'tablet' | 'mobile') => ({
   type: 'canvas/setViewMode',
-  payload: mode
+  payload: mode,
 });
 
 // Define types for DroppableData
@@ -69,22 +69,25 @@ export default function Editor() {
 
       const newBlock = {
         content: blockData?.content || '',
-        type: blockData?.type === 'text' || blockData?.type === 'column' ? (blockData.type as 'text' | 'column') : 'text',
+        type:
+          blockData?.type === 'text' || blockData?.type === 'column'
+            ? (blockData.type as 'text' | 'column')
+            : 'text',
         icon: blockData?.id || 'defaultIcon',
         uniqueId: uuidv4(),
         style: typeof blockData?.style === 'string' ? blockData.style : undefined,
         // Add children for column blocks
-        ...(blockData?.type === 'column'  // Compare the actual string value
+        ...(blockData?.type === 'column' // Compare the actual string value
           ? {
-            children:
-              blockData.id === '1-column'
-                ? [[]]
-                : blockData.id === '2-column'
-                  ? [[], []]
-                  : blockData.id === '3-column'
-                    ? [[], [], []]
-                    : [],
-          }
+              children:
+                blockData.id === '1-column'
+                  ? [[]]
+                  : blockData.id === '2-column'
+                    ? [[], []]
+                    : blockData.id === '3-column'
+                      ? [[], [], []]
+                      : [],
+            }
           : {}),
       };
 
@@ -102,21 +105,24 @@ export default function Editor() {
         ...activeData,
         icon: activeData?.id || 'defaultIcon',
         content: activeData?.content || '',
-        type: activeData?.type === 'text' || activeData?.type === 'column' ? (activeData.type as 'text' | 'column') : 'text',
+        type:
+          activeData?.type === 'text' || activeData?.type === 'column'
+            ? (activeData.type as 'text' | 'column')
+            : 'text',
         style: typeof activeData?.style === 'string' ? activeData.style : undefined,
         uniqueId: uuidv4(),
         // Add children for column blocks
         ...(activeData?.type === 'column'
           ? {
-            children:
-              activeData.id === '1-column'
-                ? [[]]
-                : activeData.id === '2-column'
-                  ? [[], []]
-                  : activeData.id === '3-column'
-                    ? [[], [], []]
-                    : [],
-          }
+              children:
+                activeData.id === '1-column'
+                  ? [[]]
+                  : activeData.id === '2-column'
+                    ? [[], []]
+                    : activeData.id === '3-column'
+                      ? [[], [], []]
+                      : [],
+            }
           : {}),
       };
 
