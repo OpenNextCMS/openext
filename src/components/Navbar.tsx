@@ -66,7 +66,11 @@ export default function Navbar({ user }: { user: { username: string; email: stri
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             >
               <Image
-                src={avatarUrl || '/placeholder.svg'}
+                src={
+                  !avatarUrl || avatarUrl === 'null' || avatarUrl === 'undefined'
+                    ? '/placeholder.svg'
+                    : avatarUrl
+                }
                 alt="Profile"
                 className="w-full h-full object-cover"
                 width={32}

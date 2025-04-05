@@ -1,5 +1,6 @@
 // src/types/index.ts
 import { ReactNode } from 'react';
+import { Document, Types } from 'mongoose';
 
 export interface MongoDBConfig {
   username: string;
@@ -140,4 +141,39 @@ export interface BlockDragData {
 
 export interface BlockRendererProps {
   block: Block;
+}
+
+export interface Attribute {
+  [key: string]: string;
+}
+
+export interface Element {
+  tag: string;
+  className?: string;
+  text?: string;
+  attributes?: Attribute;
+  events?: { [key: string]: string };
+  children?: Element[];
+}
+
+export interface Component {
+  name: string; // This will store names like "header" or "body"
+  data: Element; // This will store the actual JSON structure
+}
+export interface IModification {
+  modifiedBy: Types.ObjectId;
+  modifiedAt: Date;
+}
+export interface PageDocument extends Document {
+  pageName: string;
+  createdBy: Types.ObjectId;
+  isPublished: boolean;
+  lastModified: Date;
+  preHeading: string;
+  description: string;
+  seoName: string;
+  seoMeta: string;
+  slug: string;
+  component: Component[];
+  modifications: IModification[];
 }

@@ -1,8 +1,9 @@
 import mongoose from 'mongoose';
 import { IUser, userSchema } from '@/models/User';
 import { ISettings, settingsSchema } from '@/models/Settings';
-import { PageSchema, PageDocument } from '@/models/Page';
+import { PageSchema } from '@/models/Page';
 import { roleSchema } from '@/models/Role';
+import { PageDocument } from '@/types/index';
 
 let userDb: mongoose.Connection | null = null;
 let pageDb: mongoose.Connection | null = null;
@@ -171,7 +172,12 @@ export async function getPageDbConnection() {
 
   return pageDb;
 }
-
+export function getPageModel(pageDb: mongoose.Connection) {
+  if (!pageDb) {
+    throw new Error('Page database connection not initialized');
+  }
+  return pageDb.model<PageDocument>('Page');
+}
 export function getUserModel() {
   if (!userDb) {
     throw new Error('User database connection not initialized');
@@ -186,12 +192,7 @@ export function getSettingsModel() {
   return userDb.model<ISettings>('Settings');
 }
 
-export function getPageModel(pageDb: mongoose.Connection) {
-  if (!pageDb) {
-    throw new Error('Page database connection not initialized');
-  }
-  return pageDb.model<PageDocument>('Page');
-}
+
 
 export async function closeAllConnections() {
   await Promise.all([userDb?.close(), pageDb?.close(), masterDb?.close()]);
