@@ -65,18 +65,21 @@ export default function Navbar({ user }: { user: { username: string; email: stri
               className="w-8 h-8 rounded-full overflow-hidden bg-primary flex items-center justify-center cursor-pointer"
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             >
-              <Image
-                src={
-                  !avatarUrl || avatarUrl === 'null' || avatarUrl === 'undefined'
-                    ? '/placeholder.svg'
-                    : avatarUrl
-                }
-                alt="Profile"
-                className="w-full h-full object-cover"
-                width={32}
-                height={32}
-              />
-              <span className="text-primary-foreground text-sm">{user?.username?.charAt(0)}</span>
+              {avatarUrl && avatarUrl !== 'null' && avatarUrl !== 'undefined' ? (
+                <Image
+                  src={
+                    avatarUrl.startsWith('/') || avatarUrl.startsWith('http')
+                      ? avatarUrl
+                      : `/${avatarUrl}`
+                  }
+                  alt="Profile"
+                  className="w-full h-full object-cover"
+                  width={32}
+                  height={32}
+                />
+              ) : (
+                <User className="w-5 h-5 text-primary-foreground" />
+              )}
             </div>
 
             {/* Dropdown Menu */}

@@ -28,6 +28,8 @@ export default function Page() {
 
         try {
             const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
+
+            // Step 1: Create the page
             const response = await fetch(`${backendUrl}/api/pages/add-page`, {
                 method: 'POST',
                 credentials: 'include',
@@ -40,7 +42,21 @@ export default function Page() {
             const result = await response.json();
 
             if (response.ok && result.success) {
-                router.push(`/editor`);
+                // Step 2: Get pages and userId
+                const getResponse = await fetch(`${backendUrl}/api/pages/get-pages`, {
+                    method: 'GET',
+                    credentials: 'include',
+                });
+
+                const getData = await getResponse.json();
+
+                if (getResponse.ok && getData.userId) {
+                    const userId = getData.userId;
+                    // Step 3: Redirect with page info
+                    router.push(`/editor?pagename=${encodeURIComponent(slug)}&userId=${userId}`);
+                } else {
+                    console.error('Failed to fetch user/pages:', getData.message || getData.error);
+                }
             } else {
                 console.error('Page creation failed:', result.message);
             }

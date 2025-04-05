@@ -58,9 +58,13 @@ export function ProfileUploader({
   return (
     <div className="flex items-center gap-6">
       <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
-        {avatarUrl ? (
+        {avatarUrl !== null && avatarUrl !== '' ? (
           <Image
-            src={avatarUrl}
+            src={
+              avatarUrl.startsWith('/') || avatarUrl.startsWith('http')
+                ? avatarUrl
+                : `/${avatarUrl}`
+            }
             alt="Profile"
             className="w-full h-full object-cover"
             width={96}

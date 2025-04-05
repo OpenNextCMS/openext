@@ -31,8 +31,8 @@ import { Input } from '../ui/input';
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import IconHover from '../ReusableComponents/IconHover';
-import InputSelect, { SelectSize } from '../ReusableComponents/SizeInput';
-import SelectComp from '../ReusableComponents/SelectComp';
+import InputSelect, { SelectSize } from '../ReusableComponents/sizeInput';
+import SelectComp from '../ReusableComponents/selectComp';
 
 export default function RightSidebar() {
   const [bgOpen, setBgOpen] = useState(false);

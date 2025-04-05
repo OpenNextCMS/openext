@@ -6,7 +6,7 @@ interface BlockData {
   content: string;
   type: 'column' | 'text';
   children?: BlockData[][];
-  style?: string;
+  style?: React.CSSProperties;
   icon?: string;
 }
 
@@ -41,6 +41,7 @@ const canvasSlice = createSlice({
     addBlock: (state, action: PayloadAction<Omit<BlockData, 'uniqueId'>>) => {
       const newBlock = {
         ...action.payload,
+        style: action.payload.style || {},
         uniqueId: uuidv4(),
       };
       state.blocks.push(newBlock);
@@ -60,7 +61,7 @@ const canvasSlice = createSlice({
           const updatedChildren = [...(block.children || [])];
           updatedChildren[columnIndex] = [
             ...(updatedChildren[columnIndex] || []),
-            { ...newBlock, uniqueId: uuidv4() },
+            { ...newBlock, style: newBlock.style || {}, uniqueId: uuidv4() },
           ];
           return { ...block, children: updatedChildren };
         }

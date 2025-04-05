@@ -163,7 +163,7 @@ function BlockItem({ block }: { block: Block }) {
   const enhancedBlock = {
     ...block,
     uniqueId: uuidv4(),
-    style: {},
+    style: block.style || {},
   };
 
   return (

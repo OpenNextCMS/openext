@@ -51,6 +51,7 @@ interface Page {
   createdBy: string;
   isPublished: boolean;
   lastModified: string;
+  slug: string;
 }
 const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
 
@@ -59,6 +60,7 @@ export default function PageManagement() {
     pageName: '',
     createdBy: '',
     isPublished: false,
+    slug: '',
   });
 
   const [pages, setPages] = useState<Page[]>([]);
@@ -74,14 +76,17 @@ export default function PageManagement() {
   });
   const [activeTab, setActiveTab] = useState('page-list');
   const [filteredPages, setFilteredPages] = useState<Page[]>([]);
-
+  const [userId, setUserId] = useState('');
   const fetchPages = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(`${backendUrl}/api/pages/get-pages`);
+      const response = await fetch(`${backendUrl}/api/pages/get-pages`, {
+        credentials: 'include',
+      });
       if (!response.ok) throw new Error('Failed to fetch pages');
       const data = await response.json();
-      setPages(data || []);
+      setUserId(data.userId); // Save the userId
+      setPages(data.pages || []);
       setFilteredPages(data.pages || []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch pages');
@@ -128,6 +133,7 @@ export default function PageManagement() {
           pageName: '',
           createdBy: '',
           isPublished: false,
+          slug: '',
         });
         toast.success('Page added successfully');
         setActiveTab('page-list');
@@ -197,9 +203,10 @@ export default function PageManagement() {
     }
   };
 
-  const handleEditPage = (pageId: string) => {
-    window.open(`/Editor?pageId=${pageId}`);
+  const handleEditPage = (slug: string, userId: string) => {
+    window.open(`/editor?pagename=${encodeURIComponent(slug)}&userId=${userId}`, '_blank');
   };
+
 
   return (
     <div className="container mx-auto py-8 px-4">
@@ -398,7 +405,7 @@ export default function PageManagement() {
                             <TableCell className="text-right">
                               <div className="flex justify-end gap-2">
                                 <Button
-                                  onClick={() => handleEditPage(page._id)}
+                                  onClick={() => handleEditPage(page.slug, userId)}
                                   variant="outline"
                                   size="sm"
                                 >
