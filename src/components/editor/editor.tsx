@@ -75,7 +75,7 @@ export default function Editor() {
             : 'text',
         icon: blockData?.id || 'defaultIcon',
         uniqueId: uuidv4(),
-        style: typeof blockData?.style === 'string' ? blockData.style : undefined,
+        style: typeof blockData?.style === 'object' ? blockData.style : undefined,
         // Add children for column blocks
         ...(blockData?.type === 'column' // Compare the actual string value
           ? {
@@ -109,7 +109,7 @@ export default function Editor() {
           activeData?.type === 'text' || activeData?.type === 'column'
             ? (activeData.type as 'text' | 'column')
             : 'text',
-        style: typeof activeData?.style === 'string' ? activeData.style : undefined,
+        style: typeof activeData?.style === 'object' ? activeData.style : undefined,
         uniqueId: uuidv4(),
         // Add children for column blocks
         ...(activeData?.type === 'column'

@@ -1,4 +1,4 @@
-import { configureStore } from '@reduxjs/toolkit';
+import { configureStore, combineReducers } from '@reduxjs/toolkit';
 import canvasReducer from './canvasSlice';
 import {
   persistStore,
@@ -17,13 +17,16 @@ const persistConfig = {
   version: 1,
   storage,
 };
+const rootReducer = combineReducers({
+  canvas: canvasReducer,
+});
 
-const persistedReducer = persistReducer(persistConfig, canvasReducer);
+const persistedReducer = persistReducer(persistConfig, rootReducer);
+
+export type RootReducerType = ReturnType<typeof rootReducer>;
 
 export const store = configureStore({
-  reducer: {
-    canvas: persistedReducer,
-  },
+  reducer: persistedReducer,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
@@ -36,5 +39,5 @@ export const store = configureStore({
 export const persistor = persistStore(store);
 
 // Infer the `RootState` and `AppDispatch` types from the store itself
-export type RootState = ReturnType<typeof store.getState>;
+export type RootState = RootReducerType;
 export type AppDispatch = typeof store.dispatch;
