@@ -100,7 +100,7 @@ export default function MongoDBSetup() {
       const payload = mongoAcc
         ? { username, password, host, mongoDB, authMech, authSource } // For Compass
         : { username, password, host, cluster, mongoDB }; // For Atlas
-  
+
       const response = await fetch(`${backendUrl}/api/auth/verify-mongodb`, {
         method: 'POST',
         headers: {
