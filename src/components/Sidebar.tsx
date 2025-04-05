@@ -34,8 +34,8 @@ const navItems = [
     label: 'Pages',
     icon: FileText,
     links: [
-      { label: 'All Pages', icon: List, path: '/dashboard/pages' },
-      { label: 'Add Pages', icon: PlusCircle, path: '/Editor' },
+      { label: 'All Pages', icon: List, path: '/dashboard/pages/allpages' },
+      { label: 'Add Pages', icon: PlusCircle, path: '/dashboard/pages/addpages' },
     ],
   },
   {

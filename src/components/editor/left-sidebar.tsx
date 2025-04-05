@@ -6,10 +6,10 @@ import { useEffect, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import LayersComponent from './Layers.tsx/Layers';
+import LayersComponent from './Layers/layers';
 import MyDesignComponent from './MyDesign/MyDesign';
 import PagesComponent from './Page/PagesComponent';
-import GeneralInfo from './Page/GeneralInfo';
+import GeneralInfo from './Page/generalInfo';
 import SeoInfo from './Page/SeoInfo';
 
 interface Page {
