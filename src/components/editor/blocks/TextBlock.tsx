@@ -4,9 +4,9 @@ import { Edit2, Trash2, Type } from 'lucide-react';
 import { BlockRendererProps } from '@/types/index';
 import { useAppDispatch } from '@/redux/hooks';
 import { removeBlock } from '@/redux/canvasSlice';
+// import { updateBlockContent } from '@/redux/canvasSlice'; // ← If you plan to update redux
 import { useState } from 'react';
 
-// Fallback icon helper
 const getIconForBlock = (icon?: string) => {
   switch (icon) {
     case 'edit':
@@ -20,18 +20,24 @@ const getIconForBlock = (icon?: string) => {
 
 export const TextBlock = ({ block }: BlockRendererProps) => {
   const dispatch = useAppDispatch();
+  const [isHovered, setIsHovered] = useState(false);
+  const [content, setContent] = useState(block.content || '');
 
   const handleRemove = () => {
     dispatch(removeBlock(block.uniqueId ?? ''));
   };
-  const [isHovered, setIsHovered] = useState(false);
+
+  const handleBlur = (e: React.FocusEvent<HTMLDivElement>) => {
+    const updatedContent = e.currentTarget.innerText;
+    setContent(updatedContent);
+
+    // Optional: Dispatch to Redux to save updated content
+    // dispatch(updateBlockContent({ id: block.uniqueId, content: updatedContent }));
+  };
 
   return (
     <div
-      style={{
-        position: 'relative',
-        marginBottom: '1rem',
-      }}
+      style={{ position: 'relative', marginBottom: '1rem' }}
       onMouseEnter={() => {
         setIsHovered(true);
         const label = document.getElementById(`label-${block.uniqueId}`);
@@ -76,8 +82,8 @@ export const TextBlock = ({ block }: BlockRendererProps) => {
         id={`actions-${block.uniqueId}`}
         style={{
           position: 'absolute',
-          top: '8px',
-          right: '8px',
+          top: '-13px',
+          right: '0px',
           display: 'flex',
           gap: '6px',
           opacity: 0,
@@ -118,14 +124,21 @@ export const TextBlock = ({ block }: BlockRendererProps) => {
         </button>
       </div>
 
-      {/* Content Box */}
+      {/* Editable Content */}
       <div
+        contentEditable
+        suppressContentEditableWarning
+        onBlur={handleBlur}
         style={{
           ...block.style,
+          minHeight: '30px',
           border: isHovered ? '1px solid rgb(252, 252, 252)' : (block.style?.border ?? 'none'),
+          padding: '8px',
+          outline: 'none',
+          whiteSpace: 'pre-wrap',
         }}
       >
-        {block.content}
+        {content}
       </div>
     </div>
   );

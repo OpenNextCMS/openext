@@ -70,8 +70,8 @@ export const ColumnBlock = ({ block }: BlockRendererProps) => {
         className={`hover-${block.uniqueId}`}
         style={{
           position: 'absolute',
-          top: '37px',
-          right: '35px',
+          top: '-12px', // Move it higher above the main column box
+          right: '0px',
           display: 'flex',
           gap: '6px',
           opacity: 0,
@@ -88,6 +88,7 @@ export const ColumnBlock = ({ block }: BlockRendererProps) => {
             borderRadius: '4px',
             border: 'none',
             cursor: 'pointer',
+            marginBottom: '4px',
           }}
         >
           <Edit2 style={{ width: 16, height: 16 }} />
