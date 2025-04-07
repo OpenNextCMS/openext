@@ -6,11 +6,11 @@ import { useEffect, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import LayersComponent from './Layers/layers';
-import MyDesignComponent from './MyDesign/MyDesign';
-import PagesComponent from './Page/PagesComponent';
-import GeneralInfo from './Page/generalInfo';
-import SeoInfo from './Page/SeoInfo';
+import LayersComponent from './Left-Sidebar/Layers/layers';
+import MyDesignComponent from './Left-Sidebar/MyDesign/MyDesign';
+import PagesComponent from './Left-Sidebar/Page/PagesComponent';
+import GeneralInfo from './Left-Sidebar/Page/GeneralInfo';
+import SeoInfo from './Left-Sidebar/Page/SeoInfo';
 
 interface Page {
   id: string;
