@@ -1,10 +1,6 @@
 'use client';
 
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import {
@@ -33,7 +29,6 @@ import {
 } from 'lucide-react';
 import IconHover from '../../../ReusableComponents/IconHover';
 import InputSelect from '../../../ReusableComponents/SizeInput';
-import { useState } from 'react';
 
 type DisplayProps = {
   displayOpen: boolean;
@@ -42,18 +37,9 @@ type DisplayProps = {
   displayChanges: (value: string) => void;
 };
 
-const display = ({
-  displayOpen,
-  setDisplayOpen,
-  displayFlex,
-  displayChanges,
-}: DisplayProps) => {
+const display = ({ displayOpen, setDisplayOpen, displayFlex, displayChanges }: DisplayProps) => {
   return (
-    <Collapsible
-      open={displayOpen}
-      onOpenChange={setDisplayOpen}
-      className="rounded-lg border"
-    >
+    <Collapsible open={displayOpen} onOpenChange={setDisplayOpen} className="rounded-lg border">
       <div className="flex items-center justify-between p-2">
         <div className="flex items-center gap-2">
           <CollapsibleTrigger asChild>
@@ -103,7 +89,10 @@ const display = ({
                     <IconHover icon={<ArrowBigRight className="h-4 w-4" />} iconName="Column" />
                   </Button>
                   <Button variant="outline" size="sm" className="h-8 text-xs">
-                    <IconHover icon={<ArrowBigLeft className="h-4 w-4" />} iconName="Column-Reverse" />
+                    <IconHover
+                      icon={<ArrowBigLeft className="h-4 w-4" />}
+                      iconName="Column-Reverse"
+                    />
                   </Button>
                 </div>
               </div>
@@ -113,16 +102,25 @@ const display = ({
                 <Label className="text-xs w-16">Align</Label>
                 <div className="flex gap-2">
                   <Button variant="outline" size="sm" className="h-8 text-xs">
-                    <IconHover icon={<AlignStartHorizontal className="h-4 w-4" />} iconName="Start" />
+                    <IconHover
+                      icon={<AlignStartHorizontal className="h-4 w-4" />}
+                      iconName="Start"
+                    />
                   </Button>
                   <Button variant="outline" size="sm" className="h-8 text-xs">
-                    <IconHover icon={<AlignCenterHorizontal className="h-4 w-4" />} iconName="Center" />
+                    <IconHover
+                      icon={<AlignCenterHorizontal className="h-4 w-4" />}
+                      iconName="Center"
+                    />
                   </Button>
                   <Button variant="outline" size="sm" className="h-8 text-xs">
                     <IconHover icon={<AlignEndHorizontal className="h-4 w-4" />} iconName="End" />
                   </Button>
                   <Button variant="outline" size="sm" className="h-8 text-xs">
-                    <IconHover icon={<AlignVerticalSpaceAround className="h-4 w-4" />} iconName="Stretch" />
+                    <IconHover
+                      icon={<AlignVerticalSpaceAround className="h-4 w-4" />}
+                      iconName="Stretch"
+                    />
                   </Button>
                 </div>
               </div>
@@ -132,22 +130,40 @@ const display = ({
                 <Label className="text-xs w-16">Justify</Label>
                 <div className="grid grid-cols-3 gap-2">
                   <Button variant="outline" size="sm" className="h-8 text-xs">
-                    <IconHover icon={<AlignHorizontalJustifyStart className="h-4 w-4" />} iconName="Start" />
+                    <IconHover
+                      icon={<AlignHorizontalJustifyStart className="h-4 w-4" />}
+                      iconName="Start"
+                    />
                   </Button>
                   <Button variant="outline" size="sm" className="h-8 text-xs">
-                    <IconHover icon={<AlignHorizontalJustifyCenter className="h-4 w-4" />} iconName="Center" />
+                    <IconHover
+                      icon={<AlignHorizontalJustifyCenter className="h-4 w-4" />}
+                      iconName="Center"
+                    />
                   </Button>
                   <Button variant="outline" size="sm" className="h-8 text-xs">
-                    <IconHover icon={<AlignHorizontalJustifyEnd className="h-4 w-4" />} iconName="End" />
+                    <IconHover
+                      icon={<AlignHorizontalJustifyEnd className="h-4 w-4" />}
+                      iconName="End"
+                    />
                   </Button>
                   <Button variant="outline" size="sm" className="h-8 text-xs">
-                    <IconHover icon={<AlignHorizontalSpaceBetween className="h-4 w-4" />} iconName="Space Between" />
+                    <IconHover
+                      icon={<AlignHorizontalSpaceBetween className="h-4 w-4" />}
+                      iconName="Space Between"
+                    />
                   </Button>
                   <Button variant="outline" size="sm" className="h-8 text-xs">
-                    <IconHover icon={<AlignHorizontalSpaceAround className="h-4 w-4" />} iconName="Space Around" />
+                    <IconHover
+                      icon={<AlignHorizontalSpaceAround className="h-4 w-4" />}
+                      iconName="Space Around"
+                    />
                   </Button>
                   <Button variant="outline" size="sm" className="h-8 text-xs">
-                    <IconHover icon={<AlignHorizontalSpaceAround className="h-4 w-4" />} iconName="Space Evenly" />
+                    <IconHover
+                      icon={<AlignHorizontalSpaceAround className="h-4 w-4" />}
+                      iconName="Space Evenly"
+                    />
                   </Button>
                 </div>
               </div>

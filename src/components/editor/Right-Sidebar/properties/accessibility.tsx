@@ -12,11 +12,7 @@ export default function Accessibility() {
           <Label htmlFor="aria-label" className="text-xs">
             ARIA Label
           </Label>
-          <Input
-            id="aria-label"
-            placeholder="Describe element purpose"
-            className="h-8 text-sm"
-          />
+          <Input id="aria-label" placeholder="Describe element purpose" className="h-8 text-sm" />
         </div>
 
         <div className="flex flex-col gap-1.5">

@@ -16,7 +16,7 @@ const ComponentSchema = new Schema<Component>({
 });
 const ModificationSchema = new Schema<IModification>({
   modifiedBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-  modifiedAt: { type: Date, default: Date.now }
+  modifiedAt: { type: Date, default: Date.now },
 });
 const PageSchema = new Schema<PageDocument>(
   {
@@ -29,7 +29,7 @@ const PageSchema = new Schema<PageDocument>(
     seoName: { type: String },
     seoMeta: { type: String },
     component: [ComponentSchema],
-    modifications: [ModificationSchema]
+    modifications: [ModificationSchema],
   },
   { timestamps: true }
 );
