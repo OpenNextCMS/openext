@@ -1,19 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { v4 as uuidv4 } from 'uuid';
-
-interface BlockData {
-  uniqueId: string;
-  content: string;
-  type: 'column' | 'text';
-  children?: BlockData[][];
-  style?: React.CSSProperties;
-  icon?: string;
-}
-
-interface CanvasState {
-  blocks: BlockData[];
-  viewMode: 'desktop' | 'tablet' | 'mobile';
-}
+import type { CanvasState, BlockData } from '../types/index';
 
 const initialState: CanvasState = {
   blocks: [],

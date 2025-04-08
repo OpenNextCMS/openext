@@ -11,15 +11,8 @@ import MyDesignComponent from './Left-Sidebar/MyDesign/MyDesign';
 import PagesComponent from './Left-Sidebar/Page/PagesComponent';
 import GeneralInfo from './Left-Sidebar/Page/GeneralInfo';
 import SeoInfo from './Left-Sidebar/Page/SeoInfo';
+import type { Page } from '@/types/index';
 
-interface Page {
-  id: string;
-  pageName: string;
-  preHeading: string;
-  description: string;
-  seoName: string;
-  seoMeta: string;
-}
 
 export default function LeftSidebar() {
   const searchParams = useSearchParams();

@@ -177,3 +177,38 @@ export interface PageDocument extends Document {
   component: Component[];
   modifications: IModification[];
 }
+
+export interface Page {
+  id: string;
+  pageName: string;
+  preHeading: string;
+  description: string;
+  seoName: string;
+  seoMeta: string;
+}
+export interface ITheme {
+  name: string;
+  isActive: boolean;
+}
+export interface ISettingsDocument extends Document {
+  siteTitle: string;
+  language: string;
+  timeZone: string;
+  dateFormat: string;
+  timeFormat: string;
+  themes: ITheme[];
+}
+
+export interface BlockData {
+  uniqueId: string;
+  content: string;
+  type: 'column' | 'text';
+  children?: BlockData[][];
+  style?: React.CSSProperties;
+  icon?: string;
+}
+
+export interface CanvasState {
+  blocks: BlockData[];
+  viewMode: 'desktop' | 'tablet' | 'mobile';
+}
