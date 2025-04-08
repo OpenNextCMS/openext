@@ -22,7 +22,12 @@ export default function Spacing({ spacingOpen, setSpacingOpen }: SpacingProps) {
     if (spacingMargin) {
       setMargin((prev) => ({ ...prev, [position]: Number(value) }));
     } else {
-      setMargin({ top: Number(value), right: Number(value), bottom: Number(value), left: Number(value) });
+      setMargin({
+        top: Number(value),
+        right: Number(value),
+        bottom: Number(value),
+        left: Number(value),
+      });
     }
   };
 
@@ -30,7 +35,12 @@ export default function Spacing({ spacingOpen, setSpacingOpen }: SpacingProps) {
     if (spacingPadding) {
       setPadding((prev) => ({ ...prev, [position]: Number(value) }));
     } else {
-      setPadding({ top: Number(value), right: Number(value), bottom: Number(value), left: Number(value) });
+      setPadding({
+        top: Number(value),
+        right: Number(value),
+        bottom: Number(value),
+        left: Number(value),
+      });
     }
   };
 
@@ -42,12 +52,20 @@ export default function Spacing({ spacingOpen, setSpacingOpen }: SpacingProps) {
   }, [margin, padding]);
 
   return (
-    <Collapsible open={spacingOpen} onOpenChange={setSpacingOpen} className="rounded-lg border mt-4">
+    <Collapsible
+      open={spacingOpen}
+      onOpenChange={setSpacingOpen}
+      className="rounded-lg border mt-4"
+    >
       <div className="flex items-center justify-between p-2">
         <div className="flex items-center gap-2">
           <CollapsibleTrigger asChild>
             <Button variant="ghost" size="icon" className="h-6 w-6 p-0">
-              {spacingOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+              {spacingOpen ? (
+                <ChevronDown className="h-4 w-4" />
+              ) : (
+                <ChevronRight className="h-4 w-4" />
+              )}
             </Button>
           </CollapsibleTrigger>
           <span className="font-medium text-sm">Spacing</span>

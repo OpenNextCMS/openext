@@ -1,11 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Button } from '@/components/ui/button';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { Label } from '@/components/ui/label';
@@ -13,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import InputSelect from '../../../ReusableComponents/SizeInput';
 import SelectComp from '../../../ReusableComponents/SelectComp';
 
-export default function border() {
+export default function Border() {
   const [open, setOpen] = useState(false);
 
   return (
@@ -22,11 +18,7 @@ export default function border() {
         <div className="flex items-center gap-2">
           <CollapsibleTrigger asChild>
             <Button variant="ghost" size="icon" className="h-6 w-6 p-0">
-              {open ? (
-                <ChevronDown className="h-4 w-4" />
-              ) : (
-                <ChevronRight className="h-4 w-4" />
-              )}
+              {open ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
             </Button>
           </CollapsibleTrigger>
           <span className="font-medium text-sm">Border</span>

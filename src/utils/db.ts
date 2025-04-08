@@ -179,8 +179,6 @@ export function getSettingsModel() {
   return userDb.model<ISettings>('Settings');
 }
 
-
-
 export async function closeAllConnections() {
   await Promise.all([userDb?.close(), pageDb?.close(), masterDb?.close()]);
   userDb = null;

@@ -1,19 +1,21 @@
 'use client';
 
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Button } from '@/components/ui/button';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { useState } from 'react';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import SelectComp from '../../../ReusableComponents/SelectComp'; // Update this path as per your structure
 
-const background = () => {
+const Background = () => {
   const [bgOpen, setBgOpen] = useState(false);
   const [bgOption, setBgOption] = useState('color');
 
@@ -76,7 +78,9 @@ const background = () => {
                 <Label className="text-xs">Image</Label>
                 <div className="flex gap-2">
                   <Input className="h-8 text-xs flex-1" placeholder="URL or select file" />
-                  <Button variant="outline" className="h-8 text-xs">Browse</Button>
+                  <Button variant="outline" className="h-8 text-xs">
+                    Browse
+                  </Button>
                 </div>
                 <SelectComp
                   label="Size"
@@ -107,4 +111,4 @@ const background = () => {
   );
 };
 
-export default background;
+export default Background;

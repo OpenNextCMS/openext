@@ -207,7 +207,6 @@ export default function PageManagement() {
     window.open(`/editor?pagename=${encodeURIComponent(slug)}&userId=${userId}`, '_blank');
   };
 
-
   return (
     <div className="container mx-auto py-8 px-4">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
