@@ -8,7 +8,7 @@ import { Input } from '../../../ui/input';
 import { Label } from '../../../ui/label';
 import SelectSize from '../../../ReusableComponents/SizeInput';
 
-export default function size() {
+export default function Size() {
   const [open, setOpen] = useState(false);
 
   return (

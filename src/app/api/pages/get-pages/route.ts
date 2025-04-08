@@ -17,12 +17,12 @@ export async function GET() {
   try {
     const pageDb = await getPageDbConnection();
     const decodedToken = jwtDecode<DecodedToken>(token);
-    console.log(decodedToken)
+    console.log(decodedToken);
     const userId = decodedToken.userId;
     const PageModel = getPageModel(pageDb);
 
     const pages = await PageModel.find({}).lean().exec();
-    console.log({ userId, pages })
+    console.log({ userId, pages });
     return NextResponse.json({ userId, pages }, { status: 200 });
   } catch (error) {
     console.error('Error fetching pages:', error);

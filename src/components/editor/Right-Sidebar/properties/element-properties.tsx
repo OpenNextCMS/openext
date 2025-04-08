@@ -30,22 +30,14 @@ export default function ElementProperties() {
           <Label htmlFor="element-class" className="text-xs">
             CSS Classes
           </Label>
-          <Input
-            id="element-class"
-            placeholder="Enter CSS classes"
-            className="h-8 text-sm"
-          />
+          <Input id="element-class" placeholder="Enter CSS classes" className="h-8 text-sm" />
         </div>
 
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="element-link" className="text-xs">
             Link URL
           </Label>
-          <Input
-            id="element-link"
-            placeholder="https://example.com"
-            className="h-8 text-sm"
-          />
+          <Input id="element-link" placeholder="https://example.com" className="h-8 text-sm" />
         </div>
 
         <div className="flex items-center gap-2 mt-2">

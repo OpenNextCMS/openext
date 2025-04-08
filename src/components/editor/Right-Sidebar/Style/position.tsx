@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Button } from '@/components/ui/button';
@@ -16,11 +16,7 @@ type PositionProps = {
 
 export default function position({ positionOpen, setPositionOpen, marginChanges }: PositionProps) {
   return (
-    <Collapsible
-      open={positionOpen}
-      onOpenChange={setPositionOpen}
-      className="rounded-lg border"
-    >
+    <Collapsible open={positionOpen} onOpenChange={setPositionOpen} className="rounded-lg border">
       <div className="flex items-center justify-between p-2">
         <div className="flex items-center gap-2">
           <CollapsibleTrigger asChild>
