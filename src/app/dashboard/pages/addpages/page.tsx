@@ -53,7 +53,7 @@ export default function Page() {
         if (getResponse.ok && getData.userId) {
           const userId = getData.userId;
           // Step 3: Redirect with page info
-          router.push(`/editor?pagename=${encodeURIComponent(slug)}&userId=${userId}`);
+          router.push(`/Editor?pagename=${encodeURIComponent(slug)}&userId=${userId}`);
         } else {
           console.error('Failed to fetch user/pages:', getData.message || getData.error);
         }
@@ -70,35 +70,35 @@ export default function Page() {
       <PersistGate loading={null} persistor={persistor}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           {isModalOpen && (
-            <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-              <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
-                <h2 className="text-lg font-semibold mb-4">Create a New Page</h2>
-
-                <label className="block text-sm font-medium text-gray-700">Page Name</label>
-                <input
-                  type="text"
-                  value={pageName}
-                  onChange={handlePageNameChange}
-                  className="w-full p-2 border rounded mb-4"
-                />
-
-                <label className="block text-sm font-medium text-gray-700">Slug</label>
-                <input
-                  type="text"
-                  value={slug}
-                  onChange={handleSlugChange}
-                  className="w-full p-2 border rounded mb-4"
-                />
-
-                <button
-                  onClick={handleProceed}
-                  disabled={!pageName || !slug}
-                  className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50"
-                >
-                  Proceed to Editor
-                </button>
-              </div>
-            </div>
+           <div className="fixed inset-0 flex items-center justify-center bg-white bg-opacity-0">
+           <div className="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-2xl max-w-md w-full">
+             <h2 className="text-xl font-bold text-black dark:text-white mb-6">Create a New Page</h2>
+         
+             <label className="block text-sm font-medium text-gray-800 dark:text-white mb-1">Page Name</label>
+             <input
+               type="text"
+               value={pageName}
+               onChange={handlePageNameChange}
+               className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-black dark:text-white mb-5 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
+             />
+         
+             <label className="block text-sm font-medium text-gray-800 dark:text-white mb-1">Slug</label>
+             <input
+               type="text"
+               value={slug}
+               onChange={handleSlugChange}
+               className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-black dark:text-white mb-6 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
+             />
+         
+             <button
+               onClick={handleProceed}
+               disabled={!pageName || !slug}
+               className="w-full px-4 py-2 bg-black text-white dark:bg-white dark:text-black font-semibold rounded hover:opacity-90 disabled:opacity-50 transition"
+             >
+               Proceed to Editor
+             </button>
+           </div>
+         </div>         
           )}
         </ThemeProvider>
       </PersistGate>
