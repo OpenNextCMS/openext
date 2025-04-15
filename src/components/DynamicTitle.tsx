@@ -14,7 +14,7 @@ export default function DynamicTitle() {
         const data = await res.json();
 
         setTitle(data?.data?.settings?.siteTitle || 'Next.js Setup Project');
-        setIcon(data?.data?.settings?.siteIcon || '/img/openNext.png');
+        setIcon(data?.data?.settings?.siteIcon || '/img/default_site_icon.png');
       } catch (error) {
         console.error('Failed to fetch site settings:', error);
         setTitle('Next.js Setup Project');

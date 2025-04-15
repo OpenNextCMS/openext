@@ -204,7 +204,7 @@ export default function PageManagement() {
   };
 
   const handleEditPage = (slug: string, userId: string) => {
-    window.open(`/editor?pagename=${encodeURIComponent(slug)}&userId=${userId}`, '_blank');
+    window.open(`/Editor?pagename=${encodeURIComponent(slug)}&userId=${userId}`, '_blank');
   };
 
   return (
