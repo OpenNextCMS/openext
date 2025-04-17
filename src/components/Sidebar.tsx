@@ -13,6 +13,9 @@ import {
   Settings,
   Menu,
   ChevronLeft,
+  Codesandbox,
+  Wrench,
+  Paintbrush,
 } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Button } from '@/components/ui/button';
@@ -31,6 +34,14 @@ const navItems = [
     links: [],
   },
   {
+    label: 'Blogs',
+    icon: Codesandbox ,
+    links: [
+      { label: 'All Blogs', icon: List, path: '/dashboard/blogs/allblogs' },
+      { label: 'Add Blog', icon: PlusCircle, path: '/dashboard/blogs/addblogs' },
+    ],
+  },
+  {
     label: 'Pages',
     icon: FileText,
     links: [
@@ -41,11 +52,14 @@ const navItems = [
   {
     label: 'Themes',
     icon: Palette,
-    links: [{ label: 'Add Themes', icon: PlusCircle, path: '/dashboard/themes' }],
+    links: [
+      { label: 'All Themes', icon: Paintbrush , path: '/dashboard/themes/allthemes' },
+      { label: 'Add Themes', icon: PlusCircle, path: '/dashboard/themes' },
+    ],
   },
   {
     label: 'Plugins',
-    icon: Palette,
+    icon: Wrench,
     path: '/dashboard/plugins',
     links: [],
   },
