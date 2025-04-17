@@ -13,7 +13,6 @@ import GeneralInfo from './Left-Sidebar/Page/GeneralInfo';
 import SeoInfo from './Left-Sidebar/Page/SeoInfo';
 import type { Page } from '@/types/index';
 
-
 export default function LeftSidebar() {
   const searchParams = useSearchParams();
   const pageIdFromUrl = searchParams ? searchParams.get('pageId') : null;

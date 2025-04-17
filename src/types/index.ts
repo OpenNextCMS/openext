@@ -148,11 +148,16 @@ export interface Attribute {
 }
 
 export interface Element {
-  tag: string;
+  id: string;
+  type: string;
+  label?: string;
+  tag?: string;
   className?: string;
   text?: string;
-  attributes?: Attribute;
-  events?: { [key: string]: string };
+  content?: string;
+  style?: Record<string, string>;
+  attributes?: Record<string, string>;
+  events?: Record<string, string>;
   children?: Element[];
 }
 
@@ -174,7 +179,7 @@ export interface PageDocument extends Document {
   seoName: string;
   seoMeta: string;
   slug: string;
-  component: Component[];
+  component: unknown[];
   modifications: IModification[];
 }
 

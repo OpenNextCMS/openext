@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-const restrictedRoutes = ['/language', '/mongodb-setup', '/mongodb-setup/database-setup', '/admin', '/editor'];
+const restrictedRoutes = ['/language', '/mongodb-setup', '/mongodb-setup/database-setup', '/admin'];
 
 export async function middleware(request: NextRequest) {
   const dbConnection = process.env.dbConnection === 'true';
@@ -61,6 +61,5 @@ export const config = {
     '/admin',
     '/dashboard/:path*',
     '/login',
-    '/editor'
   ],
 };

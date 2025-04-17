@@ -28,17 +28,17 @@ export async function POST(req: NextRequest) {
     // 2. Get the Page model tied to this DB
     const Page = getPageModel(pageDb);
 
-        // 3. Create a new Page
-        const newPage: PageDocument = await Page.create({
-            ...body,
-            createdBy: userId,
-            modifications: [
-                {
-                  modifiedBy: userId,
-                  modifiedAt: new Date(), 
-                },
-              ],
-        });
+    // 3. Create a new Page
+    const newPage: PageDocument = await Page.create({
+      ...body,
+      createdBy: userId,
+      modifications: [
+        {
+          modifiedBy: userId,
+          modifiedAt: new Date(),
+        },
+      ],
+    });
 
     return NextResponse.json({ success: true, data: newPage }, { status: 201 });
   } catch (error) {

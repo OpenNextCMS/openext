@@ -86,7 +86,6 @@ export const getUserDbConnection = async () => {
       const SettingsModel = userDb.models.Settings || userDb.model('Settings', settingsSchema);
       const settings = await SettingsModel.findOne({});
       if (settings) {
-
         const themeExists: boolean = (settings as ISettingsDocument).themes.some(
           (theme: ITheme) => theme.name === 'openNextDefault'
         );

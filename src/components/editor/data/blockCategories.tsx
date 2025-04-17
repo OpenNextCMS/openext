@@ -9,7 +9,7 @@ type BlockWithReactNodeIcon = Omit<Block, 'icon'> & {
 
 const commonBlockStyle = {
   padding: '16px',
-  border: '1px solid rgb(229, 231, 235)', // Tailwind's border color
+  border: '1px solid rgb(229, 231, 235)',
   borderRadius: '8px',
   boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
   transition: 'all 0.2s ease-in-out',

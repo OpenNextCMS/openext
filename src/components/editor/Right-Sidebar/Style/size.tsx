@@ -6,7 +6,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../../../ui
 import { Button } from '../../../ui/button';
 import { Input } from '../../../ui/input';
 import { Label } from '../../../ui/label';
-import SelectSize from '../../../ReusableComponents/SizeInput';
+import SelectSize from '../../../ReusableComponents/sizeInput';
 
 export default function Size() {
   const [open, setOpen] = useState(false);
