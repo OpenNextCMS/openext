@@ -3,7 +3,7 @@ import { IUser, userSchema } from '@/models/User';
 import { ISettings, settingsSchema } from '@/models/Settings';
 import { PageSchema } from '@/models/Page';
 import { roleSchema } from '@/models/Role';
-import { PageDocument } from '@/types/index';
+import type { PageDocument, ISettingsDocument, ITheme } from '@/types/index';
 
 let userDb: mongoose.Connection | null = null;
 let pageDb: mongoose.Connection | null = null;
@@ -86,20 +86,6 @@ export const getUserDbConnection = async () => {
       const SettingsModel = userDb.models.Settings || userDb.model('Settings', settingsSchema);
       const settings = await SettingsModel.findOne({});
       if (settings) {
-        interface ITheme {
-          name: string;
-          isActive: boolean;
-        }
-
-        interface ISettingsDocument extends mongoose.Document {
-          siteTitle: string;
-          language: string;
-          timeZone: string;
-          dateFormat: string;
-          timeFormat: string;
-          themes: ITheme[];
-        }
-
         const themeExists: boolean = (settings as ISettingsDocument).themes.some(
           (theme: ITheme) => theme.name === 'openNextDefault'
         );

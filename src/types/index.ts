@@ -148,11 +148,16 @@ export interface Attribute {
 }
 
 export interface Element {
-  tag: string;
+  id: string;
+  type: string;
+  label?: string;
+  tag?: string;
   className?: string;
   text?: string;
-  attributes?: Attribute;
-  events?: { [key: string]: string };
+  content?: string;
+  style?: Record<string, string>;
+  attributes?: Record<string, string>;
+  events?: Record<string, string>;
   children?: Element[];
 }
 
@@ -174,6 +179,41 @@ export interface PageDocument extends Document {
   seoName: string;
   seoMeta: string;
   slug: string;
-  component: Component[];
+  component: unknown[];
   modifications: IModification[];
+}
+
+export interface Page {
+  id: string;
+  pageName: string;
+  preHeading: string;
+  description: string;
+  seoName: string;
+  seoMeta: string;
+}
+export interface ITheme {
+  name: string;
+  isActive: boolean;
+}
+export interface ISettingsDocument extends Document {
+  siteTitle: string;
+  language: string;
+  timeZone: string;
+  dateFormat: string;
+  timeFormat: string;
+  themes: ITheme[];
+}
+
+export interface BlockData {
+  uniqueId: string;
+  content: string;
+  type: 'column' | 'text';
+  children?: BlockData[][];
+  style?: React.CSSProperties;
+  icon?: string;
+}
+
+export interface CanvasState {
+  blocks: BlockData[];
+  viewMode: 'desktop' | 'tablet' | 'mobile';
 }

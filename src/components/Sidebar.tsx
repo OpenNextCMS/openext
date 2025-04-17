@@ -35,7 +35,7 @@ const navItems = [
   },
   {
     label: 'Blogs',
-    icon: Codesandbox ,
+    icon: Codesandbox,
     links: [
       { label: 'All Blogs', icon: List, path: '/dashboard/blogs/allblogs' },
       { label: 'Add Blog', icon: PlusCircle, path: '/dashboard/blogs/addblogs' },
@@ -53,7 +53,7 @@ const navItems = [
     label: 'Themes',
     icon: Palette,
     links: [
-      { label: 'All Themes', icon: Paintbrush , path: '/dashboard/themes/allthemes' },
+      { label: 'All Themes', icon: Paintbrush, path: '/dashboard/themes/allthemes' },
       { label: 'Add Themes', icon: PlusCircle, path: '/dashboard/themes' },
     ],
   },

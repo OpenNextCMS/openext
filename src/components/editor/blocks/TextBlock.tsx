@@ -1,12 +1,14 @@
 'use client';
 
+import type React from 'react';
+
+import { useState } from 'react';
 import { Edit2, Trash2, Type } from 'lucide-react';
-import { BlockRendererProps } from '@/types/index';
+import type { BlockRendererProps } from '@/types/index';
 import { useAppDispatch } from '@/redux/hooks';
 import { removeBlock } from '@/redux/canvasSlice';
-import { useState } from 'react';
+// import { updateBlockContent } from '@/redux/canvasSlice'; // Optional for saving edits
 
-// Fallback icon helper
 const getIconForBlock = (icon?: string) => {
   switch (icon) {
     case 'edit':
@@ -18,20 +20,44 @@ const getIconForBlock = (icon?: string) => {
   }
 };
 
-export const TextBlock = ({ block }: BlockRendererProps) => {
+interface Props extends BlockRendererProps {
+  isEditing?: boolean;
+}
+
+export const TextBlock = ({ block, isEditing = false }: Props) => {
   const dispatch = useAppDispatch();
+  const [isHovered, setIsHovered] = useState(false);
+  const [content, setContent] = useState(block.content || '');
 
   const handleRemove = () => {
     dispatch(removeBlock(block.uniqueId ?? ''));
   };
-  const [isHovered, setIsHovered] = useState(false);
 
+  const handleBlur = (e: React.FocusEvent<HTMLDivElement>) => {
+    const updatedContent = e.currentTarget.innerText;
+    setContent(updatedContent);
+    // dispatch(updateBlockContent({ id: block.uniqueId, content: updatedContent }));
+  };
+
+  // If not in editing mode, use a simplified view with just a p tag
+  if (!isEditing) {
+    return (
+      <p
+        style={{
+          ...block.style,
+          border: 'none', // override static border
+          margin: '0',
+          padding: '0',
+        }}
+      >
+        {content}
+      </p>
+    );
+  }
+  // Editing mode with all controls and structure
   return (
     <div
-      style={{
-        position: 'relative',
-        marginBottom: '1rem',
-      }}
+      style={{ position: 'relative', marginBottom: '1rem' }}
       onMouseEnter={() => {
         setIsHovered(true);
         const label = document.getElementById(`label-${block.uniqueId}`);
@@ -76,8 +102,8 @@ export const TextBlock = ({ block }: BlockRendererProps) => {
         id={`actions-${block.uniqueId}`}
         style={{
           position: 'absolute',
-          top: '8px',
-          right: '8px',
+          top: '-13px',
+          right: '0px',
           display: 'flex',
           gap: '6px',
           opacity: 0,
@@ -118,14 +144,24 @@ export const TextBlock = ({ block }: BlockRendererProps) => {
         </button>
       </div>
 
-      {/* Content Box */}
+      {/* Text Content */}
       <div
+        contentEditable={true}
+        suppressContentEditableWarning
+        onBlur={handleBlur}
         style={{
           ...block.style,
-          border: isHovered ? '1px solid rgb(252, 252, 252)' : (block.style?.border ?? 'none'),
+          minHeight: '30px',
+          border: isEditing && isHovered ? '1px solid rgb(229, 231, 235)' : 'none', // Only show border when editing and hovered
+          padding: '8px',
+          outline: 'none',
+          whiteSpace: 'pre-wrap',
+          cursor: 'text',
+          boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
+          borderRadius: '4px',
         }}
       >
-        {block.content}
+        {content}
       </div>
     </div>
   );

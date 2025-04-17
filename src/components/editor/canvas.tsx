@@ -4,6 +4,7 @@ import RenderBlock from './renderblock';
 import { LayoutGrid, PlusSquare, MousePointerClick } from 'lucide-react';
 import { useState } from 'react';
 import { Block } from '@/types/index';
+import { useSearchParams } from 'next/navigation';
 
 interface CanvasProps {
   canvasBlocks: Block[];
@@ -11,6 +12,8 @@ interface CanvasProps {
 }
 
 export default function Canvas({ canvasBlocks, viewMode }: CanvasProps) {
+  const searchParams = useSearchParams();
+  const pageName = searchParams.get('pagename');
   const { setNodeRef, isOver } = useDroppable({ id: 'canvas' });
   const [zoom, setZoom] = useState(100);
 
@@ -44,6 +47,18 @@ export default function Canvas({ canvasBlocks, viewMode }: CanvasProps) {
             <LayoutGrid className="h-5 w-5 text-primary" />
             Canvas
           </h2>
+
+          <button
+            onClick={() => {
+              if (pageName) {
+                window.open(`/preview/?pagename=${pageName}/view-only`, '_blank');
+              }
+            }}
+            className="ml-4 inline-flex items-center gap-2 bg-primary text-white text-sm px-4 py-2 rounded hover:bg-primary/90 transition-all"
+          >
+            <MousePointerClick className="h-4 w-4" />
+            Preview
+          </button>
           <div className="flex items-center gap-4">
             <div className="text-sm text-muted-foreground">
               {canvasBlocks.length} {canvasBlocks.length === 1 ? 'block' : 'blocks'} added

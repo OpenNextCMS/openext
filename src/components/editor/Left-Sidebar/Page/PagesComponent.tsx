@@ -16,15 +16,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-
-interface Page {
-  id: string;
-  pageName: string;
-  preHeading: string;
-  description: string;
-  seoName: string;
-  seoMeta: string;
-}
+import type { Page } from '@/types/index';
 
 interface PagesComponentProps {
   pages: Page[];

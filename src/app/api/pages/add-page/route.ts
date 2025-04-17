@@ -32,6 +32,12 @@ export async function POST(req: NextRequest) {
     const newPage: PageDocument = await Page.create({
       ...body,
       createdBy: userId,
+      modifications: [
+        {
+          modifiedBy: userId,
+          modifiedAt: new Date(),
+        },
+      ],
     });
 
     return NextResponse.json({ success: true, data: newPage }, { status: 201 });

@@ -85,7 +85,11 @@ export default function RightSidebar() {
             <Typography />
             <Border />
             <Effects />
-            <Position positionOpen={positionOpen} setPositionOpen={setPositionOpen} marginChanges={marginChanges} />
+            <Position
+              positionOpen={positionOpen}
+              setPositionOpen={setPositionOpen}
+              marginChanges={marginChanges}
+            />
           </div>
         </TabsContent>
 

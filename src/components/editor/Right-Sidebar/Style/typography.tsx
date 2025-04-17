@@ -3,8 +3,8 @@ import { useState } from 'react';
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
 import { Button } from '@/components/ui/button';
 import { ChevronDown, ChevronRight } from 'lucide-react';
-import SelectComp from '../../../ReusableComponents/SelectComp';
-import InputSelect from '../../../ReusableComponents/SizeInput';
+import SelectComp from '../../../ReusableComponents/selectComp';
+import InputSelect from '../../../ReusableComponents/sizeInput';
 import { Label } from '@/components/ui/label';
 
 export default function Typography() {

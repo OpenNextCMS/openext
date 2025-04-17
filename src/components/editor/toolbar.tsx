@@ -1,6 +1,8 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { useAppSelector } from '@/redux/hooks';
+import { useSearchParams } from 'next/navigation';
 import {
   RedoIcon as ArrowRedo,
   UndoIcon as ArrowUndo,
@@ -31,6 +33,35 @@ interface ToolbarProps {
 }
 
 export default function Toolbar({ toggleSidebar, onViewChange }: ToolbarProps) {
+  const searchParams = useSearchParams();
+  const slug = searchParams.get('pagename');
+  const userId = searchParams.get('userId');
+  const components = useAppSelector((state) => state.canvas.blocks);
+  console.log(components);
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
+
+  const handleSave = async () => {
+    try {
+      const res = await fetch(`${backendUrl}/api/pages/update-page`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          slug,
+          userId,
+          updatedComponents: components,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to save');
+      alert('Page saved successfully!');
+    } catch (error) {
+      console.error('Save Error:', error);
+      alert('Failed to save page');
+    }
+  };
   return (
     <div className="relative border-b p-2 flex items-center justify-between mx-9 bg-background">
       <div className="flex items-center gap-1">
@@ -216,7 +247,7 @@ export default function Toolbar({ toggleSidebar, onViewChange }: ToolbarProps) {
       </div>
 
       <div className="flex items-center gap-2">
-        <Button variant="outline" size="sm" className="text-primary">
+        <Button variant="outline" size="sm" className="text-primary" onClick={handleSave}>
           <Save className="h-4 w-4 mr-2" />
           Save
         </Button>
