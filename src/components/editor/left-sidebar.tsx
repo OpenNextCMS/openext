@@ -1,43 +1,27 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
-import { X } from 'lucide-react';
 import { useEffect, useState, useCallback } from 'react';
-import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { X } from 'lucide-react';
 import LayersComponent from './Left-Sidebar/Layers/layers';
 import MyDesignComponent from './Left-Sidebar/MyDesign/MyDesign';
 import PagesComponent from './Left-Sidebar/Page/PagesComponent';
 import GeneralInfo from './Left-Sidebar/Page/GeneralInfo';
 import SeoInfo from './Left-Sidebar/Page/SeoInfo';
+import { toast } from 'sonner';
 import type { Page } from '@/types/index';
 
 export default function LeftSidebar() {
   const searchParams = useSearchParams();
+  const pageNameFromUrl = searchParams ? searchParams.get('pagename') : null;
+  const userIdFromUrl = searchParams ? searchParams.get('userId') : null;
   const pageIdFromUrl = searchParams ? searchParams.get('pageId') : null;
 
-  const [pages, setPages] = useState<Page[]>([
-    {
-      id: 'home',
-      pageName: 'Home',
-      preHeading: 'Welcome',
-      description: 'This is a default page',
-      seoName: 'OpenNext',
-      seoMeta: 'OpenNext is a new CMS type Website.',
-    },
-  ]);
-
-  const [pageId, setPageId] = useState<Page>({
-    id: 'home',
-    pageName: 'Home',
-    preHeading: 'Welcome',
-    description: 'This is a default page',
-    seoName: 'OpenNext',
-    seoMeta: 'OpenNext is a new CMS type Website.',
-  });
-
+  const [pages, setPages] = useState<Page[]>([]);
+  // const [pageId, setPageId] = useState<Page | undefined>(undefined);
+  const [formData, setFormData] = useState<Page | null>(null);
   const [openPage, setOpenPage] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
 
@@ -46,64 +30,133 @@ export default function LeftSidebar() {
       const response = await fetch(`${backendUrl}/api/pages/get-pages`);
       if (!response.ok) throw new Error('Failed to fetch pages');
       const data = await response.json();
-      setPages(data || []);
-    } catch {
-      toast.error('Failed to load pages');
+
+      if (data?.pages?.length) {
+        const transformedPages = data.pages.map((page: Page) => ({
+          id: page._id,
+          pageName: page.pageName || '',
+          preHeading: page.preHeading || '',
+          description: page.description || '',
+          seoName: page.seoName || '',
+          seoMeta: page.seoMeta || '',
+          slug: page.slug || '',
+          isPublished: page.isPublished,
+          createdAt: page.createdAt,
+          updatedAt: page.updatedAt,
+          lastModified: page.lastModified,
+        }));
+
+        setPages(transformedPages);
+
+        if (pageNameFromUrl) {
+          const foundPage: Page | undefined = transformedPages.find(
+            (page: Page) =>
+              page.pageName.toLowerCase() === pageNameFromUrl?.toLowerCase() ||
+              page.slug?.toLowerCase() === pageNameFromUrl?.toLowerCase()
+          );
+          if (foundPage) {
+            // setPageId(foundPage);
+            setFormData(foundPage); // Set form data for editing
+            setOpenPage(true);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching pages:', error);
     }
-  }, [backendUrl]);
+  }, [backendUrl, pageNameFromUrl]);
 
   useEffect(() => {
-    if (pageIdFromUrl) {
-      fetchPageById();
+    fetchPageById();
+  }, [fetchPageById]);
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData((prev) => (prev ? { ...prev, [field]: value } : prev));
+  };
+
+  const handleSave = async () => {
+    if (!formData) return;
+
+    try {
+      setIsSaving(true);
+      const response = await fetch(`${backendUrl}/api/pages/update-page`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          slug: formData.slug, // ensure it's outside of spread
+          userId: userIdFromUrl,
+          pageID: pageIdFromUrl,
+          pageName: formData.pageName,
+          preHeading: formData.preHeading,
+          description: formData.description,
+          seoName: formData.seoName,
+          seoMeta: formData.seoMeta,
+          isPublished: formData.isPublished,
+        }),
+      });
+      console.log('Response:', formData);
+      if (!response.ok) throw new Error('Failed to update page');
+      toast.success('Page updated successfully!');
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to update page');
+    } finally {
+      setIsSaving(false);
     }
-  }, [pageIdFromUrl, fetchPageById]);
+  };
 
   return (
-    <div className="flex h-full flex-col bg-background">
+    <div className="flex h-full flex-col bg-white border-r w-full max-w-[300px]">
       {openPage ? (
-        <div className="p-4">
-          {pageId && (
-            <>
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-semibold">Page Settings</h2>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setOpenPage(false)}
-                        className="hover:bg-muted"
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Close page settings</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-
-              <GeneralInfo pageId={pageId} />
-              <SeoInfo pageId={pageId} />
-            </>
-          )}
-        </div>
-      ) : (
-        <div className="flex h-full flex-col">
-          <div className="p-4 border-b">
-            <h2 className="text-lg font-semibold">Page Builder</h2>
+        <div className="flex flex-col h-full">
+          <div className="flex items-center justify-between p-4 border-b">
+            <h2 className="text-lg font-semibold text-gray-800">Page Settings</h2>
+            <button
+              onClick={() => setOpenPage(false)}
+              className="p-1 rounded hover:bg-gray-100 transition"
+              title="Close page settings"
+            >
+              <X className="h-4 w-4 text-gray-600" />
+            </button>
           </div>
 
-          <div className="p-2">
+          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            {formData && (
+              <>
+                <GeneralInfo formData={formData} onChange={handleInputChange} />
+                <SeoInfo formData={formData} onChange={handleInputChange} />
+
+                <div className="pt-4">
+                  <button
+                    onClick={handleSave}
+                    disabled={isSaving}
+                    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+                  >
+                    {isSaving ? 'Saving...' : 'Save Changes'}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      ) : (
+        <div className="flex flex-col h-full">
+          <div className="p-4 border-b">
+            <h2 className="text-lg font-semibold text-gray-800">Page Builder</h2>
+          </div>
+          <div className="flex-1 overflow-y-auto p-2 space-y-4">
             <PagesComponent
               pages={pages}
               setPages={setPages}
-              setPageId={setPageId}
+              setPageId={(p) => {
+                // setPageId(p);
+                setFormData(p); // Set editable form data when page selected
+                setOpenPage(true);
+              }}
               setOpenPage={setOpenPage}
             />
-
             <LayersComponent />
             <MyDesignComponent />
           </div>

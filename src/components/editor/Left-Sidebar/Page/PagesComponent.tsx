@@ -3,20 +3,8 @@
 import { useState } from 'react';
 import { ChevronDown, ChevronRight, FileText, MoreVertical, Plus, Settings } from 'lucide-react';
 import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import type { Page } from '@/types/index';
+import { useRouter } from 'next/navigation';
 
 interface PagesComponentProps {
   pages: Page[];
@@ -31,12 +19,28 @@ export default function PagesComponent({
   setPageId,
   setOpenPage,
 }: PagesComponentProps) {
+  const router = useRouter();
   const [pagesOpen, setPagesOpen] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [newPageName, setNewPageName] = useState('');
+  const [newPageSlug, setNewPageSlug] = useState('');
+  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+
+  const generateSlug = (name: string): string =>
+    name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
+
+  const handlePageNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const name = e.target.value;
+    setNewPageName(name);
+    setNewPageSlug(generateSlug(name));
+  };
 
   const addNewPage = () => {
     if (newPageName.trim()) {
+      const slug = newPageSlug.trim() || generateSlug(newPageName);
       const newPage: Page = {
         id: `page-${Date.now()}`,
         pageName: newPageName.trim(),
@@ -44,127 +48,185 @@ export default function PagesComponent({
         description: '',
         seoName: '',
         seoMeta: '',
+        slug,
       };
+
       setPages([...pages, newPage]);
       setNewPageName('');
+      setNewPageSlug('');
       setDialogOpen(false);
       toast.success(`Page "${newPageName.trim()}" created successfully`);
     }
   };
+  const handleMoreClick = (pageId: string) => {
+    setActiveDropdown(activeDropdown === pageId ? null : pageId);
+  };
+
+  const handleRename = (page: Page) => {
+    console.log('Rename', page);
+  };
+
+  const handleDelete = (pageId: string) => {
+    setPages(pages.filter((p) => p.id !== pageId));
+    toast.success('Page deleted');
+  };
+
+  const handleDuplicate = (page: Page) => {
+    const newPage = {
+      ...page,
+      id: `page-${Date.now()}`,
+      pageName: `${page.pageName} Copy`,
+      slug: `${page.slug}-copy`,
+    };
+    setPages([...pages, newPage]);
+    toast.success('Page duplicated');
+  };
 
   return (
-    <Collapsible open={pagesOpen} onOpenChange={setPagesOpen} className="rounded-lg border mb-3">
+    <div className="rounded-lg border mb-3">
+      {/* Header */}
       <div className="flex items-center justify-between p-3">
-        <div className="flex items-center gap-2">
-          <CollapsibleTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-6 w-6 p-0">
-              {pagesOpen ? (
-                <ChevronDown className="h-4 w-4" />
-              ) : (
-                <ChevronRight className="h-4 w-4" />
-              )}
-            </Button>
-          </CollapsibleTrigger>
-          <FileText className="h-4 w-4 text-primary" />
+        <div
+          className="flex items-center gap-2 cursor-pointer"
+          onClick={() => setPagesOpen(!pagesOpen)}
+        >
+          {pagesOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+          <FileText className="h-4 w-4 text-blue-600" />
           <span className="font-medium text-sm">Pages</span>
         </div>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6 hover:bg-primary/10 hover:text-primary"
-                  >
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[425px]">
-                  <DialogHeader>
-                    <DialogTitle>Add New Page</DialogTitle>
-                  </DialogHeader>
-                  <div className="grid gap-4 py-4">
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="name" className="text-right">
-                        Page Name
-                      </Label>
-                      <Input
-                        id="name"
-                        value={newPageName}
-                        onChange={(e) => setNewPageName(e.target.value)}
-                        className="col-span-3"
-                        placeholder="Enter page name"
-                      />
-                    </div>
-                  </div>
-                  <DialogFooter>
-                    <Button type="submit" onClick={addNewPage}>
-                      Add Page
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Add new page</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <button
+          className="p-1 rounded hover:bg-blue-100 transition"
+          title="Add new page"
+          onClick={() => setDialogOpen(true)}
+        >
+          <Plus className="h-4 w-4 text-blue-600" />
+        </button>
       </div>
 
-      <CollapsibleContent>
+      {/* Collapsible Content */}
+
+      {pagesOpen && (
         <div className="px-3 pb-2 space-y-1">
           {pages.map((page) => (
             <div
-              key={page.id}
-              className="flex items-center justify-between rounded-md px-2 py-2 hover:bg-muted transition-colors"
+              key={page.id || page._id}
+              className="flex items-center justify-between rounded-md px-2 py-2 hover:bg-gray-100 transition-colors"
             >
-              <span className="truncate text-sm">{page.pageName}</span>
-              <div className="flex items-center">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 hover:bg-primary/10 hover:text-primary"
-                        onClick={() => {
-                          setOpenPage(true);
-                          setPageId(page);
-                        }}
-                      >
-                        <Settings className="h-4 w-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Page settings</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+              <div className="flex items-center gap-1">
+                <span
+                  className="truncate text-sm cursor-pointer hover:underline"
+                  title="Open page settings"
+                  onClick={() => {
+                    setOpenPage(true);
+                    setPageId(page);
+                    const currentParams = new URLSearchParams(window.location.search);
+                    const userId = currentParams.get('userId');
+                    router.push(`/Editor?pagename=${page.slug}&userId=${userId}`);
+                  }}
+                >
+                  {page.pageName}
+                </span>
+              </div>
+              <div className="flex items-center gap-1">
+                <button
+                  className="p-1 hover:bg-gray-200 rounded transition"
+                  title="Page settings"
+                  onClick={() => {
+                    setOpenPage(true);
+                    setPageId(page);
+                  }}
+                >
+                  <Settings className="h-4 w-4 text-gray-600" />
+                </button>
+                <div className="relative">
+                  <button
+                    className="p-1 hover:bg-gray-200 rounded transition"
+                    title="More options"
+                    onClick={() => page.id && handleMoreClick(page.id)}
+                  >
+                    <MoreVertical className="h-4 w-4 text-gray-600" />
+                  </button>
 
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 hover:bg-primary/10 hover:text-primary"
+                  {activeDropdown === page.id && (
+                    <div className="absolute right-0 mt-1 w-36 bg-white border rounded-md shadow-md z-10">
+                      <button
+                        onClick={() => handleRename(page)}
+                        className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100"
                       >
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>More options</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                        Rename
+                      </button>
+                      <button
+                        onClick={() => page.id && handleDelete(page.id)}
+                        className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50"
+                      >
+                        Delete
+                      </button>
+                      <button
+                        onClick={() => handleDuplicate(page)}
+                        className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100"
+                      >
+                        Duplicate
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           ))}
         </div>
-      </CollapsibleContent>
-    </Collapsible>
+      )}
+
+      {/* Modal */}
+      {dialogOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+          <div className="bg-white rounded-md p-6 w-full max-w-md shadow-lg space-y-4">
+            <h2 className="text-lg font-semibold">Add New Page</h2>
+
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <label htmlFor="name" className="w-24 text-right text-sm font-medium">
+                  Page Name
+                </label>
+                <input
+                  id="name"
+                  value={newPageName}
+                  onChange={handlePageNameChange}
+                  placeholder="Enter page name"
+                  className="flex-1 border rounded px-3 py-1 text-sm"
+                />
+              </div>
+
+              <div className="flex items-center gap-3">
+                <label htmlFor="slug" className="w-24 text-right text-sm font-medium">
+                  Slug
+                </label>
+                <input
+                  id="slug"
+                  value={newPageSlug}
+                  onChange={(e) => setNewPageSlug(e.target.value)}
+                  placeholder="Enter page slug"
+                  className="flex-1 border rounded px-3 py-1 text-sm"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-4">
+              <button
+                onClick={() => setDialogOpen(false)}
+                className="px-4 py-1 text-sm rounded border border-gray-300 hover:bg-gray-100"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={addNewPage}
+                className="px-4 py-1 text-sm rounded bg-blue-600 text-white hover:bg-blue-700"
+              >
+                Add Page
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
