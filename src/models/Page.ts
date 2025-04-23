@@ -26,14 +26,14 @@ const ModificationSchema = new Schema<IModification>({
 const PageSchema = new Schema<PageDocument>(
   {
     pageName: { type: String, required: true, trim: true },
-    createdBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    createdBy: { type: Schema.Types.ObjectId, ref: 'User' },
     isPublished: { type: Boolean, default: false },
     preHeading: { type: String },
     description: { type: String },
     slug: { type: String, unique: true },
     seoName: { type: String },
     seoMeta: { type: String },
-    component: { type: [Schema.Types.Mixed], required: true },
+    component: { type: [Schema.Types.Mixed] },
     modifications: [ModificationSchema],
   },
   { timestamps: true }

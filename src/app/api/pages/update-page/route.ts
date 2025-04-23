@@ -3,9 +3,10 @@ import { getPageDbConnection, getPageModel } from '@/utils/db';
 
 export async function PATCH(req: NextRequest) {
   try {
-    const { slug, userId, updatedComponents } = await req.json();
-
-    if (!slug || !userId || !updatedComponents) {
+    const data = await req.json();
+    const { userId, pageID, updatedComponents, ...updateFields } = data;
+    console.log('Page-ID', pageID);
+    if (!pageID || !userId) {
       return NextResponse.json({ message: 'Missing required fields' }, { status: 400 });
     }
 
@@ -15,13 +16,15 @@ export async function PATCH(req: NextRequest) {
     // Get PageModel using the connection
     const PageModel = getPageModel(pageDb);
 
+    const _id = pageID;
     // Find page
-    const page = await PageModel.findOne({ slug, createdBy: userId });
+    const page = await PageModel.findOne({ _id, createdBy: userId });
+    console.log('Page:', page);
 
     if (!page) {
       return NextResponse.json({ message: 'Page not found' }, { status: 404 });
     }
-
+    Object.assign(page, updateFields);
     // Update components
     page.component = updatedComponents;
     page.modifications.push({

@@ -1,34 +1,38 @@
 'use client';
 
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-
 interface Props {
-  pageId: {
+  formData: {
     seoName: string;
     seoMeta: string;
   };
+  onChange: (field: string, value: string) => void;
 }
 
-export default function SeoInfo({ pageId }: Props) {
+export default function SeoInfo({ formData, onChange }: Props) {
   return (
     <div className="space-y-5 mt-5">
       <div className="flex flex-col gap-2">
-        <Label htmlFor="seoName" className="text-sm font-medium">
+        <label htmlFor="seoName" className="text-sm font-medium text-gray-700">
           SEO Title
-        </Label>
-        <Input id="seoName" type="text" value={pageId.seoName} readOnly className="bg-muted/40" />
+        </label>
+        <input
+          id="seoName"
+          type="text"
+          value={formData.seoName}
+          onChange={(e) => onChange('seoName', e.target.value)}
+          className="border rounded px-3 py-2 text-sm"
+        />
       </div>
 
       <div className="flex flex-col gap-2">
-        <Label htmlFor="seoMeta" className="text-sm font-medium">
+        <label htmlFor="seoMeta" className="text-sm font-medium text-gray-700">
           SEO Description
-        </Label>
+        </label>
         <textarea
           id="seoMeta"
-          className="min-h-[80px] rounded-md border bg-muted/40 p-3 text-sm"
-          value={pageId.seoMeta}
-          readOnly
+          value={formData.seoMeta}
+          onChange={(e) => onChange('seoMeta', e.target.value)}
+          className="border rounded px-3 py-2 text-sm min-h-[80px]"
         />
       </div>
     </div>

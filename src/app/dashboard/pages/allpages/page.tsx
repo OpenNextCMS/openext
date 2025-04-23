@@ -203,8 +203,11 @@ export default function PageManagement() {
     }
   };
 
-  const handleEditPage = (slug: string, userId: string) => {
-    window.open(`/Editor?pagename=${encodeURIComponent(slug)}&userId=${userId}`, '_blank');
+  const handleEditPage = (slug: string, userId: string, pageId: string) => {
+    window.open(
+      `/Editor?pagename=${encodeURIComponent(slug)}&userId=${userId}&pageId=${pageId}`,
+      '_blank'
+    );
   };
 
   return (
@@ -404,7 +407,7 @@ export default function PageManagement() {
                             <TableCell className="text-right">
                               <div className="flex justify-end gap-2">
                                 <Button
-                                  onClick={() => handleEditPage(page.slug, userId)}
+                                  onClick={() => handleEditPage(page.slug, userId, page._id)}
                                   variant="outline"
                                   size="sm"
                                 >

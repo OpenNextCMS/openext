@@ -183,14 +183,6 @@ export interface PageDocument extends Document {
   modifications: IModification[];
 }
 
-export interface Page {
-  id: string;
-  pageName: string;
-  preHeading: string;
-  description: string;
-  seoName: string;
-  seoMeta: string;
-}
 export interface ITheme {
   name: string;
   isActive: boolean;
@@ -216,4 +208,20 @@ export interface BlockData {
 export interface CanvasState {
   blocks: BlockData[];
   viewMode: 'desktop' | 'tablet' | 'mobile';
+}
+
+export interface Page {
+  id?: string;
+  _id?: string; // Add MongoDB _id
+  pageName: string;
+  preHeading: string;
+  description: string;
+  seoName: string;
+  seoMeta: string;
+  slug?: string;
+  isPublished?: boolean;
+  component?: unknown[];
+  createdAt?: string;
+  updatedAt?: string;
+  lastModified?: string;
 }
