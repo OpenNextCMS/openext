@@ -31,7 +31,7 @@ _Installation guide coming soon_
 
 ## 📢 Community
 
-- [GitHub Discussions](https://github.com/OpenNext/openextcms/discussions)
+- [GitHub Discussions](https://github.com/OpenNext/openext/discussions)
 - [Apply to Contribute](mailto:info@aviraltrendzpvtltd.com?subject=OpenNext%20Contributor%20Application)
 - [Report a Security Issue](SECURITY.md)
 
