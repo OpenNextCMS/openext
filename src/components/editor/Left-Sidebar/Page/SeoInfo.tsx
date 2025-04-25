@@ -13,10 +13,7 @@ export default function SeoInfo({ formData, onChange }: Props) {
     <div className="space-y-5 mt-5">
       {/* SEO Title */}
       <div className="flex flex-col gap-2">
-        <label
-          htmlFor="seoName"
-          className="text-sm font-medium text-black dark:text-gray-50"
-        >
+        <label htmlFor="seoName" className="text-sm font-medium text-black dark:text-gray-50">
           SEO Title
         </label>
         <input
@@ -30,10 +27,7 @@ export default function SeoInfo({ formData, onChange }: Props) {
 
       {/* SEO Description */}
       <div className="flex flex-col gap-2">
-        <label
-          htmlFor="seoMeta"
-          className="text-sm font-medium text-black dark:text-gray-50"
-        >
+        <label htmlFor="seoMeta" className="text-sm font-medium text-black dark:text-gray-50">
           SEO Description
         </label>
         <textarea

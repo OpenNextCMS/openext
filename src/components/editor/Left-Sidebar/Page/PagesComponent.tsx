@@ -227,6 +227,5 @@ export default function PagesComponent({
         </div>
       )}
     </div>
-
   );
 }
