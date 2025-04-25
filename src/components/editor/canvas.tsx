@@ -54,7 +54,9 @@ export default function Canvas({ canvasBlocks, viewMode }: CanvasProps) {
                 window.open(`/preview/?pagename=${pageName}/view-only`, '_blank');
               }
             }}
-            className="ml-4 inline-flex items-center gap-2 bg-primary text-white text-sm px-4 py-2 rounded hover:bg-primary/90 transition-all"
+            className="ml-4 inline-flex items-center gap-2 px-4 py-2 text-sm rounded transition-all
+             bg-gray-900 text-white hover:bg-gray-800
+             dark:bg-white dark:text-black dark:hover:bg-gray-200"
           >
             <MousePointerClick className="h-4 w-4" />
             Preview
@@ -83,9 +85,8 @@ export default function Canvas({ canvasBlocks, viewMode }: CanvasProps) {
           </div>
         </div>
         <div
-          className={`bg-background dark:bg-background w-full h-auto shadow-md p-4 rounded-lg border ${getWidthClass()} transition-all mx-auto ${
-            isOver ? 'border-primary border-dashed border-2' : 'border-border'
-          } `}
+          className={`bg-background dark:bg-background w-full h-auto shadow-md p-4 rounded-lg border ${getWidthClass()} transition-all mx-auto ${isOver ? 'border-primary border-dashed border-2' : 'border-border'
+            } `}
           style={{ transform: `scale(${zoom / 100})`, transformOrigin: 'top left' }}
         >
           {canvasBlocks.length > 0 ? (

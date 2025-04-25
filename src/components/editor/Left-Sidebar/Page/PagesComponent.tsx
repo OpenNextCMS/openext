@@ -83,7 +83,7 @@ export default function PagesComponent({
   };
 
   return (
-    <div className="rounded-lg border mb-3">
+    <div className="rounded-lg border border-gray-200 dark:border-gray-700 mb-3 bg-white dark:bg-black text-gray-900 dark:text-gray-100">
       {/* Header */}
       <div className="flex items-center justify-between p-3">
         <div
@@ -91,26 +91,25 @@ export default function PagesComponent({
           onClick={() => setPagesOpen(!pagesOpen)}
         >
           {pagesOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-          <FileText className="h-4 w-4 text-blue-600" />
+          <FileText className="h-4 w-4" />
           <span className="font-medium text-sm">Pages</span>
         </div>
         <button
-          className="p-1 rounded hover:bg-blue-100 transition"
+          className="p-1 rounded hover:bg-blue-100 dark:hover:bg-blue-900 transition"
           title="Add new page"
           onClick={() => setDialogOpen(true)}
         >
-          <Plus className="h-4 w-4 text-blue-600" />
+          <Plus className="h-4 w-4" />
         </button>
       </div>
 
       {/* Collapsible Content */}
-
       {pagesOpen && (
         <div className="px-3 pb-2 space-y-1">
           {pages.map((page) => (
             <div
               key={page.id || page._id}
-              className="flex items-center justify-between rounded-md px-2 py-2 hover:bg-gray-100 transition-colors"
+              className="flex items-center justify-between rounded-md px-2 py-2 hover:bg-gray-100 dark:hover:bg-muted transition-colors"
             >
               <div className="flex items-center gap-1">
                 <span
@@ -129,41 +128,41 @@ export default function PagesComponent({
               </div>
               <div className="flex items-center gap-1">
                 <button
-                  className="p-1 hover:bg-gray-200 rounded transition"
+                  className="p-1 hover:bg-gray-200 dark:hover:bg-black rounded transition"
                   title="Page settings"
                   onClick={() => {
                     setOpenPage(true);
                     setPageId(page);
                   }}
                 >
-                  <Settings className="h-4 w-4 text-gray-600" />
+                  <Settings className="h-4 w-4 text-black dark:text-gray-300" />
                 </button>
                 <div className="relative">
                   <button
-                    className="p-1 hover:bg-gray-200 rounded transition"
+                    className="p-1 hover:bg-gray-200 dark:hover:bg-black rounded transition"
                     title="More options"
                     onClick={() => page.id && handleMoreClick(page.id)}
                   >
-                    <MoreVertical className="h-4 w-4 text-gray-600" />
+                    <MoreVertical className="h-4 w-4 text-gray-600 dark:text-gray-300" />
                   </button>
 
                   {activeDropdown === page.id && (
-                    <div className="absolute right-0 mt-1 w-36 bg-white border rounded-md shadow-md z-10">
+                    <div className="absolute right-0 mt-1 w-36 bg-white dark:bg-black border dark:border-gray-600 rounded-md shadow-md z-10">
                       <button
                         onClick={() => handleRename(page)}
-                        className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100"
+                        className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
                       >
                         Rename
                       </button>
                       <button
                         onClick={() => page.id && handleDelete(page.id)}
-                        className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50"
+                        className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900"
                       >
                         Delete
                       </button>
                       <button
                         onClick={() => handleDuplicate(page)}
-                        className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100"
+                        className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
                       >
                         Duplicate
                       </button>
@@ -179,7 +178,7 @@ export default function PagesComponent({
       {/* Modal */}
       {dialogOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-          <div className="bg-white rounded-md p-6 w-full max-w-md shadow-lg space-y-4">
+          <div className="bg-white dark:bg-zinc-900 text-gray-900 dark:text-white rounded-md p-6 w-full max-w-md shadow-lg space-y-4 border border-gray-300 dark:border-black">
             <h2 className="text-lg font-semibold">Add New Page</h2>
 
             <div className="space-y-3">
@@ -192,7 +191,7 @@ export default function PagesComponent({
                   value={newPageName}
                   onChange={handlePageNameChange}
                   placeholder="Enter page name"
-                  className="flex-1 border rounded px-3 py-1 text-sm"
+                  className="flex-1 border rounded px-3 py-1 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white dark:border-gray-600"
                 />
               </div>
 
@@ -205,7 +204,7 @@ export default function PagesComponent({
                   value={newPageSlug}
                   onChange={(e) => setNewPageSlug(e.target.value)}
                   placeholder="Enter page slug"
-                  className="flex-1 border rounded px-3 py-1 text-sm"
+                  className="flex-1 border rounded px-3 py-1 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white dark:border-gray-600"
                 />
               </div>
             </div>
@@ -213,13 +212,13 @@ export default function PagesComponent({
             <div className="flex justify-end gap-2 pt-4">
               <button
                 onClick={() => setDialogOpen(false)}
-                className="px-4 py-1 text-sm rounded border border-gray-300 hover:bg-gray-100"
+                className="px-4 py-1 text-sm rounded border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800"
               >
                 Cancel
               </button>
               <button
                 onClick={addNewPage}
-                className="px-4 py-1 text-sm rounded bg-blue-600 text-white hover:bg-blue-700"
+                className="px-4 py-1 text-sm rounded bg-black text-white hover:bg-muted"
               >
                 Add Page
               </button>
@@ -228,5 +227,6 @@ export default function PagesComponent({
         </div>
       )}
     </div>
+
   );
 }
