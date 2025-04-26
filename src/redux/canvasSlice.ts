@@ -13,11 +13,17 @@ interface BlockData {
 interface CanvasState {
   blocks: BlockData[];
   viewMode: 'desktop' | 'tablet' | 'mobile';
+  selectedLabel: string;
+  selectedBlock: BlockData | null;
+  selectedValue: number | null;
 }
 
 const initialState: CanvasState = {
   blocks: [],
   viewMode: 'desktop',
+  selectedLabel: '',
+  selectedBlock: null,
+  selectedValue: null,
 };
 
 const removeBlockFromChildren = (blocks: BlockData[][], blockId: string): BlockData[][] => {
@@ -94,9 +100,26 @@ const canvasSlice = createSlice({
         return true;
       });
     },
+    setSelectedLabel: (state, action: PayloadAction<string>) => {
+      state.selectedLabel = action.payload;
+    },
+    setSelectedBlock: (state, action: PayloadAction<BlockData>) => {
+      state.selectedBlock = action.payload;
+    },
+    setSelectedValue: (state, action: PayloadAction<number>) => {
+      state.selectedValue = action.payload;
+    },
   },
 });
 
-export const { addBlock, addBlockToColumn, setViewMode, removeBlock } = canvasSlice.actions;
+export const {
+  addBlock,
+  addBlockToColumn,
+  setViewMode,
+  removeBlock,
+  setSelectedLabel,
+  setSelectedBlock,
+  setSelectedValue,
+} = canvasSlice.actions;
 
 export default canvasSlice.reducer;

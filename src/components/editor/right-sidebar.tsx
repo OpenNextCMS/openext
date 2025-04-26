@@ -3,6 +3,7 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Palette, Sliders } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useAppSelector } from '@/redux/hooks';
 
 import Spacing from './Right-Sidebar/Style/spacing';
 import Display from './Right-Sidebar/Style/display';
@@ -19,15 +20,12 @@ import Events from './Right-Sidebar/properties/events';
 
 export default function RightSidebar() {
   const [positionOpen, setPositionOpen] = useState(false);
-
-  // Spacing
   const [spacingOpen, setSpacingOpen] = useState(false);
-  const [margin, setMargin] = useState({
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0,
-  });
+  const [displayOpen, setDisplayOpen] = useState(false);
+  const [displayFlex, setDisplayFlex] = useState(false);
+
+  const [margin, setMargin] = useState({ top: 0, right: 0, bottom: 0, left: 0 });
+  const selectedLabel = useAppSelector((state) => state.canvas.selectedLabel);
 
   const marginChanges = (value: string) => {
     setMargin({
@@ -43,10 +41,6 @@ export default function RightSidebar() {
       localStorage.setItem('margin', JSON.stringify(margin));
     }
   }, [margin]);
-
-  // Display
-  const [displayOpen, setDisplayOpen] = useState(false);
-  const [displayFlex, setDisplayFlex] = useState(false);
 
   const displayChanges = (value: string) => {
     setDisplayFlex(value === 'flex');
@@ -71,21 +65,33 @@ export default function RightSidebar() {
         {/* Styles */}
         <TabsContent value="styles" className="p-0 m-0 h-full">
           <div className="p-4 space-y-3">
-            <Spacing spacingOpen={spacingOpen} setSpacingOpen={setSpacingOpen} />
+            {/* 👇 Input Field to Show Label */}
+            <div>
+              <label className="text-sm font-medium">Block Label</label>
+              <input
+                value={selectedLabel}
+                readOnly
+                className="w-full mt-1 border border-gray-300 rounded px-2 py-1 text-sm"
+              />
+            </div>
 
+            <Spacing spacingOpen={spacingOpen} setSpacingOpen={setSpacingOpen} valueToLog={2} />
             <Display
               displayOpen={displayOpen}
               setDisplayOpen={setDisplayOpen}
               displayFlex={displayFlex}
               displayChanges={displayChanges}
             />
-
             <Background />
             <Size />
             <Typography />
             <Border />
             <Effects />
-            <Position positionOpen={positionOpen} setPositionOpen={setPositionOpen} marginChanges={marginChanges} />
+            <Position
+              positionOpen={positionOpen}
+              setPositionOpen={setPositionOpen}
+              marginChanges={marginChanges}
+            />
           </div>
         </TabsContent>
 

@@ -3,10 +3,14 @@
 import { Edit2, Trash2, Type } from 'lucide-react';
 import { BlockRendererProps } from '@/types/index';
 import { useAppDispatch } from '@/redux/hooks';
-import { removeBlock } from '@/redux/canvasSlice';
+import {
+  removeBlock,
+  setSelectedLabel,
+  setSelectedValue,
+  setSelectedBlock,
+} from '@/redux/canvasSlice';
 import { useState } from 'react';
 
-// Fallback icon helper
 const getIconForBlock = (icon?: string) => {
   switch (icon) {
     case 'edit':
@@ -20,18 +24,25 @@ const getIconForBlock = (icon?: string) => {
 
 export const TextBlock = ({ block }: BlockRendererProps) => {
   const dispatch = useAppDispatch();
+  const [isHovered, setIsHovered] = useState(false);
 
   const handleRemove = () => {
     dispatch(removeBlock(block.uniqueId ?? ''));
   };
-  const [isHovered, setIsHovered] = useState(false);
+
+  const handleEdit = () => {
+    const label = document.querySelector(`#label-${block.uniqueId} span`);
+    if (label) {
+      let a = 256;
+      dispatch(setSelectedLabel(label.textContent || ''));
+      dispatch(setSelectedValue(a));
+      dispatch(setSelectedBlock(block));
+    }
+  };
 
   return (
     <div
-      style={{
-        position: 'relative',
-        marginBottom: '1rem',
-      }}
+      style={{ position: 'relative', marginBottom: '1rem' }}
       onMouseEnter={() => {
         setIsHovered(true);
         const label = document.getElementById(`label-${block.uniqueId}`);
@@ -47,7 +58,6 @@ export const TextBlock = ({ block }: BlockRendererProps) => {
         if (actions) actions.style.opacity = '0';
       }}
     >
-      {/* Hover Label */}
       <div
         id={`label-${block.uniqueId}`}
         style={{
@@ -67,11 +77,10 @@ export const TextBlock = ({ block }: BlockRendererProps) => {
           zIndex: 10,
         }}
       >
-        {getIconForBlock(block.icon as string | undefined)}
+        {getIconForBlock(block.label)}
         <span>Text Block</span>
       </div>
 
-      {/* Action Buttons */}
       <div
         id={`actions-${block.uniqueId}`}
         style={{
@@ -86,6 +95,7 @@ export const TextBlock = ({ block }: BlockRendererProps) => {
         }}
       >
         <button
+          onClick={handleEdit}
           style={{
             backgroundColor: '#3b82f6',
             color: 'white',
@@ -93,9 +103,6 @@ export const TextBlock = ({ block }: BlockRendererProps) => {
             borderRadius: '4px',
             border: 'none',
             cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
           }}
         >
           <Edit2 style={{ width: 16, height: 16 }} />
@@ -109,20 +116,16 @@ export const TextBlock = ({ block }: BlockRendererProps) => {
             borderRadius: '4px',
             border: 'none',
             cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
           }}
         >
           <Trash2 style={{ width: 16, height: 16 }} />
         </button>
       </div>
 
-      {/* Content Box */}
       <div
         style={{
           ...block.style,
-          border: isHovered ? '1px solid rgb(252, 252, 252)' : (block.style?.border ?? 'none'),
+          border: isHovered ? '1px solid rgb(252, 252, 252)' : block.style?.border || 'none',
         }}
       >
         {block.content}

@@ -56,7 +56,13 @@ export const blockCategories: Record<string, BlockWithReactNodeIcon[]> = {
       content: 'Demo Data for Text Block',
       icon: <Type className="h-4 w-4 mr-2 text-primary" />,
       description: 'Regular paragraph text',
-      style: commonBlockStyle,
+      style: {
+        padding: '80px',
+        border: '1px solid rgb(229, 231, 235)',
+        borderRadius: '8px',
+        boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
+        transition: 'all 0.2s ease-in-out',
+      },
     },
     {
       id: 'heading',
@@ -65,7 +71,13 @@ export const blockCategories: Record<string, BlockWithReactNodeIcon[]> = {
       content: 'Heading Block',
       icon: <Heading2 className="h-4 w-4 mr-2 text-primary" />,
       description: 'Section heading',
-      style: commonBlockStyle,
+      style: {
+        padding: '56px',
+        border: '1px solid rgb(229, 231, 235)',
+        borderRadius: '8px',
+        boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
+        transition: 'all 0.2s ease-in-out',
+      },
     },
   ],
 };
