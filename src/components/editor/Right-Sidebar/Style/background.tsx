@@ -13,7 +13,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import SelectComp from '@/components/ReusableComponents/SelectComp'; 
+import SelectComp from '@/components/ReusableComponents/SelectComp';
 
 const Background = () => {
   const [bgOpen, setBgOpen] = useState(false);
