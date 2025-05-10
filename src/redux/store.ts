@@ -1,5 +1,6 @@
 import { configureStore, combineReducers } from '@reduxjs/toolkit';
 import canvasReducer from './canvasSlice';
+import customStorage from './customStorage';
 import {
   persistStore,
   persistReducer,
@@ -10,12 +11,11 @@ import {
   PURGE,
   REGISTER,
 } from 'redux-persist';
-import storage from 'redux-persist/lib/storage';
 
 const persistConfig = {
   key: 'root',
   version: 1,
-  storage,
+  storage: customStorage,
 };
 const rootReducer = combineReducers({
   canvas: canvasReducer,

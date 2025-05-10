@@ -38,26 +38,57 @@ export default function PagesComponent({
     setNewPageSlug(generateSlug(name));
   };
 
-  const addNewPage = () => {
+  const addNewPage = async () => {
     if (newPageName.trim()) {
       const slug = newPageSlug.trim() || generateSlug(newPageName);
-      const newPage: Page = {
-        id: `page-${Date.now()}`,
-        pageName: newPageName.trim(),
-        preHeading: '',
-        description: '',
-        seoName: '',
-        seoMeta: '',
-        slug,
-      };
+      const pageName = newPageName.trim();
 
-      setPages([...pages, newPage]);
-      setNewPageName('');
-      setNewPageSlug('');
-      setDialogOpen(false);
-      toast.success(`Page "${newPageName.trim()}" created successfully`);
+      try {
+        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
+
+        // Step 1: Create the page via API
+        const response = await fetch(`${backendUrl}/api/pages/add-page`, {
+          method: 'POST',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ pageName, slug }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to create page');
+        }
+
+        const result = await response.json();
+
+        const newPage: Page = {
+          id: `page-${Date.now()}`,
+          pageName,
+          preHeading: '',
+          description: '',
+          seoName: '',
+          seoMeta: '',
+          slug,
+        };
+
+        setPages([...pages, newPage]);
+        setNewPageName('');
+        setNewPageSlug('');
+        setDialogOpen(false);
+        toast.success(`Page "${pageName}" created successfully`);
+
+        // Step 2: Redirect to Editor
+        router.push(
+          `/Editor?pagename=${encodeURIComponent(slug)}&userId=${result.userId}&pageId=${result.data._id}`
+        );
+      } catch (error) {
+        toast.error('Error creating page. Please try again.');
+        console.error('Create page error:', error);
+      }
     }
   };
+
   const handleMoreClick = (pageId: string) => {
     setActiveDropdown(activeDropdown === pageId ? null : pageId);
   };
@@ -120,7 +151,7 @@ export default function PagesComponent({
                     setPageId(page);
                     const currentParams = new URLSearchParams(window.location.search);
                     const userId = currentParams.get('userId');
-                    router.push(`/Editor?pagename=${page.slug}&userId=${userId}`);
+                    router.push(`/Editor?pagename=${page.slug}&userId=${userId}&pageId=${page.id}`);
                   }}
                 >
                   {page.pageName}

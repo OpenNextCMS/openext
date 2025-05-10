@@ -1,5 +1,6 @@
 'use client';
 
+import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import RenderBlock from '@/components/editor/renderblock';
 import { ThemeProvider } from 'next-themes';
@@ -15,13 +16,18 @@ interface CanvasData {
 }
 
 export default function PreviewPage() {
+  const searchParams = useSearchParams();
+  const pagename = searchParams.get('pagename') || '';
+  const slug = pagename.split('/')[0]; // ✅ This will give "home" from "home/view-only"
+
   const [blocks, setBlocks] = useState<Block[]>([]);
   const [viewMode, setViewMode] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     try {
-      const raw = localStorage.getItem('persist:root');
+      const key = `persist:root-${slug}`;
+      const raw = localStorage.getItem(key);
       if (!raw) return;
 
       const parsed = JSON.parse(raw);
@@ -33,7 +39,7 @@ export default function PreviewPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [slug]);
 
   const getWidthClass = () => {
     switch (viewMode) {

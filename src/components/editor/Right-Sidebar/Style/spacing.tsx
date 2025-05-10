@@ -6,10 +6,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import IconHover from '@/components/ReusableComponents/IconHover';
+import { useAppSelector } from '@/redux/hooks';
 
 type SpacingProps = {
   spacingOpen: boolean;
   setSpacingOpen: (value: boolean) => void;
+  valueToLog: number;
 };
 
 export default function Spacing({ spacingOpen, setSpacingOpen }: SpacingProps) {
@@ -45,11 +47,52 @@ export default function Spacing({ spacingOpen, setSpacingOpen }: SpacingProps) {
   };
 
   useEffect(() => {
+    if (spacingOpen) {
+      console.log('Hi Dhruvin');
+    }
+  }, [spacingOpen]);
+
+  useEffect(() => {
     if (typeof window !== 'undefined') {
       localStorage.setItem('margin', JSON.stringify(margin));
       localStorage.setItem('padding', JSON.stringify(padding));
     }
   }, [margin, padding]);
+
+  const valueToLog = useAppSelector((state) => state.canvas.selectedValue);
+
+  useEffect(() => {
+    console.log('Value passed from handleEdit:', valueToLog);
+  }, [valueToLog]);
+
+  const selectedBlock = useAppSelector((state) => state.canvas.selectedBlock);
+
+  useEffect(() => {
+    if (selectedBlock) {
+      console.log('Selected block on edit:', selectedBlock);
+      const padding = selectedBlock.style?.padding;
+      const borderRadius = selectedBlock.style?.borderRadius;
+      console.log('Extracted padding:', padding);
+      console.log('Extracted borderRadius:', borderRadius);
+    }
+  }, [selectedBlock]);
+
+  useEffect(() => {
+    const padding = selectedBlock?.style?.padding;
+
+    if (typeof padding === 'string') {
+      console.log('Extracted padding:', padding);
+
+      const numeric = parseInt(padding.replace('px', '')) || 0;
+
+      setPadding({
+        top: numeric,
+        right: numeric,
+        bottom: numeric,
+        left: numeric,
+      });
+    }
+  }, [selectedBlock]);
 
   return (
     <Collapsible
@@ -125,6 +168,8 @@ export default function Spacing({ spacingOpen, setSpacingOpen }: SpacingProps) {
                   <Input
                     key={side}
                     placeholder={side.charAt(0).toUpperCase() + side.slice(1)}
+                    // value={padding.top}
+                    value={padding[side as keyof typeof padding]}
                     className="h-7 text-xs"
                     onChange={(e) => paddingChanges(e.target.value, side as keyof typeof padding)}
                   />
@@ -134,6 +179,7 @@ export default function Spacing({ spacingOpen, setSpacingOpen }: SpacingProps) {
               <Input
                 placeholder="padding"
                 className="h-7 text-xs"
+                value={padding.top}
                 onChange={(e) => paddingChanges(e.target.value, 'all')}
               />
             )}

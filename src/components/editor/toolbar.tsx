@@ -36,6 +36,8 @@ export default function Toolbar({ toggleSidebar, onViewChange }: ToolbarProps) {
   const searchParams = useSearchParams();
   const slug = searchParams.get('pagename');
   const userId = searchParams.get('userId');
+  const pageID = searchParams.get('pageId');
+  console.log('Page ID:', pageID);
   const components = useAppSelector((state) => state.canvas.blocks);
   console.log(components);
   const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
@@ -50,6 +52,7 @@ export default function Toolbar({ toggleSidebar, onViewChange }: ToolbarProps) {
         body: JSON.stringify({
           slug,
           userId,
+          pageID,
           updatedComponents: components,
         }),
       });

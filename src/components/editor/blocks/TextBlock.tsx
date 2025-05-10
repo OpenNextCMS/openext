@@ -1,13 +1,15 @@
 'use client';
 
-import type React from 'react';
-
-import { useState } from 'react';
 import { Edit2, Trash2, Type } from 'lucide-react';
-import type { BlockRendererProps } from '@/types/index';
+import { BlockRendererProps } from '@/types/index';
 import { useAppDispatch } from '@/redux/hooks';
-import { removeBlock } from '@/redux/canvasSlice';
-// import { updateBlockContent } from '@/redux/canvasSlice'; // Optional for saving edits
+import {
+  removeBlock,
+  setSelectedLabel,
+  setSelectedValue,
+  setSelectedBlock,
+} from '@/redux/canvasSlice';
+import { useState } from 'react';
 
 const getIconForBlock = (icon?: string) => {
   switch (icon) {
@@ -20,45 +22,29 @@ const getIconForBlock = (icon?: string) => {
   }
 };
 
-interface Props extends BlockRendererProps {
-  isEditing?: boolean;
-}
-
-export const TextBlock = ({ block, isEditing = false }: Props) => {
+export const TextBlock = ({ block, isEditing = true }: BlockRendererProps) => {
   const dispatch = useAppDispatch();
   const [isHovered, setIsHovered] = useState(false);
-  const [content, setContent] = useState(block.content || '');
 
   const handleRemove = () => {
     dispatch(removeBlock(block.uniqueId ?? ''));
   };
 
-  const handleBlur = (e: React.FocusEvent<HTMLDivElement>) => {
-    const updatedContent = e.currentTarget.innerText;
-    setContent(updatedContent);
-    // dispatch(updateBlockContent({ id: block.uniqueId, content: updatedContent }));
+  const handleEdit = () => {
+    const label = document.querySelector(`#label-${block.uniqueId} span`);
+    if (label) {
+      const a = 256;
+      dispatch(setSelectedLabel(label.textContent || ''));
+      dispatch(setSelectedValue(a));
+      dispatch(setSelectedBlock(block));
+    }
   };
 
-  // If not in editing mode, use a simplified view with just a p tag
-  if (!isEditing) {
-    return (
-      <p
-        style={{
-          ...block.style,
-          border: 'none', // override static border
-          margin: '0',
-          padding: '0',
-        }}
-      >
-        {content}
-      </p>
-    );
-  }
-  // Editing mode with all controls and structure
   return (
     <div
       style={{ position: 'relative', marginBottom: '1rem' }}
       onMouseEnter={() => {
+        if (!isEditing) return;
         setIsHovered(true);
         const label = document.getElementById(`label-${block.uniqueId}`);
         const actions = document.getElementById(`actions-${block.uniqueId}`);
@@ -66,6 +52,7 @@ export const TextBlock = ({ block, isEditing = false }: Props) => {
         if (actions) actions.style.opacity = '1';
       }}
       onMouseLeave={() => {
+        if (!isEditing) return;
         setIsHovered(false);
         const label = document.getElementById(`label-${block.uniqueId}`);
         const actions = document.getElementById(`actions-${block.uniqueId}`);
@@ -73,95 +60,81 @@ export const TextBlock = ({ block, isEditing = false }: Props) => {
         if (actions) actions.style.opacity = '0';
       }}
     >
-      {/* Hover Label */}
-      <div
-        id={`label-${block.uniqueId}`}
-        style={{
-          position: 'absolute',
-          top: '-12px',
-          left: '8px',
-          backgroundColor: '#3b82f6',
-          color: 'white',
-          fontSize: '12px',
-          padding: '4px 8px',
-          borderRadius: '4px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '4px',
-          opacity: 0,
-          transition: 'opacity 0.2s ease-in-out',
-          zIndex: 10,
-        }}
-      >
-        {getIconForBlock(block.icon as string | undefined)}
-        <span>Text Block</span>
-      </div>
-
-      {/* Action Buttons */}
-      <div
-        id={`actions-${block.uniqueId}`}
-        style={{
-          position: 'absolute',
-          top: '-13px',
-          right: '0px',
-          display: 'flex',
-          gap: '6px',
-          opacity: 0,
-          transition: 'opacity 0.2s ease-in-out',
-          zIndex: 10,
-        }}
-      >
-        <button
+      {isEditing && (
+        <div
+          id={`label-${block.uniqueId}`}
           style={{
+            position: 'absolute',
+            top: '-12px',
+            left: '8px',
             backgroundColor: '#3b82f6',
             color: 'white',
-            padding: '4px 6px',
+            fontSize: '12px',
+            padding: '4px 8px',
             borderRadius: '4px',
-            border: 'none',
-            cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
+            gap: '4px',
+            opacity: 0,
+            transition: 'opacity 0.2s ease-in-out',
+            zIndex: 10,
           }}
         >
-          <Edit2 style={{ width: 16, height: 16 }} />
-        </button>
-        <button
-          onClick={handleRemove}
-          style={{
-            backgroundColor: '#ef4444',
-            color: 'white',
-            padding: '4px 6px',
-            borderRadius: '4px',
-            border: 'none',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <Trash2 style={{ width: 16, height: 16 }} />
-        </button>
-      </div>
+          {getIconForBlock(block.label)}
+          <span>Text Block</span>
+        </div>
+      )}
 
-      {/* Text Content */}
+      {isEditing && (
+        <div
+          id={`actions-${block.uniqueId}`}
+          style={{
+            position: 'absolute',
+            top: '8px',
+            right: '8px',
+            display: 'flex',
+            gap: '6px',
+            opacity: 0,
+            transition: 'opacity 0.2s ease-in-out',
+            zIndex: 10,
+          }}
+        >
+          <button
+            onClick={handleEdit}
+            style={{
+              backgroundColor: '#3b82f6',
+              color: 'white',
+              padding: '4px 6px',
+              borderRadius: '4px',
+              border: 'none',
+              cursor: 'pointer',
+            }}
+          >
+            <Edit2 style={{ width: 16, height: 16 }} />
+          </button>
+          <button
+            onClick={handleRemove}
+            style={{
+              backgroundColor: '#ef4444',
+              color: 'white',
+              padding: '4px 6px',
+              borderRadius: '4px',
+              border: 'none',
+              cursor: 'pointer',
+            }}
+          >
+            <Trash2 style={{ width: 16, height: 16 }} />
+          </button>
+        </div>
+      )}
+
       <div
-        contentEditable={true}
-        suppressContentEditableWarning
-        onBlur={handleBlur}
         style={{
           ...block.style,
-          minHeight: '30px',
-          border: isEditing && isHovered ? '1px solid rgb(229, 231, 235)' : 'none', // Only show border when editing and hovered
-          padding: '8px',
-          outline: 'none',
-          whiteSpace: 'pre-wrap',
-          cursor: 'text',
-          boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
-          borderRadius: '4px',
+          border: isHovered ? '1px solid rgb(252, 252, 252)' : block.style?.border || 'none',
         }}
       >
-        {content}
+        {block.content}
       </div>
     </div>
   );
