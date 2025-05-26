@@ -40,8 +40,6 @@ export default function Page() {
       });
 
       const result = await response.json();
-      console.log('Page creation response:', result);
-      console.log('Page Creation Response:', result.data._id);
 
       if (response.ok && result.success) {
         // Step 2: Get pages and userId

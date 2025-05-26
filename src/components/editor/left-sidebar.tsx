@@ -2,7 +2,7 @@
 
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState, useCallback } from 'react';
-import { X } from 'lucide-react';
+import { X, Save } from 'lucide-react';
 import LayersComponent from './Left-Sidebar/Layers/layers';
 import MyDesignComponent from './Left-Sidebar/MyDesign/MyDesign';
 import PagesComponent from './Left-Sidebar/Page/PagesComponent';
@@ -18,7 +18,6 @@ export default function LeftSidebar() {
   const pageIdFromUrl = searchParams ? searchParams.get('pageId') : null;
 
   const [pages, setPages] = useState<Page[]>([]);
-  // const [pageId, setPageId] = useState<Page | undefined>(undefined);
   const [formData, setFormData] = useState<Page | null>(null);
   const [openPage, setOpenPage] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -55,8 +54,7 @@ export default function LeftSidebar() {
               page.slug?.toLowerCase() === pageNameFromUrl?.toLowerCase()
           );
           if (foundPage) {
-            // setPageId(foundPage);
-            setFormData(foundPage); // Set form data for editing
+            setFormData(foundPage);
             setOpenPage(true);
           }
         }
@@ -75,7 +73,7 @@ export default function LeftSidebar() {
   };
 
   const handleSave = async () => {
-    if (!formData) return;
+    if (!formData || !formData.slug || !userIdFromUrl) return;
 
     try {
       setIsSaving(true);
@@ -85,7 +83,7 @@ export default function LeftSidebar() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          slug: formData.slug, // ensure it's outside of spread
+          slug: formData.slug,
           userId: userIdFromUrl,
           pageID: pageIdFromUrl,
           pageName: formData.pageName,
@@ -96,7 +94,7 @@ export default function LeftSidebar() {
           isPublished: formData.isPublished,
         }),
       });
-      console.log('Response:', formData);
+
       if (!response.ok) throw new Error('Failed to update page');
       toast.success('Page updated successfully!');
     } catch (err) {
@@ -108,35 +106,36 @@ export default function LeftSidebar() {
   };
 
   return (
-    <div className="flex h-full flex-col bg-white border-r w-full max-w-[300px]">
+    <div className="flex h-full flex-col bg-white dark:bg-black border-r w-full max-w-[300px]">
       {openPage ? (
         <div className="flex flex-col h-full">
           <div className="flex items-center justify-between p-4 border-b">
-            <h2 className="text-lg font-semibold text-gray-800">Page Settings</h2>
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-white">Page Settings</h2>
             <button
               onClick={() => setOpenPage(false)}
-              className="p-1 rounded hover:bg-gray-100 transition"
+              className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition"
               title="Close page settings"
             >
-              <X className="h-4 w-4 text-gray-600" />
+              <X className="h-4 w-4 text-gray-600 dark:text-gray-300" />
             </button>
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {formData && (
               <>
-                <GeneralInfo formData={formData} onChange={handleInputChange} />
-                <SeoInfo formData={formData} onChange={handleInputChange} />
-
-                <div className="pt-4">
+                <div className="flex justify-end pt-4">
                   <button
                     onClick={handleSave}
                     disabled={isSaving}
-                    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+                    className="flex items-center gap-2 bg-gray-900 text-white dark:bg-white dark:text-black px-3 py-1.5 text-sm rounded hover:bg-gray-800 dark:hover:bg-gray-200 disabled:opacity-50 transition-colors"
+                    title="Save changes"
                   >
-                    {isSaving ? 'Saving...' : 'Save Changes'}
+                    <Save className="h-4 w-4" />
+                    {isSaving ? 'Saving...' : 'Save'}
                   </button>
                 </div>
+                <GeneralInfo formData={formData} onChange={handleInputChange} />
+                <SeoInfo formData={formData} onChange={handleInputChange} />
               </>
             )}
           </div>
@@ -144,15 +143,14 @@ export default function LeftSidebar() {
       ) : (
         <div className="flex flex-col h-full">
           <div className="p-4 border-b">
-            <h2 className="text-lg font-semibold text-gray-800">Page Builder</h2>
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-white">Page Builder</h2>
           </div>
           <div className="flex-1 overflow-y-auto p-2 space-y-4">
             <PagesComponent
               pages={pages}
               setPages={setPages}
               setPageId={(p) => {
-                // setPageId(p);
-                setFormData(p); // Set editable form data when page selected
+                setFormData(p);
                 setOpenPage(true);
               }}
               setOpenPage={setOpenPage}

@@ -1,0 +1,71 @@
+// src/app/[slug]/page.tsx
+
+import { notFound } from 'next/navigation';
+import RenderBlock from '@/components/editor/renderblock';
+import { Block } from '@/types';
+import { cookies } from 'next/headers';
+import PageClientWrapper from '@/components/PageClientWrapper';
+import { Metadata } from 'next';
+
+interface PageProps {
+  params?: Promise<{ slug: string }>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}
+
+type Page = {
+  slug: string;
+  component: Block[];
+};
+
+async function getPageData(slug: string): Promise<{ blocks: Block[] } | null> {
+  try {
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
+    const cookieStore = cookies();
+    const cookieHeader = cookieStore.toString();
+
+    const res = await fetch(`${backendUrl}/api/pages/get-pages`, {
+      method: 'GET',
+      headers: {
+        Cookie: cookieHeader,
+      },
+      cache: 'no-store',
+      credentials: 'include',
+    });
+
+    if (!res.ok) return null;
+
+    const data = await res.json();
+    const page = data?.pages?.find((p: Page) => p.slug === slug);
+    return page ? { blocks: page.component } : null;
+  } catch (err) {
+    console.error('Error fetching page data:', err);
+    return null;
+  }
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const resolvedParams = await params;
+  return {
+    title: `Page: ${resolvedParams?.slug ?? 'Unknown'}`,
+  };
+}
+
+export default async function Page({ params }: PageProps) {
+  const resolvedParams = await params;
+  if (!resolvedParams) return notFound();
+
+  const pageData = await getPageData(resolvedParams.slug);
+  if (!pageData) return notFound();
+
+  return (
+    <PageClientWrapper>
+      <main className="min-h-screen bg-white dark:bg-black p-8">
+        <div className="max-w-full mx-auto space-y-4">
+          {pageData.blocks.map((block) => (
+            <RenderBlock key={block.uniqueId} block={block} isEditing={false} />
+          ))}
+        </div>
+      </main>
+    </PageClientWrapper>
+  );
+}

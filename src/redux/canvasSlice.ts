@@ -1,10 +1,29 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { v4 as uuidv4 } from 'uuid';
-import type { CanvasState, BlockData } from '../types/index';
+
+interface BlockData {
+  uniqueId: string;
+  content: string;
+  type: 'column' | 'text';
+  children?: BlockData[][];
+  style?: React.CSSProperties;
+  icon?: string;
+}
+
+interface CanvasState {
+  blocks: BlockData[];
+  viewMode: 'desktop' | 'tablet' | 'mobile';
+  selectedLabel: string;
+  selectedBlock: BlockData | null;
+  selectedValue: number | null;
+}
 
 const initialState: CanvasState = {
   blocks: [],
   viewMode: 'desktop',
+  selectedLabel: '',
+  selectedBlock: null,
+  selectedValue: null,
 };
 
 const removeBlockFromChildren = (blocks: BlockData[][], blockId: string): BlockData[][] => {
@@ -68,6 +87,9 @@ const canvasSlice = createSlice({
     setViewMode: (state, action: PayloadAction<'desktop' | 'tablet' | 'mobile'>) => {
       state.viewMode = action.payload;
     },
+    setBlocks: (state, action: PayloadAction<BlockData[]>) => {
+      state.blocks = action.payload;
+    },
     removeBlock: (state, action: PayloadAction<string>) => {
       // First try to remove from top-level blocks
       state.blocks = state.blocks.filter((block) => {
@@ -81,9 +103,31 @@ const canvasSlice = createSlice({
         return true;
       });
     },
+    setSelectedLabel: (state, action: PayloadAction<string>) => {
+      state.selectedLabel = action.payload;
+    },
+    setSelectedBlock: (state, action: PayloadAction<BlockData>) => {
+      state.selectedBlock = action.payload;
+    },
+    setSelectedValue: (state, action: PayloadAction<number>) => {
+      state.selectedValue = action.payload;
+    },
+    clearSelectedLabel: (state) => {
+      state.selectedLabel = '';
+    },
   },
 });
 
-export const { addBlock, addBlockToColumn, setViewMode, removeBlock } = canvasSlice.actions;
+export const {
+  addBlock,
+  setBlocks,
+  addBlockToColumn,
+  setViewMode,
+  removeBlock,
+  setSelectedLabel,
+  setSelectedBlock,
+  setSelectedValue,
+  clearSelectedLabel,
+} = canvasSlice.actions;
 
 export default canvasSlice.reducer;

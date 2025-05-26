@@ -13,6 +13,7 @@ import {
   XCircle,
   Edit,
   FileQuestion,
+  Eye,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -400,6 +401,15 @@ export default function PageManagement() {
                                   </span>
                                 )}
                               </Badge>
+
+                              <Button
+                                onClick={() => window.open(`/${page.slug}`, '_blank')}
+                                variant="outline"
+                                size="sm"
+                              >
+                                <Eye className="h-3.5 w-3.5 mr-1" />
+                                Preview
+                              </Button>
                             </TableCell>
                             <TableCell>
                               {new Date(page.lastModified).toLocaleDateString()}

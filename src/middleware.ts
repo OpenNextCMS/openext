@@ -8,25 +8,11 @@ export async function middleware(request: NextRequest) {
   const token = request.cookies.get('token')?.value;
   const currentPath = request.nextUrl.pathname;
 
-  // Custom logic for the home route ('/')
-  //   if (currentPath === '/') {
-  //     if (dbConnection) {
-  //       const themeUrl = new URL('/themes/my-demo-theme/layouts', request.url);
-  //       try {
-  //         return NextResponse.rewrite(themeUrl);
-  //       } catch {
-  //         return NextResponse.redirect(new URL('/', request.url));
-  //       }
-  //     } else {
-  //       return NextResponse.redirect(new URL('/language', request.url));
-  //     }
-  // }
-
   if (currentPath === '/') {
     if (!dbConnection) {
       return NextResponse.redirect(new URL('/language', request.url));
     }
-    return NextResponse.next(); // Let the page component handle the logic
+    return NextResponse.next();
   }
 
   // If dbConnection is true and the route is restricted, redirect to '/login'

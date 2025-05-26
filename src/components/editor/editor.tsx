@@ -95,7 +95,7 @@ export default function Editor() {
       console.log('Block payload before dispatch:', newBlock);
     }
 
-    // Column addition logic with proper typing
+    // Column addition logic with proper typing/
     if (overData?.type === 'column') {
       console.log('Adding block to column');
 
