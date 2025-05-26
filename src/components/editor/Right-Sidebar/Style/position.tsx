@@ -5,7 +5,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import SelectComp from '../../../ReusableComponents/selectComp';
+import SelectComp from '../../../ReusableComponents/SelectComp';
 
 type PositionProps = {
   positionOpen: boolean;

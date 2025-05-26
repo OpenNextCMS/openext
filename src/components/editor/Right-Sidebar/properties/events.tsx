@@ -1,6 +1,6 @@
 'use client';
 
-import SelectComp from '../../../ReusableComponents/selectComp';
+import SelectComp from '../../../ReusableComponents/SelectComp';
 
 export default function Events() {
   return (

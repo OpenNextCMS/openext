@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import SelectComp from '../../../ReusableComponents/selectComp';
+import SelectComp from '../../../ReusableComponents/SelectComp';
 
 export default function Effect() {
   const [effectsOpen, setEffectsOpen] = useState(false);

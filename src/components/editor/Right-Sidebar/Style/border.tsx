@@ -6,8 +6,8 @@ import { Button } from '@/components/ui/button';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import InputSelect from '../../../ReusableComponents/sizeInput';
-import SelectComp from '../../../ReusableComponents/selectComp';
+import InputSelect from '../../../ReusableComponents/SizeInput';
+import SelectComp from '../../../ReusableComponents/SelectComp';
 
 export default function Border() {
   const [open, setOpen] = useState(false);

@@ -28,7 +28,7 @@ import {
   AlignHorizontalSpaceAround,
 } from 'lucide-react';
 import IconHover from '../../../ReusableComponents/IconHover';
-import InputSelect from '../../../ReusableComponents/sizeInput';
+import InputSelect from '../../../ReusableComponents/SizeInput';
 
 type DisplayProps = {
   displayOpen: boolean;

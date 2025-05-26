@@ -13,7 +13,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import SelectComp from '../../../ReusableComponents/selectComp'; // Update this path as per your structure
+import SelectComp from '../../../ReusableComponents/SelectComp'; // Update this path as per your structure
 
 const Background = () => {
   const [bgOpen, setBgOpen] = useState(false);
