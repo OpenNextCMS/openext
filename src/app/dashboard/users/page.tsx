@@ -49,7 +49,6 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 interface UserData {
   _id: string;
   username: string;
-  name: string;
   email: string;
   password: string;
   role: string;
@@ -67,7 +66,6 @@ export default function UserManagementDashboard() {
   const [userData, setUserData] = useState<UserData>({
     _id: '',
     username: '',
-    name: '',
     email: '',
     password: '',
     role: '',
@@ -143,8 +141,7 @@ export default function UserManagementDashboard() {
       const filtered = users.filter(
         (user) =>
           user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          (user.name && user.name.toLowerCase().includes(searchTerm.toLowerCase()))
+          user.email.toLowerCase().includes(searchTerm.toLowerCase())
       );
       setFilteredUsers(filtered);
     }
@@ -160,17 +157,18 @@ export default function UserManagementDashboard() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
+      const { _id, ...dataToSubmit } = userData;
+      console.log(_id);
       const res = await fetch(`${backendUrl}/api/sub-users/add-users`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(userData),
+        body: JSON.stringify(dataToSubmit),
       });
       if (res.ok) {
         await res.json();
         setUserData({
           _id: '',
           username: '',
-          name: '',
           email: '',
           password: '',
           role: '',
@@ -317,14 +315,14 @@ export default function UserManagementDashboard() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="name">Full Name</Label>
+                    <Label htmlFor="phoneNumber">Phone Number</Label>
                     <Input
-                      id="name"
-                      type="text"
-                      name="name"
-                      value={userData.name}
+                      id="phoneNumber"
+                      type="tel"
+                      name="phoneNumber"
+                      value={userData.phoneNumber}
                       onChange={handleInputChange}
-                      placeholder="John Doe"
+                      placeholder="+1 (555) 123-4567"
                       required
                     />
                   </div>
@@ -384,19 +382,6 @@ export default function UserManagementDashboard() {
                         Loading roles...
                       </div>
                     )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="phoneNumber">Phone Number</Label>
-                    <Input
-                      id="phoneNumber"
-                      type="tel"
-                      name="phoneNumber"
-                      value={userData.phoneNumber}
-                      onChange={handleInputChange}
-                      placeholder="+1 (555) 123-4567"
-                      required
-                    />
                   </div>
                 </div>
 
@@ -487,7 +472,7 @@ export default function UserManagementDashboard() {
                                   </AvatarFallback>
                                 </Avatar>
                                 <div>
-                                  <div className="font-medium">{user.name || user.username}</div>
+                                  <div className="font-medium">{user.username}</div>
                                   <div className="text-sm text-muted-foreground">
                                     @{user.username}
                                   </div>
