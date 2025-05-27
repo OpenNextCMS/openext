@@ -7,7 +7,7 @@ interface Block {
   id: string;
   label: string;
   type: 'column' | 'text';
-  uniqueId?: string;
+  uniqueId: string;
   content?: string;
   icon?: React.ReactNode | string;
   style?: Record<string, string>;

@@ -10,6 +10,7 @@ import {
   setSelectedBlock,
 } from '@/redux/canvasSlice';
 import { useState } from 'react';
+import type { BlockData } from '@/types/index';
 
 const getIconForBlock = (icon?: string) => {
   switch (icon) {
@@ -36,7 +37,7 @@ export const TextBlock = ({ block, isEditing = true }: BlockRendererProps) => {
       const a = 256;
       dispatch(setSelectedLabel(label.textContent || ''));
       dispatch(setSelectedValue(a));
-      dispatch(setSelectedBlock(block));
+      dispatch(setSelectedBlock(block as BlockData));
     }
   };
 
