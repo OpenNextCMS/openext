@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import LanguageSelector from './LanguageSelector';
+import LanguageSelector from '@/components/LanguageSelector/LanguageSelector';
 
 export default function Body() {
   return (
