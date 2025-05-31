@@ -115,6 +115,14 @@ const canvasSlice = createSlice({
     clearSelectedLabel: (state) => {
       state.selectedLabel = '';
     },
+    updateSelectedBlockStyles: (state, action: PayloadAction<Partial<React.CSSProperties>>) => {
+    if (state.selectedBlock) {
+    state.selectedBlock.style = {
+      ...state.selectedBlock.style,
+      ...action.payload,
+    };
+    }
+    },
   },
 });
 
@@ -128,6 +136,7 @@ export const {
   setSelectedBlock,
   setSelectedValue,
   clearSelectedLabel,
+  updateSelectedBlockStyles
 } = canvasSlice.actions;
 
 export default canvasSlice.reducer;

@@ -1,9 +1,10 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+import { useAppSelector } from '@/redux/hooks';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Button } from '@/components/ui/button';
 import { ChevronDown, ChevronRight } from 'lucide-react';
-import { useState } from 'react';
 import { Label } from '@/components/ui/label';
 import {
   Select,
@@ -15,9 +16,34 @@ import {
 import { Input } from '@/components/ui/input';
 import SelectComp from '@/components/ReusableComponents/SelectComp';
 
+// ✅ RGB to HEX utility
+function rgbToHex(rgb: string) {
+  const result = rgb.match(/\d+/g);
+  if (!result) return '#000000';
+  return (
+    '#' +
+    result
+      .slice(0, 3)
+      .map((num) => parseInt(num).toString(16).padStart(2, '0'))
+      .join('')
+  );
+}
+
 const Background = () => {
+  const selectedBlock = useAppSelector((state) => state.canvas.selectedBlock);
   const [bgOpen, setBgOpen] = useState(false);
   const [bgOption, setBgOption] = useState('color');
+  const [backgroundColor, setBackgroundColor] = useState('#ffffff');
+
+  // ✅ Sync from selectedBlock when changed
+  useEffect(() => {
+    if (selectedBlock?.style?.backgroundColor) {
+      const rawColor = selectedBlock.style.backgroundColor;
+      const hex = rawColor.includes('rgb') ? rgbToHex(rawColor) : rawColor;
+      setBackgroundColor(hex);
+      setBgOption('color'); // You can enhance this to detect gradient/image too
+    }
+  }, [selectedBlock]);
 
   return (
     <Collapsible open={bgOpen} onOpenChange={setBgOpen} className="rounded-lg border">
@@ -37,7 +63,7 @@ const Background = () => {
             {/* Background Type Selector */}
             <div className="space-y-1.5">
               <Label className="text-xs">Background Type</Label>
-              <Select defaultValue="color" onValueChange={(value) => setBgOption(value)}>
+              <Select value={bgOption} onValueChange={(value) => setBgOption(value)}>
                 <SelectTrigger className="h-8 text-xs">
                   <SelectValue />
                 </SelectTrigger>
@@ -54,7 +80,12 @@ const Background = () => {
               <div className="space-y-1.5">
                 <Label className="text-xs">Color</Label>
                 <div className="flex gap-2">
-                  <Input className="h-8 text-xs flex-1" type="color" />
+                  <Input
+                    className="h-8 text-xs flex-1"
+                    type="color"
+                    value={backgroundColor}
+                    onChange={(e) => setBackgroundColor(e.target.value)}
+                  />
                 </div>
               </div>
             )}

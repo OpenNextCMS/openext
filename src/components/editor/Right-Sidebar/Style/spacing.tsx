@@ -72,6 +72,8 @@ export default function Spacing({ spacingOpen, setSpacingOpen }: SpacingProps) {
       console.log('Selected block on edit:', selectedBlock);
       const padding = selectedBlock.style?.padding;
       const borderRadius = selectedBlock.style?.borderRadius;
+      const margin = selectedBlock.style?.margin;
+      console.log('Extracted margin:', margin);
       console.log('Extracted padding:', padding);
       console.log('Extracted borderRadius:', borderRadius);
     }
@@ -83,14 +85,102 @@ export default function Spacing({ spacingOpen, setSpacingOpen }: SpacingProps) {
     if (typeof padding === 'string') {
       console.log('Extracted padding:', padding);
 
-      const numeric = parseInt(padding.replace('px', '')) || 0;
+      const parts = padding.split(' ').map((p) => parseInt(p.replace('px', '')));
 
-      setPadding({
-        top: numeric,
-        right: numeric,
-        bottom: numeric,
-        left: numeric,
-      });
+      if (parts.length === 4) {
+        setPadding({
+          top: parts[0],
+          right: parts[1],
+          bottom: parts[2],
+          left: parts[3],
+        });
+      } else if (parts.length === 2) {
+        // Handle case like "80px 15px"
+        setPadding({
+          top: parts[0],
+          right: parts[1],
+          bottom: parts[0],
+          left: parts[1],
+        });
+      } else if (parts.length === 1) {
+        // Handle single value like "20px"
+        setPadding({
+          top: parts[0],
+          right: parts[0],
+          bottom: parts[0],
+          left: parts[0],
+        });
+      }
+    }
+  }, [selectedBlock]);
+
+  useEffect(() => {
+    const padding = selectedBlock?.style?.padding;
+
+    if (typeof padding === 'string') {
+      console.log('Extracted padding:', padding);
+
+      const parts = padding.split(' ').map((p) => parseInt(p.replace('px', '')));
+
+      if (parts.length === 4) {
+        setPadding({
+          top: parts[0],
+          right: parts[1],
+          bottom: parts[2],
+          left: parts[3],
+        });
+      } else if (parts.length === 2) {
+        // Handle case like "80px 15px"
+        setPadding({
+          top: parts[0],
+          right: parts[1],
+          bottom: parts[0],
+          left: parts[1],
+        });
+      } else if (parts.length === 1) {
+        // Handle single value like "20px"
+        setPadding({
+          top: parts[0],
+          right: parts[0],
+          bottom: parts[0],
+          left: parts[0],
+        });
+      }
+    }
+  }, [selectedBlock]);
+
+  useEffect(() => {
+    const margin = selectedBlock?.style?.margin;
+
+    if (typeof margin === 'string') {
+      console.log('Extracted margin:', margin);
+
+      const parts = margin.split(' ').map((m) => parseInt(m.replace('px', '')));
+
+      if (parts.length === 4) {
+        setMargin({
+          top: parts[0],
+          right: parts[1],
+          bottom: parts[2],
+          left: parts[3],
+        });
+      } else if (parts.length === 2) {
+        // Example "80px 15px"
+        setMargin({
+          top: parts[0],
+          right: parts[1],
+          bottom: parts[0],
+          left: parts[1],
+        });
+      } else if (parts.length === 1) {
+        // Example "20px"
+        setMargin({
+          top: parts[0],
+          right: parts[0],
+          bottom: parts[0],
+          left: parts[0],
+        });
+      }
     }
   }, [selectedBlock]);
 
@@ -136,6 +226,7 @@ export default function Spacing({ spacingOpen, setSpacingOpen }: SpacingProps) {
                     key={side}
                     placeholder={side.charAt(0).toUpperCase() + side.slice(1)}
                     className="h-7 text-xs"
+                    value={margin[side as keyof typeof margin]} // ✅ show value
                     onChange={(e) => marginChanges(e.target.value, side as keyof typeof margin)}
                   />
                 ))}
@@ -144,6 +235,7 @@ export default function Spacing({ spacingOpen, setSpacingOpen }: SpacingProps) {
               <Input
                 placeholder="margin"
                 className="h-7 text-xs"
+                value={margin.top}
                 onChange={(e) => marginChanges(e.target.value, 'all')}
               />
             )}
@@ -168,9 +260,8 @@ export default function Spacing({ spacingOpen, setSpacingOpen }: SpacingProps) {
                   <Input
                     key={side}
                     placeholder={side.charAt(0).toUpperCase() + side.slice(1)}
-                    // value={padding.top}
-                    value={padding[side as keyof typeof padding]}
                     className="h-7 text-xs"
+                    value={padding[side as keyof typeof padding]} // ✅ show value
                     onChange={(e) => paddingChanges(e.target.value, side as keyof typeof padding)}
                   />
                 ))}

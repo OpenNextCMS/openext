@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useAppSelector } from '@/redux/hooks';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Button } from '@/components/ui/button';
 import { ChevronDown, ChevronRight } from 'lucide-react';
@@ -9,8 +10,42 @@ import { Input } from '@/components/ui/input';
 import InputSelect from '@/components/ReusableComponents/SizeInput';
 import SelectComp from '@/components/ReusableComponents/SelectComp';
 
+function rgbToHex(rgb: string) {
+  const result = rgb.match(/\d+/g);
+  if (!result) return '#000000';
+  return (
+    '#' +
+    result
+      .slice(0, 3)
+      .map((num) => parseInt(num).toString(16).padStart(2, '0'))
+      .join('')
+  );
+}
+
 export default function Border() {
   const [open, setOpen] = useState(false);
+  const selectedBlock = useAppSelector((state) => state.canvas.selectedBlock);
+
+  const [borderColor, setBorderColor] = useState('#000000');
+  const [borderWidth, setBorderWidth] = useState('1');
+  const [borderUnit, setBorderUnit] = useState('px');
+  const [borderStyle, setBorderStyle] = useState('solid');
+
+  useEffect(() => {
+    if (selectedBlock?.style?.border && typeof selectedBlock.style.border === 'string') {
+      const parts = selectedBlock.style.border.split(' '); // e.g., "1px dashed rgb(255, 0, 0)"
+      if (parts.length >= 3) {
+        const width = parts[0]; // "1px"
+        const style = parts[1]; // "dashed"
+        const color = parts.slice(2).join(' '); // "rgb(255, 0, 0)"
+
+        setBorderWidth(width.replace(/[^0-9.]/g, ''));
+        setBorderUnit(width.replace(/[0-9.]/g, '') || 'px');
+        setBorderStyle(style);
+        setBorderColor(rgbToHex(color));
+      }
+    }
+  }, [selectedBlock]);
 
   return (
     <Collapsible open={open} onOpenChange={setOpen} className="rounded-lg border">
@@ -29,14 +64,23 @@ export default function Border() {
           {/* Border Color */}
           <div className="flex items-center gap-2">
             <Label className="text-xs w-16">Color</Label>
-            <Input className="h-8 text-xs flex-1" type="color" />
+            <Input
+              className="h-8 text-xs flex-1"
+              type="color"
+              value={borderColor}
+              onChange={(e) => setBorderColor(e.target.value)}
+            />
           </div>
 
           {/* Border Width */}
           <div className="flex items-center gap-2">
             <Label className="text-xs w-16">Width</Label>
             <InputSelect
-              defaultValue="px"
+              placeholder="1"
+              unitValue={borderUnit}
+              value={borderWidth}
+              onValueChange={(unit) => setBorderUnit(unit)}
+              onUnitChange={(val) => setBorderWidth(val)}
               options={[
                 { label: 'px', value: 'px' },
                 { label: 'rem', value: 'rem' },
@@ -45,10 +89,11 @@ export default function Border() {
             />
           </div>
 
-          {/* Border Style */}
+          {/* ✅ Fixed: Controlled Border Style Select */}
           <SelectComp
             label="Border Style"
-            defaultValue="solid"
+            value={borderStyle}
+            onValueChange={setBorderStyle}
             options={[
               { label: 'Solid', value: 'solid' },
               { label: 'Dashed', value: 'dashed' },

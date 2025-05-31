@@ -24,7 +24,7 @@ export default function Size() {
             <span className="font-medium text-sm">Size</span>
             <CollapsibleContent>
               <SelectSize
-                defaultValue="px"
+                unitValue="px"
                 options={[
                   { label: 'px', value: 'px' },
                   { label: 'rem', value: 'rem' },
