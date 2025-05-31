@@ -1,5 +1,8 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+import { useAppSelector } from '@/redux/hooks';
+
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -30,14 +33,35 @@ import {
 import IconHover from '@/components/ReusableComponents/IconHover';
 import InputSelect from '@/components/ReusableComponents/SizeInput';
 
-type DisplayProps = {
+// Define props
+interface DisplayProps {
   displayOpen: boolean;
   setDisplayOpen: (val: boolean) => void;
-  displayFlex: boolean;
   displayChanges: (value: string) => void;
-};
+  displayFlex: boolean;
+}
 
-const display = ({ displayOpen, setDisplayOpen, displayFlex, displayChanges }: DisplayProps) => {
+const Display = ({ displayOpen, setDisplayOpen, displayChanges }: DisplayProps) => {
+  const selectedBlock = useAppSelector((state) => state.canvas.selectedBlock);
+  const [displayValue, setDisplayValue] = useState('none');
+  const [justifyContent, setJustifyContent] = useState('');
+
+  useEffect(() => {
+    const style = selectedBlock?.style;
+    if (style) {
+      if (typeof style.display === 'string') {
+        setDisplayValue(style.display);
+      }
+      if (typeof style.justifyContent === 'string') {
+        setJustifyContent(style.justifyContent);
+      } else {
+        setJustifyContent('');
+      }
+    }
+  }, [selectedBlock]);
+
+  const isFlex = displayValue === 'flex';
+
   return (
     <Collapsible open={displayOpen} onOpenChange={setDisplayOpen} className="rounded-lg border">
       <div className="flex items-center justify-between p-2">
@@ -54,11 +78,18 @@ const display = ({ displayOpen, setDisplayOpen, displayFlex, displayChanges }: D
           <span className="font-medium text-sm">Display</span>
         </div>
       </div>
+
       <CollapsibleContent>
         <div className="px-3 pb-3">
           <div className="flex items-center gap-2 mb-3">
             <Label className="text-xs w-16">Display</Label>
-            <Select defaultValue="none" onValueChange={displayChanges}>
+            <Select
+              value={displayValue}
+              onValueChange={(val) => {
+                setDisplayValue(val);
+                displayChanges(val);
+              }}
+            >
               <SelectTrigger className="h-8 text-xs flex-1">
                 <SelectValue />
               </SelectTrigger>
@@ -73,7 +104,7 @@ const display = ({ displayOpen, setDisplayOpen, displayFlex, displayChanges }: D
             </Select>
           </div>
 
-          {displayFlex && (
+          {isFlex && (
             <div className="space-y-2">
               {/* Direction */}
               <div>
@@ -97,7 +128,6 @@ const display = ({ displayOpen, setDisplayOpen, displayFlex, displayChanges }: D
                 </div>
               </div>
 
-              {/* Align */}
               <div>
                 <Label className="text-xs w-16">Align</Label>
                 <div className="flex gap-2">
@@ -129,37 +159,61 @@ const display = ({ displayOpen, setDisplayOpen, displayFlex, displayChanges }: D
               <div>
                 <Label className="text-xs w-16">Justify</Label>
                 <div className="grid grid-cols-3 gap-2">
-                  <Button variant="outline" size="sm" className="h-8 text-xs">
+                  <Button
+                    variant={justifyContent === 'flex-start' ? 'default' : 'outline'}
+                    size="sm"
+                    className="h-8 text-xs"
+                  >
                     <IconHover
                       icon={<AlignHorizontalJustifyStart className="h-4 w-4" />}
                       iconName="Start"
                     />
                   </Button>
-                  <Button variant="outline" size="sm" className="h-8 text-xs">
+                  <Button
+                    variant={justifyContent === 'center' ? 'default' : 'outline'}
+                    size="sm"
+                    className="h-8 text-xs"
+                  >
                     <IconHover
                       icon={<AlignHorizontalJustifyCenter className="h-4 w-4" />}
                       iconName="Center"
                     />
                   </Button>
-                  <Button variant="outline" size="sm" className="h-8 text-xs">
+                  <Button
+                    variant={justifyContent === 'flex-end' ? 'default' : 'outline'}
+                    size="sm"
+                    className="h-8 text-xs"
+                  >
                     <IconHover
                       icon={<AlignHorizontalJustifyEnd className="h-4 w-4" />}
                       iconName="End"
                     />
                   </Button>
-                  <Button variant="outline" size="sm" className="h-8 text-xs">
+                  <Button
+                    variant={justifyContent === 'space-between' ? 'default' : 'outline'}
+                    size="sm"
+                    className="h-8 text-xs"
+                  >
                     <IconHover
                       icon={<AlignHorizontalSpaceBetween className="h-4 w-4" />}
                       iconName="Space Between"
                     />
                   </Button>
-                  <Button variant="outline" size="sm" className="h-8 text-xs">
+                  <Button
+                    variant={justifyContent === 'space-around' ? 'default' : 'outline'}
+                    size="sm"
+                    className="h-8 text-xs"
+                  >
                     <IconHover
                       icon={<AlignHorizontalSpaceAround className="h-4 w-4" />}
                       iconName="Space Around"
                     />
                   </Button>
-                  <Button variant="outline" size="sm" className="h-8 text-xs">
+                  <Button
+                    variant={justifyContent === 'space-evenly' ? 'default' : 'outline'}
+                    size="sm"
+                    className="h-8 text-xs"
+                  >
                     <IconHover
                       icon={<AlignHorizontalSpaceAround className="h-4 w-4" />}
                       iconName="Space Evenly"
@@ -189,7 +243,7 @@ const display = ({ displayOpen, setDisplayOpen, displayFlex, displayChanges }: D
                 <div className="flex gap-2 flex-1">
                   <InputSelect
                     placeholder="8"
-                    defaultValue="px"
+                    unitValue="px"
                     options={[
                       { label: 'px', value: 'px' },
                       { label: 'rem', value: 'rem' },
@@ -206,4 +260,4 @@ const display = ({ displayOpen, setDisplayOpen, displayFlex, displayChanges }: D
   );
 };
 
-export default display;
+export default Display;
