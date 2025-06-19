@@ -20,7 +20,7 @@ type Page = {
 async function getPageData(slug: string): Promise<{ blocks: Block[] } | null> {
   try {
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const cookieHeader = cookieStore.toString();
 
     const res = await fetch(`${backendUrl}/api/pages/get-pages`, {
