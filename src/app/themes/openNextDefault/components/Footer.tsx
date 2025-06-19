@@ -40,10 +40,10 @@ const Footer = () => {
       try {
         const res = await fetch(`${backendUrl}/api/pages/get-pages`);
         const data = await res.json();
-        const bodyComponent = data[0].component.find(
+        const footerComponent = data.pages[0].component.find(
           (comp: { name: string }) => comp.name === 'footer'
         ).data;
-        setPageData(bodyComponent);
+        setPageData(footerComponent);
       } catch (error) {
         console.error('Failed to fetch page data:', error);
       }
