@@ -7,7 +7,14 @@ const typeToTag: Record<string, keyof JSX.IntrinsicElements> = {
     text: 'div',
 };
 
-const renderFromJson = (element: any, key?: number | string): JSX.Element | null => {
+type JsonElement = {
+    type: string;
+    style?: React.CSSProperties;
+    content?: string;
+    children?: JsonElement[][];
+};
+
+const renderFromJson = (element: JsonElement, key?: number | string): JSX.Element | null => {
     const tag = typeToTag[element.type] || 'div';
     const Tag = tag as keyof JSX.IntrinsicElements;
 
@@ -19,7 +26,7 @@ const renderFromJson = (element: any, key?: number | string): JSX.Element | null
         <Tag key={key} style={style}>
             {content}
             {Array.isArray(children) &&
-                children.map((row: any[], rowIndex: number) =>
+                children.map((row: JsonElement[], rowIndex: number) =>
                     row.map((child, colIndex) =>
                         renderFromJson(child, `${rowIndex}-${colIndex}`)
                     )
@@ -29,7 +36,7 @@ const renderFromJson = (element: any, key?: number | string): JSX.Element | null
 };
 
 const Default = () => {
-    const [pageData, setPageData] = useState<any | null>(null);
+    const [pageData, setPageData] = useState<JsonElement | null>(null);
 
     useEffect(() => {
         const fetchPageData = async () => {
