@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const validatedData = registerSchema.parse(body);
 
-    const { userDbName, pageDbName, mongodbCredentials, footerData, headerData, bodyData } = body; // UPDATED
+    const { userDbName, pageDbName, mongodbCredentials, defaultData } = body; // UPDATED
     const { username, password, host, cluster, authMech, mongoDB, authSource } = mongodbCredentials;
 
     let masterDbUri, userDbUri, pageDbUri;
@@ -94,16 +94,8 @@ export async function POST(req: NextRequest) {
       seoMeta: 'OpenNext is a React framework for the web.',
       component: [
         {
-          name: 'header',
-          data: headerData, // UPDATED
-        },
-        {
-          name: 'body',
-          data: bodyData, // UPDATED
-        },
-        {
-          name: 'footer',
-          data: footerData, // UPDATED
+          name: 'defaultData',
+          data: defaultData,
         },
       ],
     };
