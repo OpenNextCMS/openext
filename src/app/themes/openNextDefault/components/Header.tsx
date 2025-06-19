@@ -74,10 +74,10 @@ const Header = () => {
       try {
         const res = await fetch(`${backendUrl}/api/pages/get-pages`);
         const data = await res.json();
-        const bodyComponent = data[0].component.find(
+        const headerComponent = data.pages[0].component.find(
           (comp: { name: string }) => comp.name === 'header'
         ).data;
-        setPageData(bodyComponent);
+        setPageData(headerComponent);
       } catch (error) {
         console.error('Failed to fetch page data:', error);
       }
