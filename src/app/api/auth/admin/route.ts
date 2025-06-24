@@ -88,10 +88,12 @@ export async function POST(req: NextRequest) {
       pageName: 'Default Page',
       createdBy: authData.user._id, // Use the newly created user's ObjectId
       isPublished: true,
+      isHome: true,
       preHeading: 'Welcome to OpenNext',
       description: 'This is a default page created during registration.',
       seoName: 'OpenNext',
       seoMeta: 'OpenNext is a React framework for the web.',
+      slug: 'default_home',
       component: [
         {
           name: 'defaultData',
