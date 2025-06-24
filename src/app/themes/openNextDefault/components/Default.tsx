@@ -46,7 +46,12 @@ const Default = () => {
                 const defaultComponent = data?.pages?.[0]?.component?.find(
                     (comp: { name: string }) => comp.name === 'defaultData'
                 )?.data?.[0];
-
+                const validation = data?.pages?.[0]?.isHome;
+                if (!validation) {
+                    console.error('This is not a home page');
+                    return;
+                }
+                
                 setPageData(defaultComponent);
             } catch (error) {
                 console.error('Failed to fetch page data:', error);
