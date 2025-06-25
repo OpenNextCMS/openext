@@ -37,28 +37,40 @@ const renderFromJson = (element: JsonElement, key?: number | string): JSX.Elemen
 
 const Default = () => {
     const [pageData, setPageData] = useState<JsonElement | null>(null);
+    let url = `${backendUrl}/api/pages/get-pages`;
 
     useEffect(() => {
-        const fetchPageData = async () => {
+        const checkTokenAndSetUrl = async () => {
             try {
-                const res = await fetch(`${backendUrl}/api/pages/get-pages`);
+                const res = await fetch(`${backendUrl}/api/check-token`);
+                if (!res.ok) {
+                    url = `${backendUrl}/api/pages/get-page?name=default_home`;
+                }
+            } catch (err) {
+                console.error('Token check failed:', err);
+            }
+
+            try {
+                const res = await fetch(url);
                 const data = await res.json();
-                const defaultComponent = data?.pages?.[0]?.component?.find(
-                    (comp: { name: string }) => comp.name === 'defaultData'
-                )?.data?.[0];
-                const validation = data?.pages?.[0]?.isHome;
-                if (!validation) {
+
+                const container = data.page || data.pages?.[0];
+                if (!container?.isHome) {
                     console.error('This is not a home page');
                     return;
                 }
-                
+
+                const defaultComponent = container.component?.find(
+                    (comp: { name: string }) => comp.name === 'defaultData'
+                )?.data?.[0];
+
                 setPageData(defaultComponent);
-            } catch (error) {
-                console.error('Failed to fetch page data:', error);
+            } catch (err) {
+                console.error('Failed to fetch page data:', err);
             }
         };
 
-        fetchPageData();
+        checkTokenAndSetUrl();
     }, []);
 
     if (!pageData) return <div>Loading...</div>;
