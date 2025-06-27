@@ -40,7 +40,7 @@ export default function Typography() {
       setTextTransform(String(style.textTransform || 'none'));
       setTextDecoration(String(style.textDecoration || 'none'));
     }
-  }, [selectedBlock]);
+  }, [selectedBlock, style]);
 
   // Generic handler to update style
   const handleStyleChange = (property: string, value: string) => {
