@@ -174,6 +174,7 @@ export interface PageDocument extends Document {
   pageName: string;
   createdBy: Types.ObjectId;
   isPublished: boolean;
+  isHome: boolean;
   lastModified: Date;
   preHeading: string;
   description: string;

@@ -9,9 +9,8 @@ import { handleSuccess } from '@/utils/successHandler';
 import { Eye, EyeOff } from 'lucide-react';
 import { translations } from '../../public/locales/translations';
 import Cookies from 'js-cookie';
-import footerData from '@/app/themes/openNextDefault/public/data/footer.json';
-import headerData from '@/app/themes/openNextDefault/public/data/header.json';
-import bodyData from '@/app/themes/openNextDefault/public/data/body.json';
+import defaultData from '@/app/themes/openNextDefault/public/data/default.json';
+
 
 const NewRegisterForm = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -123,9 +122,7 @@ const NewRegisterForm = () => {
             userDbName,
             pageDbName,
             mongodbCredentials,
-            headerData,
-            bodyData,
-            footerData,
+            defaultData
           }),
         })
           .then((response) => response.json())

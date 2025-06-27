@@ -28,6 +28,7 @@ const PageSchema = new Schema<PageDocument>(
     pageName: { type: String, required: true, trim: true },
     createdBy: { type: Schema.Types.ObjectId, ref: 'User' },
     isPublished: { type: Boolean, default: false },
+    isHome: { type: Boolean, default: false },
     preHeading: { type: String },
     description: { type: String },
     slug: { type: String, unique: true },

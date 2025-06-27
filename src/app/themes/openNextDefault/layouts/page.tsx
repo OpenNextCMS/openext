@@ -1,17 +1,13 @@
 // pages/index.tsx
 'use client';
 
-import Header from '../components/Header';
-import Body from '../components/Body';
-import Footer from '../components/Footer';
+import Default from '../components/Default';
 
 const Home2: React.FC = () => {
   return (
     <>
       <div>
-        <Header />
-        <Body />
-        <Footer />
+        <Default />
       </div>
     </>
   );
