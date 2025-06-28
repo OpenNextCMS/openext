@@ -15,8 +15,6 @@ export default function Typography() {
   const [fontOpen, setFontOpen] = useState(false);
 
   const selectedBlock = useAppSelector((state) => state.canvas.selectedBlock);
-  const style = selectedBlock?.style || {};
-
   const [fontFamily, setFontFamily] = useState('Arial');
   const [fontSize, setFontSize] = useState('16');
   const [lineHeight, setLineHeight] = useState('1.5');
@@ -29,18 +27,17 @@ export default function Typography() {
 
   // Update local state when block changes
   useEffect(() => {
-    if (style) {
-      setFontFamily(String(style.fontFamily || 'Arial').replace(/['"]/g, ''));
-      setFontSize(String(style.fontSize || '16').replace(/[^0-9.]/g, ''));
-      setLineHeight(String(style.lineHeight || '1.5').replace(/[^0-9.]/g, ''));
-      setFontWeight(String(style.fontWeight || '400'));
-      setFontStyle(String(style.fontStyle || 'normal'));
-      setLetterSpacing(String(style.letterSpacing || '0').replace(/[^0-9.]/g, ''));
-      setTextAlign(String(style.textAlign || 'left'));
-      setTextTransform(String(style.textTransform || 'none'));
-      setTextDecoration(String(style.textDecoration || 'none'));
-    }
-  }, [selectedBlock, style]);
+    const style = selectedBlock?.style || {};
+    setFontFamily(String(style.fontFamily || 'Arial').replace(/['"]/g, ''));
+    setFontSize(String(style.fontSize || '16').replace(/[^0-9.]/g, ''));
+    setLineHeight(String(style.lineHeight || '1.5').replace(/[^0-9.]/g, ''));
+    setFontWeight(String(style.fontWeight || '400'));
+    setFontStyle(String(style.fontStyle || 'normal'));
+    setLetterSpacing(String(style.letterSpacing || '0').replace(/[^0-9.]/g, ''));
+    setTextAlign(String(style.textAlign || 'left'));
+    setTextTransform(String(style.textTransform || 'none'));
+    setTextDecoration(String(style.textDecoration || 'none'));
+  }, [selectedBlock]);
 
   // Generic handler to update style
   const handleStyleChange = (property: string, value: string) => {

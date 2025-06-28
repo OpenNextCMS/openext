@@ -9,6 +9,12 @@ import { handleError } from '@/utils/errorHandler'; // Import error and success 
 import { handleSuccess } from '@/utils/successHandler';
 
 export default function LoginPage() {
+
+  // CHECK IF needsRestart = undefined then CHECK LOCAL STORAGE  and wait For USER to restart the project
+  // CHECK IF needsRestart = TURE then log out USER if logged in and go to /login and ask USER to restart and wait For USER to restart the project
+  // CHECK IF needsRestart = FALSE go to below normal functions and clear loc
+  // if possible make USER stay on LOGIN with RESTART ALERT and block other routes as per middleware
+
   const router = useRouter();
   const [t, setT] = useState(translations.en);
   const [showPassword, setShowPassword] = useState(false);
@@ -18,6 +24,17 @@ export default function LoginPage() {
   });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    // Moved checkRestartRequired logic here
+    const needsRestartEnv = process.env.NEXT_PUBLIC_needsRestart;
+    if (typeof window !== 'undefined') {
+      const needsRestartLocal = localStorage.getItem('needsRestart');
+      if (!needsRestartEnv && needsRestartLocal === 'true') {
+        alert('Project restart required. Please reopen this page after restarting.');
+      }
+    }
+  }, []);
 
   useEffect(() => {
     const langFromCookie = Cookies.get('selectedLanguage') || 'en';
@@ -103,6 +120,7 @@ export default function LoginPage() {
       }
 
       handleSuccess(true, null, 'Login Successful');
+      localStorage.removeItem('needsRestart'); // Clear the restart flag
       router.push('/dashboard'); // Redirect to root URL
     } catch (err) {
       handleError(err, err instanceof Error ? err.message : t.login.generalError);
