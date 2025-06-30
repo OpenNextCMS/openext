@@ -132,7 +132,7 @@ export async function POST(req: NextRequest) {
       PAGE_DB_NAME=${pageDbName}
       isRegistration=true
       dbConnection=true
-      needsRestart=false
+      NEXT_PUBLIC_needsRestart=false
       `;
     } else if (mongoDB === 'compass') {
       envContent = `
