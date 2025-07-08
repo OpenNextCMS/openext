@@ -7,8 +7,10 @@ import Cookies from 'js-cookie';
 import { Eye, EyeOff } from 'lucide-react';
 import { handleError } from '@/utils/errorHandler'; // Import error and success handlers
 import { handleSuccess } from '@/utils/successHandler';
+import RestartPopUp from '@/components/ReusableComponents/RestartPopUp';
 
 export default function LoginPage() {
+
   const router = useRouter();
   const [t, setT] = useState(translations.en);
   const [showPassword, setShowPassword] = useState(false);
@@ -18,6 +20,21 @@ export default function LoginPage() {
   });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [needsRestart, setNeedsRestart] = useState<boolean>(false);
+
+  useEffect(() => {
+    // Moved checkRestartRequired logic here
+    const restartServer = () => {
+      const needsRestartEnv = process.env.NEXT_PUBLIC_needsRestart;
+      const needsRestartLocal = localStorage.getItem('needsRestart');
+      if (typeof window !== 'undefined') {
+        if (!needsRestartEnv && needsRestartLocal === 'true') {
+          setNeedsRestart(true);
+        }
+      }
+    }
+    restartServer();
+  }, []);
 
   useEffect(() => {
     const langFromCookie = Cookies.get('selectedLanguage') || 'en';
@@ -56,16 +73,14 @@ export default function LoginPage() {
           handleError(null, 'Database Connection not Established');
           await clearAllCookies(); // Clear all cookies
           router.push('/language'); // Redirect to /language
-        } else {
-          // handleSuccess(null, 'Database Connection Established');
         }
+
       } catch (error) {
-        handleError(error, 'Error checking database connections');
+        handleError(error, 'Error checking database connections from login');
         await clearAllCookies(); // Clear all cookies
         router.push('/language'); // Redirect to /language
       }
     };
-
     checkDbAndRedirect();
   }, [router, backendUrl]);
 
@@ -103,6 +118,7 @@ export default function LoginPage() {
       }
 
       handleSuccess(true, null, 'Login Successful');
+      localStorage.removeItem('needsRestart'); // Clear the restart flag
       router.push('/dashboard'); // Redirect to root URL
     } catch (err) {
       handleError(err, err instanceof Error ? err.message : t.login.generalError);
@@ -112,67 +128,70 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md  border border-gray-200">
-        <h1 className="text-2xl font-bold mb-6 text-center">{t.login.title}</h1>
-        {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
-            {error}
-          </div>
-        )}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="identifier" className="block text-sm font-medium text-gray-700">
-              {t.login.identifier}
-            </label>
-            <input
-              type="text"
-              id="identifier"
-              name="identifier"
-              value={credentials.identifier}
-              onChange={handleInputChange}
-              required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gray-500 focus:border-gray-500"
-              placeholder={t.login.identifierPlaceholder}
-              disabled={isLoading}
-            />
-          </div>
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-              {t.login.password}
-            </label>
-            <div className="relative">
+    <div className="relative">
+      {needsRestart && <RestartPopUp />}
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md  border border-gray-200">
+          <h1 className="text-2xl font-bold mb-6 text-center">{t.login.title}</h1>
+          {error && (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
+              {error}
+            </div>
+          )}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label htmlFor="identifier" className="block text-sm font-medium text-gray-700">
+                {t.login.identifier}
+              </label>
               <input
-                type={showPassword ? 'text' : 'password'}
-                id="password"
-                name="password"
-                value={credentials.password}
+                type="text"
+                id="identifier"
+                name="identifier"
+                value={credentials.identifier}
                 onChange={handleInputChange}
                 required
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gray-500 focus:border-gray-500"
-                placeholder={t.login.passwordPlaceholder}
+                placeholder={t.login.identifierPlaceholder}
                 disabled={isLoading}
               />
-              <div
-                className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer"
-                onClick={togglePasswordVisibility}
-              >
-                {showPassword ? (
-                  <EyeOff className="h-5 w-5 text-gray-500" />
-                ) : (
-                  <Eye className="h-5 w-5 text-gray-500" />
-                )}
+            </div>
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                {t.login.password}
+              </label>
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  id="password"
+                  name="password"
+                  value={credentials.password}
+                  onChange={handleInputChange}
+                  required
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gray-500 focus:border-gray-500"
+                  placeholder={t.login.passwordPlaceholder}
+                  disabled={isLoading}
+                />
+                <div
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer"
+                  onClick={togglePasswordVisibility}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5 text-gray-500" />
+                  ) : (
+                    <Eye className="h-5 w-5 text-gray-500" />
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-          <button
-            type="submit"
-            className="w-full bg-black text-white py-2 px-4 rounded-md border border-black hover:text-black hover:bg-transparent transition-all duration-500 disabled:opacity-50"
-            disabled={isLoading}
-          >
-            {isLoading ? t.login.loggingIn : t.login.submit}
-          </button>
-        </form>
+            <button
+              type="submit"
+              className="w-full bg-black text-white py-2 px-4 rounded-md border border-black hover:text-black hover:bg-transparent transition-all duration-500 disabled:opacity-50"
+              disabled={isLoading}
+            >
+              {isLoading ? t.login.loggingIn : t.login.submit}
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   );
