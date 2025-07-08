@@ -130,11 +130,7 @@ const NewRegisterForm = () => {
             if (!result.success) throw new Error(result.message || 'Registration failed');
 
             handleSuccess(true, null, 'Registration successful.');
-            if (result.needsRestart) {
-              alert("Project restart required. Please reopen this page after restarting.");
-            }
             localStorage.clear();
-            localStorage.setItem("needsRestart", 'true'); // Set a flag to indicate restart is required
             router.push('/login');
           })
           .catch((error) => {

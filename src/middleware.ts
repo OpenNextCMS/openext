@@ -30,10 +30,6 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // If no token and trying to access restricted routes, redirect to '/login'
-  // if (restrictedRoutes.includes(currentPath)) {
-  //   return NextResponse.redirect(new URL('/login', request.url));
-  // }
 
   return NextResponse.next();
 }

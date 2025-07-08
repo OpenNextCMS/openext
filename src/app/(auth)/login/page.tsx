@@ -7,7 +7,6 @@ import Cookies from 'js-cookie';
 import { Eye, EyeOff } from 'lucide-react';
 import { handleError } from '@/utils/errorHandler'; // Import error and success handlers
 import { handleSuccess } from '@/utils/successHandler';
-import RestartPopUp from '@/components/ReusableComponents/RestartPopUp';
 
 export default function LoginPage() {
 
@@ -20,21 +19,6 @@ export default function LoginPage() {
   });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [needsRestart, setNeedsRestart] = useState<boolean>(false);
-
-  useEffect(() => {
-    // Moved checkRestartRequired logic here
-    const restartServer = () => {
-      const needsRestartEnv = process.env.NEXT_PUBLIC_needsRestart;
-      const needsRestartLocal = localStorage.getItem('needsRestart');
-      if (typeof window !== 'undefined') {
-        if (!needsRestartEnv && needsRestartLocal === 'true') {
-          setNeedsRestart(true);
-        }
-      }
-    }
-    restartServer();
-  }, []);
 
   useEffect(() => {
     const langFromCookie = Cookies.get('selectedLanguage') || 'en';
@@ -118,7 +102,6 @@ export default function LoginPage() {
       }
 
       handleSuccess(true, null, 'Login Successful');
-      localStorage.removeItem('needsRestart'); // Clear the restart flag
       router.push('/dashboard'); // Redirect to root URL
     } catch (err) {
       handleError(err, err instanceof Error ? err.message : t.login.generalError);
@@ -129,7 +112,6 @@ export default function LoginPage() {
 
   return (
     <div className="relative">
-      {needsRestart && <RestartPopUp />}
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
         <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md  border border-gray-200">
           <h1 className="text-2xl font-bold mb-6 text-center">{t.login.title}</h1>
