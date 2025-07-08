@@ -132,6 +132,7 @@ export async function POST(req: NextRequest) {
       PAGE_DB_NAME=${pageDbName}
       isRegistration=true
       dbConnection=true
+      NEXT_PUBLIC_needsRestart=false
       `;
     } else if (mongoDB === 'compass') {
       envContent = `
@@ -148,6 +149,7 @@ export async function POST(req: NextRequest) {
       PAGE_DB_NAME=${pageDbName}
       isRegistration=true
       dbConnection=true
+      NEXT_PUBLIC_needsRestart=false
       `;
     }
 
@@ -160,6 +162,7 @@ export async function POST(req: NextRequest) {
     return new Response(
       JSON.stringify({
         success: true,
+        needsRestart: true, // Indicate that a restart is neede
         message: 'Registration successful',
         data: authData.user,
         role: authData.user.role,

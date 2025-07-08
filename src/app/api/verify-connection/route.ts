@@ -1,21 +1,27 @@
 import { NextResponse } from 'next/server';
 import mongoose from 'mongoose';
-import fs from 'fs/promises';
+import fs from 'fs';
 import path from 'path';
+import dotenv from 'dotenv';
 
-const {
-  MONGODB_USERNAME,
-  MONGODB_PASSWORD,
-  MONGODB_HOST,
-  MONGODB_CLUSTER,
-  MONGODB_AUTH_MECH,
-  MONGODB_AUTH_SOURCE,
-  MONGODB,
-  USER_DB_NAME,
-  PAGE_DB_NAME,
-} = process.env;
+function loadDynamicEnv() {
+  const envPath = path.resolve(process.cwd(), '.env');
+  const envContent = fs.readFileSync(envPath);
+  const parsed = dotenv.parse(envContent);
+  return parsed;
+}
 
 function createConnectionUri(dbName: string) {
+  const dynamicEnv = loadDynamicEnv();
+  const {
+    MONGODB_USERNAME,
+    MONGODB_PASSWORD,
+    MONGODB_HOST,
+    MONGODB_CLUSTER,
+    MONGODB_AUTH_MECH,
+    MONGODB_AUTH_SOURCE,
+    MONGODB,
+  } = dynamicEnv;
   if (!MONGODB_USERNAME || !MONGODB_PASSWORD || !MONGODB_HOST || !MONGODB) {
     throw new Error('Missing required MongoDB environment variables');
   }
@@ -55,11 +61,12 @@ async function checkConnection(uri: string) {
 async function updateEnvFile(dbConnection: boolean, isRegistration: boolean) {
   try {
     const envPath = path.join(process.cwd(), '.env');
-    const envContent = await fs.readFile(envPath, 'utf-8');
-    const newEnvContent = envContent
+    const envContent = await fs.readFileSync(envPath);
+    const envString = envContent.toString();
+    const newEnvContent = envString
       .replace(/dbConnection=.*/, `dbConnection=${dbConnection}`)
       .replace(/isRegistration=.*/, `isRegistration=${isRegistration}`);
-    await fs.writeFile(envPath, newEnvContent, 'utf-8');
+    await fs.writeFileSync(envPath, newEnvContent);
     console.log(
       `Updated .env with dbConnection=${dbConnection} and isRegistration=${isRegistration}`
     );
@@ -70,6 +77,10 @@ async function updateEnvFile(dbConnection: boolean, isRegistration: boolean) {
 
 export async function GET() {
   try {
+    const dynamicEnv = loadDynamicEnv();
+    console.log('Dynamic environment variables:', dynamicEnv);
+    const { USER_DB_NAME, PAGE_DB_NAME } = dynamicEnv;
+    
     if (!USER_DB_NAME || !PAGE_DB_NAME) {
       throw new Error('USER_DB_NAME or PAGE_DB_NAME environment variable is not set');
     }
@@ -100,12 +111,6 @@ export async function GET() {
   } catch (error) {
     console.error('Error handling database connection check:', error);
     await updateEnvFile(false, false);
-    return NextResponse.json(
-      {
-        error: 'Internal Server Error',
-      },
-      { status: 500 }
-    );
     return NextResponse.json(
       {
         error: 'Internal Server Error',
