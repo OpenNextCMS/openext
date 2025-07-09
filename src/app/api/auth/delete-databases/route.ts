@@ -4,6 +4,7 @@ import { handleSuccess } from '@/utils/successHandler';
 import dotenv from 'dotenv';
 import fs from 'fs/promises';
 import path from 'path';
+import { getDynamicEnv } from '@/utils/dynamicEnv';
 
 dotenv.config();
 
@@ -16,7 +17,7 @@ export async function POST() {
     MONGODB_CLUSTER,
     MONGODB_AUTH_MECH,
     MONGODB_AUTH_SOURCE,
-  } = process.env;
+  } = getDynamicEnv();
 
   if (
     !MONGODB ||

@@ -2,6 +2,7 @@
 import { NextResponse } from 'next/server';
 import { AuthService } from '@/modules/auth/authService';
 import { getUserDbConnection, getUserModel } from '@/utils/db';
+import { getDynamicEnv } from '@/utils/dynamicEnv';
 
 export async function POST(request: Request) {
   try {
@@ -29,7 +30,7 @@ export async function POST(request: Request) {
 
     response.cookies.set('token', result.token || '', {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: getDynamicEnv().NODE_ENV === 'production',
       sameSite: 'strict',
       maxAge: 86400,
     });

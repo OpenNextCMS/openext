@@ -4,6 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import sharp from 'sharp';
 import { getUserDbConnection, getUserModel } from '@/utils/db'; // Import connection and model utilities
+import { getDynamicEnv } from '@/utils/dynamicEnv';
 
 export async function POST(req: NextRequest) {
   const formData = await req.formData();
@@ -39,7 +40,7 @@ export async function POST(req: NextRequest) {
 
   const relativePath = `/upload/${fileName}`;
   const fullPath = `http://localhost:3000${relativePath}`;
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+  const backendUrl = getDynamicEnv().NEXT_PUBLIC_BACKEND_URL;
 
   if (backendUrl) {
     // If external backend URL exists, send the full path to the external backend API

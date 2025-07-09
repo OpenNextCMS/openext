@@ -10,6 +10,16 @@ import { handleSuccess } from '@/utils/successHandler';
 
 export default function LoginPage() {
 
+  useEffect(() => {
+    const checkDbStatus = async () => {
+      const res = await fetch('/api/env-connection');
+      const data = await res.json();
+      document.cookie = `dbConnection=${data.dbConnection}; path=/`;
+    };
+
+    checkDbStatus();
+  }, []);
+
   const router = useRouter();
   const [t, setT] = useState(translations.en);
   const [showPassword, setShowPassword] = useState(false);

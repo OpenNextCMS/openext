@@ -2,17 +2,10 @@ import { NextResponse } from 'next/server';
 import mongoose from 'mongoose';
 import fs from 'fs';
 import path from 'path';
-import dotenv from 'dotenv';
-
-function loadDynamicEnv() {
-  const envPath = path.resolve(process.cwd(), '.env');
-  const envContent = fs.readFileSync(envPath);
-  const parsed = dotenv.parse(envContent);
-  return parsed;
-}
+import { getDynamicEnv } from '@/utils/dynamicEnv';
 
 function createConnectionUri(dbName: string) {
-  const dynamicEnv = loadDynamicEnv();
+  
   const {
     MONGODB_USERNAME,
     MONGODB_PASSWORD,
@@ -21,7 +14,7 @@ function createConnectionUri(dbName: string) {
     MONGODB_AUTH_MECH,
     MONGODB_AUTH_SOURCE,
     MONGODB,
-  } = dynamicEnv;
+  } = getDynamicEnv();
   if (!MONGODB_USERNAME || !MONGODB_PASSWORD || !MONGODB_HOST || !MONGODB) {
     throw new Error('Missing required MongoDB environment variables');
   }
@@ -77,9 +70,7 @@ async function updateEnvFile(dbConnection: boolean, isRegistration: boolean) {
 
 export async function GET() {
   try {
-    const dynamicEnv = loadDynamicEnv();
-    console.log('Dynamic environment variables:', dynamicEnv);
-    const { USER_DB_NAME, PAGE_DB_NAME } = dynamicEnv;
+    const { USER_DB_NAME, PAGE_DB_NAME } = getDynamicEnv();
     
     if (!USER_DB_NAME || !PAGE_DB_NAME) {
       throw new Error('USER_DB_NAME or PAGE_DB_NAME environment variable is not set');

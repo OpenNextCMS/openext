@@ -3,11 +3,13 @@ import fetch from 'node-fetch';
 import fs from 'fs';
 import path from 'path';
 import dotenv from 'dotenv';
+import { getDynamicEnv } from '@/utils/dynamicEnv';
+
 
 dotenv.config();
 
 export const GET = async () => {
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
+  const backendUrl = getDynamicEnv().NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
 
   try {
     const response = await fetch(`${backendUrl}/api/auth/verify-connection`);
