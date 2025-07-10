@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { useEffect, useState, JSX } from 'react';
 
 const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
@@ -23,7 +24,7 @@ const renderFromJson = (element: JsonElement): JSX.Element => {
   const style = element.style || {};
 
   if (element.type === 'image') {
-    return <img key={element.uniqueId} src={element.content} style={style} />;
+    return <Image alt={element.content} key={element.uniqueId} src={element.content} style={style} />;
   }
 
   return (
