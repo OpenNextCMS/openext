@@ -3,79 +3,86 @@ import { useEffect, useState, JSX } from 'react';
 const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
 
 const typeToTag: Record<string, keyof JSX.IntrinsicElements> = {
-    column: 'div',
-    text: 'div',
+  text: 'div',
+  button: 'button',
+  image: 'img',
+  column: 'div',
 };
 
 type JsonElement = {
-    type: string;
-    style?: React.CSSProperties;
-    content?: string;
-    children?: JsonElement[][];
+  content: string;
+  type: string;
+  icon?: string;
+  uniqueId: string;
+  style?: React.CSSProperties;
 };
 
-const renderFromJson = (element: JsonElement, key?: number | string): JSX.Element | null => {
-    const tag = typeToTag[element.type] || 'div';
-    const Tag = tag as keyof JSX.IntrinsicElements;
+// Render a single JSON element
+const renderFromJson = (element: JsonElement): JSX.Element => {
+  const Tag = typeToTag[element.type] || 'div';
+  const style = element.style || {};
 
-    const style = element.style || {};
-    const content = element.content || '';
-    const children = element.children || [];
+  if (element.type === 'image') {
+    return <img key={element.uniqueId} src={element.content} style={style} />;
+  }
 
-    return (
-        <Tag key={key} style={style}>
-            {content}
-            {Array.isArray(children) &&
-                children.map((row: JsonElement[], rowIndex: number) =>
-                    row.map((child, colIndex) =>
-                        renderFromJson(child, `${rowIndex}-${colIndex}`)
-                    )
-                )}
-        </Tag>
-    );
+  return (
+    <Tag key={element.uniqueId} style={style}>
+      {element.content}
+    </Tag>
+  );
 };
 
 const Default = () => {
-    const [pageData, setPageData] = useState<JsonElement | null>(null);
+  const [pageData, setPageData] = useState<JsonElement[]>([]); // <-- change to an array
 
-    useEffect(() => {
-        let url = `${backendUrl}/api/pages/get-pages`;
-        const checkTokenAndSetUrl = async () => {
-            try {
-                const res = await fetch(`${backendUrl}/api/check-token`);
-                if (!res.ok) {
-                    url = `${backendUrl}/api/pages/get-page?name=default_home`;
-                }
-            } catch (err) {
-                console.error('Token check failed:', err);
-            }
+  useEffect(() => {
+    const fetchData = async () => {
+      let url = `${backendUrl}/api/pages/get-pages`;
+      let slug = 'default_home';
 
-            try {
-                const res = await fetch(url);
-                const data = await res.json();
+      try {
+        const tokenRes = await fetch(`${backendUrl}/api/check-token`);
+        if (!tokenRes.ok) {
+          url = `${backendUrl}/api/pages/get-page?name=${slug}`;
+        }
+      } catch (err) {
+        console.error('Token check failed:', err);
+      }
 
-                const container = data.page || data.pages?.[0];
-                if (!container?.isHome) {
-                    console.error('This is not a home page');
-                    return;
-                }
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
 
-                const defaultComponent = container.component?.find(
-                    (comp: { name: string }) => comp.name === 'defaultData'
-                )?.data?.[0];
+        const container = data.page || data.pages?.[0];
 
-                setPageData(defaultComponent);
-            } catch (err) {
-                console.error('Failed to fetch page data:', err);
-            }
-        };
+        if (!container?.isHome) {
+          console.error('This is not a home page');
+          return;
+        }
 
-        checkTokenAndSetUrl();
-    }, []);
+        const defaultComponent = container.component;
+        if (Array.isArray(defaultComponent)) {
+          setPageData(defaultComponent); // ✅ safe set
+          slug = container?.slug;
+        } else {
+          console.error('Invalid component format:', defaultComponent);
+        }
+      } catch (err) {
+        console.error('Failed to fetch page data:', err);
+      }
+    };
 
-    if (!pageData) return <div>Loading...</div>;
+    fetchData();
+  }, []);
 
-    return renderFromJson(pageData);
+  if (!pageData.length) return <div>Loading...</div>;
+
+  return (
+    <div>
+      {pageData.map((element) => renderFromJson(element))}
+    </div>
+  );
 };
 
 export default Default;

@@ -1,82 +1,55 @@
 [
-    {
-        "id": "column1",
-        "label": "Main Column",
-        "description": "A single column block",
-        "content": "",
-        "type": "column",
-        "icon": "1-column",
-        "style": {
-            "padding": "16px",
-            "border": "1px solid rgb(229, 231, 235)",
-            "borderRadius": "8px",
-            "boxShadow": "0 1px 2px rgba(0, 0, 0, 0.05)",
-            "transition": "all 0.2s ease-in-out"
-        },
-        "children": [
-            [
-                {
-                    "id": "heading1",
-                    "label": "Main Heading",
-                    "type": "text",
-                    "content": "Welcome to OpeNEXT!!!",
-                    "icon": "heading",
-                    "description": "Main title heading",
-                    "style": {
-                        "fontSize": "4rem",
-                        "fontWeight": "300",
-                        "color": "#1f2937",
-                        "textAlign": "center"
-                    }
-                },
-                {
-                    "id": "heading2",
-                    "label": "Subheading",
-                    "type": "text",
-                    "content": "World's fastest CMS",
-                    "icon": "heading",
-                    "description": "Secondary heading",
-                    "style": {
-                        "fontSize": "3.5rem",
-                        "fontWeight": "300",
-                        "color": "#374151",
-                        "textAlign": "center"
-                    }
-                },
-                {
-                    "id": "heading3",
-                    "label": "Tagline",
-                    "type": "text",
-                    "content": "Let's start Building",
-                    "icon": "heading",
-                    "description": "Supporting text",
-                    "style": {
-                        "fontSize": "3rem",
-                        "fontWeight": "300",
-                        "color": "#4b5563",
-                        "textAlign": "center"
-                    }
-                },
-                {
-                    "id": "button",
-                    "label": "CTA Button",
-                    "type": "text",
-                    "content": "Click Me !!",
-                    "icon": "button",
-                    "description": "Call-to-action button",
-                    "style": {
-                        "padding": "8px 24px",
-                        "borderRadius": "6px",
-                        "backgroundColor": "#4b5563",
-                        "color": "#ffffff",
-                        "border": "2px solid #4b5563",
-                        "textAlign": "center",
-                        "cursor": "pointer",
-                        "transition": "all 0.3s ease",
-                        "margin": "0px 550px"
-                    }
-                }
-            ]
-        ]
+  {
+    "content": "Welcome to OpeNEXT!!!",
+    "type": "text",
+    "icon": "heading",
+    "uniqueId": "444e76ea-1e2d-42b2-b9e7-124267840ed9",
+    "style": {
+      "fontSize": "4rem",
+      "fontWeight": "300",
+      "color": "#1f2937",
+      "textAlign": "center"
     }
+  },
+  {
+    "content": "World's fastest CMS",
+    "type": "text",
+    "icon": "heading",
+    "uniqueId": "c0defc49-8af2-4184-8787-af3b0d5c84c1",
+    "style": {
+      "fontSize": "3.5rem",
+      "fontWeight": "300",
+      "color": "#374151",
+      "textAlign": "center"
+    }
+  },
+  {
+    "content": "Let's start Building",
+    "type": "text",
+    "icon": "heading",
+    "uniqueId": "6d2bbf32-bef6-486d-9d53-0e74ed7ef73a",
+    "style": {
+      "fontSize": "3rem",
+      "fontWeight": "300",
+      "color": "#4b5563",
+      "textAlign": "center"
+    }
+  },
+  {
+    "content": "Click Me !!",
+    "type": "text",
+    "icon": "button",
+    "uniqueId": "a1ab995b-dfe5-4d1b-b37e-b43bb7c51bf3",
+    "style": {
+      "padding": "8px 24px",
+      "borderRadius": "6px",
+      "backgroundColor": "#4b5563",
+      "color": "#ffffff",
+      "border": "2px solid #4b5563",
+      "textAlign": "center",
+      "cursor": "pointer",
+      "transition": "all 0.3s ease",
+      "margin": "0px 550px"
+    }
+  }
 ]

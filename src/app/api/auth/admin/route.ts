@@ -94,12 +94,7 @@ export async function POST(req: NextRequest) {
       seoName: 'OpenNext',
       seoMeta: 'OpenNext is a React framework for the web.',
       slug: 'default_home',
-      component: [
-        {
-          name: 'defaultData',
-          data: defaultData,
-        },
-      ],
+      component: defaultData,
     };
 
     await PageModel.create(jsonData);
