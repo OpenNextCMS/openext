@@ -4,7 +4,7 @@ import type { NextRequest } from 'next/server';
 const restrictedRoutes = ['/language', '/mongodb-setup', '/mongodb-setup/database-setup', '/admin'];
 
 export async function middleware(request: NextRequest) {
-  const dbConnection = process.env.dbConnection === 'true';
+  const dbConnection = request.cookies.get('dbConnection')?.value === 'true';
   const token = request.cookies.get('token')?.value;
   const currentPath = request.nextUrl.pathname;
 
@@ -29,11 +29,6 @@ export async function middleware(request: NextRequest) {
     }
     return NextResponse.next();
   }
-
-  // If no token and trying to access restricted routes, redirect to '/login'
-  // if (restrictedRoutes.includes(currentPath)) {
-  //   return NextResponse.redirect(new URL('/login', request.url));
-  // }
 
   return NextResponse.next();
 }

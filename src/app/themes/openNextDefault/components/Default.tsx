@@ -37,9 +37,9 @@ const renderFromJson = (element: JsonElement, key?: number | string): JSX.Elemen
 
 const Default = () => {
     const [pageData, setPageData] = useState<JsonElement | null>(null);
-    let url = `${backendUrl}/api/pages/get-pages`;
 
     useEffect(() => {
+        let url = `${backendUrl}/api/pages/get-pages`;
         const checkTokenAndSetUrl = async () => {
             try {
                 const res = await fetch(`${backendUrl}/api/check-token`);

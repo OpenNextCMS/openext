@@ -129,7 +129,7 @@ const NewRegisterForm = () => {
           .then((result) => {
             if (!result.success) throw new Error(result.message || 'Registration failed');
 
-            handleSuccess(true, null, 'Registration successful. Redirecting to login...');
+            handleSuccess(true, null, 'Registration successful.');
             localStorage.clear();
             router.push('/login');
           })

@@ -4,7 +4,8 @@ import Body from '@/components/LanguageSelector/body';
 import Marq from '@/components/LanguageSelector/marq';
 import React from 'react';
 
-export default function page() {
+export default function LanguagePage() {
+
   return (
     <div>
       <Body />

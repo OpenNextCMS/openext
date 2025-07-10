@@ -4,6 +4,7 @@ import { ISettings, settingsSchema } from '@/models/Settings';
 import { PageSchema } from '@/models/Page';
 import { roleSchema } from '@/models/Role';
 import type { PageDocument, ISettingsDocument, ITheme } from '@/types/index';
+import { getDynamicEnv } from '@/utils/dynamicEnv';
 
 let userDb: mongoose.Connection | null = null;
 let pageDb: mongoose.Connection | null = null;
@@ -18,7 +19,7 @@ async function createConnectionUri(dbName: string) {
     MONGODB_AUTH_MECH,
     MONGODB_AUTH_SOURCE,
     MONGODB,
-  } = process.env;
+  } = getDynamicEnv();
 
   if (!MONGODB_USERNAME || !MONGODB_PASSWORD || !MONGODB_HOST || !MONGODB) {
     throw new Error('MongoDB environment variables are not set');
@@ -48,7 +49,8 @@ export async function getMasterDbConnection() {
 }
 
 export const getUserDbConnection = async () => {
-  const USER_DB_NAME = process.env.USER_DB_NAME || 'users';
+  const dynamicEnv = getDynamicEnv();
+  const USER_DB_NAME = dynamicEnv.USER_DB_NAME || 'users';
 
   if (!USER_DB_NAME) {
     throw new Error('USER_DB_NAME environment variable is not set');
@@ -127,7 +129,8 @@ export const getUserDbConnection = async () => {
 };
 
 export async function getPageDbConnection() {
-  const PAGE_DB_NAME = process.env.PAGE_DB_NAME;
+  const dynamicEnv = getDynamicEnv();
+  const PAGE_DB_NAME = dynamicEnv.PAGE_DB_NAME;
 
   if (!PAGE_DB_NAME) {
     throw new Error('PAGE_DB_NAME environment variable is not set');

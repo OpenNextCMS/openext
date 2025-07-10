@@ -6,6 +6,7 @@ import { jwtDecode } from 'jwt-decode';
 import { getUserDbConnection, getUserModel } from '@/utils/db';
 import { AuthService } from '@/modules/auth/authService';
 import { cookies } from 'next/headers';
+import { getDynamicEnv } from '@/utils/dynamicEnv';
 
 export async function GET() {
   try {
@@ -101,7 +102,7 @@ export async function POST(req: NextRequest) {
     await originalUser.save();
 
     // NEW: Generate a refreshed token with updated email
-    const jwtSecret = process.env.JWT_SECRET || 'your_jwt_secret';
+    const jwtSecret = getDynamicEnv().JWT_SECRET || 'your_jwt_secret';
     const newToken = jwt.sign(
       {
         userId: originalUser._id,
@@ -121,7 +122,7 @@ export async function POST(req: NextRequest) {
 
     response.cookies.set('token', newToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: getDynamicEnv().NODE_ENV === 'production',
       sameSite: 'strict',
       maxAge: 86400,
     });
