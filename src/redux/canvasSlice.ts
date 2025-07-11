@@ -116,12 +116,15 @@ const canvasSlice = createSlice({
       state.selectedLabel = '';
     },
     updateSelectedBlockStyles: (state, action: PayloadAction<Partial<React.CSSProperties>>) => {
-    if (state.selectedBlock) {
-    state.selectedBlock.style = {
-      ...state.selectedBlock.style,
-      ...action.payload,
-    };
-    }
+      if (state.selectedBlock) {
+        state.selectedBlock.style = {
+          ...state.selectedBlock.style,
+          ...action.payload,
+        };
+      }
+    },
+    setCanvasState: (state, action: PayloadAction<CanvasState>) => {
+      return action.payload;
     },
   },
 });
@@ -136,7 +139,8 @@ export const {
   setSelectedBlock,
   setSelectedValue,
   clearSelectedLabel,
-  updateSelectedBlockStyles
+  updateSelectedBlockStyles,
+  setCanvasState,
 } = canvasSlice.actions;
 
 export default canvasSlice.reducer;
