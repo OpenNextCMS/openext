@@ -49,7 +49,6 @@ export default function Editor() {
 
       const persistKey = `persist:root-${pageName}`;
       const existing = localStorage.getItem(persistKey);
-      console.log('Checking for existing persisted data:', existing);
       if (existing) return; // Already persisted, don't overwrite
 
       try {
@@ -60,9 +59,7 @@ export default function Editor() {
         }
 
         const data = await response.json();
-        console.log('Fetched data from backend:', data);
         const blocks = data?.page?.component || [];
-        console.log('Fetched blocks from editor.tsx:', blocks);
 
         const newCanvasState = {
           blocks,
