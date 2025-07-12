@@ -66,7 +66,7 @@ export default function Editor() {
 
         const newCanvasState = {
           blocks,
-          viewMode: 'desktop' as 'desktop',
+          viewMode: 'desktop' as 'desktop' | 'tablet' | 'mobile',
           selectedLabel: '',
           selectedBlock: null,
           selectedValue: null,
@@ -80,7 +80,7 @@ export default function Editor() {
     };
 
     getDBPageData();
-  }, [dispatch]);
+  }, [dispatch, backendUrl]);
 
 
   useEffect(() => {
