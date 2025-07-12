@@ -13,7 +13,7 @@ import Toolbar from './toolbar';
 import StatusBar from './status-bar';
 import { Suspense } from 'react';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
-import { addBlock, addBlockToColumn } from '@/redux/canvasSlice';
+import { addBlock, addBlockToColumn, setCanvasState } from '@/redux/canvasSlice';
 import { BlockDragData, Block } from '@/types/index';
 
 // Define action creator for setViewMode
@@ -37,6 +37,48 @@ export default function Editor() {
   const dispatch = useAppDispatch();
   const canvasBlocks = useAppSelector((state) => state.canvas.blocks);
   const viewMode = useAppSelector((state) => state.canvas.viewMode);
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
+
+
+  useEffect(() => {
+    const getDBPageData = async () => {
+      if (typeof window === 'undefined') return;
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const pageName = urlParams.get('pagename') || 'default';
+
+      const persistKey = `persist:root-${pageName}`;
+      const existing = localStorage.getItem(persistKey);
+      if (existing) return; // Already persisted, don't overwrite
+
+      try {
+        const response = await fetch(`${backendUrl}/api/pages/get-page?name=${pageName}`);
+        if (!response.ok) {
+          console.error('Failed to fetch page data');
+          return;
+        }
+
+        const data = await response.json();
+        const blocks = data?.page?.component || [];
+
+        const newCanvasState = {
+          blocks,
+          viewMode: 'desktop' as 'desktop' | 'tablet' | 'mobile',
+          selectedLabel: '',
+          selectedBlock: null,
+          selectedValue: null,
+        };
+
+        dispatch(setCanvasState(newCanvasState));
+        // Redux-persist will now save this to localStorage
+      } catch (error) {
+        console.error('Error fetching canvas data:', error);
+      }
+    };
+
+    getDBPageData();
+  }, [dispatch, backendUrl]);
+
 
   useEffect(() => {
     document.body.style.overflow = 'hidden';
@@ -79,15 +121,15 @@ export default function Editor() {
         // Add children for column blocks
         ...(blockData?.type === 'column' // Compare the actual string value
           ? {
-              children:
-                blockData.id === '1-column'
-                  ? [[]]
-                  : blockData.id === '2-column'
-                    ? [[], []]
-                    : blockData.id === '3-column'
-                      ? [[], [], []]
-                      : [],
-            }
+            children:
+              blockData.id === '1-column'
+                ? [[]]
+                : blockData.id === '2-column'
+                  ? [[], []]
+                  : blockData.id === '3-column'
+                    ? [[], [], []]
+                    : [],
+          }
           : {}),
       };
 
@@ -114,15 +156,15 @@ export default function Editor() {
         // Add children for column blocks
         ...(activeData?.type === 'column'
           ? {
-              children:
-                activeData.id === '1-column'
-                  ? [[]]
-                  : activeData.id === '2-column'
-                    ? [[], []]
-                    : activeData.id === '3-column'
-                      ? [[], [], []]
-                      : [],
-            }
+            children:
+              activeData.id === '1-column'
+                ? [[]]
+                : activeData.id === '2-column'
+                  ? [[], []]
+                  : activeData.id === '3-column'
+                    ? [[], [], []]
+                    : [],
+          }
           : {}),
       };
 
