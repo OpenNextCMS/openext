@@ -1,55 +1,102 @@
 [
   {
-    "content": "Welcome to OpeNEXT!!!",
+    "content": "OpenNext",
     "type": "text",
     "icon": "heading",
-    "uniqueId": "444e76ea-1e2d-42b2-b9e7-124267840ed9",
+    "uniqueId": "245fbf59-7909-4ff2-a368-f16a36d217fb",
     "style": {
-      "fontSize": "4rem",
-      "fontWeight": "300",
-      "color": "#1f2937",
-      "textAlign": "center"
-    }
-  },
-  {
-    "content": "World's fastest CMS",
-    "type": "text",
-    "icon": "heading",
-    "uniqueId": "c0defc49-8af2-4184-8787-af3b0d5c84c1",
-    "style": {
-      "fontSize": "3.5rem",
-      "fontWeight": "300",
-      "color": "#374151",
-      "textAlign": "center"
-    }
-  },
-  {
-    "content": "Let's start Building",
-    "type": "text",
-    "icon": "heading",
-    "uniqueId": "6d2bbf32-bef6-486d-9d53-0e74ed7ef73a",
-    "style": {
-      "fontSize": "3rem",
-      "fontWeight": "300",
-      "color": "#4b5563",
-      "textAlign": "center"
-    }
-  },
-  {
-    "content": "Click Me !!",
-    "type": "text",
-    "icon": "button",
-    "uniqueId": "a1ab995b-dfe5-4d1b-b37e-b43bb7c51bf3",
-    "style": {
-      "padding": "8px 24px",
-      "borderRadius": "6px",
-      "backgroundColor": "#4b5563",
+      "fontSize": "3em",
+      "fontWeight": "600",
       "color": "#ffffff",
-      "border": "2px solid #4b5563",
       "textAlign": "center",
-      "cursor": "pointer",
-      "transition": "all 0.3s ease",
-      "margin": "0px 550px"
+      "backgroundColor": "#000",
+      "padding": "3em 1em",
+      "position": "fixed",
+      "top": "0",
+      "left": "0",
+      "width": "100%"
+    }
+  },
+  {
+    "content": "Elevate your fastest digital presence with clarity and purpose",
+    "type": "text",
+    "icon": "text",
+    "uniqueId": "956535eb-21aa-4049-aeae-36d762079971",
+    "style": {
+      "fontSize": "1.3em",
+      "fontWeight": "400",
+      "color": "#ffffff",
+      "textAlign": "center",
+      "backgroundColor": "#000",
+      "marginTop": "1em",
+      "position": "fixed",
+      "top": "7em",
+      "left": "0",
+      "width": "100%"
+    }
+  },
+  {
+    "content": "Hello World - OpeNEXT",
+    "type": "text",
+    "icon": "heading",
+    "uniqueId": "102244a1-e6cd-454c-b6fd-2a9036afaf5a",
+    "style": {
+      "fontSize": "3em",
+      "fontWeight": "600",
+      "color": "#000",
+      "textAlign": "left",
+      "borderBottom": "2px solid #000",
+      "paddingBottom": "0.3em",
+      "marginBottom": "0.5em",
+      "marginTop": "15em"
+    }
+  },
+  {
+    "content": "Whether you’re launching a blog, portfolio, or dynamic site, OpeNEXT gives you the power to create with confidence. Start building today.",
+    "type": "text",
+    "icon": "text",
+    "uniqueId": "fd1eec0e-2ad5-4193-a793-33507341b087",
+    "style": {
+      "fontSize": "1rem",
+      "fontWeight": "400",
+      "color": "#000",
+      "textAlign": "left"
+    }
+  },
+  {
+    "content": "© 2025 OpeNext. All rights reserved.",
+    "type": "text",
+    "icon": "text",
+    "uniqueId": "609efffb-3d35-4a14-8d96-9df8de609aff",
+    "style": {
+      "fontSize": "1rem",
+      "fontWeight": "400",
+      "color": "#ffffff",
+      "textAlign": "center",
+      "backgroundColor": "#000",
+      "marginTop": "1em",
+      "position": "fixed",
+      "bottom": "0",
+      "right": "0",
+      "width": "100%"
+    }
+  },
+  {
+    "content": "Powered By: openextcms.org",
+    "type": "text",
+    "icon": "text",
+    "uniqueId": "14360e17-93c6-4d1a-9998-77d83fc64b77",
+    "style": {
+      "fontSize": "1rem",
+      "fontWeight": "400",
+      "color": "#ffffff",
+      "textAlign": "center",
+      "backgroundColor": "#000",
+      "marginTop": "1em",
+      "position": "fixed",
+      "bottom": "0",
+      "right": "0",
+      "width": "100%"
     }
   }
 ]

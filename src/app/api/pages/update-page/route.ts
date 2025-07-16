@@ -9,10 +9,10 @@ export async function PATCH(req: NextRequest) {
     if (!pageID || !userId) {
       return NextResponse.json({ message: 'Missing required fields' }, { status: 400 });
     }
-
+    
     // Get dynamic DB connection
     const pageDb = await getPageDbConnection();
-
+    
     // Get PageModel using the connection
     const PageModel = getPageModel(pageDb);
 
@@ -26,7 +26,7 @@ export async function PATCH(req: NextRequest) {
     }
     Object.assign(page, updateFields);
     // Update components
-    page.component = updatedComponents;
+    page.component = updatedComponents || page.component;
     page.modifications.push({
       modifiedBy: userId,
       modifiedAt: new Date(),
