@@ -123,7 +123,7 @@ export interface Block {
   id: string;
   label: string;
   type: 'column' | 'text';
-  children?: ColumnChild[]; // Updated type for children
+  children?: ColumnChild[][]; // Updated type for children
   content?: string;
   icon: ReactNode;
   description: string;
