@@ -16,6 +16,9 @@ import {
   Codesandbox,
   Wrench,
   Paintbrush,
+  Dock,
+  ArrowUpToLine,
+  ArrowDownToLine,
 } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Button } from '@/components/ui/button';
@@ -39,6 +42,14 @@ const navItems = [
     links: [
       { label: 'All Blogs', icon: List, path: '/dashboard/blogs/allblogs' },
       { label: 'Add Blog', icon: PlusCircle, path: '/dashboard/blogs/addblogs' },
+    ],
+  },
+  {
+    label: 'Layout',
+    icon: Dock,
+    links: [
+      { label: 'Header', icon: ArrowUpToLine, path: '/dashboard/blogs/header' },
+      { label: 'Footer', icon: ArrowDownToLine, path: '/dashboard/blogs/footer' },
     ],
   },
   {
