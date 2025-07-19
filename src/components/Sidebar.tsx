@@ -16,7 +16,6 @@ import {
   Codesandbox,
   Wrench,
   Paintbrush,
-  Dock,
   ArrowUpToLine,
   ArrowDownToLine,
 } from 'lucide-react';

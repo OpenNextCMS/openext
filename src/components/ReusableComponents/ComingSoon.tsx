@@ -4,7 +4,7 @@ export default function ComingSoon() {
         text-center p-8">
             <h1 className="text-2xl mb-4">🚧 Under Development</h1>
             <h2 className="text-2xl mb-2">Coming Soon in the Next Release</h2>
-            <p className="text-xs text-[#666]">We're working hard to bring you new features. Stay tuned!</p>
+            <p className="text-xs text-[#666]">We&apos;re working hard to bring you new features. Stay tuned!</p>
         </main>
     );
 }
