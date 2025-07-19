@@ -221,6 +221,7 @@ export interface Page {
   seoName: string;
   seoMeta: string;
   slug?: string;
+  isHome?: boolean;
   isPublished?: boolean;
   component?: unknown[];
   createdAt?: string;

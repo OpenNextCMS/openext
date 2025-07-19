@@ -39,6 +39,7 @@ export default function LeftSidebar() {
           seoName: page.seoName || '',
           seoMeta: page.seoMeta || '',
           slug: page.slug || '',
+          isHome: page.isHome || false,
           isPublished: page.isPublished,
           createdAt: page.createdAt,
           updatedAt: page.updatedAt,
@@ -68,7 +69,7 @@ export default function LeftSidebar() {
     fetchPageById();
   }, [fetchPageById]);
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (field: string, value: string | boolean) => {
     setFormData((prev) => (prev ? { ...prev, [field]: value } : prev));
   };
 
@@ -84,6 +85,7 @@ export default function LeftSidebar() {
         },
         body: JSON.stringify({
           slug: formData.slug,
+          isHome: formData.isHome,
           userId: userIdFromUrl,
           pageID: pageIdFromUrl,
           pageName: formData.pageName,

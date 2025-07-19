@@ -5,6 +5,7 @@ import { LayoutGrid, PlusSquare, MousePointerClick } from 'lucide-react';
 import { useState } from 'react';
 import { Block } from '@/types/index';
 import { useSearchParams } from 'next/navigation';
+import Box from './blocks/Box';
 
 interface CanvasProps {
   canvasBlocks: Block[];
@@ -90,6 +91,7 @@ export default function Canvas({ canvasBlocks, viewMode }: CanvasProps) {
           } `}
           style={{ transform: `scale(${zoom / 100})`, transformOrigin: 'top left' }}
         >
+          <Box content='Header' />
           {canvasBlocks.length > 0 ? (
             canvasBlocks.map((block) => <RenderBlock key={block.uniqueId} block={block} />)
           ) : (
@@ -117,6 +119,7 @@ export default function Canvas({ canvasBlocks, viewMode }: CanvasProps) {
               )}
             </div>
           )}
+          <Box content='Footer' />
         </div>
       </div>
     </div>

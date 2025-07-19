@@ -1,4 +1,5 @@
 'use client';
+import { Switch } from "@/components/ui/switch";
 
 interface Props {
   formData: {
@@ -6,13 +7,23 @@ interface Props {
     preHeading: string;
     description: string;
     slug?: string;
+    isHome?: boolean;
   };
-  onChange: (field: string, value: string) => void;
+  onChange: (field: string, value: string | boolean) => void;
 }
 
 export default function GeneralInfo({ formData, onChange }: Props) {
   return (
     <div className="space-y-5">
+
+      {/* Home Page Toggle */}
+      <div className="flex items-center justify-between">
+        <label className="text-sm font-medium text-black dark:text-gray-50">
+          Set as Home Page
+        </label>
+        <Switch checked={formData.isHome || false} onCheckedChange={(checked: boolean) => onChange('isHome', checked)} />
+      </div>
+
       {/* Page Name */}
       <div className="flex flex-col gap-2">
         <label htmlFor="name" className="text-sm font-medium text-black dark:text-gray-50">

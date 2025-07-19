@@ -7,6 +7,15 @@ const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000
 
 export default function Home() {
   const [themeName, setThemeName] = useState<string | null>(null);
+  useEffect(() => {
+    const checkDbStatus = async () => {
+      const res = await fetch('/api/env-connection');
+      const data = await res.json();
+      document.cookie = `dbConnection=${data.dbConnection}; path=/; expires=Fri, 31 Dec 9999 23:59:59 GMT`;
+    };
+
+    checkDbStatus();
+  }, []);
 
   useEffect(() => {
     const fetchTheme = async () => {
