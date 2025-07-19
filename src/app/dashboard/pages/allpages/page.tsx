@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import type React from 'react';
 import {
-  PlusCircle,
   Loader2,
   FileText,
   Files,
@@ -16,7 +15,6 @@ import {
   Eye,
 } from 'lucide-react';
 import { toast } from 'sonner';
-
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -45,6 +43,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import AddPage from '../AddPage';
 
 interface Page {
   _id: string;
@@ -66,7 +65,6 @@ export default function PageManagement() {
 
   const [pages, setPages] = useState<Page[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [selectedPage, setSelectedPage] = useState<Page | null>(null);
@@ -113,43 +111,6 @@ export default function PageManagement() {
       setFilteredPages(filtered);
     }
   }, [searchTerm, pages]);
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setPageData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    try {
-      const res = await fetch(`${backendUrl}/api/pages/add-page`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(pageData),
-      });
-      if (res.ok) {
-        await res.json();
-        setPageData({
-          pageName: '',
-          createdBy: '',
-          isPublished: false,
-          slug: '',
-        });
-        toast.success('Page added successfully');
-        setActiveTab('page-list');
-        fetchPages();
-      } else {
-        console.error('Failed to add page');
-        toast.error('Failed to add page');
-      }
-    } catch (error) {
-      console.error('Error adding page:', error);
-      toast.error('Error adding page');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   const handlePageUpdate = async (pageId: string, updates: { isPublished?: boolean }) => {
     try {
@@ -239,81 +200,7 @@ export default function PageManagement() {
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsContent value="add-page" className="mt-0">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <FileText className="h-5 w-5 text-primary mr-2" />
-                Add New Page
-              </CardTitle>
-              <CardDescription>Create a new page for your website</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="pageName">Page Name</Label>
-                    <Input
-                      id="pageName"
-                      type="text"
-                      name="pageName"
-                      value={pageData.pageName}
-                      onChange={handleInputChange}
-                      placeholder="Home Page"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="createdBy">Created By</Label>
-                    <Input
-                      id="createdBy"
-                      type="text"
-                      name="createdBy"
-                      value={pageData.createdBy}
-                      onChange={handleInputChange}
-                      placeholder="John Doe"
-                      required
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="isPublished">Publication Status</Label>
-                    <Select
-                      name="isPublished"
-                      value={pageData.isPublished ? 'true' : 'false'}
-                      onValueChange={(value) =>
-                        setPageData((prev) => ({ ...prev, isPublished: value === 'true' }))
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select Status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="true">Published</SelectItem>
-                        <SelectItem value="false">Draft</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <Button type="submit" className="w-full" disabled={isSubmitting}>
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Adding Page...
-                    </>
-                  ) : (
-                    <>
-                      <PlusCircle className="mr-2 h-4 w-4" />
-                      Add Page
-                    </>
-                  )}
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
+          <AddPage />
         </TabsContent>
 
         <TabsContent value="page-list" className="mt-0">
