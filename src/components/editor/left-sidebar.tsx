@@ -8,7 +8,7 @@ import MyDesignComponent from './Left-Sidebar/MyDesign/MyDesign';
 import PagesComponent from './Left-Sidebar/Page/PagesComponent';
 import GeneralInfo from './Left-Sidebar/Page/GeneralInfo';
 import SeoInfo from './Left-Sidebar/Page/SeoInfo';
-import { toast } from 'sonner';
+import { toast, Toaster } from 'sonner';
 import type { Page } from '@/types/index';
 
 export default function LeftSidebar() {
@@ -73,10 +73,23 @@ export default function LeftSidebar() {
     setFormData((prev) => (prev ? { ...prev, [field]: value } : prev));
   };
 
+  const handleSwitchChange = () => {
+    if (!formData || !formData.slug || !userIdFromUrl) return;
+    let checkData: Page[] = [];
+    if (formData.isHome) {
+      checkData = pages.filter((p) => p.isHome === true);
+      console.log('Check Data:', checkData.map((p) => p.slug));
+    }
+    if (!checkData.some((p) => p.slug === formData.slug)) {
+      toast.error(`Home Page is changed from "${checkData.map((p) => p.slug)}" to "${formData.slug}"`)
+    }
+  }
+
   const handleSave = async () => {
     if (!formData || !formData.slug || !userIdFromUrl) return;
 
     try {
+      handleSwitchChange()
       setIsSaving(true);
       const response = await fetch(`${backendUrl}/api/pages/update-page`, {
         method: 'PATCH',
@@ -109,6 +122,11 @@ export default function LeftSidebar() {
 
   return (
     <div className="flex h-full flex-col bg-white dark:bg-black border-r w-full max-w-[300px]">
+      <Toaster
+        position="top-right"
+        richColors
+        theme="dark"
+      />
       {openPage ? (
         <div className="flex flex-col h-full">
           <div className="flex items-center justify-between p-4 border-b">

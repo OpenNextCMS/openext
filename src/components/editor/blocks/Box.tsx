@@ -1,4 +1,3 @@
-import Canvas from '@/components/editor/canvas'
 import { Button } from '@/components/ui/button'
 import { CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { Tooltip, TooltipTrigger } from '@/components/ui/tooltip'
