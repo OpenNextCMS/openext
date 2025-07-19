@@ -15,6 +15,7 @@ export async function PATCH(req: NextRequest) {
     
     // Get PageModel using the connection
     const PageModel = getPageModel(pageDb);
+    if(updateFields.isHome) await PageModel.updateMany({ isHome: true }, { $set: { isHome: false } });
 
     const _id = pageID;
     // Find page
