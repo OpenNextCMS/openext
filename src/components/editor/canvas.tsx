@@ -86,14 +86,13 @@ export default function Canvas({ canvasBlocks, viewMode }: CanvasProps) {
           </div>
         </div>
         <div
-          className={`bg-background dark:bg-background w-full h-auto shadow-md p-4 rounded-lg border ${getWidthClass()} transition-all mx-auto ${
-            isOver ? 'border-primary border-dashed border-2' : 'border-border'
-          } `}
+          className={`bg-background dark:bg-background w-full h-auto shadow-md p-4 rounded-lg border ${getWidthClass()} transition-all mx-auto ${isOver ? 'border-primary border-dashed border-2' : 'border-border'
+            } `}
           style={{ transform: `scale(${zoom / 100})`, transformOrigin: 'top left' }}
         >
           <Box content='Header' />
           {canvasBlocks.length > 0 ? (
-            canvasBlocks.map((block) => <RenderBlock key={block.uniqueId} block={block} />)
+            canvasBlocks.map((block) => <RenderBlock key={block.uniqueId} block={block} isEditing={true} />)
           ) : (
             <div className="flex flex-col items-center justify-center h-[750px] border-2 border-dashed rounded-lg p-6">
               {isOver ? (
@@ -109,10 +108,10 @@ export default function Canvas({ canvasBlocks, viewMode }: CanvasProps) {
                     Drag and drop blocks from the sidebar to start building your page layout
                   </p>
                   <div className="text-sm text-muted-foreground">
-                    Tip: Click the{' '}
+                    Tip: Click the
                     <span className="inline-flex items-center mx-1 px-2 py-1 rounded bg-muted">
                       <PlusSquare className="h-3 w-3 mr-1" /> Add Block
-                    </span>{' '}
+                    </span>
                     button to add new blocks
                   </div>
                 </>

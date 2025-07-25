@@ -4,8 +4,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Palette, Sliders } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useAppSelector } from '@/redux/hooks';
-// import { useAppDispatch } from '@/redux/hooks';
-// import { clearSelectedLabel } from '@/redux/canvasSlice';
 import Spacing from './Right-Sidebar/Style/spacing';
 import Display from './Right-Sidebar/Style/display';
 import Background from './Right-Sidebar/Style/background';
@@ -24,7 +22,6 @@ export default function RightSidebar() {
   const [spacingOpen, setSpacingOpen] = useState(false);
   const [displayOpen, setDisplayOpen] = useState(false);
   const [displayFlex, setDisplayFlex] = useState(false);
-  // const dispatch = useAppDispatch();
   const [margin, setMargin] = useState({ top: 0, right: 0, bottom: 0, left: 0 });
   const selectedLabel = useAppSelector((state) => state.canvas.selectedLabel);
 
@@ -66,27 +63,6 @@ export default function RightSidebar() {
         {/* Styles */}
         <TabsContent value="styles" className="p-0 m-0 h-full">
           <div className="p-4 space-y-3">
-            {/* 👇 Input Field to Show Label */}
-            {/* <div>
-              <label className="text-sm font-medium">Block Label</label>
-              {selectedLabel ? (
-                <div className="flex items-center mt-2 gap-2">
-                  <div className="flex items-center bg-muted border border-gray-300 rounded-full px-3 py-1 text-sm">
-                    {selectedLabel}
-                    <button
-                      onClick={() => {
-                        dispatch(clearSelectedLabel());
-                      }}
-                      className="ml-2 text-gray-500 hover:text-red-500"
-                    >
-                      ×
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div className="mt-2 text-sm text-gray-400">No block selected</div>
-              )}
-            </div> */}
             <div>
               <label className="text-sm font-medium">Block Label</label>
               <input
