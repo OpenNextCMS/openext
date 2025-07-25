@@ -15,6 +15,7 @@ import {
   Settings,
   Trash,
   Save,
+  SkipBack,
 } from 'lucide-react';
 import {
   Select,
@@ -25,7 +26,6 @@ import {
 } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Separator } from '@/components/ui/separator';
-// import { ThemeToggle } from "./theme-toggle"
 
 interface ToolbarProps {
   toggleSidebar: () => void;
@@ -250,6 +250,16 @@ export default function Toolbar({ toggleSidebar, onViewChange }: ToolbarProps) {
       </div>
 
       <div className="flex items-center gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          className="text-primary"
+          onClick={() => window.close()}
+        >
+          <SkipBack className="h-4 w-4 mr-2" />
+          Back
+        </Button>
+
         <Button variant="outline" size="sm" className="text-primary" onClick={handleSave}>
           <Save className="h-4 w-4 mr-2" />
           Save

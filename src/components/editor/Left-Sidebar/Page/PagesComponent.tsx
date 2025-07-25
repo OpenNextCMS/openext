@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ChevronDown, ChevronRight, FileText, MoreVertical, Plus, Settings } from 'lucide-react';
+import { ChevronDown, ChevronRight, FileText, Home, MoreVertical, Plus, Settings } from 'lucide-react';
 import { toast } from 'sonner';
 import type { Page } from '@/types/index';
 import { useRouter } from 'next/navigation';
@@ -158,6 +158,7 @@ export default function PagesComponent({
                 </span>
               </div>
               <div className="flex items-center gap-1">
+                {page.isHome === true && (<Home height={16} width={16}/>)}
                 <button
                   className="p-1 hover:bg-gray-200 dark:hover:bg-black rounded transition"
                   title="Page settings"
