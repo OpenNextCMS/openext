@@ -2,6 +2,7 @@
 
 import Body from '@/components/LanguageSelector/body';
 import Marq from '@/components/LanguageSelector/marq';
+import { useRouter } from 'next/navigation';
 import React, { useEffect } from 'react';
 
 export default function LanguagePage() {
@@ -15,6 +16,16 @@ export default function LanguagePage() {
       }
     };
     clearAllCookies();
+  }, []);
+
+  useEffect(() => {
+    const checkDbStatus = async () => {
+      const res = await fetch('/api/env-connection');
+      const data = await res.json();
+      document.cookie = `dbConnection=${data.dbConnection}`;
+    };
+
+    checkDbStatus();
   }, []);
 
   return (
