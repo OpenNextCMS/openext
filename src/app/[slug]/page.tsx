@@ -23,20 +23,15 @@ async function getPageData(slug: string): Promise<{ blocks: BlockData[] } | null
     const cookieStore = await cookies();
     const cookieHeader = cookieStore.toString();
 
-    const res = await fetch(`${backendUrl}/api/pages/get-pages`, {
-      method: 'GET',
-      headers: {
-        Cookie: cookieHeader,
-      },
-      cache: 'no-store',
-      credentials: 'include',
-    });
+    const res = await fetch(`${backendUrl}/api/pages/get-page?name=${slug}`);
 
     if (!res.ok) return null;
 
     const data = await res.json();
-    const page = data?.pages?.find((p: Page) => p.slug === slug);
-    return page ? { blocks: page.component } : null;
+    console.log('Fetched page data:', data);
+    // const page = data?.page?.find((p: Page) => p.slug === slug);
+    const page = data?.page?.component;
+    return page ? { blocks: page} : null;
   } catch (err) {
     console.error('Error fetching page data:', err);
     return null;

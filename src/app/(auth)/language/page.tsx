@@ -2,7 +2,6 @@
 
 import Body from '@/components/LanguageSelector/body';
 import Marq from '@/components/LanguageSelector/marq';
-import { useRouter } from 'next/navigation';
 import React, { useEffect } from 'react';
 
 export default function LanguagePage() {
