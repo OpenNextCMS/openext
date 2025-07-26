@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Separator } from '@/components/ui/separator';
+import toast, { Toaster } from 'react-hot-toast';
 
 interface ToolbarProps {
   toggleSidebar: () => void;
@@ -59,14 +60,22 @@ export default function Toolbar({ toggleSidebar, onViewChange }: ToolbarProps) {
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Failed to save');
-      alert('Page saved successfully!');
+      toast.success('Page saved successfully');
     } catch (error) {
       console.error('Save Error:', error);
       alert('Failed to save page');
     }
   };
+
+  const handleSaveAndExit = async () => {
+    await handleSave();
+    toast.success('Page saved successfully, closing editor...');
+    window.close();
+  };
+  
   return (
     <div className="relative border-b p-2 flex items-center justify-between mx-9 bg-background">
+      <Toaster />
       <div className="flex items-center gap-1">
         <TooltipProvider>
           <Tooltip>
@@ -254,7 +263,7 @@ export default function Toolbar({ toggleSidebar, onViewChange }: ToolbarProps) {
           variant="outline"
           size="sm"
           className="text-primary"
-          onClick={() => window.close()}
+          onClick={() => handleSaveAndExit()}
         >
           <SkipBack className="h-4 w-4 mr-2" />
           Back
