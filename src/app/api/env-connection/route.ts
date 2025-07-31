@@ -1,4 +1,3 @@
-// /app/api/db-status/route.ts
 import { NextResponse } from 'next/server';
 import fs from 'fs/promises';
 import path from 'path';
@@ -23,6 +22,7 @@ export async function GET(req: Request) {
 
     return NextResponse.json({ [key]: parsed[key] });
   } catch (error) {
+    console.error('Error reading .env file:', error);
     return NextResponse.json({ error: 'Failed to read .env file' }, { status: 500 });
   }
 }
@@ -57,6 +57,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ message: 'Environment variable updated' });
   } catch (error) {
+    console.error('Error reading .env file:', error);
     return NextResponse.json({ error: 'Failed to update .env file' }, { status: 500 });
   }
 }
