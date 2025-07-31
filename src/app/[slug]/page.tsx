@@ -2,7 +2,6 @@
 
 import { notFound } from 'next/navigation';
 import { BlockData } from '@/types';
-import { cookies } from 'next/headers';
 import PageClientWrapper from '@/components/PageClientWrapper';
 import { Metadata } from 'next';
 import renderFromJson from '@/components/ReusableComponents/RenderFromJson';
@@ -20,8 +19,6 @@ type Page = {
 async function getPageData(slug: string): Promise<{ blocks: BlockData[] } | null> {
   try {
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
-    const cookieStore = await cookies();
-    const cookieHeader = cookieStore.toString();
 
     const res = await fetch(`${backendUrl}/api/pages/get-page?name=${slug}`);
 

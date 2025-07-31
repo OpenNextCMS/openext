@@ -1,7 +1,6 @@
 import renderFromJson from '@/components/ReusableComponents/RenderFromJson';
 import { BlockData } from '@/types';
-import Image from 'next/image';
-import { useEffect, useState, JSX } from 'react';
+import { useEffect, useState } from 'react';
 
 const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
 
