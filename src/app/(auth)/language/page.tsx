@@ -19,7 +19,7 @@ export default function LanguagePage() {
 
   useEffect(() => {
     const checkDbStatus = async () => {
-      const res = await fetch('/api/env-connection');
+      const res = await fetch('/api/env-connection?key=dbConnection');
       const data = await res.json();
       document.cookie = `dbConnection=${data.dbConnection}`;
     };
