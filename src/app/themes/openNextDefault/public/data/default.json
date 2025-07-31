@@ -42,17 +42,6 @@
                 "fontWeight": "600",
                 "margin": "0"
               }
-            },
-            {
-              "content": "Elevate your fastest digital presence with clarity and purpose",
-              "type": "text",
-              "icon": "text",
-              "uniqueId": "ec1a13da-54b1-4836-ae15-78ec99410962",
-              "style": {
-                "fontSize": "1.3em",
-                "fontWeight": "400",
-                "marginTop": "1em"
-              }
             }
           ]
         ]
@@ -84,7 +73,7 @@
               }
             },
             {
-              "content": "Whether you’re launching a blog, portfolio, or dynamic site, OpeNEXT gives you the power to create with confidence. Start building today.",
+              "content": "Elevate your fastest digital presence with clarity and purpose. Whether you’re launching a blog, portfolio, or dynamic site, OpeNEXT gives you the power to create with confidence. Start building today.",
               "type": "text",
               "icon": "text",
               "uniqueId": "206c997e-9d33-436d-99d9-ef989a9eb570",

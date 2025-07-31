@@ -1,11 +1,11 @@
 // src/app/[slug]/page.tsx
 
 import { notFound } from 'next/navigation';
-import RenderBlock from '@/components/editor/renderblock';
-import { Block } from '@/types';
+import { BlockData } from '@/types';
 import { cookies } from 'next/headers';
 import PageClientWrapper from '@/components/PageClientWrapper';
 import { Metadata } from 'next';
+import renderFromJson from '@/components/ReusableComponents/RenderFromJson';
 
 interface PageProps {
   params?: Promise<{ slug: string }>;
@@ -14,29 +14,24 @@ interface PageProps {
 
 type Page = {
   slug: string;
-  component: Block[];
+  component: BlockData[];
 };
 
-async function getPageData(slug: string): Promise<{ blocks: Block[] } | null> {
+async function getPageData(slug: string): Promise<{ blocks: BlockData[] } | null> {
   try {
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
     const cookieStore = await cookies();
     const cookieHeader = cookieStore.toString();
 
-    const res = await fetch(`${backendUrl}/api/pages/get-pages`, {
-      method: 'GET',
-      headers: {
-        Cookie: cookieHeader,
-      },
-      cache: 'no-store',
-      credentials: 'include',
-    });
+    const res = await fetch(`${backendUrl}/api/pages/get-page?name=${slug}`);
 
     if (!res.ok) return null;
 
     const data = await res.json();
-    const page = data?.pages?.find((p: Page) => p.slug === slug);
-    return page ? { blocks: page.component } : null;
+    console.log('Fetched page data:', data);
+    // const page = data?.page?.find((p: Page) => p.slug === slug);
+    const page = data?.page?.component;
+    return page ? { blocks: page} : null;
   } catch (err) {
     console.error('Error fetching page data:', err);
     return null;
@@ -59,13 +54,7 @@ export default async function Page({ params }: PageProps) {
 
   return (
     <PageClientWrapper>
-      <main className="min-h-screen bg-white dark:bg-black p-8">
-        <div className="max-w-full mx-auto space-y-4">
-          {pageData.blocks.map((block) => (
-            <RenderBlock key={block.uniqueId} block={block} isEditing={false} />
-          ))}
-        </div>
-      </main>
+      {pageData.blocks.map((block) => renderFromJson(block as BlockData))}
     </PageClientWrapper>
   );
 }

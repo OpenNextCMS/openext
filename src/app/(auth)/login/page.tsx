@@ -55,8 +55,8 @@ export default function LoginPage() {
     const checkDbAndRedirect = async () => {
       try {
         const apiUrl =
-          backendUrl === 'http://localhost:3000' ? '/api/verify-connection' : '/api/api-sync';
-        const response = await fetch(`http://localhost:3000${apiUrl}`);
+          backendUrl === `${backendUrl}` ? '/api/verify-connection' : '/api/api-sync';
+        const response = await fetch(`${backendUrl}${apiUrl}`);
         if (!response.ok) {
           const errorText = await response.text();
           throw new Error(`Failed to fetch database connection status: ${errorText}`);
