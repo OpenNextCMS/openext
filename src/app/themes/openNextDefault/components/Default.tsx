@@ -15,6 +15,25 @@ const Default = () => {
       try {
         const tokenRes = await fetch(`${backendUrl}/api/check-token`);
         if (!tokenRes.ok) {
+          try {
+            const response = await fetch(`${backendUrl}/api/env-connection?key=DEFAULT_HOME_SLUG`);
+
+            if (!response.ok) {
+              throw new Error('Failed to fetch default home slug');
+            }
+
+            const value = await response.json();
+
+
+            if (value.DEFAULT_HOME_SLUG) {
+              slug = value.DEFAULT_HOME_SLUG;
+            } else {
+              throw new Error('DEFAULT_HOME_SLUG not found in .env');
+            }
+          } catch (error) {
+            console.error('Error fetching slug from .env:', error);
+            return; // or handle fallback if needed
+          }
           url = `${backendUrl}/api/pages/get-page?name=${slug}`;
         }
       } catch (err) {

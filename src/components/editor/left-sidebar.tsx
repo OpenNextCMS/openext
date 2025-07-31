@@ -89,7 +89,7 @@ export default function LeftSidebar() {
     if (!formData || !formData.slug || !userIdFromUrl) return;
 
     try {
-      handleSwitchChange()
+      handleSwitchChange();
       setIsSaving(true);
       const response = await fetch(`${backendUrl}/api/pages/update-page`, {
         method: 'PATCH',
@@ -111,6 +111,23 @@ export default function LeftSidebar() {
       });
 
       if (!response.ok) throw new Error('Failed to update page');
+
+      // ✅ Update .env only if this page is marked as home
+      if (formData.isHome) {
+        const updateEnv = await fetch(`${backendUrl}/api/env-connection`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            key: 'DEFAULT_HOME_SLUG',
+            value: formData.slug,
+          }),
+        });
+
+        if (!updateEnv.ok) throw new Error('Failed to update .env file');
+      }
+
       toast.success('Page updated successfully!');
     } catch (err) {
       console.error(err);
@@ -119,6 +136,7 @@ export default function LeftSidebar() {
       setIsSaving(false);
     }
   };
+
 
   return (
     <div className="flex h-full flex-col bg-white dark:bg-black border-r w-full max-w-[300px]">
