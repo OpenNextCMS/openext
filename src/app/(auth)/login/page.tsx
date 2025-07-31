@@ -12,7 +12,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     const checkDbStatus = async () => {
-      const res = await fetch('/api/env-connection');
+      const res = await fetch('/api/env-connection?key=dbConnection');
       const data = await res.json();
       document.cookie = `dbConnection=${data.dbConnection}; path=/; expires=Fri, 31 Dec 9999 23:59:59 GMT`;
     };

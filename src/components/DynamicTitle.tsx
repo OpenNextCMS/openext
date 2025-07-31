@@ -13,8 +13,6 @@ export default function DynamicTitle() {
   const lastSegment = pathname?.split('/').filter(Boolean).pop();
 
   useEffect(() => {
-    console.log('Last URL segment:', lastSegment);
-
     async function fetchSiteSettings() {
       try {
         const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
