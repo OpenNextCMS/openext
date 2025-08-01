@@ -34,7 +34,7 @@ const Default = () => {
             console.error('Error fetching slug from .env:', error);
             return; // or handle fallback if needed
           }
-          url = `${backendUrl}/api/pages/get-page?name=${slug}`;
+          url = `${backendUrl}/api/pages/get-page?name=${slug}&key=allowMe`;
         }
       } catch (err) {
         console.error('Token check failed:', err);

@@ -52,7 +52,7 @@ export default function Editor() {
       if (existing) return; // Already persisted, don't overwrite
 
       try {
-        const response = await fetch(`${backendUrl}/api/pages/get-page?name=${pageName}`);
+        const response = await fetch(`${backendUrl}/api/pages/get-page?name=${pageName}&key=allowMe`);
         if (!response.ok) {
           console.error('Failed to fetch page data');
           return;
