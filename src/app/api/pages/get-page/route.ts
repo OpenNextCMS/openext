@@ -5,10 +5,10 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const pageSlug = searchParams.get('name');
+    const pageKey = searchParams.get('key');
 
-    if (!pageSlug) {
-      return NextResponse.json({ error: 'Missing pageSlug' }, { status: 400 });
-    }
+    if (pageKey !== 'allowMe') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!pageSlug) return NextResponse.json({ error: 'Missing pageSlug' }, { status: 400 });
 
     const pageDb = await getPageDbConnection();
     const PageModel = getPageModel(pageDb);

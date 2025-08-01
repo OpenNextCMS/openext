@@ -20,7 +20,7 @@ async function getPageData(slug: string): Promise<{ blocks: BlockData[] } | null
   try {
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
 
-    const res = await fetch(`${backendUrl}/api/pages/get-page?name=${slug}`);
+    const res = await fetch(`${backendUrl}/api/pages/get-page?name=${slug}&key=allowMe`);
 
     if (!res.ok) return null;
 
