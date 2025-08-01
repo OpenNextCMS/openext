@@ -6,7 +6,8 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const pageSlug = searchParams.get('name');
     const pageKey = searchParams.get('key');
-
+    
+    //USER can define "allowMe"
     if (pageKey !== 'allowMe') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     if (!pageSlug) return NextResponse.json({ error: 'Missing pageSlug' }, { status: 400 });
 

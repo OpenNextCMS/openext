@@ -10,9 +10,9 @@ const Default = () => {
   useEffect(() => {
     const fetchData = async () => {
       let url = `${backendUrl}/api/pages/get-pages`;
-      let slug = 'default_home';
-
+      let slug = '';
       try {
+        // Checking if USER is logged in checking JWT token
         const tokenRes = await fetch(`${backendUrl}/api/check-token`);
         if (!tokenRes.ok) {
           try {
@@ -34,6 +34,8 @@ const Default = () => {
             console.error('Error fetching slug from .env:', error);
             return; // or handle fallback if needed
           }
+          // If USER is not Logged "allowMe" is user defined variable location below
+          // src\app\api\pages\get-page\route.ts
           url = `${backendUrl}/api/pages/get-page?name=${slug}&key=allowMe`;
         }
       } catch (err) {
@@ -45,7 +47,7 @@ const Default = () => {
         const data = await res.json();
 
         const container = data.page || data.pages?.[0];
-
+        
         if (!container?.isHome) {
           console.error('This is not a home page');
           return;

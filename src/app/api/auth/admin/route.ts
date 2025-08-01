@@ -128,6 +128,8 @@ export async function POST(req: NextRequest) {
       isRegistration=true
       dbConnection=true
       NEXT_PUBLIC_needsRestart=false
+      DEFAULT_HOME_SLUG=default_home
+      WEB_ACCESS_KEY=allowMe
       `;
     } else if (mongoDB === 'compass') {
       envContent = `
@@ -145,6 +147,8 @@ export async function POST(req: NextRequest) {
       isRegistration=true
       dbConnection=true
       NEXT_PUBLIC_needsRestart=false
+      DEFAULT_HOME_SLUG=default_home
+      WEB_ACCESS_KEY=allowMe
       `;
     }
 
