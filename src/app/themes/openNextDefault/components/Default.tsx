@@ -1,5 +1,5 @@
 import renderFromJson from '@/components/ReusableComponents/RenderFromJson';
-import { BlockData } from '@/types';
+import { BlockData, Page } from '@/types';
 import { useEffect, useState } from 'react';
 
 const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
@@ -46,8 +46,8 @@ const Default = () => {
         const res = await fetch(url);
         const data = await res.json();
 
-        const container = data.page || data.pages?.[0];
-        
+        const container = data.page || data.pages?.find((page: Page) => page.isHome === true);
+
         if (!container?.isHome) {
           console.error('This is not a home page');
           return;
