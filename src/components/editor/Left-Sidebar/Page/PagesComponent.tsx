@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { ChevronDown, ChevronRight, FileText, Home, MoreVertical, Plus, Settings } from 'lucide-react';
 import { toast } from 'sonner';
 import type { Page } from '@/types/index';
-import { useRouter } from 'next/navigation';
 
 interface PagesComponentProps {
   pages: Page[];
@@ -19,7 +18,6 @@ export default function PagesComponent({
   setPageId,
   setOpenPage,
 }: PagesComponentProps) {
-  const router = useRouter();
   const [pagesOpen, setPagesOpen] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [newPageName, setNewPageName] = useState('');
@@ -79,9 +77,7 @@ export default function PagesComponent({
         toast.success(`Page "${pageName}" created successfully`);
 
         // Step 2: Redirect to Editor
-        router.push(
-          `/Editor?pagename=${encodeURIComponent(slug)}&userId=${result.userId}&pageId=${result.data._id}`
-        );
+        window.location.href = `/Editor?pagename=${encodeURIComponent(slug)}&userId=${result.userId}&pageId=${result.data._id}`;
       } catch (error) {
         toast.error('Error creating page. Please try again.');
         console.error('Create page error:', error);
@@ -151,14 +147,14 @@ export default function PagesComponent({
                     setPageId(page);
                     const currentParams = new URLSearchParams(window.location.search);
                     const userId = currentParams.get('userId');
-                    router.push(`/Editor?pagename=${page.slug}&userId=${userId}&pageId=${page.id}`);
+                    window.location.href = `/Editor?pagename=${page.slug}&userId=${userId}&pageId=${page.id}`;
                   }}
                 >
                   {page.pageName}
                 </span>
               </div>
               <div className="flex items-center gap-1">
-                {page.isHome === true && (<Home height={16} width={16}/>)}
+                {page.isHome === true && (<Home height={16} width={16} />)}
                 <button
                   className="p-1 hover:bg-gray-200 dark:hover:bg-black rounded transition"
                   title="Page settings"
