@@ -59,6 +59,9 @@ export default function PagesComponent({
         }
 
         const result = await response.json();
+        const userId = result.userId;
+
+        console.log('Page created:', result);
 
         const newPage: Page = {
           id: `page-${Date.now()}`,
@@ -77,7 +80,7 @@ export default function PagesComponent({
         toast.success(`Page "${pageName}" created successfully`);
 
         // Step 2: Redirect to Editor
-        window.location.href = `/Editor?pagename=${encodeURIComponent(slug)}&userId=${result.userId}&pageId=${result.data._id}`;
+        window.location.href = `/Editor?pagename=${encodeURIComponent(slug)}&userId=${userId}&pageId=${result.data._id}`;
       } catch (error) {
         toast.error('Error creating page. Please try again.');
         console.error('Create page error:', error);
