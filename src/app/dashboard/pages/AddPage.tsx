@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
 import { store, persistor } from '@/redux/store';
@@ -17,9 +16,6 @@ export default function AddPage() {
   const [slug, setSlug] = useState('');
   const [isPublished, setIsPublished] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // const isModalOpen = true;
-  const router = useRouter();
 
   const handlePageNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -44,7 +40,7 @@ export default function AddPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ pageName, slug }),
+        body: JSON.stringify({ pageName, slug, isPublished }),
       });
 
       const result = await response.json();
@@ -61,7 +57,7 @@ export default function AddPage() {
         if (getResponse.ok && getData.userId) {
           const userId = getData.userId;
           // Step 3: Redirect with page info
-          router.push(
+          window.open(
             `/Editor?pagename=${encodeURIComponent(slug)}&userId=${userId}&pageId=${result.data._id}`
           );
         } else {

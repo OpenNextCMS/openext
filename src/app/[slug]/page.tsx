@@ -25,7 +25,6 @@ async function getPageData(slug: string): Promise<{ blocks: BlockData[] } | null
     if (!res.ok) return null;
 
     const data = await res.json();
-    console.log('Fetched page data:', data);
     // const page = data?.page?.find((p: Page) => p.slug === slug);
     const page = data?.page?.component;
     return page ? { blocks: page} : null;

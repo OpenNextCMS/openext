@@ -18,7 +18,6 @@ import { toast } from 'sonner';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -29,20 +28,6 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import AddPage from '../AddPage';
 
 interface Page {
@@ -61,12 +46,6 @@ export default function PageManagement() {
   const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [selectedPage, setSelectedPage] = useState<Page | null>(null);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editForm, setEditForm] = useState({
-    pageName: '',
-    isPublished: false,
-  });
   const [activeTab, setActiveTab] = useState('page-list');
   const [filteredPages, setFilteredPages] = useState<Page[]>([]);
   const [userId, setUserId] = useState('');
@@ -106,51 +85,22 @@ export default function PageManagement() {
     }
   }, [searchTerm, pages]);
 
-  const handlePageUpdate = async (pageId: string, updates: { isPublished?: boolean }) => {
+  const handlePageUpdate = async (
+    pageID: string,
+    userId: string,
+    updates: { isPublished?: boolean }
+  ) => {
     try {
-      const response = await fetch(`${backendUrl}/api/pages/update-page/${pageId}`, {
+      const response = await fetch(`${backendUrl}/api/pages/update-page`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(updates),
+        body: JSON.stringify({ pageID, userId, ...updates }),
       });
 
       if (!response.ok) throw new Error('Failed to update page');
 
-      toast.success('Page updated successfully');
-      fetchPages();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update page');
-      toast.error('Failed to update page');
-    }
-  };
-
-  const openEditModal = (page: Page) => {
-    setSelectedPage(page);
-    setEditForm({
-      pageName: page.pageName,
-      isPublished: page.isPublished,
-    });
-    setIsEditModalOpen(true);
-  };
-
-  const handleEditSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedPage) return;
-
-    try {
-      const response = await fetch(`${backendUrl}/api/pages/update-page/${selectedPage._id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(editForm),
-      });
-
-      if (!response.ok) throw new Error('Failed to update page');
-
-      setIsEditModalOpen(false);
       toast.success('Page updated successfully');
       fetchPages();
     } catch (err) {
@@ -268,7 +218,7 @@ export default function PageManagement() {
                               </div>
                             </TableCell>
                             <TableCell>{page.createdBy}</TableCell>
-                            <TableCell>
+                            <TableCell className="flex items-center gap-2">
                               <Badge variant={page.isPublished ? 'default' : 'secondary'}>
                                 {page.isPublished ? (
                                   <span className="flex items-center">
@@ -282,7 +232,6 @@ export default function PageManagement() {
                                   </span>
                                 )}
                               </Badge>
-
                               <Button
                                 onClick={() => window.open(`/${page.slug}`, '_blank')}
                                 variant="outline"
@@ -306,16 +255,8 @@ export default function PageManagement() {
                                   Edit Content
                                 </Button>
                                 <Button
-                                  onClick={() => openEditModal(page)}
-                                  variant="outline"
-                                  size="sm"
-                                >
-                                  <FileText className="h-3.5 w-3.5 mr-1" />
-                                  Edit Details
-                                </Button>
-                                <Button
                                   onClick={() =>
-                                    handlePageUpdate(page._id, { isPublished: !page.isPublished })
+                                    handlePageUpdate(page._id, userId, { isPublished: !page.isPublished })
                                   }
                                   variant={page.isPublished ? 'secondary' : 'default'}
                                   size="sm"
@@ -367,60 +308,6 @@ export default function PageManagement() {
           </Card>
         </TabsContent>
       </Tabs>
-
-      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="flex items-center">
-              <Edit className="h-5 w-5 mr-2 text-primary" />
-              Edit Page Details
-            </DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleEditSubmit}>
-            <div className="space-y-4 py-2">
-              <div className="space-y-2">
-                {/* <Label htmlFor="edit-siteName">Site Name</Label>
-                <Input
-                  id="edit-siteName"
-                  value={editForm.siteName}
-                  onChange={(e) => setEditForm({ ...editForm, siteName: e.target.value })}
-                /> */}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-pageName">Page Name</Label>
-                <Input
-                  id="edit-pageName"
-                  value={editForm.pageName}
-                  onChange={(e) => setEditForm({ ...editForm, pageName: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-status">Publication Status</Label>
-                <Select
-                  value={editForm.isPublished ? 'true' : 'false'}
-                  onValueChange={(value) =>
-                    setEditForm({ ...editForm, isPublished: value === 'true' })
-                  }
-                >
-                  <SelectTrigger id="edit-status">
-                    <SelectValue placeholder="Select Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="true">Published</SelectItem>
-                    <SelectItem value="false">Draft</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <DialogFooter className="mt-4">
-              <Button type="button" variant="outline" onClick={() => setIsEditModalOpen(false)}>
-                Cancel
-              </Button>
-              <Button type="submit">Save Changes</Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
