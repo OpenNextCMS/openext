@@ -75,15 +75,18 @@ export default function LeftSidebar() {
 
   const handleSwitchChange = () => {
     if (!formData || !formData.slug || !userIdFromUrl) return;
-    let checkData: Page[] = [];
+
     if (formData.isHome) {
-      checkData = pages.filter((p) => p.isHome === true);
-      console.log('Check Data:', checkData.map((p) => p.slug));
+      const currentHomePages = pages.filter((p) => p.isHome === true && p.slug !== formData.slug);
+
+      if (currentHomePages.length > 0) {
+        const previousSlug = currentHomePages.map((p) => p.slug).join(', ');
+        toast.error(
+          `Home Page is being changed from "${previousSlug}" to "${formData.slug}"`
+        );
+      }
     }
-    if (!checkData.some((p) => p.slug === formData.slug)) {
-      toast.error(`Home Page is changed from "${checkData.map((p) => p.slug)}" to "${formData.slug}"`)
-    }
-  }
+  };
 
   const handleSave = async () => {
     if (!formData || !formData.slug || !userIdFromUrl) return;

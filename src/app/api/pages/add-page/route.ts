@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
       ],
     });
 
-    return NextResponse.json({ success: true, data: newPage }, { status: 201 });
+    return NextResponse.json({ success: true, data: newPage, userId }, { status: 201 });
   } catch (error) {
     const err = error as CustomError;
     console.error('Error creating page:', err.message);
