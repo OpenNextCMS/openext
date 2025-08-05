@@ -1,0 +1,142 @@
+{
+  "content": "",
+  "type": "column",
+  "icon": "1-column",
+  "uniqueId": "814d7f73-a0f0-4f81-acf6-9f736f51251b",
+  "style": {
+    "padding": "24px",
+    "display": "flex",
+    "flexDirection": "column",
+    "gap": "24px",
+    "fontFamily": "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+    "backgroundColor": "#fff",
+    "color": "#000",
+    "lineHeight": "1.6"
+  },
+  "children": [
+    [
+      {
+        "content": "",
+        "type": "column",
+        "icon": "1-column",
+        "uniqueId": "bca71b24-0518-4320-826a-d6c6a3d82a03",
+        "style": {
+          "position": "fixed",
+          "top": "0",
+          "left": "0",
+          "width": "100%",
+          "color": "#ffffff",
+          "textAlign": "center",
+          "backgroundColor": "#000",
+          "padding": "3em 1em"
+        },
+        "children": [
+          [
+            {
+              "content": "OpenNext",
+              "type": "text",
+              "icon": "heading",
+              "uniqueId": "b8d69e4e-d588-4dde-b2ea-1f88e42844f7",
+              "style": {
+                "fontSize": "3em",
+                "fontWeight": "600",
+                "margin": "0"
+              }
+            }
+          ]
+        ]
+      },
+      {
+        "content": "",
+        "type": "column",
+        "icon": "1-column",
+        "uniqueId": "8003d337-f867-44b8-8dab-95b30a352d96",
+        "style": {
+          "margin": "auto",
+          "maxWidth": "800px",
+          "padding": "2em 1.5em",
+          "marginTop": "15em",
+          "marginBottom": "3em"
+        },
+        "children": [
+          [
+            {
+              "content": "Hello World - OpeNEXT",
+              "type": "text",
+              "icon": "heading",
+              "uniqueId": "7fe52492-279a-469d-bc4d-b103e635a1cc",
+              "style": {
+                "fontSize": "3em",
+                "borderBottom": "2px solid #000",
+                "paddingBottom": "0.3em",
+                "marginBottom": "0.5em"
+              }
+            },
+            {
+              "content": "Elevate your fastest digital presence with clarity and purpose. Whether you’re launching a blog, portfolio, or dynamic site, OpeNEXT gives you the power to create with confidence. Start building today.",
+              "type": "text",
+              "icon": "text",
+              "uniqueId": "206c997e-9d33-436d-99d9-ef989a9eb570",
+              "style": {}
+            }
+          ]
+        ]
+      },
+      {
+        "content": "",
+        "type": "column",
+        "icon": "1-column",
+        "uniqueId": "34382247-9d27-4538-8f59-6b721a146457",
+        "style": {
+          "color": "#ffffff",
+          "textAlign": "center",
+          "backgroundColor": "#000",
+          "marginTop": "1em",
+          "padding": "1.9em 1em",
+          "position": "fixed",
+          "bottom": "0",
+          "right": "0",
+          "width": "100%"
+        },
+        "children": [
+          [
+            {
+              "content": "",
+              "type": "column",
+              "icon": "1-column",
+              "uniqueId": "e476aa27-6fbd-4c8e-a610-6e6a0cc7efb5",
+              "style": {
+                "display": "flex",
+                "alignItems": "center",
+                "gap": "1em",
+                "justifyContent": "center"
+              },
+              "children": [
+                [
+                  {
+                    "content": "© 2025 OpeNext. All rights reserved.",
+                    "type": "text",
+                    "icon": "text",
+                    "uniqueId": "d181a9e0-7a44-48f4-906e-c169e31c4e32",
+                    "style": {
+                      "marginTop": "1em"
+                    }
+                  },
+                  {
+                    "content": "Powered By: openextcms.org",
+                    "type": "text",
+                    "icon": "text",
+                    "uniqueId": "1fe31197-f2a7-4350-a5d8-62d5b3fd19e2",
+                    "style": {
+                      "marginTop": "1em"
+                    }
+                  }
+                ]
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  ]
+}

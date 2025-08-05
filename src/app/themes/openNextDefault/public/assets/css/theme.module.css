@@ -1,0 +1,44 @@
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  width: 100%;
+  border-bottom: 1px solid var(--border-color);
+  background-color: rgba(var(--background-rgb), 0.95);
+  backdrop-filter: blur(10px);
+}
+
+.container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 4rem;
+  padding: 0 1.5rem;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.logoImage {
+  height: 2rem;
+  width: auto;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.button {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .button {
+    display: inline-flex;
+  }
+}
