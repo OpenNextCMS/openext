@@ -1,0 +1,829 @@
+{
+  "navigation": [
+    {
+      "name": "Overview",
+      "href": "#overview"
+    },
+    {
+      "name": "Key Features",
+      "href": "#features"
+    },
+    {
+      "name": "Installation Guide",
+      "href": "#installation"
+    },
+    {
+      "name": "Project Flow",
+      "href": "#flow"
+    },
+    {
+      "name": "Technology Stack",
+      "href": "#tech-stack"
+    },
+    {
+      "name": "Folder Structure",
+      "href": "#structure"
+    },
+    {
+      "name": "Package Info",
+      "href": "#packages"
+    },
+    {
+      "name": "API Reference",
+      "href": "#api-reference"
+    }
+  ],
+  "installation": {
+    "title": "Project Installation",
+    "description": "Step-by-step guide to set up and run OpenNext CMS on your local machine",
+    "requirements": [
+      "Node.js (v18 or higher) installed",
+      "NPM (comes with Node.js)",
+      "MongoDB (local or cloud instance)",
+      "Code editor (VS Code recommended)"
+    ],
+    "steps": [
+      {
+        "step": 1,
+        "title": "Download Project",
+        "content": "Download the project files from [demo@doc.com](mailto:demo@doc.com)"
+      },
+      {
+        "step": 2,
+        "title": "Unzip Files",
+        "content": "Extract the downloaded zip file to your preferred directory"
+      },
+      {
+        "step": 3,
+        "title": "Open Terminal",
+        "content": "Navigate to the project directory using your terminal or command prompt"
+      },
+      {
+        "step": 4,
+        "title": "Install Dependencies",
+        "content": "Run the following command to install all required packages:\n```bash\nnpm install\n```"
+      },
+      {
+        "step": 5,
+        "title": "Run Development Server",
+        "content": "Start the development server with:\n```bash\nnpm run dev\n```"
+      },
+      {
+        "step": 6,
+        "title": "Access Application",
+        "content": "Open your browser and visit:\n```\nhttp://localhost:3000\n```"
+      },
+      {
+        "step": 7,
+        "title": "Initial Setup",
+        "content": "Follow the on-screen instructions to complete the initial setup wizard"
+      }
+    ],
+    "troubleshooting": [
+      {
+        "issue": "Port 3000 already in use",
+        "solution": "Either stop the other process using port 3000 or change the port in `.env`:\n```env\nPORT=3001\n```"
+      },
+      {
+        "issue": "MongoDB connection failed",
+        "solution": "Ensure MongoDB is running and the connection string is correct"
+      },
+      {
+        "issue": "NPM install errors",
+        "solution": "Try deleting `node_modules` and `package-lock.json`, then run:\n```bash\nnpm cache clean --force\nnpm install\n```"
+      }
+    ]
+  },
+  "overview": {
+    "title": "OpenNext CMS Documentation",
+    "description": "OpenNext is a modern, self-hosted content management system built with Next.js, designed to provide a WordPress-like experience with cutting-edge web technologies. This open-source project allows users to easily install and run their own CMS on their servers, featuring a powerful drag-and-drop editor for seamless website creation and management. Built with scalability and developer experience in mind, OpenNext combines the flexibility of WordPress with the performance of modern web frameworks.",
+    "objectives": [
+      "Provide a WordPress-like CMS experience with modern web technologies",
+      "Enable one-click installation and setup process",
+      "Offer a powerful drag-and-drop editor for non-technical users",
+      "Support multi-user roles and permissions system",
+      "Provide secure user authentication with JWT and bcrypt",
+      "Enable dynamic content management with MongoDB",
+      "Support custom themes and plugins architecture",
+      "Offer RESTful API for headless CMS functionality",
+      "Provide real-time content preview during editing",
+      "Support multi-language content management",
+      "Enable easy media management and file uploads",
+      "Provide SEO optimization tools out of the box",
+      "Support responsive design for all devices",
+      "Offer scalable architecture for growing needs",
+      "Provide comprehensive documentation and developer tools"
+    ]
+  },
+  "features": [
+    {
+      "title": "Authentication System",
+      "content": "Secure user registration and login flow with MongoDB storage and JWT authentication, including password recovery and role-based access control"
+    },
+    {
+      "title": "Dynamic Site Creation",
+      "content": "On-the-fly database configuration and site initialization during user onboarding with automatic setup wizard"
+    },
+    {
+      "title": "User Management",
+      "content": "Comprehensive admin panel with user role management, profile customization, and activity tracking"
+    },
+    {
+      "title": "Content Management",
+      "content": "Advanced content editor with real-time preview, version control, and scheduled publishing"
+    },
+    {
+      "title": "Media Library",
+      "content": "Built-in media manager with support for images, videos, and documents, including drag-and-drop uploads"
+    },
+    {
+      "title": "SEO Optimization",
+      "content": "Built-in SEO tools including meta tags management, sitemap generation, and URL customization"
+    },
+    {
+      "title": "Multi-language Support",
+      "content": "Native support for multi-language content with automatic language detection and translation management"
+    },
+    {
+      "title": "Custom Themes",
+      "content": "Flexible theme system supporting custom designs and easy theme switching"
+    },
+    {
+      "title": "API Integration",
+      "content": "RESTful API for headless CMS functionality and third-party integrations"
+    },
+    {
+      "title": "Real-time Analytics",
+      "content": "Built-in analytics dashboard with real-time visitor tracking and performance metrics"
+    },
+    {
+      "title": "Backup & Restore",
+      "content": "Automated backup system with one-click restore functionality"
+    },
+    {
+      "title": "Responsive Design",
+      "content": "Fully responsive interface that works seamlessly across all devices"
+    },
+    {
+      "title": "Plugin System",
+      "content": "Extensible architecture supporting custom plugins and integrations"
+    },
+    {
+      "title": "E-commerce Ready",
+      "content": "Built-in e-commerce features including product management and payment gateway integration"
+    },
+    {
+      "title": "Security Features",
+      "content": "Advanced security measures including two-factor authentication, brute force protection, and activity monitoring"
+    }
+  ],
+  "projectFlow": {
+    "setup": [
+      "Language Selection",
+      "MongoDB Connection Configuration",
+      "Database Name Specification",
+      "Site Details & Admin Credentials",
+      "LocalStorage Temporary Storage",
+      "User Authentication Setup",
+      "Final Registration in MongoDB",
+      "Initial Login and Verification"
+    ],
+    "postLogin": [
+      "Dashboard Overview",
+      "Page Management Interface",
+      "Content Editor Access",
+      "Media Library Management",
+      "User Profile Configuration",
+      "Site Settings Configuration",
+      "Theme Selection and Customization",
+      "Plugin Management",
+      "SEO Configuration",
+      "Analytics Dashboard Access",
+      "Backup and Restore Options",
+      "E-commerce Setup (if enabled)",
+      "Multi-language Content Management"
+    ]
+  },
+  "techStack": [
+    {
+      "category": "Frontend",
+      "tech": "Next.js, React, Tailwind CSS, Tailwind Merge, Tailwind Animate, Framer Motion, Radix UI, Lucide Icons"
+    },
+    {
+      "category": "Backend",
+      "tech": "Next.js API Routes, Node.js, Express (via Next.js)"
+    },
+    {
+      "category": "Database",
+      "tech": "MongoDB, Mongoose"
+    },
+    {
+      "category": "Authentication",
+      "tech": "JWT, bcryptjs, js-cookie"
+    },
+    {
+      "category": "State Management",
+      "tech": "React Hook Form"
+    },
+    {
+      "category": "UI Components",
+      "tech": "Radix UI Primitives, Tailwind Variants, Class Variance Authority"
+    },
+    {
+      "category": "Drag & Drop",
+      "tech": "@dnd-kit (core, modifiers, sortable)"
+    },
+    {
+      "category": "Form Handling",
+      "tech": "React Hook Form, Zod (validation)"
+    },
+    {
+      "category": "Internationalization",
+      "tech": "i18next, i18next-resources-to-backend"
+    },
+    {
+      "category": "Utilities",
+      "tech": "clsx, uuid, moment-timezone, jszip, dotenv"
+    },
+    {
+      "category": "API Client",
+      "tech": "Axios, node-fetch"
+    },
+    {
+      "category": "Error Handling",
+      "tech": "React Hot Toast"
+    },
+    {
+      "category": "Testing",
+      "tech": "TypeScript, ESLint, Prettier"
+    },
+    {
+      "category": "Build Tools",
+      "tech": "PostCSS, Tailwind CSS"
+    }
+  ],
+  "packages": {
+    "lastUpdated": "2025-03-20",
+    "dependencies": [
+      {
+        "name": "@dnd-kit/core",
+        "dateAdded": "2025-03-20"
+      },
+      {
+        "name": "@dnd-kit/modifiers",
+        "dateAdded": "2025-03-20"
+      },
+      {
+        "name": "@dnd-kit/sortable",
+        "dateAdded": "2025-03-20"
+      },
+      {
+        "name": "@hookform/resolvers",
+        "dateAdded": "2025-03-20"
+      },
+      {
+        "name": "@radix-ui/react-avatar",
+        "dateAdded": "2025-03-20"
+      },
+      {
+        "name": "@radix-ui/react-collapsible",
+        "dateAdded": "2025-03-20"
+      },
+      {
+        "name": "@radix-ui/react-dialog",
+        "dateAdded": "2025-03-20"
+      },
+      {
+        "name": "@radix-ui/react-dropdown-menu",
+        "dateAdded": "2025-03-20"
+      },
+      {
+        "name": "@radix-ui/react-label",
+        "dateAdded": "2025-03-20"
+      },
+      {
+        "name": "@radix-ui/react-progress",
+        "dateAdded": "2025-03-20"
+      },
+      {
+        "name": "@radix-ui/react-scroll-area",
+        "dateAdded": "2025-03-20"
+      },
+      {
+        "name": "@radix-ui/react-select",
+        "dateAdded": "2025-03-20"
+      },
+      {
+        "name": "@radix-ui/react-separator",
+        "dateAdded": "2025-03-20"
+      },
+      {
+        "name": "@radix-ui/react-slot",
+        "dateAdded": "2025-03-20"
+      },
+      {
+        "name": "@radix-ui/react-switch",
+        "dateAdded": "2025-03-20"
+      },
+      {
+        "name": "@radix-ui/react-tabs",
+        "dateAdded": "2025-03-20"
+      },
+      {
+        "name": "@radix-ui/react-tooltip",
+        "dateAdded": "2025-03-20"
+      },
+      {
+        "name": "@tailwindcss/forms",
+        "dateAdded": "2025-03-20"
+      },
+      {
+        "name": "@types/js-cookie",
+        "dateAdded": "2025-03-20"
+      },
+      {
+        "name": "axios",
+        "dateAdded": "2025-03-20"
+      },
+      {
+        "name": "bcryptjs",
+        "dateAdded": "2025-03-20"
+      },
+      {
+        "name": "class-variance-authority",
+        "dateAdded": "2025-03-20"
+      },
+      {
+        "name": "clsx",
+        "dateAdded": "2025-03-20"
+      },
+      {
+        "name": "dotenv",
+        "dateAdded": "2025-03-20"
+      },
+      {
+        "name": "framer-motion",
+        "dateAdded": "2025-03-20"
+      },
+      {
+        "name": "i18next-resources-to-backend",
+        "dateAdded": "2025-03-20"
+      },
+      {
+        "name": "js-cookie",
+        "dateAdded": "2025-03-20"
+      },
+      {
+        "name": "jsonwebtoken",
+        "dateAdded": "2025-03-20"
+      },
+      {
+        "name": "jszip",
+        "dateAdded": "2025-03-20"
+      },
+      {
+        "name": "jwt-decode",
+        "dateAdded": "2025-03-20"
+      },
+      {
+        "name": "lucide-react",
+        "dateAdded": "2025-03-20"
+      },
+      {
+        "name": "moment-timezone",
+        "dateAdded": "2025-03-20"
+      },
+      {
+        "name": "mongodb",
+        "dateAdded": "2025-03-20"
+      },
+      {
+        "name": "mongoose",
+        "dateAdded": "2025-03-20"
+      },
+      {
+        "name": "next",
+        "dateAdded": "2025-03-20"
+      },
+      {
+        "name": "next-themes",
+        "dateAdded": "2025-03-20"
+      },
+      {
+        "name": "node-fetch",
+        "dateAdded": "2025-03-20"
+      },
+      {
+        "name": "path",
+        "dateAdded": "2025-03-20"
+      },
+      {
+        "name": "react",
+        "dateAdded": "2025-03-20"
+      },
+      {
+        "name": "react-dom",
+        "dateAdded": "2025-03-20"
+      },
+      {
+        "name": "react-dropzone",
+        "dateAdded": "2025-03-20"
+      },
+      {
+        "name": "react-hook-form",
+        "dateAdded": "2025-03-20"
+      },
+      {
+        "name": "react-hot-toast",
+        "dateAdded": "2025-03-20"
+      },
+      {
+        "name": "react-resizable-panels",
+        "dateAdded": "2025-03-20"
+      },
+      {
+        "name": "recharts",
+        "dateAdded": "2025-03-20"
+      },
+      {
+        "name": "tailwind-merge",
+        "dateAdded": "2025-03-20"
+      },
+      {
+        "name": "tailwindcss-animate",
+        "dateAdded": "2025-03-20"
+      },
+      {
+        "name": "uuid",
+        "dateAdded": "2025-03-20"
+      },
+      {
+        "name": "zod",
+        "dateAdded": "2025-03-20"
+      }
+    ],
+    "devDependencies": [
+      {
+        "name": "@eslint/eslintrc",
+        "dateAdded": "2025-03-20"
+      },
+      {
+        "name": "@types/adm-zip",
+        "dateAdded": "2025-03-20"
+      },
+      {
+        "name": "@types/bcryptjs",
+        "dateAdded": "2025-03-20"
+      },
+      {
+        "name": "@types/jsonwebtoken",
+        "dateAdded": "2025-03-20"
+      },
+      {
+        "name": "@types/node",
+        "dateAdded": "2025-03-20"
+      },
+      {
+        "name": "@types/react",
+        "dateAdded": "2025-03-20"
+      },
+      {
+        "name": "@types/react-dom",
+        "dateAdded": "2025-03-20"
+      },
+      {
+        "name": "eslint",
+        "dateAdded": "2025-03-20"
+      },
+      {
+        "name": "eslint-config-next",
+        "dateAdded": "2025-03-20"
+      },
+      {
+        "name": "eslint-config-prettier",
+        "dateAdded": "2025-03-20"
+      },
+      {
+        "name": "eslint-plugin-prettier",
+        "dateAdded": "2025-03-20"
+      },
+      {
+        "name": "postcss",
+        "dateAdded": "2025-03-20"
+      },
+      {
+        "name": "prettier",
+        "dateAdded": "2025-03-20"
+      },
+      {
+        "name": "tailwindcss",
+        "dateAdded": "2025-03-20"
+      },
+      {
+        "name": "typescript",
+        "dateAdded": "2025-03-20"
+      },
+      {
+        "name": "eslint",
+        "dateAdded": "2025-03-21"
+      },
+      {
+        "name": "@typescript-eslint/parser",
+        "dateAdded": "2025-03-21"
+      },
+      {
+        "name": "@typescript-eslint/eslint-plugin",
+        "dateAdded": "2025-03-21"
+      },
+      {
+        "name": "eslint-plugin-react",
+        "dateAdded": "2025-03-21"
+      },
+      {
+        "name": "eslint-plugin-react-hooks",
+        "dateAdded": "2025-03-21"
+      },
+      {
+        "name": "eslint-config-next",
+        "dateAdded": "2025-03-21"
+      },
+      {
+        "name": "prettier",
+        "dateAdded": "2025-03-21"
+      },
+      {
+        "name": "eslint-config-prettier",
+        "dateAdded": "2025-03-21"
+      },
+      {
+        "name": "eslint-plugin-prettier",
+        "dateAdded": "2025-03-21"
+      },
+      {
+        "name": "sonarqube-scanner",
+        "dateAdded": "2025-03-21"
+      },
+      {
+        "name": "sonarjs",
+        "dateAdded": "2025-03-21"
+      }
+    ]
+  },
+  "apiCategories": [
+    {
+      "title": "Authentication APIs",
+      "color": "text-blue-600",
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/api/auth/setup-databases",
+          "description": "Sets up separate databases for users and pages",
+          "apiNumber": 1,
+          "color": "blue",
+          "request": {
+            "userDbName": "DB-User01",
+            "pageDbName": "DB-Page01",
+            "mongodbCredentials": {
+              "username": "yourUsername",
+              "password": "yourPassword",
+              "host": "yourMongoHost",
+              "cluster": "Cluster0"
+            }
+          },
+          "response": {
+            "success": true,
+            "message": "Operation successful",
+            "data": "Databases setup successful...",
+            "status": 200
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/verify-mongodb",
+          "description": "Verifies MongoDB connection",
+          "apiNumber": 2,
+          "color": "blue",
+          "request": {
+            "mongodbUrl": "mongodb+srv://username:password@cluster.mongodb.net/..."
+          },
+          "response": {
+            "success": true,
+            "message": "MongoDB connection successful",
+            "status": 200
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/admin",
+          "description": "Registers new admin user",
+          "apiNumber": 3,
+          "color": "blue",
+          "request": {
+            "mongodbCredentials": {},
+            "userDbName": "users",
+            "pageDbName": "pages",
+            "siteTitle": "Next-Press",
+            "username": "ashimdevnath",
+            "name": "Ashim",
+            "email": "ashimdevnath@gmail.com",
+            "password": "@$Him0021",
+            "phoneNo": "9574449365"
+          },
+          "response": {
+            "success": true,
+            "message": "Registration successful",
+            "data": {},
+            "isRegistration": "successful"
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/login",
+          "description": "User authentication",
+          "apiNumber": 4,
+          "color": "blue",
+          "request": {
+            "email": "ashimdevnath@gmail.com",
+            "password": "@$Him0021"
+          },
+          "response": {
+            "success": true,
+            "user": {}
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/logout",
+          "description": "Terminates user session",
+          "apiNumber": 5,
+          "color": "blue",
+          "response": {
+            "success": true,
+            "message": "Logged out"
+          }
+        }
+      ]
+    },
+    {
+      "title": "Content Management APIs",
+      "color": "text-green-600",
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/api/dashboard/profile/upload",
+          "description": "Handles file uploads",
+          "apiNumber": 6,
+          "color": "green",
+          "request": "Form Data:\nprofileImage: [File]",
+          "response": {
+            "success": true,
+            "message": "Profile Image Uploaded Successfully"
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/sub-users/add-users",
+          "description": "Creates new user",
+          "apiNumber": 7,
+          "color": "green",
+          "request": {
+            "userData": {
+              "username": "ashim",
+              "name": "Ashim Devnath",
+              "email": "ashim@gmail.com",
+              "password": "sd@ds5fd6",
+              "role": "Editor",
+              "phoneNumber": "8956255635"
+            }
+          },
+          "response": {
+            "success": true,
+            "message": "User Created"
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/sub-users/get-users",
+          "description": "Retrieves user list",
+          "apiNumber": 8,
+          "color": "green",
+          "response": {
+            "success": true,
+            "message": "Users Fetched",
+            "data": []
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/dashboard/settings/siteicon",
+          "description": "Uploads a site icon image",
+          "apiNumber": 9,
+          "color": "green",
+          "request": "Form Data:\nsiteIcon: [Image File]",
+          "response": {
+            "success": true,
+            "message": "Siteicon Uploaded"
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/themes/upload",
+          "description": "Uploads theme files in ZIP format",
+          "apiNumber": 10,
+          "color": "green",
+          "request": "Form Data:\nthemes: [ZIP File]",
+          "response": {
+            "success": true,
+            "message": "Themes Uploaded Successfully"
+          }
+        }
+      ]
+    },
+    {
+      "title": "System APIs",
+      "color": "text-purple-600",
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/api/verify-connection",
+          "description": "Checks database connections",
+          "apiNumber": 11,
+          "color": "purple",
+          "response": {
+            "success": true,
+            "message": "Database connections OK"
+          }
+        },
+        {
+          "method": "PUT",
+          "path": "/api/dashboard/settings",
+          "description": "Updates system settings",
+          "apiNumber": 12,
+          "color": "purple",
+          "request": {
+            "siteTitle": "Ecommerce Website",
+            "tagline": "Example Tagline",
+            "siteIcon": "siteIcon.jpg",
+            "language": "en",
+            "timeZone": "US/Pacific"
+          },
+          "response": {
+            "success": true,
+            "message": "Settings Updated Successfully"
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/clear-cookies",
+          "description": "Clears user authentication cookies",
+          "apiNumber": 13,
+          "color": "purple",
+          "response": {
+            "success": true,
+            "message": "Cookies Cleared"
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/dashboard/profile",
+          "description": "Updates user profile details",
+          "apiNumber": 14,
+          "color": "purple",
+          "request": {
+            "requestedData": {
+              "username": "ashim",
+              "email": "ashim@gmail.com",
+              "firstName": "ashim",
+              "lastName": "devnath",
+              "nickName": "ashim",
+              "displayName": "ashim-325",
+              "website": "My Website",
+              "bio": "I am a new user. I am a website developer"
+            }
+          },
+          "response": {
+            "success": true,
+            "message": "Profile Updated Successfully"
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/api/get-role",
+          "description": "Retrieves available user roles",
+          "apiNumber": 15,
+          "color": "purple",
+          "response": {
+            "success": true,
+            "message": "Roles Fetched Successfully",
+            "data": {
+              "SuperAdmin": "0",
+              "Admin": "1",
+              "Editor": "2",
+              "Author": "3"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

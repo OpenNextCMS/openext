@@ -1,0 +1,122 @@
+.main {
+  flex: 1;
+}
+
+/* Hero Section */
+.heroSection {
+  position: relative;
+  padding: 4.5rem 0;
+}
+
+.container {
+  padding: 0 1.5rem;
+}
+
+.heroContent {
+  max-width: 58rem;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1rem;
+}
+
+.heroTitle {
+  font-size: 3rem;
+  font-weight: bold;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+}
+
+.heroSubtitle {
+  max-width: 42rem;
+  font-size: 1rem;
+  color: var(--muted-foreground);
+}
+
+.heroSubtitle .highlight {
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+.buttonGroup {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.button {
+  height: 3rem;
+  padding: 0 1.5rem;
+}
+
+/* Features Section */
+.featuresSection {
+  padding: 1rem 0;
+}
+
+.featuresGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+  max-width: 80rem;
+  margin: 0 auto;
+}
+
+.card {
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(181, 181, 181, 0.344);
+  border-radius: 12px;
+}
+
+.card:hover {
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.cardHeader {
+  padding-bottom: 0.5rem;
+}
+
+.iconContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 3rem;
+  width: 3rem;
+  margin-bottom: 1rem;
+  border-radius: 0.5rem;
+  background-color: rgba(var(--primary-rgb), 0.1);
+  color: var(--primary);
+}
+
+.icon {
+  height: 1.5rem;
+  width: 1.5rem;
+}
+
+.cardTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.25rem;
+}
+
+.arrowIcon {
+  height: 1rem;
+  width: 1rem;
+  opacity: 0.5;
+  transition: transform 0.2s ease;
+}
+
+.card:hover .arrowIcon {
+  transform: translate(4px, -4px);
+}
+
+.cardDescription {
+  font-size: 1rem;
+}

@@ -1,0 +1,11 @@
+
+> nextpress@0.1.0 build
+> next build
+
+   ▲ Next.js 15.2.2
+   - Environments: .env.local
+
+   Creating an optimized production build ...
+uncaughtException [Error: kill EPERM] { errno: -4048, code: 'EPERM', syscall: 'kill' }
+Terminate batch job (Y/N)? 
+^CThe system cannot open the device or file specified.
