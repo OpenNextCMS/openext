@@ -13,8 +13,18 @@ import Toolbar from './toolbar';
 import StatusBar from './status-bar';
 import { Suspense } from 'react';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
-import { addBlock, addBlockToColumn, setCanvasState } from '@/redux/canvasSlice';
+import {
+  addBlock,
+  addBlockToColumn,
+  moveBlock,
+  moveBlockToColumn,
+  moveRowColumn,
+  setCanvasState,
+} from '@/redux/canvasSlice';
 import { BlockDragData, Block } from '@/types/index';
+import { safeStorageGet } from '@/utils/safeStorage';
+
+type EditableBlockType = Block['type'];
 
 // Define action creator for setViewMode
 const setViewMode = (mode: 'desktop' | 'tablet' | 'mobile') => ({
@@ -27,7 +37,29 @@ interface DroppableData {
   type?: string;
   blockId?: string;
   columnIndex?: number;
+  source?: string;
 }
+
+const editableBlockTypes: EditableBlockType[] = [
+  'text',
+  'column',
+  'row',
+  'hero',
+  'stats',
+  'progress',
+  'countdown',
+  'button',
+  'icon',
+  'image',
+  'card',
+  'shape-divider',
+];
+
+const getEditableBlockType = (type?: string): EditableBlockType => {
+  return editableBlockTypes.includes(type as EditableBlockType)
+    ? (type as EditableBlockType)
+    : 'text';
+};
 
 export default function Editor() {
   const [showLeftSidebar, setShowLeftSidebar] = useState(true);
@@ -37,8 +69,7 @@ export default function Editor() {
   const dispatch = useAppDispatch();
   const canvasBlocks = useAppSelector((state) => state.canvas.blocks);
   const viewMode = useAppSelector((state) => state.canvas.viewMode);
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
-
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
 
   useEffect(() => {
     const getDBPageData = async () => {
@@ -48,11 +79,17 @@ export default function Editor() {
       const pageName = urlParams.get('pagename') || 'default';
 
       const persistKey = `persist:root-${pageName}`;
-      const existing = localStorage.getItem(persistKey);
+      const existing = safeStorageGet(persistKey);
       if (existing) return; // Already persisted, don't overwrite
 
       try {
-        const response = await fetch(`${backendUrl}/api/pages/get-page?name=${pageName}&key=allowMe`);
+        const response = await fetch(
+          `${backendUrl}/api/pages/get-page?name=${pageName}&key=allowMe`,
+          {
+            cache: 'no-store',
+            credentials: 'include',
+          }
+        );
         if (!response.ok) {
           console.error('Failed to fetch page data');
           return;
@@ -106,30 +143,74 @@ export default function Editor() {
     const blockData = active.data.current as BlockDragData;
     const overData = over.data.current as DroppableData;
 
+    if (blockData?.source === 'canvas-block') {
+      const activeId = String(active.id);
+      const overId = String(over.id);
+
+      if (activeId !== overId) {
+        dispatch(moveBlock({ activeId, overId }));
+      }
+
+      return;
+    }
+
+    if (blockData?.source === 'existing-block') {
+      if (overData?.type === 'column' && overData.blockId !== blockData.blockId) {
+        dispatch(
+          moveBlockToColumn({
+            activeId: String(active.id),
+            targetBlockId: overData.blockId || '',
+            columnIndex: overData.columnIndex || 0,
+          })
+        );
+      }
+
+      return;
+    }
+
+    if (blockData?.source === 'row-column') {
+      if (overData?.type === 'column' && blockData.rowBlockId && overData.blockId) {
+        dispatch(
+          moveRowColumn({
+            sourceRowBlockId: blockData.rowBlockId,
+            sourceColumnIndex: blockData.columnIndex || 0,
+            targetRowBlockId: overData.blockId,
+            targetColumnIndex: overData.columnIndex || 0,
+          })
+        );
+      }
+
+      return;
+    }
+
     if (over.id === 'canvas') {
       console.log('Adding new block to canvas root');
 
       const newBlock = {
         content: blockData?.content || '',
-        type:
-          blockData?.type === 'text' || blockData?.type === 'column'
-            ? (blockData.type as 'text' | 'column')
-            : 'text',
-        icon: blockData?.id || 'defaultIcon',
+        type: getEditableBlockType(blockData?.type),
+        icon:
+          blockData?.type === 'icon'
+            ? blockData?.content || 'sparkles'
+            : typeof blockData?.icon === 'string'
+              ? blockData.icon
+              : undefined,
         uniqueId: uuidv4(),
         style: typeof blockData?.style === 'object' ? blockData.style : undefined,
-        // Add children for column blocks
-        ...(blockData?.type === 'column' // Compare the actual string value
+        // Add children for container blocks
+        ...(blockData?.type === 'column' || blockData?.type === 'row'
           ? {
-            children:
-              blockData.id === '1-column'
-                ? [[]]
-                : blockData.id === '2-column'
-                  ? [[], []]
-                  : blockData.id === '3-column'
-                    ? [[], [], []]
-                    : [],
-          }
+              children:
+                blockData.id === '1-column'
+                  ? [[]]
+                  : blockData.id === '2-column'
+                    ? [[], []]
+                    : blockData.id === '3-column'
+                      ? [[], [], []]
+                      : blockData.id === 'row'
+                        ? [[], []]
+                        : [],
+            }
           : {}),
       };
 
@@ -145,26 +226,30 @@ export default function Editor() {
 
       const blockData = {
         ...activeData,
-        icon: activeData?.id || 'defaultIcon',
+        icon:
+          activeData?.type === 'icon'
+            ? activeData?.content || 'sparkles'
+            : typeof activeData?.icon === 'string'
+              ? activeData.icon
+              : undefined,
         content: activeData?.content || '',
-        type:
-          activeData?.type === 'text' || activeData?.type === 'column'
-            ? (activeData.type as 'text' | 'column')
-            : 'text',
+        type: getEditableBlockType(activeData?.type),
         style: typeof activeData?.style === 'object' ? activeData.style : undefined,
         uniqueId: uuidv4(),
         // Add children for column blocks
-        ...(activeData?.type === 'column'
+        ...(activeData?.type === 'column' || activeData?.type === 'row'
           ? {
-            children:
-              activeData.id === '1-column'
-                ? [[]]
-                : activeData.id === '2-column'
-                  ? [[], []]
-                  : activeData.id === '3-column'
-                    ? [[], [], []]
-                    : [],
-          }
+              children:
+                activeData.id === '1-column'
+                  ? [[]]
+                  : activeData.id === '2-column'
+                    ? [[], []]
+                    : activeData.id === '3-column'
+                      ? [[], [], []]
+                      : activeData.id === 'row'
+                        ? [[], []]
+                        : [],
+            }
           : {}),
       };
 

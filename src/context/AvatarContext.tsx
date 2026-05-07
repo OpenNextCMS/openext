@@ -1,11 +1,12 @@
 'use client';
 
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
+import { safeStorageGet, safeStorageRemove, safeStorageSet } from '@/utils/safeStorage';
 
 // Define the shape of the context value
 interface AvatarContextType {
   avatarUrl: string | null;
-  setAvatarUrl: (url: string) => void;
+  setAvatarUrl: (url: string | null) => void;
 }
 
 // Create Context with a default value
@@ -21,15 +22,19 @@ export const AvatarProvider = ({ children }: { children: ReactNode }) => {
 
   // Effect to fetch avatar URL from localStorage when the component mounts
   useEffect(() => {
-    const savedAvatar = localStorage.getItem('avatarUrl');
+    const savedAvatar = safeStorageGet('avatarUrl');
     if (savedAvatar) {
       setAvatarUrl(savedAvatar);
     }
   }, []);
 
-  const handleSetAvatarUrl = (url: string) => {
+  const handleSetAvatarUrl = (url: string | null) => {
     setAvatarUrl(url);
-    localStorage.setItem('avatarUrl', url); // Save to localStorage
+    if (url) {
+      safeStorageSet('avatarUrl', url);
+    } else {
+      safeStorageRemove('avatarUrl');
+    }
   };
 
   return (

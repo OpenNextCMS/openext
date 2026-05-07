@@ -3,21 +3,25 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Palette, Sliders } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useAppSelector } from '@/redux/hooks';
+import { useAppDispatch, useAppSelector } from '@/redux/hooks';
+import { updateSelectedBlockStyles } from '@/redux/canvasSlice';
 import Spacing from './Right-Sidebar/Style/spacing';
 import Display from './Right-Sidebar/Style/display';
 import Background from './Right-Sidebar/Style/background';
 import Size from './Right-Sidebar/Style/size';
 import Typography from './Right-Sidebar/Style/typography';
 import Border from './Right-Sidebar/Style/border';
+import Hover from './Right-Sidebar/Style/hover';
 import Effects from './Right-Sidebar/Style/effect';
 import Position from './Right-Sidebar/Style/position';
 import ElementProperties from './Right-Sidebar/properties/element-properties';
 import Accessibility from './Right-Sidebar/properties/accessibility';
 import CustomAttributes from './Right-Sidebar/properties/custom-attributes';
 import Events from './Right-Sidebar/properties/events';
+import { safeStorageSet } from '@/utils/safeStorage';
 
 export default function RightSidebar() {
+  const dispatch = useAppDispatch();
   const [positionOpen, setPositionOpen] = useState(false);
   const [spacingOpen, setSpacingOpen] = useState(false);
   const [displayOpen, setDisplayOpen] = useState(false);
@@ -35,13 +39,12 @@ export default function RightSidebar() {
   };
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('margin', JSON.stringify(margin));
-    }
+    safeStorageSet('margin', JSON.stringify(margin));
   }, [margin]);
 
   const displayChanges = (value: string) => {
     setDisplayFlex(value === 'flex');
+    dispatch(updateSelectedBlockStyles({ display: value }));
   };
 
   return (
@@ -83,6 +86,7 @@ export default function RightSidebar() {
             <Size />
             <Typography />
             <Border />
+            <Hover />
             <Effects />
             <Position
               positionOpen={positionOpen}

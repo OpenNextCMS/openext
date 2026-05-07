@@ -20,8 +20,8 @@ export default function Blocks({ toggleSidebar }: BlockProps) {
   const getFilteredBlocks = (blocks: Block[]): Block[] => {
     return blocks.filter(
       (block) =>
-        block.label.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        block.description.toLowerCase().includes(searchTerm.toLowerCase())
+        (block.label || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (block.description || '').toLowerCase().includes(searchTerm.toLowerCase())
     );
   };
 

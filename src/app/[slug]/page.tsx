@@ -1,5 +1,4 @@
 // src/app/[slug]/page.tsx
-
 import { notFound } from 'next/navigation';
 import { BlockData } from '@/types';
 import PageClientWrapper from '@/components/PageClientWrapper';
@@ -20,7 +19,9 @@ async function getPageData(slug: string): Promise<{ blocks: BlockData[] } | null
   try {
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
 
-    const res = await fetch(`${backendUrl}/api/pages/get-page?name=${slug}&key=allowMe`);
+    const res = await fetch(`${backendUrl}/api/pages/get-page?name=${slug}&key=allowMe`, {
+      cache: 'no-store',
+    });
 
     if (!res.ok) return null;
 
@@ -50,7 +51,11 @@ export default async function Page({ params }: PageProps) {
 
   return (
     <PageClientWrapper>
-      {pageData.blocks.map((block) => renderFromJson(block as BlockData))}
+      <main className="min-h-screen bg-gray-50 dark:bg-black p-8">
+        <div className="max-w-screen-xl mx-auto space-y-4">
+          {pageData.blocks.map((block) => renderFromJson(block as BlockData))}
+        </div>
+      </main>
     </PageClientWrapper>
   );
 }

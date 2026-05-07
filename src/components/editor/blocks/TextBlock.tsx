@@ -8,9 +8,12 @@ import {
   setSelectedLabel,
   setSelectedValue,
   setSelectedBlock,
+  updateBlockContent,
 } from '@/redux/canvasSlice';
 import { useState } from 'react';
 import type { BlockData } from '@/types/index';
+import { useBlockEvents } from '@/hooks/useBlockEvents';
+import { renderSelectedIcon } from '@/components/editor/data/iconOptions';
 
 const getIconForBlock = (icon?: string) => {
   switch (icon) {
@@ -26,6 +29,20 @@ const getIconForBlock = (icon?: string) => {
 export const TextBlock = ({ block, isEditing = true }: BlockRendererProps) => {
   const dispatch = useAppDispatch();
   const [isHovered, setIsHovered] = useState(false);
+  const { handleClick } = useBlockEvents(block as BlockData, isEditing);
+  const blockDisplay = (block.style?.display as string) || 'block';
+  const isInlineDisplay = blockDisplay === 'inline' || blockDisplay === 'inline-block';
+  const textAlign = (block.style?.textAlign as React.CSSProperties['textAlign']) || 'left';
+  const justifyContent =
+    textAlign === 'center' ? 'center' : textAlign === 'right' ? 'flex-end' : 'flex-start';
+  const { margin, display, width, maxWidth, minWidth, ...restStyle } = block.style || {};
+  const hasCustomWidth = Boolean(width && width !== 'auto' && width !== '100%');
+  const defaultMargin =
+    textAlign === 'center' && hasCustomWidth ? '0 auto 1rem auto' : '0 0 1rem 0';
+  const selectedIcon = renderSelectedIcon(
+    typeof block.icon === 'string' ? block.icon : undefined,
+    'h-4 w-4'
+  );
 
   const handleRemove = () => {
     dispatch(removeBlock(block.uniqueId ?? ''));
@@ -41,9 +58,32 @@ export const TextBlock = ({ block, isEditing = true }: BlockRendererProps) => {
     }
   };
 
+  const handleSelect = (e: React.MouseEvent) => {
+    e.stopPropagation();
+
+    handleClick(e);
+
+    if (!isEditing) return;
+    dispatch(setSelectedLabel('Text Block'));
+    dispatch(setSelectedBlock(block as BlockData));
+  };
+
   return (
     <div
-      style={{ position: 'relative', marginBottom: '1rem' }}
+      style={{
+        position: 'relative',
+        display: isInlineDisplay
+          ? 'inline-block'
+          : (display as React.CSSProperties['display']) || 'block',
+        width: isInlineDisplay ? width || 'auto' : width || '100%',
+        maxWidth,
+        minWidth,
+        margin: isInlineDisplay ? '0' : (margin as React.CSSProperties['margin']) || defaultMargin,
+        verticalAlign: isInlineDisplay ? 'baseline' : undefined,
+        ...restStyle,
+        border: isHovered ? '1px solid rgb(252, 252, 252)' : block.style?.border || 'none',
+      }}
+      onClick={handleSelect}
       onMouseEnter={() => {
         if (!isEditing) return;
         setIsHovered(true);
@@ -131,11 +171,38 @@ export const TextBlock = ({ block, isEditing = true }: BlockRendererProps) => {
 
       <div
         style={{
-          ...block.style,
-          border: isHovered ? '1px solid rgb(252, 252, 252)' : block.style?.border || 'none',
+          width: isInlineDisplay ? 'auto' : '100%',
+          height: '100%',
+          outline: isEditing ? 'none' : 'inherit',
+          cursor: isEditing ? 'text' : block.events?.onClick === 'none' ? 'default' : 'pointer',
+          display: isInlineDisplay ? 'inline-flex' : 'flex',
+          alignItems: 'center',
+          justifyContent,
+          gap: '8px',
+          whiteSpace: isInlineDisplay ? 'normal' : 'inherit',
+          textAlign,
         }}
       >
-        {block.content}
+        {selectedIcon && <span>{selectedIcon}</span>}
+        <div
+          contentEditable={isEditing}
+          suppressContentEditableWarning={true}
+          onBlur={(e) => {
+            if (isEditing) {
+              dispatch(
+                updateBlockContent({ id: block.uniqueId ?? '', content: e.currentTarget.innerText })
+              );
+            }
+          }}
+          style={{
+            flex: isInlineDisplay ? '0 1 auto' : 1,
+            outline: 'none',
+            width: isInlineDisplay ? 'auto' : '100%',
+            textAlign,
+          }}
+        >
+          {block.content}
+        </div>
       </div>
     </div>
   );

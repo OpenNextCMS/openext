@@ -54,6 +54,7 @@ export default function PageManagement() {
     try {
       const response = await fetch(`${backendUrl}/api/pages/get-pages`, {
         credentials: 'include',
+        cache: 'no-store',
       });
       if (!response.ok) throw new Error('Failed to fetch pages');
       const data = await response.json();

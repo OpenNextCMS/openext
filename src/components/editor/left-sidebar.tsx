@@ -22,12 +22,14 @@ export default function LeftSidebar() {
   const [openPage, setOpenPage] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
 
   const fetchPageById = useCallback(async () => {
     try {
-      const response = await fetch(`${backendUrl}/api/pages/get-pages`);
-      if (!response.ok) throw new Error('Failed to fetch pages');
+      const response = await fetch(`${backendUrl}/api/pages/get-pages`, {
+        credentials: 'include',
+      });
+      if (!response.ok) throw new Error(`Failed to fetch pages: ${response.status}`);
       const data = await response.json();
 
       if (data?.pages?.length) {
@@ -81,9 +83,7 @@ export default function LeftSidebar() {
 
       if (currentHomePages.length > 0) {
         const previousSlug = currentHomePages.map((p) => p.slug).join(', ');
-        toast.error(
-          `Home Page is being changed from "${previousSlug}" to "${formData.slug}"`
-        );
+        toast.error(`Home Page is being changed from "${previousSlug}" to "${formData.slug}"`);
       }
     }
   };
@@ -96,6 +96,7 @@ export default function LeftSidebar() {
       setIsSaving(true);
       const response = await fetch(`${backendUrl}/api/pages/update-page`, {
         method: 'PATCH',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -119,6 +120,7 @@ export default function LeftSidebar() {
       if (formData.isHome) {
         const updateEnv = await fetch(`${backendUrl}/api/env-connection`, {
           method: 'POST',
+          credentials: 'include',
           headers: {
             'Content-Type': 'application/json',
           },
@@ -140,14 +142,9 @@ export default function LeftSidebar() {
     }
   };
 
-
   return (
     <div className="flex h-full flex-col bg-white dark:bg-black border-r w-full max-w-[300px]">
-      <Toaster
-        position="top-right"
-        richColors
-        theme="dark"
-      />
+      <Toaster position="top-right" richColors theme="dark" />
       {openPage ? (
         <div className="flex flex-col h-full">
           <div className="flex items-center justify-between p-4 border-b">

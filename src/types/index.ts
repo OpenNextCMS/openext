@@ -1,5 +1,5 @@
 // src/types/index.ts
-import { ReactNode } from 'react';
+import { CSSProperties, ReactNode } from 'react';
 import { Document, Types } from 'mongoose';
 
 export interface MongoDBConfig {
@@ -120,22 +120,44 @@ export interface ApiEndpointProps {
 }
 export type ColumnChild = Block[];
 export interface Block {
-  id: string;
-  label: string;
-  type: 'column' | 'text';
+  id?: string;
+  label?: string;
+  type:
+    | 'column'
+    | 'text'
+    | 'hero'
+    | 'stats'
+    | 'progress'
+    | 'countdown'
+    | 'button'
+    | 'row'
+    | 'icon'
+    | 'image'
+    | 'card'
+    | 'shape-divider';
   children?: ColumnChild[]; // Updated type for children
   content?: string;
-  icon: ReactNode;
-  description: string;
+  icon?: ReactNode | string;
+  description?: string;
   uniqueId?: string;
-  style?: Record<string, string>;
+  style?: CSSProperties;
+  hoverStyle?: CSSProperties;
+  events?: {
+    onClick?: string;
+    onClickValue?: string;
+  };
 }
 
 export interface BlockDragData {
   id?: string;
   type?: string;
   content?: string;
-  style?: Record<string, string> | string;
+  icon?: ReactNode | string;
+  style?: CSSProperties | string;
+  source?: string;
+  blockId?: string;
+  rowBlockId?: string;
+  columnIndex?: number;
   // Add other properties that might be needed during drag operations
 }
 
@@ -201,10 +223,27 @@ export interface ISettingsDocument extends Document {
 export interface BlockData {
   uniqueId: string;
   content: string;
-  type: 'column' | 'text';
+  type:
+    | 'column'
+    | 'text'
+    | 'hero'
+    | 'stats'
+    | 'progress'
+    | 'countdown'
+    | 'button'
+    | 'row'
+    | 'icon'
+    | 'image'
+    | 'card'
+    | 'shape-divider';
   children?: BlockData[][];
   style?: React.CSSProperties;
+  hoverStyle?: React.CSSProperties;
   icon?: string;
+  events?: {
+    onClick?: string;
+    onClickValue?: string;
+  };
 }
 
 export interface CanvasState {

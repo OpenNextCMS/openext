@@ -8,12 +8,23 @@ import { useAvatar } from '@/context/AvatarContext';
 import { ThemeToggle } from './ThemeToggle';
 import { handleSuccess } from '@/utils/successHandler';
 
+const getAvatarSrc = (avatarUrl: string | null) => {
+  if (!avatarUrl || avatarUrl === 'null' || avatarUrl === 'undefined') {
+    return null;
+  }
+
+  return avatarUrl.startsWith('/') || avatarUrl.startsWith('http')
+    ? avatarUrl
+    : `/${avatarUrl}`;
+};
+
 export default function Navbar({ user }: { user: { username: string; email: string } | null }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { avatarUrl } = useAvatar();
   const router = useRouter();
   const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
+  const avatarSrc = getAvatarSrc(avatarUrl);
 
   const navigateTo = (path: string) => {
     router.push(path);
@@ -65,13 +76,9 @@ export default function Navbar({ user }: { user: { username: string; email: stri
               className="w-8 h-8 rounded-full overflow-hidden bg-primary flex items-center justify-center cursor-pointer"
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             >
-              {avatarUrl && avatarUrl !== 'null' && avatarUrl !== 'undefined' ? (
+              {avatarSrc ? (
                 <Image
-                  src={
-                    avatarUrl.startsWith('/') || avatarUrl.startsWith('http')
-                      ? avatarUrl
-                      : `/${avatarUrl}`
-                  }
+                  src={avatarSrc}
                   alt="Profile"
                   className="w-full h-full object-cover"
                   width={32}

@@ -4,13 +4,25 @@ import { CSS } from '@dnd-kit/utilities';
 import { v4 as uuidv4 } from 'uuid';
 
 interface Block {
-  id: string;
-  label: string;
-  type: 'column' | 'text';
+  id?: string;
+  label?: string;
+  type:
+    | 'column'
+    | 'text'
+    | 'hero'
+    | 'stats'
+    | 'progress'
+    | 'countdown'
+    | 'button'
+    | 'row'
+    | 'icon'
+    | 'image'
+    | 'card'
+    | 'shape-divider';
   uniqueId: string;
   content?: string;
   icon?: React.ReactNode | string;
-  style?: Record<string, string>;
+  style?: React.CSSProperties;
   description?: string;
   children?: unknown[];
 }
@@ -47,7 +59,7 @@ const DraggableBlock = ({ block }: { block: Block }) => {
       {block.icon && typeof block.icon === 'object' && <span className="mr-2">{block.icon}</span>}
 
       {/* Render block label */}
-      <span className="truncate text-sm">{block.label}</span>
+      <span className="truncate text-sm">{block.label || 'Block'}</span>
     </div>
   );
 };

@@ -1,11 +1,11 @@
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
 import type { RegisterInput } from './authValidation';
 import mongoose from 'mongoose';
 import { IUser } from '@/models/User';
 import { ISettings, settingsSchema } from '@/models/Settings';
 import { roleSchema } from '@/models/Role';
 import dotenv from 'dotenv';
+import { signJwt } from '@/utils/jwt';
 
 dotenv.config({ path: '.env' });
 
@@ -108,15 +108,14 @@ export class AuthService {
         return { error: 'Invalid password' };
       }
 
-      const token = jwt.sign(
+      const token = signJwt(
         {
           userId: user._id,
           email: user.email,
           username: user.username,
           role: user.role,
         },
-        AuthService.JWT_SECRET,
-        { expiresIn: '24h' }
+        AuthService.JWT_SECRET
       );
 
       return {

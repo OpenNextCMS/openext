@@ -48,7 +48,65 @@ export async function POST(req: NextRequest) {
     await mongoose.disconnect();
 
     return handleSuccess(true, null, successMessage, 200);
-  } catch (error) {
+  } catch (error: any) {
+    const errMsg = error.message || '';
+    const code = error.code || '';
+
+    // LOG ERROR FOR DEBUGGING
+    console.log('MONGOOSE ERROR DEBUG:', {
+      message: errMsg,
+      code,
+      name: error.name,
+      reason: error.reason?.message,
+    });
+
+    // 1. VPN, DNS Blocking, or DNS Server Failure (c-ares resolution issues)
+    // We check this FIRST because DNS issues often cause MongooseServerSelectionError
+    if (
+      code === 'EAI_AGAIN' ||
+      code === 'EAI_FAIL' ||
+      errMsg.includes('querySrv') ||
+      errMsg.toLowerCase().includes('ares') ||
+      errMsg.toLowerCase().includes('getaddrinfo')
+    ) {
+      return handleError(
+        error,
+        'INVALID_HOSTNAME OR VPN_DNS_ISSUE: DNS resolution failed or was blocked. This is common when a VPN or Firewall interferes with MongoDB SRV records. Try disabling your VPN.Or Check your hostName and and clustname '
+      );
+    }
+
+    // 3. Server Selection / Network Timeout (IP Whitelist or Firewall)
+    if (
+      error.name === 'MongoServerSelectionError' ||
+      error.name === 'MongooseServerSelectionError' ||
+      code === 'ETIMEDOUT' ||
+      errMsg.includes('timed out') ||
+      errMsg.includes('Could not connect to any servers')
+    ) {
+      // If the message contains "whitelist", it's likely an IP issue
+      // Atlas specifically mentions "IP whitelist" in its timeout message
+      if (errMsg.toLowerCase().includes('whitelist')) {
+        return handleError(
+          error,
+          'VPN_DNS_ISSUE: DNS resolution failed or was blocked. This is common when a VPN or Firewall interferes with MongoDB SRV records. Try disabling your VPN.'
+        );
+      }
+
+      return handleError(
+        error,
+        'CONNECTION_TIMEOUT: Unable to reach the MongoDB cluster. This is likely due to a firewall blocking port 27017 or a network-level block.'
+      );
+    }
+
+    // Authentication Error
+    if (errMsg.includes('Authentication failed') || error.code === 18) {
+      return handleError(
+        error,
+        'INVALID_CREDENTIALS: The provided username or password is incorrect.'
+      );
+    }
+
     return handleError(error, 'Failed to connect to MongoDB');
   }
 }
+

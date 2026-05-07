@@ -1,4 +1,16 @@
-import { LayoutGrid, Type, Heading2 } from 'lucide-react';
+import {
+  LayoutGrid,
+  Type,
+  Heading2,
+  Hash,
+  Activity,
+  Clock,
+  MousePointer2,
+  Sparkles,
+  Image as ImageIcon,
+  CreditCard,
+  Waves,
+} from 'lucide-react';
 import { Block } from '@/types/index';
 import { ReactNode } from 'react';
 
@@ -18,6 +30,20 @@ const commonBlockStyle = {
 export const blockCategories: Record<string, BlockWithReactNodeIcon[]> = {
   layout: [
     {
+      id: 'row',
+      label: 'Row Layout',
+      type: 'row',
+      children: [[], []],
+      content: '',
+      icon: <LayoutGrid className="h-4 w-4 mr-2 text-primary" />,
+      description: 'Flex row layout for blocks',
+      style: {
+        ...commonBlockStyle,
+        display: 'flex',
+        flexDirection: 'row',
+      },
+    },
+    {
       id: '1-column',
       label: '1 Column Layout',
       type: 'column',
@@ -25,7 +51,11 @@ export const blockCategories: Record<string, BlockWithReactNodeIcon[]> = {
       content: '',
       icon: <LayoutGrid className="h-4 w-4 mr-2 text-primary" />,
       description: 'Single column layout',
-      style: commonBlockStyle,
+      style: {
+        ...commonBlockStyle,
+        display: 'flex',
+        flexDirection: 'column',
+      },
     },
     {
       id: '2-column',
@@ -35,7 +65,11 @@ export const blockCategories: Record<string, BlockWithReactNodeIcon[]> = {
       content: '',
       icon: <LayoutGrid className="h-4 w-4 mr-2 text-primary" />,
       description: 'Two equal width columns',
-      style: commonBlockStyle,
+      style: {
+        ...commonBlockStyle,
+        display: 'flex',
+        flexDirection: 'row',
+      },
     },
     {
       id: '3-column',
@@ -45,7 +79,11 @@ export const blockCategories: Record<string, BlockWithReactNodeIcon[]> = {
       content: '',
       icon: <LayoutGrid className="h-4 w-4 mr-2 text-primary" />,
       description: 'Three equal width columns',
-      style: commonBlockStyle,
+      style: {
+        ...commonBlockStyle,
+        display: 'flex',
+        flexDirection: 'row',
+      },
     },
   ],
   content: [
@@ -105,6 +143,125 @@ export const blockCategories: Record<string, BlockWithReactNodeIcon[]> = {
         bottom: '0px',
         left: '0px',
         zIndex: '2',
+      },
+    },
+    {
+      id: 'stats',
+      label: 'Stats Block',
+      type: 'stats',
+      content: JSON.stringify({ value: '200+', label: 'Project Delivered' }),
+      icon: <Hash className="h-4 w-4 mr-2 text-primary" />,
+      description: 'Statistical counter with label',
+      style: {
+        backgroundColor: '#1f2937',
+        padding: '20px',
+        borderRadius: '8px',
+      },
+    },
+    {
+      id: 'progress',
+      label: 'Progress Bar',
+      type: 'progress',
+      content: JSON.stringify({ label: 'Delivery Rate', percentage: 100 }),
+      icon: <Activity className="h-4 w-4 mr-2 text-primary" />,
+      description: 'Animated progress bar with percentage',
+      style: {
+        marginBottom: '10px',
+      },
+    },
+    {
+      id: 'countdown',
+      label: 'Countdown Timer',
+      type: 'countdown',
+      content: JSON.stringify({ days: '0', hours: '00', minutes: '00', seconds: '00' }),
+      icon: <Clock className="h-4 w-4 mr-2 text-primary" />,
+      description: 'Timer with days, hours, mins, secs',
+      style: {
+        padding: '20px',
+      },
+    },
+    {
+      id: 'button',
+      label: 'Button',
+      type: 'button',
+      content: 'Click Me',
+      icon: <MousePointer2 className="h-4 w-4 mr-2 text-primary" />,
+      description: 'Call to action button',
+      style: {
+        backgroundColor: '#3b82f6',
+        color: '#ffffff',
+        borderRadius: '4px',
+        padding: '8px 16px',
+        fontWeight: '500',
+      },
+    },
+    {
+      id: 'icon',
+      label: 'Icon Block',
+      type: 'icon',
+      content: 'sparkles',
+      icon: <Sparkles className="h-4 w-4 mr-2 text-primary" />,
+      description: 'Standalone decorative or feature icon',
+      style: {
+        color: '#ffffff',
+        width: '96px',
+        height: '96px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      },
+    },
+    {
+      id: 'image',
+      label: 'Image Block',
+      type: 'image',
+      content: JSON.stringify({
+        src: 'https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1200&q=80',
+        alt: 'Office workspace',
+        caption: '',
+      }),
+      icon: <ImageIcon className="h-4 w-4 mr-2 text-primary" />,
+      description: 'Responsive image with alt text and optional caption',
+      style: {
+        width: '100%',
+        height: '220px',
+        borderRadius: '8px',
+      },
+    },
+    {
+      id: 'card',
+      label: 'Card Block',
+      type: 'card',
+      content: JSON.stringify({
+        image:
+          'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=900&q=80',
+        eyebrow: 'Platform',
+        title: 'Web Development',
+        body: 'Build responsive sections, service cards, and rich content blocks with reusable editor elements.',
+        buttonText: 'Read More',
+      }),
+      icon: <CreditCard className="h-4 w-4 mr-2 text-primary" />,
+      description: 'Image, title, text, and call-to-action card',
+      style: {
+        backgroundColor: '#ffffff',
+        color: '#111827',
+        borderRadius: '8px',
+      },
+    },
+    {
+      id: 'shape-divider',
+      label: 'Shape Divider',
+      type: 'shape-divider',
+      content: JSON.stringify({
+        shape: 'wave',
+        color: '#ffffff',
+        height: 120,
+        flip: false,
+      }),
+      icon: <Waves className="h-4 w-4 mr-2 text-primary" />,
+      description: 'Wave, curve, or tilted section divider',
+      style: {
+        width: '100%',
       },
     },
   ],
