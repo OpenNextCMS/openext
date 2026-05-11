@@ -73,9 +73,10 @@ export async function POST() {
       null,
       'All non-system databases have been deleted and .env has been cleared'
     );
-  } catch (error) {
-    return handleError(error, 'Failed to delete databases');
-  } finally {
+  } catch (error: any) {
+  console.error('ACTUAL ERROR:', error);
+  return handleError(error, error.message || 'Failed to delete databases');
+} finally {
     await mongoose.disconnect();
   }
 }

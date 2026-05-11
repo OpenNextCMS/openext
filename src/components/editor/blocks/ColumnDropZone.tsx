@@ -26,23 +26,42 @@ export const ColumnDropZone = ({
     disabled: !isEditing,
   });
 
+  const blockStyle = block.style as React.CSSProperties & { columnWidths?: string[] };
+  const columnWidths = blockStyle?.columnWidths || [];
+  const customWidth = columnWidths[columnIndex];
+  const rowHasExplicitHeight = Boolean(blockStyle?.height && blockStyle.height !== 'auto');
+
   const editingStyles = isOver
-    ? 'bg-primary/10 border-primary border-dashed'
-    : 'bg-muted/20 hover:bg-muted/30 border-border';
+    ? 'outline-primary bg-primary/10'
+    : 'outline-transparent hover:outline-primary/40';
 
   return (
     <div
       ref={setNodeRef}
-      className={`flex-1 min-h-[150px] transition-colors border rounded-md p-3 ${editingStyles}`}
+      className={`transition-colors relative z-0 ${
+        isEditing ? `rounded-md outline outline-1 outline-dashed ${editingStyles}` : 'min-h-0'
+      }`}
+      style={{
+        flex: customWidth ? `0 0 ${customWidth}` : '1',
+        width: customWidth || 'auto',
+        minWidth: 0,
+        maxWidth: '100%',
+        boxSizing: 'border-box',
+        minHeight: isEditing ? (rowHasExplicitHeight ? '0px' : '48px') : '0px',
+      }}
     >
-      {isOver && Array.isArray(children) && children.length === 0 ? (
-        <div className="flex flex-col items-center justify-center h-full animate-pulse">
-          <MousePointerClick className="h-5 w-5 text-primary mb-2" />
-          <p className="text-sm text-primary">Drop here</p>
+      {/* Visual indicator for empty state */}
+      {Array.isArray(children) && children.length === 0 && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+          <MousePointerClick
+            className={`h-5 w-5 mb-2 ${isOver ? 'text-primary' : 'text-muted-foreground'}`}
+          />
+          <p className="text-xs text-muted-foreground">Drop here</p>
         </div>
-      ) : (
-        children
       )}
+
+      {/* Content wrapper with z-index to handle clicks */}
+      <div className="relative z-10 min-w-0">{children}</div>
     </div>
   );
 };

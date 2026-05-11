@@ -92,7 +92,7 @@ export default function DashboardPage() {
         setLoading(true);
         const apiUrl =
           backendUrl === 'http://localhost:3000' ? '/api/verify-connection' : '/api/api-sync';
-        const response = await fetch(`http://localhost:3000${apiUrl}`);
+        const response = await fetch(apiUrl);
 
         if (!response.ok) {
           const errorText = await response.text();

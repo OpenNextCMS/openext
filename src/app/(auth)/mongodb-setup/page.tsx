@@ -9,6 +9,7 @@ import { handleSuccess } from '@/utils/successHandler';
 import { Eye, EyeOff, Server, Home } from 'lucide-react';
 import { translations } from '../../../../public/locales/translations';
 import Cookies from 'js-cookie';
+import { safeStorageGet, safeStorageSet } from '@/utils/safeStorage';
 
 export default function MongoDBSetup() {
   const [username, setUsername] = useState('');
@@ -42,14 +43,14 @@ export default function MongoDBSetup() {
     setT(translations[langFromCookie as keyof typeof translations] as typeof translations.en);
 
     // Load MongoDB credentials from localStorage if they exist
-    const savedUsername = localStorage.getItem('MONGODB_USERNAME');
-    const savedPassword = localStorage.getItem('MONGODB_PASSWORD');
-    const savedHost = localStorage.getItem('MONGODB_HOST');
-    const savedCluster = localStorage.getItem('MONGODB_CLUSTER');
-    const savedMongoDB = localStorage.getItem('MONGODB');
-    const savedAuthMech = localStorage.getItem('MONGODB_AUTH_MECH');
-    const savedAuthSource = localStorage.getItem('MONGODB_AUTH_SOURCE');
-    const savedMongoAcc = localStorage.getItem('MONGO_ACC');
+    const savedUsername = safeStorageGet('MONGODB_USERNAME');
+    const savedPassword = safeStorageGet('MONGODB_PASSWORD');
+    const savedHost = safeStorageGet('MONGODB_HOST');
+    const savedCluster = safeStorageGet('MONGODB_CLUSTER');
+    const savedMongoDB = safeStorageGet('MONGODB');
+    const savedAuthMech = safeStorageGet('MONGODB_AUTH_MECH');
+    const savedAuthSource = safeStorageGet('MONGODB_AUTH_SOURCE');
+    const savedMongoAcc = safeStorageGet('MONGO_ACC');
 
     if (savedUsername) {
       setUsername(savedUsername);
@@ -118,13 +119,13 @@ export default function MongoDBSetup() {
       });
 
       if (data.success) {
-        localStorage.setItem('MONGODB_USERNAME', username);
-        localStorage.setItem('MONGODB_PASSWORD', password);
-        localStorage.setItem('MONGODB_HOST', host);
-        localStorage.setItem('MONGODB_CLUSTER', cluster);
-        localStorage.setItem('MONGODB', mongoDB);
-        localStorage.setItem('MONGODB_AUTH_MECH', authMech);
-        localStorage.setItem('MONGODB_AUTH_SOURCE', authSource);
+        safeStorageSet('MONGODB_USERNAME', username);
+        safeStorageSet('MONGODB_PASSWORD', password);
+        safeStorageSet('MONGODB_HOST', host);
+        safeStorageSet('MONGODB_CLUSTER', cluster);
+        safeStorageSet('MONGODB', mongoDB);
+        safeStorageSet('MONGODB_AUTH_MECH', authMech);
+        safeStorageSet('MONGODB_AUTH_SOURCE', authSource);
         handleSuccess(
           true,
           null,
@@ -201,8 +202,8 @@ export default function MongoDBSetup() {
             onClick={() => {
               setMongoAcc(true);
               setMongoDB('compass');
-              localStorage.setItem('MONGO_ACC', 'true');
-              localStorage.setItem('MONGODB', 'compass');
+              safeStorageSet('MONGO_ACC', 'true');
+              safeStorageSet('MONGODB', 'compass');
             }}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 ${
               mongoAcc
@@ -217,8 +218,8 @@ export default function MongoDBSetup() {
             onClick={() => {
               setMongoAcc(false);
               setMongoDB('atlas');
-              localStorage.setItem('MONGO_ACC', 'false');
-              localStorage.setItem('MONGODB', 'atlas');
+              safeStorageSet('MONGO_ACC', 'false');
+              safeStorageSet('MONGODB', 'atlas');
             }}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 ${
               !mongoAcc

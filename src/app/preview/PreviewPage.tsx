@@ -3,75 +3,123 @@
 
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import RenderBlock from '@/components/editor/renderblock';
-import { ThemeProvider } from 'next-themes';
-import { Provider } from 'react-redux';
-import { PersistGate } from 'redux-persist/integration/react';
-import { store, persistor } from '@/redux/store';
+import renderFromJson from '@/components/ReusableComponents/RenderFromJson';
+import { safeStorageGet } from '@/utils/safeStorage';
 
-import type { Block } from '@/types';
-
-interface CanvasData {
-  blocks: Block[];
-  viewMode: 'desktop' | 'tablet' | 'mobile';
-}
+import type { BlockData, Page } from '@/types';
 
 export default function PreviewPage() {
   const searchParams = useSearchParams();
-  const pagename = searchParams.get('pagename') || '';
-  const slug = pagename.split('/')[0]; // Extract "home" from "home/view-only"
+  const fullPageName = searchParams.get('pagename') || '';
+  const pageType = searchParams.get('pageType') || 'page';
+  const pagename = fullPageName.split('/')[0]; // Extract the actual page name before any sub-paths
 
-  const [blocks, setBlocks] = useState<Block[]>([]);
-  const [viewMode, setViewMode] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
+  const [blocks, setBlocks] = useState<BlockData[]>([]);
+  const [headerBlocks, setHeaderBlocks] = useState<BlockData[]>([]);
+  const [footerBlocks, setFooterBlocks] = useState<BlockData[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    try {
-      const key = `persist:root-${slug}`;
-      const raw = localStorage.getItem(key);
-      if (!raw) return;
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
 
-      const parsed = JSON.parse(raw);
-      const canvasData: CanvasData = JSON.parse(parsed.canvas);
-      setBlocks(canvasData.blocks || []);
-      setViewMode(canvasData.viewMode || 'desktop');
-    } catch (err) {
-      console.error('Failed to load preview data:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, [slug]);
+    const loadDraftData = () => {
+      const draft = safeStorageGet(`preview:draft-${pagename}`);
+      if (draft) {
+        const parsedDraft = JSON.parse(draft) as BlockData[];
+        if (Array.isArray(parsedDraft)) return parsedDraft;
+      }
 
-  const getWidthClass = () => {
-    switch (viewMode) {
-      case 'tablet':
-        return 'max-w-[768px]';
-      case 'mobile':
-        return 'max-w-[480px]';
-      default:
-        return 'max-w-full';
-    }
-  };
+      const persisted = safeStorageGet(`persist:root-${pagename}`);
+      if (!persisted) return null;
+
+      const parsedPersisted = JSON.parse(persisted);
+      const canvas = JSON.parse(parsedPersisted.canvas || '{}');
+      return Array.isArray(canvas.blocks) ? (canvas.blocks as BlockData[]) : null;
+    };
+
+    const loadData = async () => {
+      try {
+        const loadLayoutBlocks = async () => {
+          if (!pagename || pageType !== 'page') return;
+
+          const layoutRes = await fetch(
+            `${backendUrl}/api/pages/get-page?name=${encodeURIComponent(pagename)}&key=allowMe`,
+            {
+              cache: 'no-store',
+              credentials: 'include',
+            }
+          );
+
+          if (!layoutRes.ok) return;
+
+          const layoutData = await layoutRes.json();
+          setHeaderBlocks(
+            Array.isArray(layoutData?.header?.component) ? layoutData.header.component : []
+          );
+          setFooterBlocks(
+            Array.isArray(layoutData?.footer?.component) ? layoutData.footer.component : []
+          );
+        };
+
+        const draftBlocks = loadDraftData();
+        if (draftBlocks) {
+          setBlocks(draftBlocks);
+          await loadLayoutBlocks();
+          return;
+        }
+
+        const url = pagename
+          ? `${backendUrl}/api/pages/get-page?name=${encodeURIComponent(pagename)}&key=allowMe`
+          : `${backendUrl}/api/pages/get-pages`;
+
+        const res = await fetch(url, {
+          cache: 'no-store',
+          credentials: 'include',
+        });
+
+        if (!res.ok) {
+          throw new Error(`Failed to fetch preview page (${res.status})`);
+        }
+
+        const data = await res.json();
+        const page = pagename
+          ? data?.page
+          : data?.pages?.find((item: Page) => item.isHome === true);
+        const header = data?.header;
+        const footer = data?.footer;
+
+        if (!Array.isArray(page?.component)) {
+          setBlocks([]);
+          return;
+        }
+
+        setBlocks(page.component);
+        if (pageType === 'page') {
+          setHeaderBlocks(Array.isArray(header?.component) ? header.component : []);
+          setFooterBlocks(Array.isArray(footer?.component) ? footer.component : []);
+        }
+      } catch (err) {
+        console.error('Failed to load preview data:', err);
+        setBlocks([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, [pageType, pagename]);
 
   if (loading) return <div className="p-6">Loading preview...</div>;
 
   return (
-    <Provider store={store}>
-      <PersistGate loading={null} persistor={persistor}>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <main className="min-h-screen bg-gray-50 dark:bg-black p-8">
-            <div className={`mx-auto ${getWidthClass()} space-y-4`}>
-              {blocks.length > 0 ? (
-                blocks.map((block) => (
-                  <RenderBlock key={block.uniqueId} block={block} isEditing={false} />
-                ))
-              ) : (
-                <div className="text-center text-muted-foreground">No blocks to preview</div>
-              )}
-            </div>
-          </main>
-        </ThemeProvider>
-      </PersistGate>
-    </Provider>
+    <div>
+      {headerBlocks.map((block) => renderFromJson(block))}
+      {blocks.length > 0 ? (
+        blocks.map((block) => renderFromJson(block))
+      ) : (
+        <div className="p-6 text-center text-muted-foreground">No blocks to preview</div>
+      )}
+      {footerBlocks.map((block) => renderFromJson(block))}
+    </div>
   );
 }

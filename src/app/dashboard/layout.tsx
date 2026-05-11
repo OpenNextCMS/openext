@@ -3,55 +3,60 @@ import Sidebar from '@/components/Sidebar';
 import Navbar from '@/components/Navbar';
 import { cookies } from 'next/headers';
 import { AvatarProvider } from '@/context/AvatarContext';
+import { ThemeProvider } from '@/context/ThemeContext';
 import { redirect } from 'next/navigation';
+import { jwtDecode } from 'jwt-decode';
+import { getUserDbConnection } from '@/utils/db';
+import { IUser } from '@/models/User';
+
+type DashboardUser = {
+  username: string;
+  email: string;
+};
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const cookieStore = await cookies();
   const token = cookieStore.get('token')?.value;
-  let user = null;
+  let user: DashboardUser | null = null;
 
   if (!token) {
     redirect('/login');
-    return null; // Prevent further execution
   }
 
-  if (token) {
-    try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
-
-      const response = await fetch(`${backendUrl}/api/dashboard`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        credentials: 'include',
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        user = {
-          username: data.user.username,
-          email: data.user.email,
-        };
-      } else {
-        throw new Error('Failed to fetch user data');
-      }
-    } catch (error) {
-      console.error('Layout error:', error);
+  try {
+    const decodedToken = jwtDecode<{ email?: string }>(token);
+    if (!decodedToken.email) {
       redirect('/login');
-      return null; // Prevent further execution
     }
+
+    const userDb = await getUserDbConnection();
+    const UserModel = userDb.model<IUser>('User');
+    const userData = await UserModel.findOne({ email: decodedToken.email });
+
+    if (!userData?.username || !userData?.email) {
+      redirect('/login');
+    }
+
+    user = {
+      username: userData.username,
+      email: userData.email,
+    };
+  } catch {
+    redirect('/login');
   }
 
   return (
-    <AvatarProvider>
-      <div className="flex min-h-screen bg-background text-foreground">
-        <Sidebar />
+    <ThemeProvider>
+      <AvatarProvider>
+        <div className="flex min-h-screen bg-background text-foreground">
+          <Sidebar />
 
-        <div className="flex-1">
-          <Navbar user={user} />
-          <main className="bg-muted/40 m-5 mt-[5.25rem]">{children}</main>
+          <div className="flex-1">
+            <Navbar user={user} />
+            <main className="bg-muted/40 m-5 mt-[5.25rem]">{children}</main>
+          </div>
         </div>
-      </div>
-    </AvatarProvider>
+      </AvatarProvider>
+    </ThemeProvider>
   );
 }

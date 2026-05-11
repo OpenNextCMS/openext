@@ -161,24 +161,30 @@ export async function getPageDbConnection() {
 
   return pageDb;
 }
-export function getPageModel(pageDb: mongoose.Connection) {
+export function getPageModel(pageDb: mongoose.Connection): mongoose.Model<PageDocument> {
   if (!pageDb) {
     throw new Error('Page database connection not initialized');
   }
-  return pageDb.model<PageDocument>('Page');
+  return (
+    (pageDb.models.Page as mongoose.Model<PageDocument>) ||
+    pageDb.model<PageDocument>('Page', PageSchema)
+  );
 }
-export function getUserModel() {
+export function getUserModel(): mongoose.Model<IUser> {
   if (!userDb) {
     throw new Error('User database connection not initialized');
   }
-  return userDb.model<IUser>('User');
+  return (userDb.models.User as mongoose.Model<IUser>) || userDb.model<IUser>('User', userSchema);
 }
 
-export function getSettingsModel() {
+export function getSettingsModel(): mongoose.Model<ISettings> {
   if (!userDb) {
     throw new Error('User database connection not initialized');
   }
-  return userDb.model<ISettings>('Settings');
+  return (
+    (userDb.models.Settings as mongoose.Model<ISettings>) ||
+    userDb.model<ISettings>('Settings', settingsSchema)
+  );
 }
 
 export async function closeAllConnections() {

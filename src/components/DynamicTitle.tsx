@@ -3,6 +3,18 @@
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 
+const resolveSiteIcon = (siteIcon?: string) => {
+  if (!siteIcon) {
+    return '/img/default_site_icon.png';
+  }
+
+  if (siteIcon.startsWith('/') || siteIcon.startsWith('http')) {
+    return siteIcon;
+  }
+
+  return `/siteicon/${siteIcon}`;
+};
+
 export default function DynamicTitle() {
   const [title, setTitle] = useState('Loading...');
   const [icon, setIcon] = useState('/favicon.ico');
@@ -20,7 +32,7 @@ export default function DynamicTitle() {
         const data = await res.json();
 
         const siteTitle = data?.data?.settings?.siteTitle || 'Next.js Setup Project';
-        const siteIcon = data?.data?.settings?.siteIcon || '/img/default_site_icon.png';
+        const siteIcon = resolveSiteIcon(data?.data?.settings?.siteIcon);
 
         const fullTitle = lastSegment ? `${lastSegment} | ${siteTitle}` : siteTitle;
         setTitle(fullTitle);

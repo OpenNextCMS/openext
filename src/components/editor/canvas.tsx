@@ -1,22 +1,66 @@
 'use client';
 import { useDroppable } from '@dnd-kit/core';
+import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import RenderBlock from './renderblock';
-import { LayoutGrid, PlusSquare, MousePointerClick } from 'lucide-react';
+import { GripVertical, LayoutGrid, PlusSquare, MousePointerClick } from 'lucide-react';
 import { useState } from 'react';
 import { Block } from '@/types/index';
-import { useSearchParams } from 'next/navigation';
 import Box from './blocks/Box';
+import { useAppSelector } from '@/redux/hooks';
 
 interface CanvasProps {
   canvasBlocks: Block[];
   viewMode: 'desktop' | 'tablet' | 'mobile';
 }
 
+function SortableCanvasBlock({ block }: { block: Block }) {
+  const blockDisplay = (block.style?.display as string) || 'block';
+  const isInlineDisplay = blockDisplay === 'inline' || blockDisplay === 'inline-block';
+
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: block.uniqueId || '',
+    data: {
+      source: 'canvas-block',
+      blockId: block.uniqueId,
+    },
+    disabled: !block.uniqueId,
+  });
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={{
+        display: isInlineDisplay ? 'inline-block' : 'block',
+        width: isInlineDisplay ? block.style?.width || 'auto' : '100%',
+        minWidth: 0,
+        boxSizing: 'border-box',
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.55 : 1,
+        verticalAlign: isInlineDisplay ? 'baseline' : undefined,
+      }}
+      className="group/sortable relative"
+    >
+      <button
+        type="button"
+        className="absolute left-[-10px] top-2 z-20 hidden h-7 w-7 cursor-grab items-center justify-center rounded-full border bg-background text-muted-foreground shadow-sm hover:text-primary group-hover/sortable:flex active:cursor-grabbing"
+        title="Move block"
+        {...attributes}
+        {...listeners}
+      >
+        <GripVertical className="h-4 w-4" />
+      </button>
+      <RenderBlock block={block} isEditing={true} />
+    </div>
+  );
+}
+
 export default function Canvas({ canvasBlocks, viewMode }: CanvasProps) {
-  const searchParams = useSearchParams();
-  const pageName = searchParams.get('pagename');
   const { setNodeRef, isOver } = useDroppable({ id: 'canvas' });
   const [zoom, setZoom] = useState(100);
+  const headerBlocks = useAppSelector((state) => state.canvas.headerBlocks);
+  const footerBlocks = useAppSelector((state) => state.canvas.footerBlocks);
 
   const handleZoomIn = () => {
     if (zoom < 200) setZoom(zoom + 10);
@@ -49,19 +93,6 @@ export default function Canvas({ canvasBlocks, viewMode }: CanvasProps) {
             Canvas
           </h2>
 
-          <button
-            onClick={() => {
-              if (pageName) {
-                window.open(`/preview/?pagename=${pageName}/view-only`, '_blank');
-              }
-            }}
-            className="ml-4 inline-flex items-center gap-2 px-4 py-2 text-sm rounded transition-all
-             bg-gray-900 text-white hover:bg-gray-800
-             dark:bg-white dark:text-black dark:hover:bg-gray-200"
-          >
-            <MousePointerClick className="h-4 w-4" />
-            Preview
-          </button>
           <div className="flex items-center gap-4">
             <div className="text-sm text-muted-foreground">
               {canvasBlocks.length} {canvasBlocks.length === 1 ? 'block' : 'blocks'} added
@@ -86,13 +117,21 @@ export default function Canvas({ canvasBlocks, viewMode }: CanvasProps) {
           </div>
         </div>
         <div
-          className={`bg-background dark:bg-background w-full h-auto shadow-md p-4 rounded-lg border ${getWidthClass()} transition-all mx-auto ${isOver ? 'border-primary border-dashed border-2' : 'border-border'
-            } `}
+          className={`bg-background dark:bg-background w-full h-auto shadow-md p-4 rounded-lg border ${getWidthClass()} transition-all mx-auto ${
+            isOver ? 'border-primary border-dashed border-2' : 'border-border'
+          } `}
           style={{ transform: `scale(${zoom / 100})`, transformOrigin: 'top left' }}
         >
-          <Box content='Header' />
+          <Box content="Header" blocks={headerBlocks} />
           {canvasBlocks.length > 0 ? (
-            canvasBlocks.map((block) => <RenderBlock key={block.uniqueId} block={block} isEditing={true} />)
+            <SortableContext
+              items={canvasBlocks.map((block) => block.uniqueId || '')}
+              strategy={verticalListSortingStrategy}
+            >
+              {canvasBlocks.map((block) => (
+                <SortableCanvasBlock key={block.uniqueId} block={block} />
+              ))}
+            </SortableContext>
           ) : (
             <div className="flex flex-col items-center justify-center h-[750px] border-2 border-dashed rounded-lg p-6">
               {isOver ? (
@@ -118,7 +157,7 @@ export default function Canvas({ canvasBlocks, viewMode }: CanvasProps) {
               )}
             </div>
           )}
-          <Box content='Footer' />
+          <Box content="Footer" blocks={footerBlocks} />
         </div>
       </div>
     </div>

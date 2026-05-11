@@ -1,5 +1,5 @@
 'use client';
-import { Switch } from "@/components/ui/switch";
+import { Switch } from '@/components/ui/switch';
 
 interface Props {
   formData: {
@@ -7,7 +7,9 @@ interface Props {
     preHeading: string;
     description: string;
     slug?: string;
+    pageType?: 'page' | 'header' | 'footer';
     isHome?: boolean;
+    isGlobal?: boolean;
   };
   onChange: (field: string, value: string | boolean) => void;
 }
@@ -15,14 +17,28 @@ interface Props {
 export default function GeneralInfo({ formData, onChange }: Props) {
   return (
     <div className="space-y-5">
-
       {/* Home Page Toggle */}
-      <div className="flex items-center justify-between">
-        <label className="text-sm font-medium text-black dark:text-gray-50">
-          Set as Home Page
-        </label>
-        <Switch checked={formData.isHome || false} onCheckedChange={(checked: boolean) => onChange('isHome', checked)} />
-      </div>
+      {(formData.pageType || 'page') === 'page' ? (
+        <div className="flex items-center justify-between">
+          <label className="text-sm font-medium text-black dark:text-gray-50">
+            Set as Home Page
+          </label>
+          <Switch
+            checked={formData.isHome || false}
+            onCheckedChange={(checked: boolean) => onChange('isHome', checked)}
+          />
+        </div>
+      ) : (
+        <div className="flex items-center justify-between">
+          <label className="text-sm font-medium text-black dark:text-gray-50">
+            Use as Active {formData.pageType === 'header' ? 'Header' : 'Footer'}
+          </label>
+          <Switch
+            checked={formData.isGlobal || false}
+            onCheckedChange={(checked: boolean) => onChange('isGlobal', checked)}
+          />
+        </div>
+      )}
 
       {/* Page Name */}
       <div className="flex flex-col gap-2">

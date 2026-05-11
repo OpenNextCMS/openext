@@ -1,5 +1,5 @@
 // src/types/index.ts
-import { ReactNode } from 'react';
+import { CSSProperties, ReactNode } from 'react';
 import { Document, Types } from 'mongoose';
 
 export interface MongoDBConfig {
@@ -120,22 +120,57 @@ export interface ApiEndpointProps {
 }
 export type ColumnChild = Block[];
 export interface Block {
-  id: string;
-  label: string;
-  type: 'column' | 'text';
+  id?: string;
+  label?: string;
+  type:
+    | 'column'
+    | 'text'
+    | 'hero'
+    | 'stats'
+    | 'progress'
+    | 'countdown'
+    | 'button'
+    | 'row'
+    | 'icon'
+    | 'input'
+    | 'radio'
+    | 'checkbox'
+    | 'badge'
+    | 'alert'
+    | 'avatar'
+    | 'separator'
+    | 'skeleton'
+    | 'switch'
+    | 'textarea'
+    | 'table'
+    | 'tabs'
+    | 'image'
+    | 'card'
+    | 'shape-divider'
+    | 'nav-bar';
   children?: ColumnChild[]; // Updated type for children
   content?: string;
-  icon: ReactNode;
-  description: string;
+  icon?: ReactNode | string;
+  description?: string;
   uniqueId?: string;
-  style?: Record<string, string>;
+  style?: CSSProperties;
+  hoverStyle?: CSSProperties;
+  events?: {
+    onClick?: string;
+    onClickValue?: string;
+  };
 }
 
 export interface BlockDragData {
   id?: string;
   type?: string;
   content?: string;
-  style?: Record<string, string> | string;
+  icon?: ReactNode | string;
+  style?: CSSProperties | string;
+  source?: string;
+  blockId?: string;
+  rowBlockId?: string;
+  columnIndex?: number;
   // Add other properties that might be needed during drag operations
 }
 
@@ -173,8 +208,10 @@ export interface IModification {
 export interface PageDocument extends Document {
   pageName: string;
   createdBy: Types.ObjectId;
+  pageType: 'page' | 'header' | 'footer';
   isPublished: boolean;
   isHome: boolean;
+  isGlobal: boolean;
   lastModified: Date;
   preHeading: string;
   description: string;
@@ -199,29 +236,69 @@ export interface ISettingsDocument extends Document {
 }
 
 export interface BlockData {
+  id?: string;
+  label?: string;
+  description?: string;
   uniqueId: string;
   content: string;
-  type: 'column' | 'text';
+  type:
+    | 'column'
+    | 'text'
+    | 'hero'
+    | 'stats'
+    | 'progress'
+    | 'countdown'
+    | 'button'
+    | 'row'
+    | 'icon'
+    | 'input'
+    | 'radio'
+    | 'checkbox'
+    | 'badge'
+    | 'alert'
+    | 'avatar'
+    | 'separator'
+    | 'skeleton'
+    | 'switch'
+    | 'textarea'
+    | 'table'
+    | 'tabs'
+    | 'image'
+    | 'card'
+    | 'shape-divider'
+    | 'nav-bar';
   children?: BlockData[][];
   style?: React.CSSProperties;
+  hoverStyle?: React.CSSProperties;
   icon?: string;
+  events?: {
+    onClick?: string;
+    onClickValue?: string;
+  };
 }
 
 export interface CanvasState {
   blocks: BlockData[];
+  headerBlocks: BlockData[];
+  footerBlocks: BlockData[];
   viewMode: 'desktop' | 'tablet' | 'mobile';
+  selectedLabel: string;
+  selectedBlock: BlockData | null;
+  selectedValue: number | null;
 }
 
 export interface Page {
   id?: string;
   _id?: string; // Add MongoDB _id
   pageName: string;
+  pageType?: 'page' | 'header' | 'footer';
   preHeading: string;
   description: string;
   seoName: string;
   seoMeta: string;
   slug?: string;
   isHome?: boolean;
+  isGlobal?: boolean;
   isPublished?: boolean;
   component?: unknown[];
   createdAt?: string;

@@ -12,22 +12,47 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import SelectComp from '@/components/ReusableComponents/SelectComp';
-import { useAppSelector } from '@/redux/hooks';
+import { useAppSelector, useAppDispatch } from '@/redux/hooks';
+import { updateSelectedBlockStyles } from '@/redux/canvasSlice';
 
 export default function Effect() {
+  const dispatch = useAppDispatch();
+  const selectedBlock = useAppSelector((state) => state.canvas.selectedBlock);
+
   const [effectsOpen, setEffectsOpen] = useState(false);
   const [boxShadow, setBoxShadow] = useState('none');
   const [textShadow, setTextShadow] = useState('none');
-
-  const selectedBlock = useAppSelector((state) => state.canvas.selectedBlock);
+  const [filter, setFilter] = useState('none');
+  const [backdropFilter, setBackdropFilter] = useState('none');
+  const [opacity, setOpacity] = useState('100');
+  const [overflow, setOverflow] = useState('visible');
+  const [mixBlendMode, setMixBlendMode] = useState('normal');
 
   useEffect(() => {
     if (selectedBlock && selectedBlock.style) {
-      const { boxShadow: box, textShadow: text } = selectedBlock.style;
-      if (box) setBoxShadow(box);
-      if (text) setTextShadow(text);
+      const {
+        boxShadow: box,
+        textShadow: text,
+        filter: filt,
+        backdropFilter: bFilt,
+        opacity: op,
+        overflow: over,
+        mixBlendMode: mix,
+      } = selectedBlock.style;
+
+      if (box) setBoxShadow(box as string);
+      if (text) setTextShadow(text as string);
+      if (filt) setFilter(filt as string);
+      if (bFilt) setBackdropFilter(bFilt as string);
+      if (op !== undefined) setOpacity(String(Math.round(Number(op) * 100)));
+      if (over) setOverflow(over as string);
+      if (mix) setMixBlendMode(mix as string);
     }
   }, [selectedBlock]);
+
+  const handleStyleChange = (styles: any) => {
+    dispatch(updateSelectedBlockStyles(styles));
+  };
 
   const boxShadowPresets = [
     { name: 'None', value: 'none' },
@@ -43,6 +68,18 @@ export default function Effect() {
     { label: 'Small', value: '1px 1px 2px black' },
     { label: 'Medium', value: '2px 2px 4px rgba(0,0,0,0.5)' },
     { label: 'Large', value: '3px 3px 6px rgba(0,0,0,0.7)' },
+  ];
+
+  const filterOptions = [
+    { label: 'None', value: 'none' },
+    { label: 'Blur', value: 'blur(4px)' },
+    { label: 'Brightness', value: 'brightness(1.5)' },
+    { label: 'Contrast', value: 'contrast(1.5)' },
+    { label: 'Grayscale', value: 'grayscale(1)' },
+    { label: 'Hue Rotate', value: 'hue-rotate(90deg)' },
+    { label: 'Invert', value: 'invert(1)' },
+    { label: 'Saturate', value: 'saturate(2)' },
+    { label: 'Sepia', value: 'sepia(1)' },
   ];
 
   return (
@@ -65,7 +102,13 @@ export default function Effect() {
         <div className="px-3 pb-3 space-y-3">
           <div className="space-y-1.5">
             <Label className="text-xs">Box Shadow</Label>
-            <Select value={boxShadow} onValueChange={setBoxShadow}>
+            <Select
+              value={boxShadow}
+              onValueChange={(v) => {
+                setBoxShadow(v);
+                handleStyleChange({ boxShadow: v });
+              }}
+            >
               <SelectTrigger className="h-8 text-xs">
                 <SelectValue />
               </SelectTrigger>
@@ -81,45 +124,39 @@ export default function Effect() {
 
           <SelectComp
             label="Text Shadow"
-            defaultValue={textShadow}
             value={textShadow}
-            onValueChange={setTextShadow}
+            onValueChange={(v) => {
+              setTextShadow(v);
+              handleStyleChange({ textShadow: v });
+            }}
             options={textShadowPresets}
           />
 
           <SelectComp
             label="Filter"
-            defaultValue="none"
-            options={[
-              { label: 'None', value: 'none' },
-              { label: 'Blur', value: 'blur' },
-              { label: 'Brightness', value: 'brightness' },
-              { label: 'Contrast', value: 'contrast' },
-              { label: 'Grayscale', value: 'grayscale' },
-              { label: 'Hue Rotate', value: 'hue-rotate' },
-              { label: 'Invert', value: 'invert' },
-              { label: 'Saturate', value: 'saturate' },
-              { label: 'Sepia', value: 'sepia' },
-            ]}
+            value={filter}
+            onValueChange={(v) => {
+              setFilter(v);
+              handleStyleChange({ filter: v });
+            }}
+            options={filterOptions}
           />
           <SelectComp
             label="Backdrop Filter"
-            defaultValue="none"
-            options={[
-              { label: 'None', value: 'none' },
-              { label: 'Blur', value: 'blur' },
-              { label: 'Brightness', value: 'brightness' },
-              { label: 'Contrast', value: 'contrast' },
-              { label: 'Grayscale', value: 'grayscale' },
-              { label: 'Hue Rotate', value: 'hue-rotate' },
-              { label: 'Invert', value: 'invert' },
-              { label: 'Saturate', value: 'saturate' },
-              { label: 'Sepia', value: 'sepia' },
-            ]}
+            value={backdropFilter}
+            onValueChange={(v) => {
+              setBackdropFilter(v);
+              handleStyleChange({ backdropFilter: v });
+            }}
+            options={filterOptions}
           />
           <SelectComp
             label="Opacity"
-            defaultValue="100"
+            value={opacity}
+            onValueChange={(v) => {
+              setOpacity(v);
+              handleStyleChange({ opacity: Number(v) / 100 });
+            }}
             options={[
               { label: '0%', value: '0' },
               { label: '25%', value: '25' },
@@ -130,7 +167,11 @@ export default function Effect() {
           />
           <SelectComp
             label="Overflow"
-            defaultValue="visible"
+            value={overflow}
+            onValueChange={(v) => {
+              setOverflow(v);
+              handleStyleChange({ overflow: v });
+            }}
             options={[
               { label: 'Visible', value: 'visible' },
               { label: 'Hidden', value: 'hidden' },
@@ -140,7 +181,11 @@ export default function Effect() {
           />
           <SelectComp
             label="Mix Blend Mode"
-            defaultValue="normal"
+            value={mixBlendMode}
+            onValueChange={(v) => {
+              setMixBlendMode(v);
+              handleStyleChange({ mixBlendMode: v });
+            }}
             options={[
               { label: 'Normal', value: 'normal' },
               { label: 'Multiply', value: 'multiply' },

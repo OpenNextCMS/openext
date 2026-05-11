@@ -1,51 +1,26 @@
 import { JSX } from 'react';
-import Image from 'next/image';
+import RenderBlock from '@/components/editor/renderblock';
+import type { Block } from '@/types/index';
 
-const typeToTag: Record<string, keyof JSX.IntrinsicElements> = {
-  text: 'div',
-  button: 'button',
-  image: 'img',
-  column: 'div',
-};
+type JsonElement = Block;
 
-type JsonElement = {
-  content: string;
-  type: string;
-  icon?: string;
-  uniqueId: string;
-  style?: React.CSSProperties;
-  children?: JsonElement[][];
-};
+const RenderFromJson = (element: JsonElement): JSX.Element => {
+  // Extract positioning styles for the wrapper to support 'sticky'
+  const wrapperStyle: React.CSSProperties = {
+    position: element.style?.position,
+    top: element.style?.top,
+    right: element.style?.right,
+    bottom: element.style?.bottom,
+    left: element.style?.left,
+    zIndex: element.style?.zIndex as any,
+  };
 
-const renderFromJson = (element: JsonElement): JSX.Element => {
-  const Tag = typeToTag[element.type] || 'div';
-  const style = element.style || {};
-
-  if (element.type === 'image') {
-    return (
-      <Image
-        alt={element.content}
-        key={element.uniqueId}
-        src={element.content}
-        style={style}
-      />
-    );
-  }
-
+  // Pass remaining styles to the block internally
   return (
-    <Tag key={element.uniqueId} style={style}>
-      {/* Render content for non-column types */}
-      {element.type !== 'column' && element.content}
-
-      {/* Recursively render children if it's a column */}
-      {element.children &&
-        element.children.map((row, rowIndex) => (
-          <div key={rowIndex} style={{ display: 'flex', gap: '16px' }}>
-            {row.map((child) => renderFromJson(child))}
-          </div>
-        ))}
-    </Tag>
+    <div key={element.uniqueId} className="w-full" style={wrapperStyle}>
+      <RenderBlock block={element} isEditing={false} />
+    </div>
   );
 };
 
-export default renderFromJson;
+export default RenderFromJson;
