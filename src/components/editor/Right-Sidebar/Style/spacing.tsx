@@ -5,14 +5,12 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import IconHover from '@/components/ReusableComponents/IconHover';
 import { useAppSelector, useAppDispatch } from '@/redux/hooks';
 import { updateSelectedBlockStyles } from '@/redux/canvasSlice';
 
 type SpacingProps = {
   spacingOpen: boolean;
   setSpacingOpen: (value: boolean) => void;
-  valueToLog: number;
 };
 
 export default function Spacing({ spacingOpen, setSpacingOpen }: SpacingProps) {

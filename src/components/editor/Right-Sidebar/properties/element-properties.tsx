@@ -1,11 +1,25 @@
 'use client';
 
-import { Pointer, Type, BarChart, ImageIcon, CreditCard, Waves } from 'lucide-react';
+import { useState } from 'react';
+import {
+  Pointer,
+  Type,
+  BarChart,
+  ImageIcon,
+  CreditCard,
+  Waves,
+  Keyboard,
+  CircleDot,
+  SquareCheck,
+  PanelTop,
+  Trash2,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
+import { toast } from 'react-hot-toast';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { updateBlockContent, updateBlockIcon } from '@/redux/canvasSlice';
 import {
@@ -87,9 +101,26 @@ export default function ElementProperties() {
   const isProgressBlock = selectedBlock?.type === 'progress';
   const isTextBlock = selectedBlock?.type === 'text';
   const isStatsBlock = selectedBlock?.type === 'stats';
+  const isInputBlock = selectedBlock?.type === 'input';
+  const isChoiceBlock = selectedBlock?.type === 'radio' || selectedBlock?.type === 'checkbox';
   const isImageBlock = selectedBlock?.type === 'image';
   const isCardBlock = selectedBlock?.type === 'card';
+  const isNavbarBlock = selectedBlock?.type === 'nav-bar';
   const isShapeDividerBlock = selectedBlock?.type === 'shape-divider';
+  const reusableUiBlockTypes = [
+    'badge',
+    'alert',
+    'avatar',
+    'separator',
+    'skeleton',
+    'switch',
+    'textarea',
+    'table',
+    'tabs',
+  ];
+  const isReusableUiBlock = Boolean(
+    selectedBlock?.type && reusableUiBlockTypes.includes(selectedBlock.type)
+  );
   const supportsIcons =
     selectedBlock?.type === 'text' ||
     selectedBlock?.type === 'button' ||
@@ -114,6 +145,55 @@ export default function ElementProperties() {
     caption: '',
   });
 
+  const defaultInputLabelStyle = {
+    color: '#111827',
+    fontSize: '14px',
+    fontWeight: '500',
+    lineHeight: '1.4',
+    marginBottom: '6px',
+    textAlign: 'left',
+  };
+  const inputContent = parseJsonContent({
+    label: '',
+    placeholder: '',
+    name: '',
+    inputType: 'text',
+    required: false,
+    labelStyle: defaultInputLabelStyle,
+  });
+  const inputLabelStyle = Object.assign({}, defaultInputLabelStyle, inputContent.labelStyle);
+  const handleInputLabelStyleChange = (key: string, value: string) => {
+    handleJsonContentChange(inputContent, 'labelStyle', {
+      ...inputLabelStyle,
+      [key]: value,
+    });
+  };
+  const defaultChoiceLabelStyle = {
+    color: '#111827',
+    fontSize: '14px',
+    fontWeight: '500',
+    lineHeight: '1.4',
+    marginLeft: '8px',
+    textAlign: 'left',
+  };
+  const choiceContent = parseJsonContent({
+    label: '',
+    name: '',
+    value: '',
+    checked: false,
+    required: false,
+    labelStyle: defaultChoiceLabelStyle,
+  });
+  const choiceLabelStyle = Object.assign({}, defaultChoiceLabelStyle, choiceContent.labelStyle);
+  const handleChoiceLabelStyleChange = (key: string, value: string) => {
+    handleJsonContentChange(choiceContent, 'labelStyle', {
+      ...choiceLabelStyle,
+      [key]: value,
+    });
+  };
+  const choiceBlockLabel = selectedBlock?.type === 'radio' ? 'Radio Button' : 'Check Button';
+  const ChoiceIcon = selectedBlock?.type === 'radio' ? CircleDot : SquareCheck;
+
   const cardContent = parseJsonContent({
     image: '',
     eyebrow: '',
@@ -128,6 +208,66 @@ export default function ElementProperties() {
     height: 120,
     flip: false,
   });
+
+  const navbarContent = parseJsonContent({
+    logo: 'Brand',
+    logoType: 'text',
+    logoImage: '',
+    links: [
+      { label: 'Home', href: '#', onClick: 'none', onClickValue: '' },
+      { label: 'About', href: '#', onClick: 'none', onClickValue: '' },
+      { label: 'Services', href: '#', onClick: 'none', onClickValue: '' },
+      { label: 'Contact', href: '#', onClick: 'none', onClickValue: '' },
+    ],
+  });
+
+  const handleNavbarLinkChange = (index: number, key: string, value: string) => {
+    const updatedLinks = [...navbarContent.links];
+    updatedLinks[index] = { ...updatedLinks[index], [key]: value };
+    handleJsonContentChange(navbarContent, 'links', updatedLinks);
+  };
+
+  const addNavbarLink = () => {
+    const updatedLinks = [...navbarContent.links, { label: 'New Link', href: '#', onClick: 'none', onClickValue: '' }];
+    handleJsonContentChange(navbarContent, 'links', updatedLinks);
+  };
+
+  const removeNavbarLink = (index: number) => {
+    const updatedLinks = navbarContent.links.filter((_: any, i: number) => i !== index);
+    handleJsonContentChange(navbarContent, 'links', updatedLinks);
+  };
+
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, callback: (path: string) => void) => {
+    const file = e.target.files?.[0];
+    if (!file || !selectedBlock?.uniqueId) return;
+
+    try {
+      setIsUploadingImage(true);
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch('/api/editor/background-upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+      if (!response.ok || !data.filePath) {
+        throw new Error(data.message || 'Upload failed');
+      }
+
+      callback(data.filePath);
+      toast.success('Image uploaded successfully');
+    } catch (error) {
+      console.error('Image upload failed:', error);
+      toast.error('Failed to upload image');
+    } finally {
+      setIsUploadingImage(false);
+      e.target.value = '';
+    }
+  };
 
   return (
     <div className="rounded-lg border p-4 bg-muted/20">
@@ -216,6 +356,292 @@ export default function ElementProperties() {
           </div>
         )}
 
+        {isInputBlock && (
+          <div className="space-y-3 p-3 rounded-md bg-background border shadow-sm">
+            <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+              <Keyboard className="h-3 w-3" />
+              Input Box Settings
+            </Label>
+            <div className="space-y-2">
+              <div className="flex flex-col gap-1">
+                <Label className="text-[10px] text-muted-foreground uppercase">Label</Label>
+                <Input
+                  className="h-8 text-sm"
+                  value={inputContent.label}
+                  onChange={(e) => handleJsonContentChange(inputContent, 'label', e.target.value)}
+                  placeholder="Your Name"
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <Label className="text-[10px] text-muted-foreground uppercase">Placeholder</Label>
+                <Input
+                  className="h-8 text-sm"
+                  value={inputContent.placeholder}
+                  onChange={(e) =>
+                    handleJsonContentChange(inputContent, 'placeholder', e.target.value)
+                  }
+                  placeholder="Enter your name"
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <Label className="text-[10px] text-muted-foreground uppercase">Field Name</Label>
+                <Input
+                  className="h-8 text-sm"
+                  value={inputContent.name}
+                  onChange={(e) => handleJsonContentChange(inputContent, 'name', e.target.value)}
+                  placeholder="your_name"
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <Label className="text-[10px] text-muted-foreground uppercase">Input Type</Label>
+                <select
+                  className="h-8 rounded-md border bg-background px-2 text-sm"
+                  value={inputContent.inputType}
+                  onChange={(e) =>
+                    handleJsonContentChange(inputContent, 'inputType', e.target.value)
+                  }
+                >
+                  <option value="text">Text</option>
+                  <option value="email">Email</option>
+                  <option value="tel">Phone</option>
+                  <option value="number">Number</option>
+                  <option value="url">URL</option>
+                  <option value="password">Password</option>
+                </select>
+              </div>
+              <label className="flex items-center gap-2 text-xs">
+                <input
+                  type="checkbox"
+                  checked={Boolean(inputContent.required)}
+                  onChange={(e) =>
+                    handleJsonContentChange(inputContent, 'required', e.target.checked)
+                  }
+                />
+                Required field
+              </label>
+              <div className="space-y-2 border-t pt-3">
+                <Label className="text-[10px] text-muted-foreground uppercase">Label Styles</Label>
+                <div className="grid grid-cols-[40px_1fr] gap-2 items-center">
+                  <input
+                    type="color"
+                    value={inputLabelStyle.color}
+                    onChange={(e) => handleInputLabelStyleChange('color', e.target.value)}
+                    className="h-8 w-10 rounded border"
+                  />
+                  <Input
+                    className="h-8 text-xs font-mono"
+                    value={inputLabelStyle.color}
+                    onChange={(e) => handleInputLabelStyleChange('color', e.target.value)}
+                    placeholder="#111827"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="flex flex-col gap-1">
+                    <Label className="text-[10px] text-muted-foreground uppercase">Font Size</Label>
+                    <Input
+                      className="h-8 text-sm"
+                      value={inputLabelStyle.fontSize}
+                      onChange={(e) => handleInputLabelStyleChange('fontSize', e.target.value)}
+                      placeholder="14px"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <Label className="text-[10px] text-muted-foreground uppercase">
+                      Font Weight
+                    </Label>
+                    <Input
+                      className="h-8 text-sm"
+                      value={inputLabelStyle.fontWeight}
+                      onChange={(e) => handleInputLabelStyleChange('fontWeight', e.target.value)}
+                      placeholder="500"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <Label className="text-[10px] text-muted-foreground uppercase">
+                      Line Height
+                    </Label>
+                    <Input
+                      className="h-8 text-sm"
+                      value={inputLabelStyle.lineHeight}
+                      onChange={(e) => handleInputLabelStyleChange('lineHeight', e.target.value)}
+                      placeholder="1.4"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <Label className="text-[10px] text-muted-foreground uppercase">
+                      Bottom Gap
+                    </Label>
+                    <Input
+                      className="h-8 text-sm"
+                      value={inputLabelStyle.marginBottom}
+                      onChange={(e) => handleInputLabelStyleChange('marginBottom', e.target.value)}
+                      placeholder="6px"
+                    />
+                  </div>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <Label className="text-[10px] text-muted-foreground uppercase">Text Align</Label>
+                  <select
+                    className="h-8 rounded-md border bg-background px-2 text-sm"
+                    value={inputLabelStyle.textAlign}
+                    onChange={(e) => handleInputLabelStyleChange('textAlign', e.target.value)}
+                  >
+                    <option value="left">Left</option>
+                    <option value="center">Center</option>
+                    <option value="right">Right</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {isChoiceBlock && (
+          <div className="space-y-3 p-3 rounded-md bg-background border shadow-sm">
+            <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+              <ChoiceIcon className="h-3 w-3" />
+              {choiceBlockLabel} Settings
+            </Label>
+            <div className="space-y-2">
+              <div className="flex flex-col gap-1">
+                <Label className="text-[10px] text-muted-foreground uppercase">Label</Label>
+                <Input
+                  className="h-8 text-sm"
+                  value={choiceContent.label}
+                  onChange={(e) => handleJsonContentChange(choiceContent, 'label', e.target.value)}
+                  placeholder="Option label"
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <Label className="text-[10px] text-muted-foreground uppercase">Field Name</Label>
+                <Input
+                  className="h-8 text-sm"
+                  value={choiceContent.name}
+                  onChange={(e) => handleJsonContentChange(choiceContent, 'name', e.target.value)}
+                  placeholder={selectedBlock?.type === 'radio' ? 'radio_group' : 'agreement'}
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <Label className="text-[10px] text-muted-foreground uppercase">Value</Label>
+                <Input
+                  className="h-8 text-sm"
+                  value={choiceContent.value}
+                  onChange={(e) => handleJsonContentChange(choiceContent, 'value', e.target.value)}
+                  placeholder="option_value"
+                />
+              </div>
+              <label className="flex items-center gap-2 text-xs">
+                <input
+                  type="checkbox"
+                  checked={Boolean(choiceContent.checked)}
+                  onChange={(e) =>
+                    handleJsonContentChange(choiceContent, 'checked', e.target.checked)
+                  }
+                />
+                Checked by default
+              </label>
+              <label className="flex items-center gap-2 text-xs">
+                <input
+                  type="checkbox"
+                  checked={Boolean(choiceContent.required)}
+                  onChange={(e) =>
+                    handleJsonContentChange(choiceContent, 'required', e.target.checked)
+                  }
+                />
+                Required field
+              </label>
+              <div className="space-y-2 border-t pt-3">
+                <Label className="text-[10px] text-muted-foreground uppercase">Label Styles</Label>
+                <div className="grid grid-cols-[40px_1fr] gap-2 items-center">
+                  <input
+                    type="color"
+                    value={choiceLabelStyle.color}
+                    onChange={(e) => handleChoiceLabelStyleChange('color', e.target.value)}
+                    className="h-8 w-10 rounded border"
+                  />
+                  <Input
+                    className="h-8 text-xs font-mono"
+                    value={choiceLabelStyle.color}
+                    onChange={(e) => handleChoiceLabelStyleChange('color', e.target.value)}
+                    placeholder="#111827"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="flex flex-col gap-1">
+                    <Label className="text-[10px] text-muted-foreground uppercase">Font Size</Label>
+                    <Input
+                      className="h-8 text-sm"
+                      value={choiceLabelStyle.fontSize}
+                      onChange={(e) => handleChoiceLabelStyleChange('fontSize', e.target.value)}
+                      placeholder="14px"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <Label className="text-[10px] text-muted-foreground uppercase">
+                      Font Weight
+                    </Label>
+                    <Input
+                      className="h-8 text-sm"
+                      value={choiceLabelStyle.fontWeight}
+                      onChange={(e) => handleChoiceLabelStyleChange('fontWeight', e.target.value)}
+                      placeholder="500"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <Label className="text-[10px] text-muted-foreground uppercase">
+                      Line Height
+                    </Label>
+                    <Input
+                      className="h-8 text-sm"
+                      value={choiceLabelStyle.lineHeight}
+                      onChange={(e) => handleChoiceLabelStyleChange('lineHeight', e.target.value)}
+                      placeholder="1.4"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <Label className="text-[10px] text-muted-foreground uppercase">Left Gap</Label>
+                    <Input
+                      className="h-8 text-sm"
+                      value={choiceLabelStyle.marginLeft}
+                      onChange={(e) => handleChoiceLabelStyleChange('marginLeft', e.target.value)}
+                      placeholder="8px"
+                    />
+                  </div>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <Label className="text-[10px] text-muted-foreground uppercase">Text Align</Label>
+                  <select
+                    className="h-8 rounded-md border bg-background px-2 text-sm"
+                    value={choiceLabelStyle.textAlign}
+                    onChange={(e) => handleChoiceLabelStyleChange('textAlign', e.target.value)}
+                  >
+                    <option value="left">Left</option>
+                    <option value="center">Center</option>
+                    <option value="right">Right</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {isReusableUiBlock && (
+          <div className="space-y-2 p-3 rounded-md bg-background border shadow-sm">
+            <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Reusable UI Content
+            </Label>
+            <Textarea
+              className="min-h-[160px] text-xs font-mono"
+              value={selectedBlock?.content || ''}
+              onChange={(e) => handleContentChange(e.target.value)}
+              placeholder="Enter JSON content..."
+            />
+            <p className="text-[11px] text-muted-foreground">
+              This block uses components from src/components/ui. Edit the JSON values here.
+            </p>
+          </div>
+        )}
+
         {isImageBlock && (
           <div className="space-y-3 p-3 rounded-md bg-background border shadow-sm">
             <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
@@ -231,6 +657,17 @@ export default function ElementProperties() {
                   onChange={(e) => handleJsonContentChange(imageContent, 'src', e.target.value)}
                   placeholder="https://example.com/image.jpg"
                 />
+              </div>
+              <div className="flex flex-col gap-1">
+                <Label className="text-[10px] text-muted-foreground uppercase">Upload From System</Label>
+                <Input
+                  type="file"
+                  accept="image/*"
+                  className="h-8 text-xs"
+                  onChange={(e) => handleImageUpload(e, (path) => handleJsonContentChange(imageContent, 'src', path))}
+                  disabled={isUploadingImage}
+                />
+                {isUploadingImage && <p className="text-[10px] text-muted-foreground">Uploading...</p>}
               </div>
               <div className="flex flex-col gap-1">
                 <Label className="text-[10px] text-muted-foreground uppercase">Alt Text</Label>
@@ -271,6 +708,17 @@ export default function ElementProperties() {
                 />
               </div>
               <div className="flex flex-col gap-1">
+                <Label className="text-[10px] text-muted-foreground uppercase">Upload From System</Label>
+                <Input
+                  type="file"
+                  accept="image/*"
+                  className="h-8 text-xs"
+                  onChange={(e) => handleImageUpload(e, (path) => handleJsonContentChange(cardContent, 'image', path))}
+                  disabled={isUploadingImage}
+                />
+                {isUploadingImage && <p className="text-[10px] text-muted-foreground">Uploading...</p>}
+              </div>
+              <div className="flex flex-col gap-1">
                 <Label className="text-[10px] text-muted-foreground uppercase">Eyebrow</Label>
                 <Input
                   className="h-8 text-sm"
@@ -307,6 +755,137 @@ export default function ElementProperties() {
                   }
                   placeholder="Read More"
                 />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {isNavbarBlock && (
+          <div className="space-y-3 p-3 rounded-md bg-background border shadow-sm">
+            <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+              <PanelTop className="h-3 w-3" />
+              Navbar Settings
+            </Label>
+            <div className="space-y-4">
+              <div className="flex flex-col gap-1">
+                <Label className="text-[10px] text-muted-foreground uppercase">Logo Type</Label>
+                <select
+                  className="h-8 rounded-md border bg-background px-2 text-sm"
+                  value={navbarContent.logoType || 'text'}
+                  onChange={(e) => handleJsonContentChange(navbarContent, 'logoType', e.target.value)}
+                >
+                  <option value="text">Text</option>
+                  <option value="image">Image</option>
+                </select>
+              </div>
+
+              {navbarContent.logoType === 'image' ? (
+                <div className="space-y-3">
+                  <div className="flex flex-col gap-1">
+                    <Label className="text-[10px] text-muted-foreground uppercase">Logo Image URL</Label>
+                    <Input
+                      className="h-8 text-sm"
+                      value={navbarContent.logoImage || ''}
+                      onChange={(e) => handleJsonContentChange(navbarContent, 'logoImage', e.target.value)}
+                      placeholder="https://example.com/logo.png"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <Label className="text-[10px] text-muted-foreground uppercase">Upload From System</Label>
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      className="h-8 text-xs"
+                      onChange={(e) => handleImageUpload(e, (path) => handleJsonContentChange(navbarContent, 'logoImage', path))}
+                      disabled={isUploadingImage}
+                    />
+                    {isUploadingImage && <p className="text-[10px] text-muted-foreground">Uploading...</p>}
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-1">
+                  <Label className="text-[10px] text-muted-foreground uppercase">Logo Text</Label>
+                  <Input
+                    className="h-8 text-sm"
+                    value={navbarContent.logo}
+                    onChange={(e) => handleJsonContentChange(navbarContent, 'logo', e.target.value)}
+                    placeholder="Brand Logo"
+                  />
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label className="text-[10px] text-muted-foreground uppercase">Nav Links</Label>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 px-2 text-[10px]"
+                    onClick={addNavbarLink}
+                  >
+                    Add Link
+                  </Button>
+                </div>
+
+                <div className="space-y-3">
+                  {navbarContent.links.map((link: any, index: number) => (
+                    <div key={index} className="space-y-2 p-2 border rounded bg-muted/10 relative">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-5 w-5 p-0 absolute top-1 right-1 text-muted-foreground hover:text-destructive"
+                        onClick={() => removeNavbarLink(index)}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                      
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="flex flex-col gap-1">
+                          <Label className="text-[9px] text-muted-foreground">Label</Label>
+                          <Input
+                            className="h-7 text-[11px]"
+                            value={link.label}
+                            onChange={(e) =>
+                              handleNavbarLinkChange(index, 'label', e.target.value)
+                            }
+                          />
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <Label className="text-[9px] text-muted-foreground">Href</Label>
+                          <Input
+                            className="h-7 text-[11px]"
+                            value={link.href}
+                            onChange={(e) => handleNavbarLinkChange(index, 'href', e.target.value)}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2 border-t pt-2">
+                        <div className="flex flex-col gap-1">
+                          <Label className="text-[9px] text-muted-foreground">On Click</Label>
+                          <select
+                            className="h-7 rounded border bg-background px-1 text-[10px]"
+                            value={link.onClick || 'none'}
+                            onChange={(e) => handleNavbarLinkChange(index, 'onClick', e.target.value)}
+                          >
+                            <option value="none">None</option>
+                            <option value="alert">Alert</option>
+                            <option value="redirect">Redirect</option>
+                          </select>
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <Label className="text-[9px] text-muted-foreground">Value</Label>
+                          <Input
+                            className="h-7 text-[11px]"
+                            value={link.onClickValue || ''}
+                            onChange={(e) => handleNavbarLinkChange(index, 'onClickValue', e.target.value)}
+                            placeholder="Value..."
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>

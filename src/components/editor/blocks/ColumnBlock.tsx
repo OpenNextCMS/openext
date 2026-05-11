@@ -40,7 +40,8 @@ function DraggableColumnChild({ child }: { child: Block }) {
       style={{
         display: isInlineDisplay ? 'inline-block' : 'block',
         width: isInlineDisplay ? child.style?.width || 'auto' : '100%',
-        height: child.style?.height,
+        minWidth: 0,
+        boxSizing: 'border-box',
         transform: CSS.Translate.toString(transform),
         opacity: isDragging ? 0.55 : 1,
         zIndex: isDragging ? 30 : undefined,
@@ -94,33 +95,58 @@ export const ColumnBlock = ({ block, isEditing = false }: Props) => {
   };
 
   const blockStyle = typeof block.style === 'object' ? block.style : {};
+  const columnCount = block.children?.length || 0;
   const layoutDisplay = (blockStyle.display as React.CSSProperties['display']) || 'flex';
   const layoutGap = (blockStyle.gap as React.CSSProperties['gap']) || '16px';
-  const layoutRestStyle = { ...blockStyle };
-  delete layoutRestStyle.display;
-  delete layoutRestStyle.gap;
+  const layoutFlexDirection =
+    (blockStyle.flexDirection as React.CSSProperties['flexDirection']) || 'row';
+  const layoutFlexWrap = (blockStyle.flexWrap as React.CSSProperties['flexWrap']) || 'wrap';
+  const layoutAlignItems =
+    (blockStyle.alignItems as React.CSSProperties['alignItems']) || 'stretch';
+  const layoutJustifyContent =
+    (blockStyle.justifyContent as React.CSSProperties['justifyContent']) || 'flex-start';
+  const containerStyle = { ...blockStyle };
+  delete containerStyle.display;
+  delete containerStyle.gap;
+  delete containerStyle.flexDirection;
+  delete containerStyle.flexWrap;
+  delete containerStyle.alignItems;
+  delete containerStyle.justifyContent;
+  delete containerStyle.height;
 
   // If not in editing mode, use a simplified view
   if (!isEditing) {
     return (
       <div
-        className="flex gap-4"
         style={{
-          display: layoutDisplay,
-          gap: layoutGap,
           width: blockStyle.width || '100%',
-          ...layoutRestStyle,
+          minWidth: 0,
+          boxSizing: 'border-box',
+          ...containerStyle,
         }}
       >
-        {block.children?.map((childBlocks, index) => (
-          <div key={`${block.uniqueId}-col-${index}`} className="min-w-0 flex-1">
-            {Array.isArray(childBlocks) && childBlocks.length > 0
-              ? childBlocks.map((child) => (
-                  <RenderBlock key={child.uniqueId} block={child} isEditing={false} />
-                ))
-              : null}
-          </div>
-        ))}
+        <div
+          style={{
+            display: layoutDisplay,
+            flexDirection: layoutFlexDirection,
+            flexWrap: layoutFlexWrap,
+            alignItems: layoutAlignItems,
+            justifyContent: layoutJustifyContent,
+            gap: layoutGap,
+            width: '100%',
+            minWidth: 0,
+          }}
+        >
+          {block.children?.map((childBlocks, index) => (
+            <div key={`${block.uniqueId}-col-${index}`} className="min-w-0 flex-1">
+              {Array.isArray(childBlocks) && childBlocks.length > 0
+                ? childBlocks.map((child) => (
+                    <RenderBlock key={child.uniqueId} block={child} isEditing={false} />
+                  ))
+                : null}
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -130,10 +156,10 @@ export const ColumnBlock = ({ block, isEditing = false }: Props) => {
     <div
       className="group relative mb-6"
       style={{
-        display: layoutDisplay,
-        gap: layoutGap,
         width: blockStyle.width || '100%',
-        ...layoutRestStyle,
+        minWidth: 0,
+        boxSizing: 'border-box',
+        ...containerStyle,
       }}
       onClick={handleSelect}
       onMouseEnter={() => {
@@ -185,76 +211,79 @@ export const ColumnBlock = ({ block, isEditing = false }: Props) => {
 
       {/* Main Content */}
       <div
+        className="relative"
         style={{
-          borderRadius: '8px',
-          boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
-          transition: 'all 0.2s ease-in-out',
-          height: '100%',
-          display: 'contents',
+          display: layoutDisplay,
+          flexDirection: layoutFlexDirection,
+          flexWrap: layoutFlexWrap,
+          alignItems: layoutAlignItems,
+          justifyContent: layoutJustifyContent,
+          gap: layoutGap,
+          width: '100%',
+          minWidth: 0,
+          minHeight: '48px',
+          boxSizing: 'border-box',
         }}
       >
-        <button
-          type="button"
-          onClick={(e) => handleInsertColumn(e, 0)}
-          className="hover-column-insert flex min-h-[150px] w-0 shrink-0 items-center justify-center overflow-hidden rounded-md border border-dashed border-transparent text-muted-foreground opacity-0 transition-all hover:border-primary hover:bg-primary/10 hover:text-primary group-hover:w-6 group-hover:opacity-100"
-          title="Add column before"
-        >
-          <Plus className="h-4 w-4" />
-        </button>
-
         {block.children?.map((childBlocks, index) => (
-          <div key={`${block.uniqueId}-col-wrap-${index}`} className="flex min-w-0 flex-1 gap-2">
-            <div className="group/column relative flex min-w-0 flex-1">
-              {block.children && block.children.length > 1 && (
-                <button
-                  type="button"
-                  onClick={(e) => handleRemoveColumn(e, index)}
-                  className="absolute right-2 top-2 z-20 hidden rounded bg-red-500 p-1 text-white shadow-sm hover:bg-red-600 group-hover/column:block"
-                  title="Delete this column"
-                >
-                  <Trash2 className="h-3 w-3" />
-                </button>
-              )}
-
-              <ColumnDropZone
-                key={`${block.uniqueId}-col-${index}`}
-                columnIndex={index}
-                block={block}
-                isEditing={true}
+          <div
+            key={`${block.uniqueId}-col-wrap-${index}`}
+            className="group/column relative min-w-0 flex-1"
+          >
+            {block.children && block.children.length > 1 && (
+              <button
+                type="button"
+                onClick={(e) => handleRemoveColumn(e, index)}
+                className="absolute right-2 top-2 z-20 hidden rounded bg-red-500 p-1 text-white shadow-sm hover:bg-red-600 group-hover/column:block"
+                title="Delete this column"
               >
-                {Array.isArray(childBlocks) && childBlocks.length > 0 ? (
-                  childBlocks.map((child) => (
-                    <DraggableColumnChild key={child.uniqueId} child={child} />
-                  ))
-                ) : (
-                  <div
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      padding: '16px',
-                      color: '#6b7280',
-                      minHeight: '120px',
-                      width: '100%',
-                    }}
-                  >
-                    <GripVertical style={{ width: 20, height: 20, marginBottom: '8px' }} />
-                    <p style={{ fontSize: '14px' }}>Drop blocks here</p>
-                  </div>
-                )}
-              </ColumnDropZone>
-            </div>
+                <Trash2 className="h-3 w-3" />
+              </button>
+            )}
 
-            <button
-              type="button"
-              onClick={(e) => handleInsertColumn(e, index + 1)}
-              className="hover-column-insert flex min-h-[150px] w-0 shrink-0 items-center justify-center overflow-hidden rounded-md border border-dashed border-transparent text-muted-foreground opacity-0 transition-all hover:border-primary hover:bg-primary/10 hover:text-primary group-hover:w-6 group-hover:opacity-100"
-              title="Add column here"
+            <ColumnDropZone
+              key={`${block.uniqueId}-col-${index}`}
+              columnIndex={index}
+              block={block}
+              isEditing={true}
             >
-              <Plus className="h-4 w-4" />
-            </button>
+              {Array.isArray(childBlocks) && childBlocks.length > 0 ? (
+                childBlocks.map((child) => (
+                  <DraggableColumnChild key={child.uniqueId} child={child} />
+                ))
+              ) : (
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#6b7280',
+                    minHeight: '120px',
+                    width: '100%',
+                  }}
+                >
+                  <GripVertical style={{ width: 20, height: 20, marginBottom: '8px' }} />
+                  <p style={{ fontSize: '14px' }}>Drop blocks here</p>
+                </div>
+              )}
+            </ColumnDropZone>
           </div>
+        ))}
+
+        {block.children?.map((_, index) => (
+          <button
+            key={`${block.uniqueId}-insert-${index}`}
+            type="button"
+            onClick={(e) => handleInsertColumn(e, index + 1)}
+            className="absolute top-1/2 z-20 hidden h-7 w-7 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-primary bg-background text-primary shadow-sm group-hover:flex"
+            style={{
+              left: `${((index + 1) / Math.max(columnCount, 1)) * 100}%`,
+            }}
+            title="Add column here"
+          >
+            <Plus className="h-4 w-4" />
+          </button>
         ))}
       </div>
     </div>

@@ -11,9 +11,12 @@ import type { BlockData, Page } from '@/types';
 export default function PreviewPage() {
   const searchParams = useSearchParams();
   const fullPageName = searchParams.get('pagename') || '';
+  const pageType = searchParams.get('pageType') || 'page';
   const pagename = fullPageName.split('/')[0]; // Extract the actual page name before any sub-paths
 
   const [blocks, setBlocks] = useState<BlockData[]>([]);
+  const [headerBlocks, setHeaderBlocks] = useState<BlockData[]>([]);
+  const [footerBlocks, setFooterBlocks] = useState<BlockData[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -36,9 +39,32 @@ export default function PreviewPage() {
 
     const loadData = async () => {
       try {
+        const loadLayoutBlocks = async () => {
+          if (!pagename || pageType !== 'page') return;
+
+          const layoutRes = await fetch(
+            `${backendUrl}/api/pages/get-page?name=${encodeURIComponent(pagename)}&key=allowMe`,
+            {
+              cache: 'no-store',
+              credentials: 'include',
+            }
+          );
+
+          if (!layoutRes.ok) return;
+
+          const layoutData = await layoutRes.json();
+          setHeaderBlocks(
+            Array.isArray(layoutData?.header?.component) ? layoutData.header.component : []
+          );
+          setFooterBlocks(
+            Array.isArray(layoutData?.footer?.component) ? layoutData.footer.component : []
+          );
+        };
+
         const draftBlocks = loadDraftData();
         if (draftBlocks) {
           setBlocks(draftBlocks);
+          await loadLayoutBlocks();
           return;
         }
 
@@ -59,6 +85,8 @@ export default function PreviewPage() {
         const page = pagename
           ? data?.page
           : data?.pages?.find((item: Page) => item.isHome === true);
+        const header = data?.header;
+        const footer = data?.footer;
 
         if (!Array.isArray(page?.component)) {
           setBlocks([]);
@@ -66,6 +94,10 @@ export default function PreviewPage() {
         }
 
         setBlocks(page.component);
+        if (pageType === 'page') {
+          setHeaderBlocks(Array.isArray(header?.component) ? header.component : []);
+          setFooterBlocks(Array.isArray(footer?.component) ? footer.component : []);
+        }
       } catch (err) {
         console.error('Failed to load preview data:', err);
         setBlocks([]);
@@ -75,17 +107,19 @@ export default function PreviewPage() {
     };
 
     loadData();
-  }, [pagename]);
+  }, [pageType, pagename]);
 
   if (loading) return <div className="p-6">Loading preview...</div>;
 
   return (
     <div>
+      {headerBlocks.map((block) => renderFromJson(block))}
       {blocks.length > 0 ? (
         blocks.map((block) => renderFromJson(block))
       ) : (
         <div className="p-6 text-center text-muted-foreground">No blocks to preview</div>
       )}
+      {footerBlocks.map((block) => renderFromJson(block))}
     </div>
   );
 }

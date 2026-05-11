@@ -27,8 +27,14 @@ const PageSchema = new Schema<PageDocument>(
   {
     pageName: { type: String, required: true, trim: true },
     createdBy: { type: Schema.Types.ObjectId, ref: 'User' },
+    pageType: {
+      type: String,
+      enum: ['page', 'header', 'footer'],
+      default: 'page',
+    },
     isPublished: { type: Boolean, default: false },
     isHome: { type: Boolean, default: false },
+    isGlobal: { type: Boolean, default: false },
     preHeading: { type: String },
     description: { type: String },
     slug: { type: String, unique: true },
@@ -42,6 +48,7 @@ const PageSchema = new Schema<PageDocument>(
 
 // Create indexes for better query performance
 PageSchema.index({ pageName: 1, createdBy: 1 });
+PageSchema.index({ pageType: 1, isGlobal: 1 });
 
 const PageModel = models.Page || model<PageDocument>('Page', PageSchema);
 

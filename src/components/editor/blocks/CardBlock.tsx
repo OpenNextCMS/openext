@@ -30,7 +30,7 @@ const parseCardContent = (content?: string): CardContent => {
   try {
     const parsed = JSON.parse(content) as Partial<CardContent>;
     return {
-      image: parsed.image || defaultCard.image,
+      image: typeof parsed.image === 'string' ? parsed.image : defaultCard.image,
       eyebrow: parsed.eyebrow || '',
       title: parsed.title || defaultCard.title,
       body: parsed.body || defaultCard.body,

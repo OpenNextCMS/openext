@@ -37,6 +37,9 @@ function DraggableRowColumn({
       ref={setNodeRef}
       className="group/row-column relative min-w-0"
       style={{
+        flex: '1 1 0',
+        minWidth: 0,
+        boxSizing: 'border-box',
         transform: CSS.Translate.toString(transform),
         opacity: isDragging ? 0.6 : 1,
         zIndex: isDragging ? 30 : undefined,
@@ -83,11 +86,12 @@ export const RowBlock = ({ block, isEditing = true }: BlockRendererProps) => {
 
   const blockStyle = typeof block.style === 'object' ? block.style : {};
   const hasExplicitHeight = Boolean(blockStyle.height && blockStyle.height !== 'auto');
+  const rowFlexWrap = (blockStyle.flexWrap as React.CSSProperties['flexWrap']) || 'wrap';
 
   return (
     <div
       onClick={handleSelect}
-      className={`relative group ${isHovered && isEditing ? 'outline-2 outline-dashed outline-blue-500' : ''} ${isEditing ? 'p-2' : 'p-0'}`}
+      className={`relative group ${isHovered && isEditing ? 'outline-2 outline-dashed outline-blue-500' : ''}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -111,8 +115,11 @@ export const RowBlock = ({ block, isEditing = true }: BlockRendererProps) => {
         style={{
           display: blockStyle.display || 'flex',
           flexDirection: blockStyle.flexDirection || 'row',
+          flexWrap: rowFlexWrap,
           gap: blockStyle.gap || '16px',
           width: '100%',
+          minWidth: 0,
+          boxSizing: 'border-box',
           minHeight: blockStyle.minHeight || (hasExplicitHeight ? '0px' : isEditing ? '48px' : undefined),
           ...blockStyle,
         }}

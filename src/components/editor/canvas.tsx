@@ -7,6 +7,7 @@ import { GripVertical, LayoutGrid, PlusSquare, MousePointerClick } from 'lucide-
 import { useState } from 'react';
 import { Block } from '@/types/index';
 import Box from './blocks/Box';
+import { useAppSelector } from '@/redux/hooks';
 
 interface CanvasProps {
   canvasBlocks: Block[];
@@ -16,6 +17,7 @@ interface CanvasProps {
 function SortableCanvasBlock({ block }: { block: Block }) {
   const blockDisplay = (block.style?.display as string) || 'block';
   const isInlineDisplay = blockDisplay === 'inline' || blockDisplay === 'inline-block';
+
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: block.uniqueId || '',
     data: {
@@ -31,7 +33,8 @@ function SortableCanvasBlock({ block }: { block: Block }) {
       style={{
         display: isInlineDisplay ? 'inline-block' : 'block',
         width: isInlineDisplay ? block.style?.width || 'auto' : '100%',
-        height: block.style?.height,
+        minWidth: 0,
+        boxSizing: 'border-box',
         transform: CSS.Transform.toString(transform),
         transition,
         opacity: isDragging ? 0.55 : 1,
@@ -56,6 +59,8 @@ function SortableCanvasBlock({ block }: { block: Block }) {
 export default function Canvas({ canvasBlocks, viewMode }: CanvasProps) {
   const { setNodeRef, isOver } = useDroppable({ id: 'canvas' });
   const [zoom, setZoom] = useState(100);
+  const headerBlocks = useAppSelector((state) => state.canvas.headerBlocks);
+  const footerBlocks = useAppSelector((state) => state.canvas.footerBlocks);
 
   const handleZoomIn = () => {
     if (zoom < 200) setZoom(zoom + 10);
@@ -117,7 +122,7 @@ export default function Canvas({ canvasBlocks, viewMode }: CanvasProps) {
           } `}
           style={{ transform: `scale(${zoom / 100})`, transformOrigin: 'top left' }}
         >
-          <Box content="Header" />
+          <Box content="Header" blocks={headerBlocks} />
           {canvasBlocks.length > 0 ? (
             <SortableContext
               items={canvasBlocks.map((block) => block.uniqueId || '')}
@@ -152,7 +157,7 @@ export default function Canvas({ canvasBlocks, viewMode }: CanvasProps) {
               )}
             </div>
           )}
-          <Box content="Footer" />
+          <Box content="Footer" blocks={footerBlocks} />
         </div>
       </div>
     </div>

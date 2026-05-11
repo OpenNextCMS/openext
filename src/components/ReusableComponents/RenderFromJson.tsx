@@ -5,10 +5,19 @@ import type { Block } from '@/types/index';
 type JsonElement = Block;
 
 const RenderFromJson = (element: JsonElement): JSX.Element => {
-  // Use the standard RenderBlock component to ensure consistency
-  // across the entire application (Canvas, Preview, and JSON Renderer)
+  // Extract positioning styles for the wrapper to support 'sticky'
+  const wrapperStyle: React.CSSProperties = {
+    position: element.style?.position,
+    top: element.style?.top,
+    right: element.style?.right,
+    bottom: element.style?.bottom,
+    left: element.style?.left,
+    zIndex: element.style?.zIndex as any,
+  };
+
+  // Pass remaining styles to the block internally
   return (
-    <div key={element.uniqueId} className="w-full">
+    <div key={element.uniqueId} className="w-full" style={wrapperStyle}>
       <RenderBlock block={element} isEditing={false} />
     </div>
   );

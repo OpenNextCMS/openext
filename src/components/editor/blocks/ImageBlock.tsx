@@ -25,7 +25,7 @@ const parseImageContent = (content?: string): ImageContent => {
   try {
     const parsed = JSON.parse(content) as Partial<ImageContent>;
     return {
-      src: parsed.src || defaultImage.src,
+      src: typeof parsed.src === 'string' ? parsed.src : defaultImage.src,
       alt: parsed.alt || defaultImage.alt,
       caption: parsed.caption || '',
     };
@@ -91,17 +91,28 @@ export const ImageBlock = ({ block, isEditing = true }: BlockRendererProps) => {
         </div>
       )}
 
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={image.src}
-        alt={image.alt}
-        style={{
-          display: 'block',
-          width: '100%',
-          height: block.style?.height || '220px',
-          objectFit: 'cover',
-        }}
-      />
+      {image.src ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={image.src}
+          alt={image.alt}
+          style={{
+            display: 'block',
+            width: '100%',
+            height: block.style?.height || '220px',
+            objectFit: 'cover',
+          }}
+        />
+      ) : (
+        <div
+          aria-label={image.alt}
+          style={{
+            width: '100%',
+            height: block.style?.height || '220px',
+            backgroundColor: block.style?.backgroundColor || '#e5e7eb',
+          }}
+        />
+      )}
       {image.caption && (
         <figcaption
           style={{

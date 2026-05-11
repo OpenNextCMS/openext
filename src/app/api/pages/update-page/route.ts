@@ -30,15 +30,35 @@ export async function PATCH(req: NextRequest) {
 
     // Get PageModel using the connection
     const PageModel = getPageModel(pageDb);
-    if (updateFields.isHome) {
-      await PageModel.updateMany({ isHome: true }, { $set: { isHome: false } });
-    }
-
     const pageQuery = pageID ? { _id: pageID, createdBy: userId } : { slug, createdBy: userId };
     const page = await PageModel.findOne(pageQuery);
 
     if (!page) {
       return NextResponse.json({ message: 'Page not found' }, { status: 404 });
+    }
+
+    if (updateFields.isHome) {
+      await PageModel.updateMany(
+        {
+          isHome: true,
+          createdBy: userId,
+          _id: { $ne: page._id },
+          $or: [{ pageType: 'page' }, { pageType: { $exists: false } }],
+        },
+        { $set: { isHome: false } }
+      );
+    }
+
+    if (updateFields.isGlobal && (page.pageType === 'header' || page.pageType === 'footer')) {
+      await PageModel.updateMany(
+        {
+          isGlobal: true,
+          pageType: page.pageType,
+          createdBy: userId,
+          _id: { $ne: page._id },
+        },
+        { $set: { isGlobal: false } }
+      );
     }
 
     Object.assign(page, { ...updateFields, slug });

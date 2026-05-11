@@ -33,6 +33,7 @@ import AddPage from '../AddPage';
 interface Page {
   _id: string;
   pageName: string;
+  pageType?: 'page' | 'header' | 'footer';
   createdBy: string;
   isPublished: boolean;
   lastModified: string;
@@ -59,8 +60,11 @@ export default function PageManagement() {
       if (!response.ok) throw new Error('Failed to fetch pages');
       const data = await response.json();
       setUserId(data.userId); // Save the userId
-      setPages(data.pages || []);
-      setFilteredPages(data.pages || []);
+      const normalPages = (data.pages || []).filter(
+        (page: Page) => (page.pageType || 'page') === 'page'
+      );
+      setPages(normalPages);
+      setFilteredPages(normalPages);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch pages');
       toast.error('Failed to load pages');

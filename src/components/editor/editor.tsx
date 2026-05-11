@@ -20,6 +20,7 @@ import {
   moveBlockToColumn,
   moveRowColumn,
   setCanvasState,
+  setLayoutBlocks,
 } from '@/redux/canvasSlice';
 import { BlockDragData, Block } from '@/types/index';
 import { safeStorageGet } from '@/utils/safeStorage';
@@ -50,9 +51,22 @@ const editableBlockTypes: EditableBlockType[] = [
   'countdown',
   'button',
   'icon',
+  'input',
+  'radio',
+  'checkbox',
+  'badge',
+  'alert',
+  'avatar',
+  'separator',
+  'skeleton',
+  'switch',
+  'textarea',
+  'table',
+  'tabs',
   'image',
   'card',
   'shape-divider',
+  'nav-bar',
 ];
 
 const getEditableBlockType = (type?: string): EditableBlockType => {
@@ -77,10 +91,11 @@ export default function Editor() {
 
       const urlParams = new URLSearchParams(window.location.search);
       const pageName = urlParams.get('pagename') || 'default';
+      console.log('Current pageName:', pageName); // Log current page name
 
       const persistKey = `persist:root-${pageName}`;
       const existing = safeStorageGet(persistKey);
-      if (existing) return; // Already persisted, don't overwrite
+      console.log('Persisted data found:', !!existing); // Log if persisted data exists
 
       try {
         const response = await fetch(
@@ -96,10 +111,29 @@ export default function Editor() {
         }
 
         const data = await response.json();
+        console.log('Fetched page data:', data); // Log fetched data
+
+        const headerBlocks = data?.header?.component || [];
+        const footerBlocks = data?.footer?.component || [];
+        console.log('Extracted headerBlocks:', headerBlocks); // Log extracted header blocks
+        console.log('Extracted footerBlocks:', footerBlocks); // Log extracted footer blocks
+
+
+        if (existing) {
+          // If already persisted, just update the layout blocks (header/footer)
+          // so the user sees the latest global layout parts
+          dispatch(setLayoutBlocks({ headerBlocks, footerBlocks }));
+          // Removed 'return;' here to allow fetching and setting main blocks
+        }
+
         const blocks = data?.page?.component || [];
+        console.log('Blocks from fetched data (if no existing data):', blocks); // Log blocks if no existing data
+
 
         const newCanvasState = {
           blocks,
+          headerBlocks,
+          footerBlocks,
           viewMode: 'desktop' as 'desktop' | 'tablet' | 'mobile',
           selectedLabel: '',
           selectedBlock: null,
@@ -336,3 +370,4 @@ export default function Editor() {
     </div>
   );
 }
+

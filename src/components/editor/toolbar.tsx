@@ -49,6 +49,7 @@ export default function Toolbar({ toggleSidebar, onViewChange }: ToolbarProps) {
   const slug = searchParams.get('pagename');
   const userId = searchParams.get('userId');
   const pageID = searchParams.get('pageId');
+  const pageType = searchParams.get('pageType') || 'page';
   console.log('Page ID:', pageID);
   const components = useAppSelector((state) => state.canvas.blocks);
   console.log(components);
@@ -98,13 +99,17 @@ export default function Toolbar({ toggleSidebar, onViewChange }: ToolbarProps) {
     }
 
     safeStorageSet(`preview:draft-${slug}`, JSON.stringify(components));
-    window.open(`/preview?pagename=${encodeURIComponent(slug)}`, '_blank');
+    window.open(
+      `/preview?pagename=${encodeURIComponent(slug)}&pageType=${encodeURIComponent(pageType)}`,
+      '_blank'
+    );
   };
 
   const currentPageCode = JSON.stringify(
     {
       slug,
       pageID,
+      pageType,
       components,
     },
     null,

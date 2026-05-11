@@ -2,10 +2,12 @@ import renderFromJson from '@/components/ReusableComponents/RenderFromJson';
 import { BlockData, Page } from '@/types';
 import { useEffect, useState } from 'react';
 
-const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
+const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
 
 const Default = () => {
-  const [pageData, setPageData] = useState<BlockData[]>([]); // <-- change to an array
+  const [pageData, setPageData] = useState<BlockData[]>([]);
+  const [headerData, setHeaderData] = useState<BlockData[]>([]);
+  const [footerData, setFooterData] = useState<BlockData[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -23,7 +25,6 @@ const Default = () => {
             }
 
             const value = await response.json();
-
 
             if (value.DEFAULT_HOME_SLUG) {
               slug = value.DEFAULT_HOME_SLUG;
@@ -46,7 +47,21 @@ const Default = () => {
         const res = await fetch(url, { cache: 'no-store' });
         const data = await res.json();
 
-        const container = data.page || data.pages?.find((page: Page) => page.isHome === true);
+        let container = data.page || data.pages?.find((page: Page) => page.isHome === true);
+
+        if (!data.page && container?.slug) {
+          const layoutRes = await fetch(
+            `${backendUrl}/api/pages/get-page?name=${encodeURIComponent(container.slug)}&key=allowMe`,
+            { cache: 'no-store' }
+          );
+
+          if (layoutRes.ok) {
+            const layoutData = await layoutRes.json();
+            container = layoutData.page || container;
+            data.header = layoutData.header;
+            data.footer = layoutData.footer;
+          }
+        }
 
         if (!container?.isHome) {
           console.error('This is not a home page');
@@ -55,7 +70,9 @@ const Default = () => {
 
         const defaultComponent = container.component;
         if (Array.isArray(defaultComponent)) {
-          setPageData(defaultComponent); // ✅ safe set
+          setPageData(defaultComponent);
+          setHeaderData(Array.isArray(data.header?.component) ? data.header.component : []);
+          setFooterData(Array.isArray(data.footer?.component) ? data.footer.component : []);
           slug = container?.slug;
         } else {
           console.error('Invalid component format:', defaultComponent);
@@ -72,7 +89,9 @@ const Default = () => {
 
   return (
     <div>
+      {headerData.map((element) => renderFromJson(element))}
       {pageData.map((element) => renderFromJson(element))}
+      {footerData.map((element) => renderFromJson(element))}
     </div>
   );
 };

@@ -32,18 +32,21 @@ export const ColumnDropZone = ({
   const rowHasExplicitHeight = Boolean(blockStyle?.height && blockStyle.height !== 'auto');
 
   const editingStyles = isOver
-    ? 'bg-primary/10 border-primary border-dashed'
-    : 'bg-muted/20 hover:bg-muted/30 border-border';
+    ? 'outline-primary bg-primary/10'
+    : 'outline-transparent hover:outline-primary/40';
 
   return (
     <div
       ref={setNodeRef}
       className={`transition-colors relative z-0 ${
-        isEditing ? `border rounded-md p-3 ${editingStyles}` : 'min-h-0'
+        isEditing ? `rounded-md outline outline-1 outline-dashed ${editingStyles}` : 'min-h-0'
       }`}
       style={{
         flex: customWidth ? `0 0 ${customWidth}` : '1',
         width: customWidth || 'auto',
+        minWidth: 0,
+        maxWidth: '100%',
+        boxSizing: 'border-box',
         minHeight: isEditing ? (rowHasExplicitHeight ? '0px' : '48px') : '0px',
       }}
     >
@@ -58,7 +61,7 @@ export const ColumnDropZone = ({
       )}
 
       {/* Content wrapper with z-index to handle clicks */}
-      <div className="relative z-10 h-full">{children}</div>
+      <div className="relative z-10 min-w-0">{children}</div>
     </div>
   );
 };

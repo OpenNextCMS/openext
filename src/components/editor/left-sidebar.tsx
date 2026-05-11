@@ -26,7 +26,7 @@ export default function LeftSidebar() {
 
   const fetchPageById = useCallback(async () => {
     try {
-      const response = await fetch(`${backendUrl}/api/pages/get-pages`, {
+      const response = await fetch(`${backendUrl}/api/pages/get-pages?key=allowMe`, {
         credentials: 'include',
       });
       if (!response.ok) throw new Error(`Failed to fetch pages: ${response.status}`);
@@ -41,7 +41,9 @@ export default function LeftSidebar() {
           seoName: page.seoName || '',
           seoMeta: page.seoMeta || '',
           slug: page.slug || '',
+          pageType: page.pageType || 'page',
           isHome: page.isHome || false,
+          isGlobal: page.isGlobal || false,
           isPublished: page.isPublished,
           createdAt: page.createdAt,
           updatedAt: page.updatedAt,
@@ -111,6 +113,7 @@ export default function LeftSidebar() {
           seoName: formData.seoName,
           seoMeta: formData.seoMeta,
           isPublished: formData.isPublished,
+          isGlobal: formData.isGlobal,
         }),
       });
 
@@ -185,7 +188,7 @@ export default function LeftSidebar() {
           </div>
           <div className="flex-1 overflow-y-auto p-2 space-y-4">
             <PagesComponent
-              pages={pages}
+              pages={pages.filter((page) => (page.pageType || 'page') === 'page')}
               setPages={setPages}
               setPageId={(p) => {
                 setFormData(p);

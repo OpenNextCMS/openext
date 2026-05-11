@@ -16,9 +16,22 @@ interface Block {
     | 'button'
     | 'row'
     | 'icon'
+    | 'input'
+    | 'radio'
+    | 'checkbox'
+    | 'badge'
+    | 'alert'
+    | 'avatar'
+    | 'separator'
+    | 'skeleton'
+    | 'switch'
+    | 'textarea'
+    | 'table'
+    | 'tabs'
     | 'image'
     | 'card'
-    | 'shape-divider';
+    | 'shape-divider'
+    | 'nav-bar';
   uniqueId: string;
   content?: string;
   icon?: React.ReactNode | string;

@@ -2,6 +2,9 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { v4 as uuidv4 } from 'uuid';
 
 export interface BlockData {
+  id?: string;
+  label?: string;
+  description?: string;
   uniqueId: string;
   content: string;
   type:
@@ -14,9 +17,22 @@ export interface BlockData {
     | 'countdown'
     | 'button'
     | 'icon'
+    | 'input'
+    | 'radio'
+    | 'checkbox'
+    | 'badge'
+    | 'alert'
+    | 'avatar'
+    | 'separator'
+    | 'skeleton'
+    | 'switch'
+    | 'textarea'
+    | 'table'
+    | 'tabs'
     | 'image'
     | 'card'
-    | 'shape-divider';
+    | 'shape-divider'
+    | 'nav-bar';
   children?: BlockData[][];
   style?: React.CSSProperties;
   hoverStyle?: React.CSSProperties;
@@ -29,6 +45,8 @@ export interface BlockData {
 
 export interface CanvasState {
   blocks: BlockData[];
+  headerBlocks: BlockData[];
+  footerBlocks: BlockData[];
   viewMode: 'desktop' | 'tablet' | 'mobile';
   selectedLabel: string;
   selectedBlock: BlockData | null;
@@ -37,6 +55,8 @@ export interface CanvasState {
 
 const initialState: CanvasState = {
   blocks: [],
+  headerBlocks: [],
+  footerBlocks: [],
   viewMode: 'desktop',
   selectedLabel: '',
   selectedBlock: null,
@@ -571,6 +591,13 @@ const canvasSlice = createSlice({
     setCanvasState: (state, action: PayloadAction<CanvasState>) => {
       return action.payload;
     },
+    setLayoutBlocks: (
+      state,
+      action: PayloadAction<{ headerBlocks: BlockData[]; footerBlocks: BlockData[] }>
+    ) => {
+      state.headerBlocks = action.payload.headerBlocks;
+      state.footerBlocks = action.payload.footerBlocks;
+    },
   },
 });
 
@@ -595,6 +622,7 @@ export const {
   updateBlockEvents,
   updateBlockIcon,
   setCanvasState,
+  setLayoutBlocks,
 } = canvasSlice.actions;
 
 export default canvasSlice.reducer;

@@ -132,9 +132,22 @@ export interface Block {
     | 'button'
     | 'row'
     | 'icon'
+    | 'input'
+    | 'radio'
+    | 'checkbox'
+    | 'badge'
+    | 'alert'
+    | 'avatar'
+    | 'separator'
+    | 'skeleton'
+    | 'switch'
+    | 'textarea'
+    | 'table'
+    | 'tabs'
     | 'image'
     | 'card'
-    | 'shape-divider';
+    | 'shape-divider'
+    | 'nav-bar';
   children?: ColumnChild[]; // Updated type for children
   content?: string;
   icon?: ReactNode | string;
@@ -195,8 +208,10 @@ export interface IModification {
 export interface PageDocument extends Document {
   pageName: string;
   createdBy: Types.ObjectId;
+  pageType: 'page' | 'header' | 'footer';
   isPublished: boolean;
   isHome: boolean;
+  isGlobal: boolean;
   lastModified: Date;
   preHeading: string;
   description: string;
@@ -221,6 +236,9 @@ export interface ISettingsDocument extends Document {
 }
 
 export interface BlockData {
+  id?: string;
+  label?: string;
+  description?: string;
   uniqueId: string;
   content: string;
   type:
@@ -233,9 +251,22 @@ export interface BlockData {
     | 'button'
     | 'row'
     | 'icon'
+    | 'input'
+    | 'radio'
+    | 'checkbox'
+    | 'badge'
+    | 'alert'
+    | 'avatar'
+    | 'separator'
+    | 'skeleton'
+    | 'switch'
+    | 'textarea'
+    | 'table'
+    | 'tabs'
     | 'image'
     | 'card'
-    | 'shape-divider';
+    | 'shape-divider'
+    | 'nav-bar';
   children?: BlockData[][];
   style?: React.CSSProperties;
   hoverStyle?: React.CSSProperties;
@@ -248,19 +279,26 @@ export interface BlockData {
 
 export interface CanvasState {
   blocks: BlockData[];
+  headerBlocks: BlockData[];
+  footerBlocks: BlockData[];
   viewMode: 'desktop' | 'tablet' | 'mobile';
+  selectedLabel: string;
+  selectedBlock: BlockData | null;
+  selectedValue: number | null;
 }
 
 export interface Page {
   id?: string;
   _id?: string; // Add MongoDB _id
   pageName: string;
+  pageType?: 'page' | 'header' | 'footer';
   preHeading: string;
   description: string;
   seoName: string;
   seoMeta: string;
   slug?: string;
   isHome?: boolean;
+  isGlobal?: boolean;
   isPublished?: boolean;
   component?: unknown[];
   createdAt?: string;
