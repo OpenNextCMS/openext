@@ -47,6 +47,9 @@ const NewRegisterForm = () => {
         'MONGODB',
       ];
       missingCredentials = compassCredentials.some((key) => !safeStorageGet(key));
+    } else if (mongoDB === 'uri') {
+      const uriCredentials = ['MONGODB_URI', 'MONGODB'];
+      missingCredentials = uriCredentials.some((key) => !safeStorageGet(key));
     }
 
     const dbInfo = ['USER_DB_NAME', 'PAGE_DB_NAME'];
@@ -92,6 +95,11 @@ const NewRegisterForm = () => {
             host: safeStorageGet('MONGODB_HOST'),
             authMech: safeStorageGet('MONGODB_AUTH_MECH'),
             authSource: safeStorageGet('MONGODB_AUTH_SOURCE'),
+            mongoDB: safeStorageGet('MONGODB'),
+          };
+        } else if (mongoDB === 'uri') {
+          return {
+            uri: safeStorageGet('MONGODB_URI'),
             mongoDB: safeStorageGet('MONGODB'),
           };
         }

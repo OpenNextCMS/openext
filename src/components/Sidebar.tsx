@@ -1,6 +1,7 @@
 'use client';
 
-import { useRouter, usePathname } from 'next/navigation';
+import { usePathname } from 'next/navigation';
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import {
   LayoutDashboard,
@@ -78,7 +79,6 @@ export default function Sidebar() {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const router = useRouter();
   const pathname = usePathname();
 
   const { theme } = useTheme();
@@ -153,14 +153,14 @@ export default function Sidebar() {
           {/* Header */}
           <div className="p-4 flex items-center justify-between border-b">
             {!isCollapsed && (
-              <div onClick={() => router.push('/dashboard')}>
+              <Link href="/dashboard" prefetch>
                 <Image
                   src={theme === 'dark' ? dimg : img}
                   alt="Theme Image"
                   width={150}
                   className="mx-5"
                 />
-              </div>
+              </Link>
             )}
             {!isMobile && (
               <Button
@@ -234,15 +234,17 @@ export default function Sidebar() {
                                 'w-full justify-start h-9',
                                 isActive(link.path) && 'font-medium'
                               )}
-                              onClick={() => router.push(link.path)}
+                              asChild
                             >
-                              <link.icon
-                                className={cn(
-                                  'h-4 w-4 mr-2',
-                                  isActive(link.path) ? 'text-primary' : 'text-muted-foreground'
-                                )}
-                              />
-                              <span>{link.label}</span>
+                              <Link href={link.path} prefetch>
+                                <link.icon
+                                  className={cn(
+                                    'h-4 w-4 mr-2',
+                                    isActive(link.path) ? 'text-primary' : 'text-muted-foreground'
+                                  )}
+                                />
+                                <span>{link.label}</span>
+                              </Link>
                             </Button>
                           ))}
                         </CollapsibleContent>
@@ -257,16 +259,18 @@ export default function Sidebar() {
                               isCollapsed ? 'px-2' : 'px-3',
                               isActive(item.path!) && 'font-medium'
                             )}
-                            onClick={() => router.push(item.path!)}
+                            asChild
                           >
-                            <item.icon
-                              className={cn(
-                                'h-5 w-5',
-                                isCollapsed ? 'mx-auto' : 'mr-2',
-                                isActive(item.path!) ? 'text-primary' : 'text-muted-foreground'
-                              )}
-                            />
-                            {!isCollapsed && <span>{item.label}</span>}
+                            <Link href={item.path!} prefetch>
+                              <item.icon
+                                className={cn(
+                                  'h-5 w-5',
+                                  isCollapsed ? 'mx-auto' : 'mr-2',
+                                  isActive(item.path!) ? 'text-primary' : 'text-muted-foreground'
+                                )}
+                              />
+                              {!isCollapsed && <span>{item.label}</span>}
+                            </Link>
                           </Button>
                         </TooltipTrigger>
                         {isCollapsed && <TooltipContent side="right">{item.label}</TooltipContent>}
@@ -285,16 +289,20 @@ export default function Sidebar() {
                         isCollapsed ? 'px-2' : 'px-3',
                         isActive('/dashboard/settings') && 'font-medium'
                       )}
-                      onClick={() => router.push('/dashboard/settings')}
+                      asChild
                     >
-                      <Settings
-                        className={cn(
-                          'h-5 w-5',
-                          isCollapsed ? 'mx-auto' : 'mr-2',
-                          isActive('/dashboard/settings') ? 'text-primary' : 'text-muted-foreground'
-                        )}
-                      />
-                      {!isCollapsed && <span>Settings</span>}
+                      <Link href="/dashboard/settings" prefetch>
+                        <Settings
+                          className={cn(
+                            'h-5 w-5',
+                            isCollapsed ? 'mx-auto' : 'mr-2',
+                            isActive('/dashboard/settings')
+                              ? 'text-primary'
+                              : 'text-muted-foreground'
+                          )}
+                        />
+                        {!isCollapsed && <span>Settings</span>}
+                      </Link>
                     </Button>
                   </TooltipTrigger>
                   {isCollapsed && <TooltipContent side="right">Settings</TooltipContent>}

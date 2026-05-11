@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import fs from 'fs/promises';
 import path from 'path';
 import { getDynamicEnv } from '@/utils/dynamicEnv';
+import { withDbName } from '@/utils/mongoUri';
 
 dotenv.config();
 
@@ -17,9 +18,17 @@ export async function POST() {
     MONGODB_CLUSTER,
     MONGODB_AUTH_MECH,
     MONGODB_AUTH_SOURCE,
+    MONGODB_URI,
   } = getDynamicEnv();
 
-  if (
+  if (MONGODB === 'uri') {
+    if (!MONGODB_URI) {
+      return handleError(
+        new Error('MONGODB_URI is missing'),
+        'MONGODB_URI is required when MONGODB=uri'
+      );
+    }
+  } else if (
     !MONGODB ||
     !MONGODB_USERNAME ||
     !MONGODB_PASSWORD ||
@@ -34,6 +43,9 @@ export async function POST() {
 
   // Function to generate a connection URL based on MongoDB type
   const getDbUrl = (dbName: string) => {
+    if (MONGODB === 'uri') {
+      return withDbName(MONGODB_URI as string, dbName);
+    }
     if (MONGODB === 'atlas') {
       return `mongodb+srv://${MONGODB_USERNAME}:${MONGODB_PASSWORD}@${MONGODB_CLUSTER}.${MONGODB_HOST}.mongodb.net/${dbName}?retryWrites=true&w=majority&appName=${MONGODB_CLUSTER}`;
     } else if (MONGODB === 'compass') {

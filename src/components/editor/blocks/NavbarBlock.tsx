@@ -12,12 +12,15 @@ import {
 import { useState } from 'react';
 import { useBlockEvents, triggerBlockEvent } from '@/hooks/useBlockEvents';
 
+type NavbarLayout = 'horizontal' | 'vertical' | 'hamburger' | 'two-line';
+
 interface NavbarContent {
   logo?: string;
   logoType?: 'text' | 'image';
   logoImage?: string;
-  links?: { 
-    label: string; 
+  layout?: NavbarLayout;
+  links?: {
+    label: string;
     href: string;
     onClick?: string;
     onClickValue?: string;
@@ -75,6 +78,27 @@ export const NavbarBlock = ({ block, isEditing = true }: BlockRendererProps) => 
     { label: 'About', href: '#' },
     { label: 'Contact', href: '#' },
   ];
+
+  const layout: NavbarLayout = navbarData.layout || 'horizontal';
+
+  const logoNode =
+    navbarData.logoType === 'image' ? (
+      <img
+        src={navbarData.logoImage || 'https://via.placeholder.com/150x50?text=Logo'}
+        alt={navbarData.logo || 'Brand'}
+        style={{ maxHeight: '40px', objectFit: 'contain' }}
+      />
+    ) : (
+      <div
+        contentEditable={isEditing}
+        suppressContentEditableWarning={true}
+        onBlur={handleLogoBlur}
+        className="text-xl font-bold outline-none"
+        style={{ color: block.style?.color || 'inherit' }}
+      >
+        {navbarData.logo || 'Brand'}
+      </div>
+    );
 
   return (
     <div
@@ -136,88 +160,184 @@ export const NavbarBlock = ({ block, isEditing = true }: BlockRendererProps) => 
         </div>
       )}
 
-      <nav 
-        className="flex items-center justify-between px-6 py-4 shadow-sm relative transition-all"
-        style={{
-          ...block.style,
-          border: isHovered && isEditing ? '2px solid #3b82f6' : block.style?.border || 'none',
-          backgroundColor: isHovered && block.hoverStyle?.backgroundColor 
-            ? block.hoverStyle.backgroundColor 
-            : block.style?.backgroundColor || '#ffffff',
-        }}
-      >
-        <div className="flex items-center">
-          {navbarData.logoType === 'image' ? (
-            <img 
-              src={navbarData.logoImage || 'https://via.placeholder.com/150x50?text=Logo'} 
-              alt={navbarData.logo || 'Brand'} 
-              style={{ maxHeight: '40px', objectFit: 'contain' }}
-            />
-          ) : (
-            <div
-              contentEditable={isEditing}
-              suppressContentEditableWarning={true}
-              onBlur={handleLogoBlur}
-              className="text-xl font-bold outline-none"
-              style={{ color: block.style?.color || 'inherit' }}
-            >
-              {navbarData.logo || 'Brand'}
-            </div>
-          )}
-        </div>
-
-        {/* Desktop Links */}
-        <div className="hidden md:flex items-center gap-8">
-          {links.map((link, index) => (
-            <a
-              key={index}
-              href={isEditing ? undefined : link.href}
-              onClick={(e) => handleLinkClick(e, link)}
-              className="text-sm font-medium hover:opacity-80 transition-opacity cursor-pointer"
-              style={{ color: block.style?.color || 'inherit' }}
-            >
-              {link.label}
-            </a>
-          ))}
-        </div>
-
-        {/* Mobile Toggle */}
-        <button
-          className="md:hidden p-2 hover:opacity-80"
-          style={{ color: block.style?.color || 'inherit' }}
-          onClick={(e) => {
-            e.stopPropagation();
-            setIsMobileMenuOpen(!isMobileMenuOpen);
+      {layout === 'two-line' ? (
+        <nav
+          className="flex flex-col px-6 py-3 shadow-sm relative transition-all"
+          style={{
+            ...block.style,
+            border: isHovered && isEditing ? '2px solid #3b82f6' : block.style?.border || 'none',
+            backgroundColor:
+              isHovered && block.hoverStyle?.backgroundColor
+                ? block.hoverStyle.backgroundColor
+                : block.style?.backgroundColor || '#ffffff',
           }}
         >
-          {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
+          <div
+            className="flex items-center justify-center pb-3 mb-3 border-b"
+            style={{ borderColor: 'currentColor', borderOpacity: 0.1 } as React.CSSProperties}
+          >
+            {logoNode}
+          </div>
+          <div className="flex items-center justify-center gap-8 flex-wrap">
+            {links.map((link, index) => (
+              <a
+                key={index}
+                href={isEditing ? undefined : link.href}
+                onClick={(e) => handleLinkClick(e, link)}
+                className="text-sm font-medium hover:opacity-80 transition-opacity cursor-pointer"
+                style={{ color: block.style?.color || 'inherit' }}
+              >
+                {link.label}
+              </a>
+            ))}
+          </div>
+        </nav>
+      ) : layout === 'vertical' ? (
+        <nav
+          className={`flex flex-col items-stretch px-6 py-4 shadow-sm relative transition-all gap-3 ${
+            isEditing ? '' : 'h-full min-h-screen'
+          }`}
+          style={{
+            ...block.style,
+            border: isHovered && isEditing ? '2px solid #3b82f6' : block.style?.border || 'none',
+            backgroundColor:
+              isHovered && block.hoverStyle?.backgroundColor
+                ? block.hoverStyle.backgroundColor
+                : block.style?.backgroundColor || '#ffffff',
+          }}
+        >
+          <div className="flex items-center">{logoNode}</div>
+          <div className="flex flex-col gap-2">
+            {links.map((link, index) => (
+              <a
+                key={index}
+                href={isEditing ? undefined : link.href}
+                onClick={(e) => handleLinkClick(e, link)}
+                className="text-sm font-medium hover:opacity-80 transition-opacity cursor-pointer py-1"
+                style={{ color: block.style?.color || 'inherit' }}
+              >
+                {link.label}
+              </a>
+            ))}
+          </div>
+        </nav>
+      ) : layout === 'hamburger' ? (
+        <nav
+          className="flex items-center justify-between px-6 py-4 shadow-sm relative transition-all"
+          style={{
+            ...block.style,
+            border: isHovered && isEditing ? '2px solid #3b82f6' : block.style?.border || 'none',
+            backgroundColor:
+              isHovered && block.hoverStyle?.backgroundColor
+                ? block.hoverStyle.backgroundColor
+                : block.style?.backgroundColor || '#ffffff',
+          }}
+        >
+          <div className="flex items-center">{logoNode}</div>
 
-        {/* Mobile Menu */}
-        {isMobileMenuOpen && (
-          <div 
-            className="absolute top-full left-0 right-0 shadow-lg md:hidden z-50 border-t"
-            style={{ 
-              backgroundColor: block.style?.backgroundColor || '#ffffff',
-              borderColor: block.style?.borderColor || '#e5e7eb'
+          <button
+            className="p-2 hover:opacity-80"
+            style={{ color: block.style?.color || 'inherit' }}
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsMobileMenuOpen(!isMobileMenuOpen);
+            }}
+            aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
+          >
+            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+
+          {isMobileMenuOpen && (
+            <div
+              className="absolute top-full left-0 right-0 shadow-lg z-50 border-t"
+              style={{
+                backgroundColor: block.style?.backgroundColor || '#ffffff',
+                borderColor: block.style?.borderColor || '#e5e7eb',
+              }}
+            >
+              <div className="flex flex-col p-4 space-y-4">
+                {links.map((link, index) => (
+                  <a
+                    key={index}
+                    href={isEditing ? undefined : link.href}
+                    onClick={(e) => handleLinkClick(e, link)}
+                    className="text-base font-medium hover:opacity-80"
+                    style={{ color: block.style?.color || 'inherit' }}
+                  >
+                    {link.label}
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+        </nav>
+      ) : (
+        <nav
+          className="flex items-center justify-between px-6 py-4 shadow-sm relative transition-all"
+          style={{
+            ...block.style,
+            border: isHovered && isEditing ? '2px solid #3b82f6' : block.style?.border || 'none',
+            backgroundColor:
+              isHovered && block.hoverStyle?.backgroundColor
+                ? block.hoverStyle.backgroundColor
+                : block.style?.backgroundColor || '#ffffff',
+          }}
+        >
+          <div className="flex items-center">{logoNode}</div>
+
+          {/* Desktop Links */}
+          <div className="hidden md:flex items-center gap-8">
+            {links.map((link, index) => (
+              <a
+                key={index}
+                href={isEditing ? undefined : link.href}
+                onClick={(e) => handleLinkClick(e, link)}
+                className="text-sm font-medium hover:opacity-80 transition-opacity cursor-pointer"
+                style={{ color: block.style?.color || 'inherit' }}
+              >
+                {link.label}
+              </a>
+            ))}
+          </div>
+
+          {/* Mobile Toggle */}
+          <button
+            className="md:hidden p-2 hover:opacity-80"
+            style={{ color: block.style?.color || 'inherit' }}
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsMobileMenuOpen(!isMobileMenuOpen);
             }}
           >
-            <div className="flex flex-col p-4 space-y-4">
-              {links.map((link, index) => (
-                <a
-                  key={index}
-                  href={isEditing ? undefined : link.href}
-                  onClick={(e) => handleLinkClick(e, link)}
-                  className="text-base font-medium hover:opacity-80"
-                  style={{ color: block.style?.color || 'inherit' }}
-                >
-                  {link.label}
-                </a>
-              ))}
+            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+
+          {/* Mobile Menu */}
+          {isMobileMenuOpen && (
+            <div
+              className="absolute top-full left-0 right-0 shadow-lg md:hidden z-50 border-t"
+              style={{
+                backgroundColor: block.style?.backgroundColor || '#ffffff',
+                borderColor: block.style?.borderColor || '#e5e7eb',
+              }}
+            >
+              <div className="flex flex-col p-4 space-y-4">
+                {links.map((link, index) => (
+                  <a
+                    key={index}
+                    href={isEditing ? undefined : link.href}
+                    onClick={(e) => handleLinkClick(e, link)}
+                    className="text-base font-medium hover:opacity-80"
+                    style={{ color: block.style?.color || 'inherit' }}
+                  >
+                    {link.label}
+                  </a>
+                ))}
+              </div>
             </div>
-          </div>
-        )}
-      </nav>
+          )}
+        </nav>
+      )}
     </div>
   );
 };

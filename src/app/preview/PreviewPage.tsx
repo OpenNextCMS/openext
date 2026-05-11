@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import renderFromJson from '@/components/ReusableComponents/RenderFromJson';
 import { safeStorageGet } from '@/utils/safeStorage';
+import { hasVerticalHeader } from '@/utils/headerLayout';
 
 import type { BlockData, Page } from '@/types';
 
@@ -110,6 +111,28 @@ export default function PreviewPage() {
   }, [pageType, pagename]);
 
   if (loading) return <div className="p-6">Loading preview...</div>;
+
+  const sidebarHeader = hasVerticalHeader(headerBlocks);
+
+  if (sidebarHeader) {
+    return (
+      <div className="flex min-h-screen">
+        <aside className="w-64 flex-shrink-0 sticky top-0 self-start h-screen overflow-y-auto">
+          {headerBlocks.map((block) => renderFromJson(block))}
+        </aside>
+        <div className="flex-1 flex flex-col min-h-screen">
+          <main className="flex-1">
+            {blocks.length > 0 ? (
+              blocks.map((block) => renderFromJson(block))
+            ) : (
+              <div className="p-6 text-center text-muted-foreground">No blocks to preview</div>
+            )}
+          </main>
+          {footerBlocks.map((block) => renderFromJson(block))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>

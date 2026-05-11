@@ -6,8 +6,6 @@ import { AvatarProvider } from '@/context/AvatarContext';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { redirect } from 'next/navigation';
 import { jwtDecode } from 'jwt-decode';
-import { getUserDbConnection } from '@/utils/db';
-import { IUser } from '@/models/User';
 
 type DashboardUser = {
   username: string;
@@ -17,30 +15,18 @@ type DashboardUser = {
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const cookieStore = await cookies();
   const token = cookieStore.get('token')?.value;
-  let user: DashboardUser | null = null;
 
   if (!token) {
     redirect('/login');
   }
 
+  let user: DashboardUser;
   try {
-    const decodedToken = jwtDecode<{ email?: string }>(token);
-    if (!decodedToken.email) {
+    const decoded = jwtDecode<{ email?: string; username?: string }>(token);
+    if (!decoded.email || !decoded.username) {
       redirect('/login');
     }
-
-    const userDb = await getUserDbConnection();
-    const UserModel = userDb.model<IUser>('User');
-    const userData = await UserModel.findOne({ email: decodedToken.email });
-
-    if (!userData?.username || !userData?.email) {
-      redirect('/login');
-    }
-
-    user = {
-      username: userData.username,
-      email: userData.email,
-    };
+    user = { username: decoded.username, email: decoded.email };
   } catch {
     redirect('/login');
   }

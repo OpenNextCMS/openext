@@ -5,6 +5,7 @@ import { PageSchema } from '@/models/Page';
 import { roleSchema } from '@/models/Role';
 import type { PageDocument, ISettingsDocument, ITheme } from '@/types/index';
 import { getDynamicEnv } from '@/utils/dynamicEnv';
+import { withDbName } from '@/utils/mongoUri';
 
 let userDb: mongoose.Connection | null = null;
 let pageDb: mongoose.Connection | null = null;
@@ -19,7 +20,15 @@ async function createConnectionUri(dbName: string) {
     MONGODB_AUTH_MECH,
     MONGODB_AUTH_SOURCE,
     MONGODB,
+    MONGODB_URI,
   } = getDynamicEnv();
+
+  if (MONGODB === 'uri') {
+    if (!MONGODB_URI) {
+      throw new Error('MONGODB_URI is required when MONGODB=uri');
+    }
+    return withDbName(MONGODB_URI, dbName);
+  }
 
   if (!MONGODB_USERNAME || !MONGODB_PASSWORD || !MONGODB_HOST || !MONGODB) {
     throw new Error('MongoDB environment variables are not set');

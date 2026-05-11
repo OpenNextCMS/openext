@@ -5,9 +5,10 @@ import { CSS } from '@dnd-kit/utilities';
 import RenderBlock from './renderblock';
 import { GripVertical, LayoutGrid, PlusSquare, MousePointerClick } from 'lucide-react';
 import { useState } from 'react';
-import { Block } from '@/types/index';
+import { Block, BlockData } from '@/types/index';
 import Box from './blocks/Box';
 import { useAppSelector } from '@/redux/hooks';
+import { hasVerticalHeader } from '@/utils/headerLayout';
 
 interface CanvasProps {
   canvasBlocks: Block[];
@@ -122,42 +123,89 @@ export default function Canvas({ canvasBlocks, viewMode }: CanvasProps) {
           } `}
           style={{ transform: `scale(${zoom / 100})`, transformOrigin: 'top left' }}
         >
-          <Box content="Header" blocks={headerBlocks} />
-          {canvasBlocks.length > 0 ? (
-            <SortableContext
-              items={canvasBlocks.map((block) => block.uniqueId || '')}
-              strategy={verticalListSortingStrategy}
-            >
-              {canvasBlocks.map((block) => (
-                <SortableCanvasBlock key={block.uniqueId} block={block} />
-              ))}
-            </SortableContext>
-          ) : (
-            <div className="flex flex-col items-center justify-center h-[750px] border-2 border-dashed rounded-lg p-6">
-              {isOver ? (
-                <div className="animate-pulse">
-                  <MousePointerClick className="h-12 w-12 text-primary mb-4" />
-                  <h3 className="text-lg font-medium mb-2 text-primary">Drop here to add block</h3>
+          {hasVerticalHeader(headerBlocks as BlockData[]) ? (
+            <div className="flex min-h-[750px]">
+              <aside className="w-64 flex-shrink-0">
+                <Box content="Header" blocks={headerBlocks} />
+              </aside>
+              <div className="flex-1 flex flex-col">
+                <div className="flex-1">
+                  {canvasBlocks.length > 0 ? (
+                    <SortableContext
+                      items={canvasBlocks.map((block) => block.uniqueId || '')}
+                      strategy={verticalListSortingStrategy}
+                    >
+                      {canvasBlocks.map((block) => (
+                        <SortableCanvasBlock key={block.uniqueId} block={block} />
+                      ))}
+                    </SortableContext>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-[750px] border-2 border-dashed rounded-lg p-6">
+                      {isOver ? (
+                        <div className="animate-pulse">
+                          <MousePointerClick className="h-12 w-12 text-primary mb-4" />
+                          <h3 className="text-lg font-medium mb-2 text-primary">
+                            Drop here to add block
+                          </h3>
+                        </div>
+                      ) : (
+                        <>
+                          <LayoutGrid className="h-12 w-12 text-muted-foreground mb-4" />
+                          <h3 className="text-lg font-medium mb-2">Your canvas is empty</h3>
+                          <p className="text-sm text-muted-foreground text-center max-w-md mb-4">
+                            Drag and drop blocks from the sidebar to start building your page
+                            layout
+                          </p>
+                        </>
+                      )}
+                    </div>
+                  )}
                 </div>
-              ) : (
-                <>
-                  <LayoutGrid className="h-12 w-12 text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-medium mb-2">Your canvas is empty</h3>
-                  <p className="text-sm text-muted-foreground text-center max-w-md mb-4">
-                    Drag and drop blocks from the sidebar to start building your page layout
-                  </p>
-                  <div className="text-sm text-muted-foreground">
-                    Tip: Click the
-                    <span className="inline-flex items-center mx-1 px-2 py-1 rounded bg-muted">
-                      <PlusSquare className="h-3 w-3 mr-1" /> Add Block
-                    </span>
-                    button to add new blocks
-                  </div>
-                </>
-              )}
+                <Box content="Footer" blocks={footerBlocks} />
+              </div>
             </div>
+          ) : (
+            <>
+              <Box content="Header" blocks={headerBlocks} />
+              {canvasBlocks.length > 0 ? (
+                <SortableContext
+                  items={canvasBlocks.map((block) => block.uniqueId || '')}
+                  strategy={verticalListSortingStrategy}
+                >
+                  {canvasBlocks.map((block) => (
+                    <SortableCanvasBlock key={block.uniqueId} block={block} />
+                  ))}
+                </SortableContext>
+              ) : (
+                <div className="flex flex-col items-center justify-center h-[750px] border-2 border-dashed rounded-lg p-6">
+                  {isOver ? (
+                    <div className="animate-pulse">
+                      <MousePointerClick className="h-12 w-12 text-primary mb-4" />
+                      <h3 className="text-lg font-medium mb-2 text-primary">
+                        Drop here to add block
+                      </h3>
+                    </div>
+                  ) : (
+                    <>
+                      <LayoutGrid className="h-12 w-12 text-muted-foreground mb-4" />
+                      <h3 className="text-lg font-medium mb-2">Your canvas is empty</h3>
+                      <p className="text-sm text-muted-foreground text-center max-w-md mb-4">
+                        Drag and drop blocks from the sidebar to start building your page layout
+                      </p>
+                      <div className="text-sm text-muted-foreground">
+                        Tip: Click the
+                        <span className="inline-flex items-center mx-1 px-2 py-1 rounded bg-muted">
+                          <PlusSquare className="h-3 w-3 mr-1" /> Add Block
+                        </span>
+                        button to add new blocks
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+              <Box content="Footer" blocks={footerBlocks} />
+            </>
           )}
-          <Box content="Footer" blocks={footerBlocks} />
         </div>
       </div>
     </div>

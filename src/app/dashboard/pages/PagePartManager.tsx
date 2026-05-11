@@ -27,7 +27,88 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import type { Page } from '@/types/index';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import type { BlockData, Page } from '@/types/index';
+import { headerTemplates } from './headerTemplates';
+import { headerColorPresets, matchPreset, HeaderColorPreset } from './headerColors';
+
+type NavbarLayout = 'horizontal' | 'vertical' | 'hamburger' | 'two-line';
+
+const getCurrentLayout = (page: Page): NavbarLayout | null => {
+  const blocks = (page.component || []) as BlockData[];
+  for (const block of blocks) {
+    if (block?.type === 'nav-bar') {
+      try {
+        const parsed = JSON.parse(block.content || '{}');
+        return (parsed.layout as NavbarLayout) || 'horizontal';
+      } catch {
+        return 'horizontal';
+      }
+    }
+  }
+  return null;
+};
+
+const applyLayoutToBlocks = (
+  blocks: BlockData[],
+  newLayout: NavbarLayout
+): BlockData[] =>
+  blocks.map((block) => {
+    if (block?.type !== 'nav-bar') return block;
+    try {
+      const parsed = JSON.parse(block.content || '{}');
+      return {
+        ...block,
+        content: JSON.stringify({ ...parsed, layout: newLayout }),
+      };
+    } catch {
+      return block;
+    }
+  });
+
+const getCurrentColors = (page: Page): { backgroundColor: string; color: string } | null => {
+  const blocks = (page.component || []) as BlockData[];
+  for (const block of blocks) {
+    if (block?.type === 'nav-bar') {
+      return {
+        backgroundColor: (block.style?.backgroundColor as string) || '#ffffff',
+        color: (block.style?.color as string) || '#111111',
+      };
+    }
+  }
+  return null;
+};
+
+const applyColorsToBlocks = (
+  blocks: BlockData[],
+  backgroundColor: string,
+  color: string
+): BlockData[] =>
+  blocks.map((block) => {
+    if (block?.type !== 'nav-bar') return block;
+    return {
+      ...block,
+      style: {
+        ...(block.style || {}),
+        backgroundColor,
+        color,
+      },
+    };
+  });
 
 interface PagePartManagerProps {
   pageType: 'header' | 'footer';
@@ -53,6 +134,12 @@ export default function PagePartManager({ pageType }: PagePartManagerProps) {
   const [isPublished, setIsPublished] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>(
+    isHeader ? headerTemplates[0].id : 'blank'
+  );
+  const [customColorPage, setCustomColorPage] = useState<Page | null>(null);
+  const [customBg, setCustomBg] = useState('#ffffff');
+  const [customFg, setCustomFg] = useState('#111111');
 
   const title = isHeader ? 'Header Management' : 'Footer Management';
   const description = isHeader
@@ -102,6 +189,11 @@ export default function PagePartManager({ pageType }: PagePartManagerProps) {
 
     setIsCreating(true);
     try {
+      const selectedTemplate = isHeader
+        ? headerTemplates.find((t) => t.id === selectedTemplateId)
+        : undefined;
+      const component = selectedTemplate ? selectedTemplate.buildBlocks() : undefined;
+
       const response = await fetch(`${backendUrl}/api/pages/add-page`, {
         method: 'POST',
         credentials: 'include',
@@ -114,6 +206,7 @@ export default function PagePartManager({ pageType }: PagePartManagerProps) {
           pageType,
           isPublished,
           isGlobal: items.length === 0,
+          ...(component ? { component } : {}),
         }),
       });
 
@@ -133,6 +226,88 @@ export default function PagePartManager({ pageType }: PagePartManagerProps) {
       toast.error(error instanceof Error ? error.message : `Failed to create ${pageType}`);
     } finally {
       setIsCreating(false);
+    }
+  };
+
+  const applyColors = async (page: Page, backgroundColor: string, color: string) => {
+    const blocks = (page.component || []) as BlockData[];
+    if (!blocks.some((b) => b?.type === 'nav-bar')) {
+      toast.error('This header has no navbar block to recolor');
+      return;
+    }
+    const updatedComponents = applyColorsToBlocks(blocks, backgroundColor, color);
+
+    try {
+      const response = await fetch(`${backendUrl}/api/pages/update-page`, {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          pageID: page._id || page.id,
+          slug: page.slug,
+          updatedComponents,
+        }),
+      });
+
+      const result = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(result?.message || 'Failed to change colors');
+
+      await fetchItems();
+      toast.success('Header colors updated');
+    } catch (error) {
+      console.error(error);
+      toast.error(error instanceof Error ? error.message : 'Failed to change colors');
+    }
+  };
+
+  const handleColorSelect = (page: Page, value: string) => {
+    if (value === 'custom') {
+      const current = getCurrentColors(page);
+      setCustomBg(current?.backgroundColor || '#ffffff');
+      setCustomFg(current?.color || '#111111');
+      setCustomColorPage(page);
+      return;
+    }
+    const preset = headerColorPresets.find((p) => p.id === value);
+    if (!preset) return;
+    applyColors(page, preset.backgroundColor, preset.color);
+  };
+
+  const saveCustomColors = async () => {
+    if (!customColorPage) return;
+    const page = customColorPage;
+    setCustomColorPage(null);
+    await applyColors(page, customBg, customFg);
+  };
+
+  const changeHeaderLayout = async (page: Page, newLayout: NavbarLayout) => {
+    const blocks = (page.component || []) as BlockData[];
+    if (!blocks.some((b) => b?.type === 'nav-bar')) {
+      toast.error('This header has no navbar block to update');
+      return;
+    }
+    const updatedComponents = applyLayoutToBlocks(blocks, newLayout);
+
+    try {
+      const response = await fetch(`${backendUrl}/api/pages/update-page`, {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          pageID: page._id || page.id,
+          slug: page.slug,
+          updatedComponents,
+        }),
+      });
+
+      const result = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(result?.message || 'Failed to change layout');
+
+      await fetchItems();
+      toast.success('Header style updated');
+    } catch (error) {
+      console.error(error);
+      toast.error(error instanceof Error ? error.message : 'Failed to change layout');
     }
   };
 
@@ -185,7 +360,7 @@ export default function PagePartManager({ pageType }: PagePartManagerProps) {
         </Button>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[420px_1fr]">
+      <div className={`grid gap-6 ${isHeader ? 'lg:grid-cols-[520px_1fr]' : 'lg:grid-cols-[420px_1fr]'}`}>
         <Card>
           <CardHeader>
             <CardTitle>Create {isHeader ? 'Header' : 'Footer'}</CardTitle>
@@ -202,6 +377,39 @@ export default function PagePartManager({ pageType }: PagePartManagerProps) {
               <Label>Slug</Label>
               <Input value={slug} onChange={(e) => setSlug(e.target.value)} />
             </div>
+            {isHeader && (
+              <div className="space-y-2">
+                <Label>Header Style</Label>
+                <p className="text-xs text-muted-foreground">
+                  Pick a starting layout — you can fully edit it after.
+                </p>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {headerTemplates.map((template) => {
+                    const isSelected = selectedTemplateId === template.id;
+                    return (
+                      <button
+                        key={template.id}
+                        type="button"
+                        onClick={() => setSelectedTemplateId(template.id)}
+                        className={`group flex flex-col gap-2 rounded-md border p-2 text-left transition-all ${
+                          isSelected
+                            ? 'border-primary ring-2 ring-primary/30 bg-primary/5'
+                            : 'border-border hover:border-primary/50'
+                        }`}
+                      >
+                        <template.Preview />
+                        <div className="px-1">
+                          <div className="text-sm font-medium">{template.name}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {template.description}
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
             <label className="flex items-center justify-between rounded-md border p-3 text-sm">
               Published
               <Switch checked={isPublished} onCheckedChange={setIsPublished} />
@@ -241,12 +449,21 @@ export default function PagePartManager({ pageType }: PagePartManagerProps) {
                     <TableRow>
                       <TableHead>Name</TableHead>
                       <TableHead>Status</TableHead>
+                      {isHeader && <TableHead>Style</TableHead>}
+                      {isHeader && <TableHead>Color</TableHead>}
                       <TableHead>Active</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {sortedItems.map((page) => (
+                    {sortedItems.map((page) => {
+                      const currentLayout = isHeader ? getCurrentLayout(page) : null;
+                      const currentColors = isHeader ? getCurrentColors(page) : null;
+                      const currentPreset: HeaderColorPreset | null = currentColors
+                        ? matchPreset(currentColors.backgroundColor, currentColors.color)
+                        : null;
+                      const colorSelectValue = currentPreset ? currentPreset.id : 'custom-current';
+                      return (
                       <TableRow key={page._id || page.id}>
                         <TableCell>
                           <div className="font-medium">{page.pageName}</div>
@@ -257,6 +474,77 @@ export default function PagePartManager({ pageType }: PagePartManagerProps) {
                             {page.isPublished ? 'Published' : 'Draft'}
                           </Badge>
                         </TableCell>
+                        {isHeader && (
+                          <TableCell>
+                            {currentLayout ? (
+                              <Select
+                                value={currentLayout}
+                                onValueChange={(v) =>
+                                  changeHeaderLayout(page, v as NavbarLayout)
+                                }
+                              >
+                                <SelectTrigger className="h-8 w-[140px]">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="horizontal">Horizontal</SelectItem>
+                                  <SelectItem value="vertical">Vertical</SelectItem>
+                                  <SelectItem value="hamburger">Hamburger</SelectItem>
+                                  <SelectItem value="two-line">Two Line</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">N/A</span>
+                            )}
+                          </TableCell>
+                        )}
+                        {isHeader && (
+                          <TableCell>
+                            {currentColors ? (
+                              <div className="flex items-center gap-2">
+                                <span
+                                  className="inline-block h-4 w-4 rounded border"
+                                  style={{
+                                    backgroundColor: currentColors.backgroundColor,
+                                    borderColor: '#e5e7eb',
+                                  }}
+                                />
+                                <Select
+                                  value={colorSelectValue}
+                                  onValueChange={(v) => handleColorSelect(page, v)}
+                                >
+                                  <SelectTrigger className="h-8 w-[140px]">
+                                    <SelectValue placeholder="Custom" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {headerColorPresets.map((p) => (
+                                      <SelectItem key={p.id} value={p.id}>
+                                        <span className="flex items-center gap-2">
+                                          <span
+                                            className="inline-block h-3 w-3 rounded border"
+                                            style={{
+                                              backgroundColor: p.backgroundColor,
+                                              borderColor: '#e5e7eb',
+                                            }}
+                                          />
+                                          {p.label}
+                                        </span>
+                                      </SelectItem>
+                                    ))}
+                                    {!currentPreset && (
+                                      <SelectItem value="custom-current" disabled>
+                                        Custom (current)
+                                      </SelectItem>
+                                    )}
+                                    <SelectItem value="custom">Custom…</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">N/A</span>
+                            )}
+                          </TableCell>
+                        )}
                         <TableCell>
                           <Switch
                             checked={Boolean(page.isGlobal)}
@@ -304,10 +592,14 @@ export default function PagePartManager({ pageType }: PagePartManagerProps) {
                           </div>
                         </TableCell>
                       </TableRow>
-                    ))}
+                      );
+                    })}
                     {sortedItems.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
+                        <TableCell
+                          colSpan={isHeader ? 6 : 4}
+                          className="h-24 text-center text-muted-foreground"
+                        >
                           No {pageType}s created yet.
                         </TableCell>
                       </TableRow>
@@ -319,6 +611,64 @@ export default function PagePartManager({ pageType }: PagePartManagerProps) {
           </CardContent>
         </Card>
       </div>
+
+      <Dialog
+        open={!!customColorPage}
+        onOpenChange={(open) => !open && setCustomColorPage(null)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Custom header colors</DialogTitle>
+            <DialogDescription>
+              Pick a background and text color. Applies to the navbar block only.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="flex items-center gap-3">
+              <Label className="w-28">Background</Label>
+              <input
+                type="color"
+                value={customBg.startsWith('#') ? customBg : '#ffffff'}
+                onChange={(e) => setCustomBg(e.target.value)}
+                className="h-10 w-14 cursor-pointer rounded border"
+              />
+              <Input
+                value={customBg}
+                onChange={(e) => setCustomBg(e.target.value)}
+                placeholder="#ffffff"
+                className="flex-1"
+              />
+            </div>
+            <div className="flex items-center gap-3">
+              <Label className="w-28">Text</Label>
+              <input
+                type="color"
+                value={customFg.startsWith('#') ? customFg : '#111111'}
+                onChange={(e) => setCustomFg(e.target.value)}
+                className="h-10 w-14 cursor-pointer rounded border"
+              />
+              <Input
+                value={customFg}
+                onChange={(e) => setCustomFg(e.target.value)}
+                placeholder="#111111"
+                className="flex-1"
+              />
+            </div>
+            <div
+              className="rounded-md border p-3 text-sm font-medium"
+              style={{ backgroundColor: customBg, color: customFg }}
+            >
+              Preview — Brand · Home · About · Services
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCustomColorPage(null)}>
+              Cancel
+            </Button>
+            <Button onClick={saveCustomColors}>Apply</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

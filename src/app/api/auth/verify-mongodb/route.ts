@@ -2,15 +2,25 @@ import { NextRequest } from 'next/server';
 import mongoose from 'mongoose';
 import { handleError } from '@/utils/errorHandler'; // Import error handler
 import { handleSuccess } from '@/utils/successHandler'; // Import success handler
+import { isValidMongoUri } from '@/utils/mongoUri';
 
 export async function POST(req: NextRequest) {
   try {
     const requestBody = await req.json();
-    const { mongoDB, username, password, host, cluster, authMech, authSource } = requestBody;
+    const { mongoDB, username, password, host, cluster, authMech, authSource, uri } = requestBody;
     let mongodbUrl = '';
     let successMessage = '';
 
-    if (mongoDB === 'atlas') {
+    if (mongoDB === 'uri') {
+      if (!uri || !isValidMongoUri(uri)) {
+        return handleError(
+          new Error('A valid MongoDB connection URI is required'),
+          'A valid MongoDB connection URI is required (must start with mongodb:// or mongodb+srv://)'
+        );
+      }
+      mongodbUrl = uri;
+      successMessage = 'MongoDB connection successful';
+    } else if (mongoDB === 'atlas') {
       // Validate Atlas credentials
       if (!username || !password || !host || !cluster) {
         return handleError(
@@ -37,7 +47,7 @@ export async function POST(req: NextRequest) {
     } else {
       return handleError(
         new Error('Invalid MongoDB type'),
-        'Invalid MongoDB type. Must be "atlas" or "compass"'
+        'Invalid MongoDB type. Must be "atlas", "compass", or "uri"'
       );
     }
 
