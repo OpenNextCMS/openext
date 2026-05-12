@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Pointer,
   Type,
@@ -25,20 +25,81 @@ import {
   updateBlockContent,
   updateBlockIcon,
   updateSelectedBlockStyles,
+  setBlocks,
+  updateBlockEvents,
 } from '@/redux/canvasSlice';
 import {
   headerColorPresets,
   matchPreset,
 } from '@/app/dashboard/pages/headerColors';
+import { footerTemplates } from '@/app/dashboard/pages/footerTemplates';
+import { useSearchParams } from 'next/navigation';
+import type { BlockData } from '@/types/index';
 import {
   iconOptions,
   renderSelectedIcon,
   type IconLibrary,
 } from '@/components/editor/data/iconOptions';
 
+function applyColorsRecursively(
+  blocks: BlockData[],
+  backgroundColor: string,
+  color: string
+): BlockData[] {
+  return blocks.map((block) => {
+    const next: BlockData = {
+      ...block,
+      style: {
+        ...(block.style || {}),
+        backgroundColor,
+        color,
+      },
+    };
+    if (Array.isArray(block.children)) {
+      next.children = block.children.map((col) =>
+        applyColorsRecursively(col as BlockData[], backgroundColor, color)
+      );
+    }
+    return next;
+  });
+}
+
 export default function ElementProperties() {
   const dispatch = useAppDispatch();
   const selectedBlock = useAppSelector((state) => state.canvas.selectedBlock);
+  const allBlocks = useAppSelector((state) => state.canvas.blocks);
+  const searchParams = useSearchParams();
+  const pageType = searchParams?.get('pageType') || 'page';
+  const isFooterPage = pageType === 'footer';
+
+  const [availablePages, setAvailablePages] = useState<
+    { slug: string; pageName: string }[]
+  >([]);
+  const isNavbarSelected = selectedBlock?.type === 'nav-bar';
+  const needsPagePicker = isNavbarSelected || selectedBlock?.type === 'text';
+
+  useEffect(() => {
+    if (!needsPagePicker || availablePages.length > 0) return;
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
+    fetch(`${backendUrl}/api/pages/get-pages`, {
+      credentials: 'include',
+      cache: 'no-store',
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!data?.pages) return;
+        const list = (data.pages as Array<{ slug?: string; pageName?: string; pageType?: string }>)
+          .filter(
+            (p) =>
+              !!p.slug &&
+              !!p.pageName &&
+              (p.pageType || 'page') === 'page'
+          )
+          .map((p) => ({ slug: p.slug as string, pageName: p.pageName as string }));
+        setAvailablePages(list);
+      })
+      .catch((err) => console.error('Failed to fetch pages for link picker:', err));
+  }, [needsPagePicker, availablePages.length]);
 
   const handleContentChange = (newContent: string) => {
     if (!selectedBlock || !selectedBlock.uniqueId) return;
@@ -290,6 +351,175 @@ export default function ElementProperties() {
       </div>
 
       <div className="space-y-4">
+        {isFooterPage && (
+          <div className="space-y-3 p-3 rounded-md bg-background border shadow-sm">
+            <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+              <Pointer className="h-3 w-3" />
+              Footer Settings
+            </Label>
+            <div className="space-y-4">
+              <div className="flex flex-col gap-1">
+                <Label className="text-[10px] text-muted-foreground uppercase">
+                  Footer Layout
+                </Label>
+                <select
+                  className="h-8 rounded-md border bg-background px-2 text-sm"
+                  value=""
+                  onChange={(e) => {
+                    const id = e.target.value;
+                    if (!id) return;
+                    const tpl = footerTemplates.find((t) => t.id === id);
+                    if (!tpl) return;
+                    if (
+                      !window.confirm(
+                        `Switch to "${tpl.name}"? This replaces the current footer blocks.`
+                      )
+                    ) {
+                      return;
+                    }
+                    dispatch(setBlocks(tpl.buildBlocks()));
+                    toast.success(`Switched to "${tpl.name}"`);
+                  }}
+                >
+                  <option value="">Switch layout…</option>
+                  {footerTemplates.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.name}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-[10px] text-muted-foreground">
+                  Switching replaces all footer blocks. Save afterward to persist.
+                </p>
+              </div>
+
+              {(() => {
+                const firstBlock = (allBlocks || [])[0];
+                const currentBg =
+                  (firstBlock?.style?.backgroundColor as string) || '#ffffff';
+                const currentFg = (firstBlock?.style?.color as string) || '#111111';
+                const currentPreset = matchPreset(currentBg, currentFg);
+                return (
+                  <>
+                    <div className="flex flex-col gap-1">
+                      <Label className="text-[10px] text-muted-foreground uppercase">
+                        Color Preset
+                      </Label>
+                      <select
+                        className="h-8 rounded-md border bg-background px-2 text-sm"
+                        value={currentPreset?.id || 'custom'}
+                        onChange={(e) => {
+                          const id = e.target.value;
+                          if (id === 'custom') return;
+                          const preset = headerColorPresets.find((p) => p.id === id);
+                          if (!preset) return;
+                          dispatch(
+                            setBlocks(
+                              applyColorsRecursively(
+                                allBlocks as BlockData[],
+                                preset.backgroundColor,
+                                preset.color
+                              )
+                            )
+                          );
+                        }}
+                      >
+                        {headerColorPresets.map((p) => (
+                          <option key={p.id} value={p.id}>
+                            {p.label}
+                          </option>
+                        ))}
+                        <option value="custom">Custom</option>
+                      </select>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="flex flex-col gap-1">
+                        <Label className="text-[10px] text-muted-foreground uppercase">
+                          Background
+                        </Label>
+                        <div className="flex items-center gap-1">
+                          <input
+                            type="color"
+                            value={currentBg.startsWith('#') ? currentBg : '#ffffff'}
+                            onChange={(e) =>
+                              dispatch(
+                                setBlocks(
+                                  applyColorsRecursively(
+                                    allBlocks as BlockData[],
+                                    e.target.value,
+                                    currentFg
+                                  )
+                                )
+                              )
+                            }
+                            className="h-8 w-10 cursor-pointer rounded border"
+                          />
+                          <Input
+                            className="h-8 text-xs"
+                            value={currentBg}
+                            onChange={(e) =>
+                              dispatch(
+                                setBlocks(
+                                  applyColorsRecursively(
+                                    allBlocks as BlockData[],
+                                    e.target.value,
+                                    currentFg
+                                  )
+                                )
+                              )
+                            }
+                            placeholder="#ffffff"
+                          />
+                        </div>
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <Label className="text-[10px] text-muted-foreground uppercase">
+                          Text
+                        </Label>
+                        <div className="flex items-center gap-1">
+                          <input
+                            type="color"
+                            value={currentFg.startsWith('#') ? currentFg : '#111111'}
+                            onChange={(e) =>
+                              dispatch(
+                                setBlocks(
+                                  applyColorsRecursively(
+                                    allBlocks as BlockData[],
+                                    currentBg,
+                                    e.target.value
+                                  )
+                                )
+                              )
+                            }
+                            className="h-8 w-10 cursor-pointer rounded border"
+                          />
+                          <Input
+                            className="h-8 text-xs"
+                            value={currentFg}
+                            onChange={(e) =>
+                              dispatch(
+                                setBlocks(
+                                  applyColorsRecursively(
+                                    allBlocks as BlockData[],
+                                    currentBg,
+                                    e.target.value
+                                  )
+                                )
+                              )
+                            }
+                            placeholder="#111111"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                );
+              })()}
+            </div>
+          </div>
+        )}
+
         {/* Text Block Content */}
         {isTextBlock && (
           <div className="space-y-1.5 p-3 rounded-md bg-background border shadow-sm">
@@ -303,6 +533,84 @@ export default function ElementProperties() {
               onChange={(e) => handleContentChange(e.target.value)}
               placeholder="Enter text content..."
             />
+          </div>
+        )}
+
+        {isTextBlock && (
+          <div className="space-y-3 p-3 rounded-md bg-background border shadow-sm">
+            <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+              <Type className="h-3 w-3" />
+              Link
+            </Label>
+            {(() => {
+              const isLinked = selectedBlock?.events?.onClick === 'redirect';
+              const currentHref = (selectedBlock?.events?.onClickValue as string) || '';
+              const setHref = (value: string) => {
+                if (!selectedBlock?.uniqueId) return;
+                if (!value) {
+                  dispatch(
+                    updateBlockEvents({
+                      id: selectedBlock.uniqueId,
+                      events: { onClick: 'none', onClickValue: '' },
+                    })
+                  );
+                  return;
+                }
+                dispatch(
+                  updateBlockEvents({
+                    id: selectedBlock.uniqueId,
+                    events: { onClick: 'redirect', onClickValue: value },
+                  })
+                );
+              };
+              return (
+                <div className="space-y-2">
+                  <div className="flex flex-col gap-1">
+                    <Label className="text-[10px] text-muted-foreground uppercase">
+                      Href
+                    </Label>
+                    <Input
+                      className="h-8 text-sm"
+                      value={currentHref}
+                      onChange={(e) => setHref(e.target.value)}
+                      placeholder="/about or https://example.com"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <Label className="text-[10px] text-muted-foreground uppercase">
+                      Link to page
+                    </Label>
+                    <select
+                      className="h-8 rounded border bg-background px-2 text-sm"
+                      value=""
+                      onChange={(e) => {
+                        const slug = e.target.value;
+                        if (!slug) return;
+                        setHref(`/${slug}`);
+                      }}
+                    >
+                      <option value="">
+                        {availablePages.length === 0
+                          ? 'No pages found'
+                          : 'Pick a page…'}
+                      </option>
+                      {availablePages.map((p) => (
+                        <option key={p.slug} value={p.slug}>
+                          {p.pageName} (/{p.slug})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  {isLinked && (
+                    <p className="text-[10px] text-muted-foreground">
+                      Click on the rendered page will navigate to{' '}
+                      <code className="bg-muted px-1 rounded">{currentHref}</code>. Clear the
+                      Href field to remove the link.
+                    </p>
+                  )}
+                </div>
+              );
+            })()}
           </div>
         )}
 
@@ -972,8 +1280,33 @@ export default function ElementProperties() {
                             className="h-7 text-[11px]"
                             value={link.href}
                             onChange={(e) => handleNavbarLinkChange(index, 'href', e.target.value)}
+                            placeholder="/ or /about or https://…"
                           />
                         </div>
+                      </div>
+
+                      <div className="flex flex-col gap-1">
+                        <Label className="text-[9px] text-muted-foreground">Link to page</Label>
+                        <select
+                          className="h-7 rounded border bg-background px-1 text-[10px]"
+                          value=""
+                          onChange={(e) => {
+                            const slug = e.target.value;
+                            if (!slug) return;
+                            handleNavbarLinkChange(index, 'href', `/${slug}`);
+                          }}
+                        >
+                          <option value="">
+                            {availablePages.length === 0
+                              ? 'No pages found'
+                              : 'Pick a page…'}
+                          </option>
+                          {availablePages.map((p) => (
+                            <option key={p.slug} value={p.slug}>
+                              {p.pageName} (/{p.slug})
+                            </option>
+                          ))}
+                        </select>
                       </div>
 
                       <div className="grid grid-cols-2 gap-2 border-t pt-2">

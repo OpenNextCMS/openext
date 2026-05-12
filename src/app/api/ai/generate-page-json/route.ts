@@ -21,6 +21,34 @@ const MAX_DEPTH = 7;
 const DEFAULT_IMAGE_RECREATE_PROMPT =
   'Recreate the uploaded image as closely as possible as a webpage in the editor. Match the visible layout, sections, colors, spacing, typography, buttons, cards, icons, and readable text using only editor blocks.';
 
+type PageContext = 'page' | 'header' | 'footer';
+
+const HEADER_FOCUS_INSTRUCTION = `IMPORTANT CONTEXT — HEADER PAGE:
+- You are editing a HEADER. Output ONLY the header/nav portion of the page.
+- The output should be exactly ONE top-level "nav-bar" block, optionally inside a 1-column wrapper.
+- Do NOT output hero sections, body content, or footer content. Only the visible top navigation.
+- nav-bar content schema: {"logo":"Brand","logoType":"text","logoImage":"","layout":"horizontal","links":[{"label":"Home","href":"#","onClick":"none","onClickValue":""}, ...]}
+- Set layout to "horizontal" (logo left, links right), "vertical" (stacked sidebar), "hamburger" (mobile-style), or "two-line" (logo top, links below) based on the image.`;
+
+const FOOTER_FOCUS_INSTRUCTION = `IMPORTANT CONTEXT — FOOTER PAGE:
+- You are editing a FOOTER. Output ONLY the footer portion of the page.
+- Use multi-column layouts for link groups (2-column or 3-column with text blocks for links).
+- Always end with a small text block for copyright.
+- Do NOT output nav-bars, hero sections, or any body content. Only the visible bottom footer.
+- Use dark backgroundColor (e.g. #0f172a, #111827) on the container only when the source footer is dark.`;
+
+const PAGE_FOCUS_INSTRUCTION = `IMPORTANT CONTEXT — PAGE BODY:
+- You are editing the BODY of a regular page (not the header or footer).
+- Do NOT include a nav-bar in the output — the site already has a global header.
+- Do NOT include a footer-style copyright section — the site already has a global footer.
+- Focus on the visible main content (hero, features, cards, stats, sections) between the header and footer of the image.`;
+
+const getFocusInstruction = (pageType: PageContext): string => {
+  if (pageType === 'header') return HEADER_FOCUS_INSTRUCTION;
+  if (pageType === 'footer') return FOOTER_FOCUS_INSTRUCTION;
+  return PAGE_FOCUS_INSTRUCTION;
+};
+
 const allowedBlockTypes = aiEditorBlockTypes;
 
 type GroqContentPart =
@@ -625,13 +653,18 @@ const getGroqMessageContent = (payload: Record<string, unknown>) => {
 const buildAnalysisContent = ({
   prompt,
   requestedLayoutInstruction,
+  focusInstruction,
 }: {
   prompt: string;
   requestedLayoutInstruction: string;
+  focusInstruction: string;
 }): GroqContentPart[] => [
   {
     type: 'text',
     text: `You are analyzing a webpage screenshot to map it to an editor block system.
+
+${focusInstruction}
+
 
 The editor has these block ids:
 CONTAINERS (have children): nav-bar, 1-column, 2-column, 3-column, row
@@ -702,15 +735,20 @@ const buildJsonGenerationContent = ({
   requestedLayoutInstruction,
   visibleAnalysis,
   imageDataUrl,
+  focusInstruction,
 }: {
   prompt: string;
   requestedLayoutInstruction: string;
   visibleAnalysis: unknown;
   imageDataUrl: string;
+  focusInstruction: string;
 }): GroqContentPart[] => [
   {
     type: 'text',
     text: `Convert this analysis into editor builder JSON.
+
+${focusInstruction}
+
 
 ANALYSIS:
 ${JSON.stringify(visibleAnalysis, null, 2)}
@@ -779,6 +817,10 @@ export async function POST(request: NextRequest) {
     const prompt = userPrompt || (hasImage ? DEFAULT_IMAGE_RECREATE_PROMPT : '');
     const requestedLayout = detectRequestedLayout(prompt);
     const requestedLayoutInstruction = getRequestedLayoutInstruction(requestedLayout);
+    const rawPageType = safeString(formData.get('pageType'), 'page').toLowerCase();
+    const pageType: PageContext =
+      rawPageType === 'header' ? 'header' : rawPageType === 'footer' ? 'footer' : 'page';
+    const focusInstruction = getFocusInstruction(pageType);
     let imageDataUrl = '';
 
     if (hasImage) {
@@ -796,7 +838,11 @@ export async function POST(request: NextRequest) {
     }
 
     // -- PASS 1: structured visual analysis ---------------------------------
-    const analysisContentParts = buildAnalysisContent({ prompt, requestedLayoutInstruction });
+    const analysisContentParts = buildAnalysisContent({
+      prompt,
+      requestedLayoutInstruction,
+      focusInstruction,
+    });
 
     const analysisPayload = await callGroqJson(apiKey, {
       model: GROQ_VISION_MODEL,
@@ -819,6 +865,7 @@ export async function POST(request: NextRequest) {
       requestedLayoutInstruction,
       visibleAnalysis,
       imageDataUrl,
+      focusInstruction,
     });
 
     const groqPayload = await callGroqJson(apiKey, {
@@ -860,10 +907,91 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // -- PASS 3: when editing a regular page with an image, also extract the
+    //    header and footer regions so the client can spin up matching pages.
+    let headerComponents: BlockData[] | undefined;
+    let footerComponents: BlockData[] | undefined;
+
+    if (pageType === 'page' && hasImage) {
+      const runFocusedExtraction = async (
+        focus: PageContext
+      ): Promise<BlockData[] | undefined> => {
+        try {
+          const instruction = getFocusInstruction(focus);
+          const focusedAnalysisParts = buildAnalysisContent({
+            prompt: `Extract ONLY the ${focus} of the image.`,
+            requestedLayoutInstruction: '',
+            focusInstruction: instruction,
+          });
+          const focusedAnalysisPayload = await callGroqJson(apiKey, {
+            model: GROQ_VISION_MODEL,
+            messages: [
+              {
+                role: 'user',
+                content: [
+                  ...focusedAnalysisParts,
+                  { type: 'image_url', image_url: { url: imageDataUrl } },
+                ],
+              },
+            ],
+            max_completion_tokens: 1024,
+          });
+          const focusedAnalysis = parseModelJson(getGroqMessageContent(focusedAnalysisPayload));
+
+          const focusedJsonParts = buildJsonGenerationContent({
+            prompt: `Extract ONLY the ${focus} of the image.`,
+            requestedLayoutInstruction: '',
+            visibleAnalysis: focusedAnalysis,
+            imageDataUrl,
+            focusInstruction: instruction,
+          });
+          const focusedJsonPayload = await callGroqJson(apiKey, {
+            model: GROQ_VISION_MODEL,
+            messages: [
+              { role: 'system', content: baseSystemPrompt },
+              { role: 'user', content: focusedJsonParts },
+            ],
+            max_completion_tokens: 2048,
+          });
+          const focusedContent = getGroqMessageContent(focusedJsonPayload);
+          const focusedParsed = parseModelJson(focusedContent);
+          const focusedRaw = Array.isArray(focusedParsed)
+            ? focusedParsed
+            : isRecord(focusedParsed) && Array.isArray(focusedParsed.components)
+              ? focusedParsed.components
+              : isRecord(focusedParsed) && Array.isArray(focusedParsed.blocks)
+                ? focusedParsed.blocks
+                : [];
+          const ctx = { count: 0 };
+          const focusedComponents = focusedRaw
+            .map((block: unknown) => sanitizeBlock(block, 0, ctx))
+            .filter((block: BlockData | null): block is BlockData => Boolean(block))
+            .map(enforceColumnCounts)
+            .map(flattenSingleChildColumns)
+            .map(ensureFlexOnMultiColumnContainers)
+            .map(applyEditorBlockDefaults);
+          return focusedComponents.length > 0 ? focusedComponents : undefined;
+        } catch (err) {
+          console.warn(`[Groq] focused ${focus} extraction failed:`, err);
+          return undefined;
+        }
+      };
+
+      const [headerResult, footerResult] = await Promise.all([
+        runFocusedExtraction('header'),
+        runFocusedExtraction('footer'),
+      ]);
+      headerComponents = headerResult;
+      footerComponents = footerResult;
+    }
+
     return NextResponse.json({
       components: layoutAdjustedComponents,
+      headerComponents,
+      footerComponents,
       analysis: visibleAnalysis,
       requestedLayout,
+      pageType,
       model: GROQ_VISION_MODEL,
       usage: groqPayload?.usage,
     });

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getPageDbConnection, getPageModel } from '@/utils/db';
 import { jwtDecode } from 'jwt-decode';
 import { cookies } from 'next/headers';
+import { revalidatePath } from 'next/cache';
 
 interface DecodedToken {
   userId: string;
@@ -73,6 +74,15 @@ export async function PATCH(req: NextRequest) {
     });
 
     await page.save();
+
+    if (page.slug) {
+      try {
+        revalidatePath(`/${page.slug}`);
+        revalidatePath('/');
+      } catch (revalErr) {
+        console.warn('Failed to revalidate path:', revalErr);
+      }
+    }
 
     return NextResponse.json({ message: 'Page updated successfully', page }, { status: 200 });
   } catch (err) {

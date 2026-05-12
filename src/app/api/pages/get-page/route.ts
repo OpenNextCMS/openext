@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getPageDbConnection, getPageModel } from '@/utils/db';
+import { fetchPageWithLayout } from '@/utils/getPageData';
 
 export async function GET(request: Request) {
   try {
@@ -11,44 +11,13 @@ export async function GET(request: Request) {
     if (pageKey !== 'allowMe') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     if (!pageSlug) return NextResponse.json({ error: 'Missing pageSlug' }, { status: 400 });
 
-    const pageDb = await getPageDbConnection();
-    const PageModel = getPageModel(pageDb);
+    const data = await fetchPageWithLayout(pageSlug);
 
-    const page = await PageModel.findOne({ slug: pageSlug }).lean().exec();
-    const activeLayoutFilter = {
-      isGlobal: true,
-      isPublished: true,
-    };
+    if (!data) {
+      return NextResponse.json({ page: null, header: null, footer: null }, { status: 200 });
+    }
 
-    const findActiveLayoutPart = async (pageType: 'header' | 'footer') => {
-      if (page?.createdBy) {
-        const ownedLayoutPart = await PageModel.findOne({
-          ...activeLayoutFilter,
-          pageType,
-          createdBy: page.createdBy,
-        })
-          .sort({ updatedAt: -1 })
-          .lean()
-          .exec();
-
-        if (ownedLayoutPart) return ownedLayoutPart;
-      }
-
-      return PageModel.findOne({
-        ...activeLayoutFilter,
-        pageType,
-      })
-        .sort({ updatedAt: -1 })
-        .lean()
-        .exec();
-    };
-
-    const [header, footer] = await Promise.all([
-      findActiveLayoutPart('header'),
-      findActiveLayoutPart('footer'),
-    ]);
-
-    return NextResponse.json({ page, header, footer }, { status: 200 });
+    return NextResponse.json(data, { status: 200 });
   } catch (error) {
     console.error('Error fetching page:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

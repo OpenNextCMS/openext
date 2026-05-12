@@ -1,6 +1,7 @@
 import renderFromJson from '@/components/ReusableComponents/RenderFromJson';
 import { BlockData, Page } from '@/types';
 import { useEffect, useState } from 'react';
+import { hasVerticalHeader } from '@/utils/headerLayout';
 
 const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
 
@@ -86,6 +87,24 @@ const Default = () => {
   }, []);
 
   if (!pageData.length) return <div>Loading...</div>;
+
+  const sidebarHeader = hasVerticalHeader(headerData);
+
+  if (sidebarHeader) {
+    return (
+      <div className="flex min-h-screen">
+        <aside className="w-64 flex-shrink-0 sticky top-0 self-start h-screen overflow-y-auto">
+          {headerData.map((element) => renderFromJson(element))}
+        </aside>
+        <div className="flex-1 flex flex-col min-h-screen">
+          <main className="flex-1">
+            {pageData.map((element) => renderFromJson(element))}
+          </main>
+          {footerData.map((element) => renderFromJson(element))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>

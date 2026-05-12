@@ -1,5 +1,20 @@
 import { BlockData } from '@/types';
 
+function resolveRedirectUrl(raw: string): string {
+  const value = raw.trim();
+  if (
+    value.startsWith('http://') ||
+    value.startsWith('https://') ||
+    value.startsWith('/') ||
+    value.startsWith('#') ||
+    value.startsWith('mailto:') ||
+    value.startsWith('tel:')
+  ) {
+    return value;
+  }
+  return `https://${value}`;
+}
+
 export const useBlockEvents = (block: BlockData, isEditing: boolean) => {
   const handleClick = (e: React.MouseEvent) => {
     // Only trigger events when NOT in editing mode
@@ -16,10 +31,7 @@ export const useBlockEvents = (block: BlockData, isEditing: boolean) => {
     if (onClick === 'alert') {
       alert(onClickValue || 'Alert!');
     } else if (onClick === 'redirect' && onClickValue) {
-      // Basic validation for URL
-      const url = onClickValue.startsWith('http') ? onClickValue : `https://${onClickValue}`;
-      console.log(`Redirecting to: ${url}`);
-      window.location.href = url;
+      window.location.href = resolveRedirectUrl(onClickValue);
     }
   };
 
@@ -35,7 +47,6 @@ export const triggerBlockEvent = (events: BlockData['events']) => {
   if (events.onClick === 'alert') {
     alert(events.onClickValue || 'Alert!');
   } else if (events.onClick === 'redirect' && events.onClickValue) {
-    const url = events.onClickValue.startsWith('http') ? events.onClickValue : `https://${events.onClickValue}`;
-    window.location.href = url;
+    window.location.href = resolveRedirectUrl(events.onClickValue);
   }
 };
