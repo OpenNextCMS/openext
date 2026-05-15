@@ -16,6 +16,20 @@ const slugify = (value: string) =>
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/(^-|-$)/g, '');
 
+// Re-mint uniqueId on every block (and recursively on children) so re-inserting
+// or merging with the existing canvas never produces duplicate React keys.
+const cloneBlocksWithFreshIds = (blocks: BlockData[]): BlockData[] =>
+  blocks.map((block) => ({
+    ...block,
+    uniqueId:
+      typeof crypto !== 'undefined' && 'randomUUID' in crypto
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    children: block.children
+      ? block.children.map((column) => cloneBlocksWithFreshIds(column))
+      : undefined,
+  }));
+
 export default function PromptPanel() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const dispatch = useAppDispatch();
@@ -34,7 +48,7 @@ export default function PromptPanel() {
     header?: number;
     footer?: number;
   } | null>(null);
-  const [autoCreateLayoutParts, setAutoCreateLayoutParts] = useState(true);
+  const [autoCreateLayoutParts, setAutoCreateLayoutParts] = useState(false);
   const canvasBlocks = useAppSelector((state) => state.canvas.blocks);
   const selectedBlock = useAppSelector((state) => state.canvas.selectedBlock);
   const blockCount = canvasBlocks.length;
@@ -171,9 +185,8 @@ export default function PromptPanel() {
   const insertGeneratedBlocks = (mode: 'append' | 'replace') => {
     if (generatedBlocks.length === 0) return;
 
-    dispatch(
-      setBlocks(mode === 'replace' ? generatedBlocks : [...canvasBlocks, ...generatedBlocks])
-    );
+    const fresh = cloneBlocksWithFreshIds(generatedBlocks);
+    dispatch(setBlocks(mode === 'replace' ? fresh : [...canvasBlocks, ...fresh]));
     toast.success(mode === 'replace' ? 'Canvas replaced' : 'Blocks inserted');
   };
 

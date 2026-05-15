@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import { jsonrepair } from 'jsonrepair';
 import type { CSSProperties } from 'react';
 import type { BlockData } from '@/types';
 import {
@@ -8,6 +9,12 @@ import {
   aiEditorBlockTypes,
   type AiEditorBlock,
 } from './block-catalog';
+import {
+  extractPalette,
+  formatPaletteForPrompt,
+  type ExtractedPalette,
+} from './extract-palette';
+import { enrichAnalysisWithImages, enrichComponentsWithImages } from './fetch-images';
 
 export const runtime = 'nodejs';
 
@@ -15,11 +22,46 @@ const GROQ_CHAT_COMPLETIONS_URL = 'https://api.groq.com/openai/v1/chat/completio
 const GROQ_VISION_MODEL =
   process.env.GROQ_VISION_MODEL || 'meta-llama/llama-4-scout-17b-16e-instruct';
 const GROQ_TEXT_MODEL = process.env.GROQ_TEXT_MODEL || GROQ_VISION_MODEL;
+// gemini-2.5-pro is significantly stronger at vision (column detection, font ID,
+// spacing) than 2.5-flash and is free at AI Studio rate limits. Override via env
+// if you hit free-tier RPM caps.
+const GEMINI_MODEL = process.env.GEMINI_VISION_MODEL || 'gemini-2.5-pro';
+const GEMINI_API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 const MAX_BLOCKS = 120;
 const MAX_DEPTH = 7;
 const DEFAULT_IMAGE_RECREATE_PROMPT =
-  'Recreate the uploaded image as closely as possible as a webpage in the editor. Match the visible layout, sections, colors, spacing, typography, buttons, cards, icons, and readable text using only editor blocks.';
+  'Recreate the uploaded image PIXEL-FOR-PIXEL as a webpage in the editor. Match EXACTLY: the layout, every section, every color (sample exact hex values), every gap and padding (measure in px), every font family (name it — Inter, Roboto, Poppins, Montserrat, Playfair Display, etc.), font size, font weight, line height, letter spacing, border radius, shadows, gradients, alignment, and all readable text using only editor blocks.';
+
+// Constrained font shortlist. LLMs are unreliable at identifying real fonts
+// from screenshots, so we force a pick from a small set of widely-loaded
+// Google Fonts. Each entry includes the full CSS stack to drop straight in.
+const FONT_SHORTLIST = [
+  { name: 'Inter',              stack: 'Inter, system-ui, sans-serif',                  category: 'sans / modern UI' },
+  { name: 'Poppins',            stack: 'Poppins, system-ui, sans-serif',                category: 'sans / geometric / friendly' },
+  { name: 'Roboto',             stack: 'Roboto, system-ui, sans-serif',                 category: 'sans / neutral / Material' },
+  { name: 'Montserrat',         stack: 'Montserrat, system-ui, sans-serif',             category: 'sans / display / bold marketing' },
+  { name: 'DM Sans',            stack: '"DM Sans", system-ui, sans-serif',              category: 'sans / low-contrast / minimal' },
+  { name: 'Plus Jakarta Sans',  stack: '"Plus Jakarta Sans", system-ui, sans-serif',    category: 'sans / SaaS / startup' },
+  { name: 'Open Sans',          stack: '"Open Sans", system-ui, sans-serif',            category: 'sans / humanist / readable' },
+  { name: 'Playfair Display',   stack: '"Playfair Display", Georgia, serif',            category: 'serif / display / elegant' },
+  { name: 'Lora',               stack: 'Lora, Georgia, serif',                          category: 'serif / body / editorial' },
+  { name: 'JetBrains Mono',     stack: '"JetBrains Mono", "Courier New", monospace',    category: 'mono / code' },
+] as const;
+
+const FONT_SHORTLIST_PROMPT = `FONT CONSTRAINT — pick exactly one fontFamily value from this list per text element, no others:
+${FONT_SHORTLIST.map((f) => `  ${f.name.padEnd(22)} → fontFamily: "${f.stack}"  (${f.category})`).join('\n')}
+Decision rule: sans-serif body text → Inter or DM Sans. Bold marketing headings → Poppins or Montserrat. Editorial/luxury → Playfair Display or Lora. Code/technical → JetBrains Mono. Do NOT output font names that are not on this list.`;
+
+const VISUAL_FIDELITY_RULES = `VISUAL FIDELITY RULES — YOU MUST FOLLOW THESE TO PRODUCE AN EXACT MATCH:
+- COLORS: Sample exact hex values from the image. Never round to common colors. If a button is #2D7FF9, output "#2D7FF9", not "#3B82F6". Capture text color, background color, border color, gradient stops separately. When an EXTRACTED COLOR PALETTE is provided below, you MUST use only those hex codes (or near-tones of them) — do not invent new colors.
+- FONTS: ${FONT_SHORTLIST_PROMPT}
+- SPACING: Measure padding and gap in pixels from the image. A hero section padding is typically 48px-96px vertical. Section gap between elements 12px-24px. Section gap between sections 32px-64px. Never guess "16px" for everything — measure.
+- TYPOGRAPHY METRICS: Always include lineHeight (1.2 for headings, 1.5-1.6 for body), letterSpacing (-0.02em for big headings, 0 for body, 0.05em for caps), and textAlign.
+- BORDERS & SHADOWS: Capture borderRadius (px), border (e.g. "1px solid #e5e7eb"), boxShadow (e.g. "0 4px 12px rgba(0,0,0,0.08)").
+- GRADIENTS: When backgrounds use gradients, output backgroundImage with linear-gradient or radial-gradient instead of backgroundColor.
+- IMAGES: For image blocks, output a placeholder src ("/placeholder-image.png") and a precise alt description of what the image shows so the user can swap it.
+- ICONS: Match the exact lucide icon name. If you see a chat bubble, use "message-circle". A shopping bag, use "shopping-bag".`;
 
 type PageContext = 'page' | 'header' | 'footer';
 
@@ -131,6 +173,14 @@ CRITICAL LAYOUT RULES:
 11. countdown content = JSON string: {"days":"0","hours":"00","minutes":"00","seconds":"00"}.
 12. card/image/nav-bar/etc: content = JSON-stringified object matching catalog shape.
 13. Style: camelCase CSS, hex colors, px units. Set backgroundColor on section containers.
+14. VISUAL FIDELITY — every text-bearing block (heading, text, button, card, stats, etc.) MUST set:
+    fontFamily (full CSS stack like "Inter, system-ui, sans-serif"),
+    fontSize (px), fontWeight, lineHeight, letterSpacing, color (6-digit hex), textAlign.
+15. Containers MUST set the EXACT padding and gap measured from the image — not defaults.
+    Typical hero padding 64-128px vertical. Card padding 24-32px. Button padding 12-16px vertical / 24-32px horizontal.
+16. Use backgroundImage with linear-gradient(...) when the source uses a gradient, instead of backgroundColor.
+17. Sample exact hex colors. #111827 ≠ #000000. #2563EB ≠ #3B82F6. Use the value you actually see.
+18. For images you cannot reproduce, set src to "/placeholder-image.png" and include a precise alt describing the image.
 
 COLUMN DISTRIBUTION RULES (CRITICAL — READ CAREFULLY):
 - A 2-column block MUST have children with EXACTLY 2 arrays: [ [col1items], [col2items] ]
@@ -249,7 +299,8 @@ const sanitizeBlock = (
   context.count += 1;
 
   const block: BlockData = {
-    uniqueId: safeString(value.uniqueId) || crypto.randomUUID(),
+    // Always mint a fresh UUID — model-emitted uniqueIds collide (duplicate React keys)
+    uniqueId: crypto.randomUUID(),
     content: safeString(value.content) || definition?.content || '',
     type,
     style: definition && definition.type !== 'text' ? { ...definition.style, ...style } : style,
@@ -541,8 +592,40 @@ const applyRequestedLayout = (components: BlockData[], layout: RequestedLayout):
 };
 
 // ---------------------------------------------------------------------------
-// JSON parsing
+// JSON parsing — tolerant of common LLM mistakes:
+//   - markdown fences
+//   - trailing commas before } or ]
+//   - truncated output (auto-closes open { [ )
+//   - single-quoted strings
 // ---------------------------------------------------------------------------
+const stripTrailingCommas = (input: string) =>
+  input.replace(/,(\s*[}\]])/g, '$1');
+
+const autoCloseBrackets = (input: string) => {
+  const stack: string[] = [];
+  let inString = false;
+  let escape = false;
+  for (let i = 0; i < input.length; i++) {
+    const ch = input[i];
+    if (escape) { escape = false; continue; }
+    if (ch === '\\' && inString) { escape = true; continue; }
+    if (ch === '"') { inString = !inString; continue; }
+    if (inString) continue;
+    if (ch === '{' || ch === '[') stack.push(ch);
+    else if (ch === '}' && stack[stack.length - 1] === '{') stack.pop();
+    else if (ch === ']' && stack[stack.length - 1] === '[') stack.pop();
+  }
+  let out = input;
+  if (inString) out += '"';
+  // Trim a trailing comma/colon/partial-token before closing
+  out = out.replace(/[,:]\s*$/, '').replace(/"\s*:\s*$/, '');
+  while (stack.length > 0) {
+    const open = stack.pop();
+    out += open === '{' ? '}' : ']';
+  }
+  return out;
+};
+
 const parseModelJson = (content: unknown) => {
   if (isRecord(content)) return content;
 
@@ -552,17 +635,56 @@ const parseModelJson = (content: unknown) => {
     .replace(/\s*```\s*$/im, '')
     .trim();
 
-  try {
-    return JSON.parse(stripped);
-  } catch {
-    // Extract JSON object from free-form text (retry fallback)
-    const start = stripped.indexOf('{');
-    const end = stripped.lastIndexOf('}');
-    if (start !== -1 && end !== -1 && end > start) {
-      return JSON.parse(stripped.slice(start, end + 1));
-    }
-    throw new Error('Model output did not contain valid JSON');
+  const attempts: Array<{ label: string; src: string }> = [
+    { label: 'raw', src: stripped },
+    { label: 'no-trailing-commas', src: stripTrailingCommas(stripped) },
+  ];
+
+  // Extract from { ... } window (handles preamble/postamble)
+  const start = stripped.indexOf('{');
+  const end = stripped.lastIndexOf('}');
+  if (start !== -1 && end !== -1 && end > start) {
+    const windowed = stripped.slice(start, end + 1);
+    attempts.push({ label: 'object-window', src: windowed });
+    attempts.push({ label: 'object-window-no-trailing-commas', src: stripTrailingCommas(windowed) });
   }
+
+  // Last resort: auto-close brackets from the unclosed-tail
+  if (start !== -1) {
+    const fromOpen = stripped.slice(start);
+    attempts.push({
+      label: 'auto-close',
+      src: stripTrailingCommas(autoCloseBrackets(fromOpen)),
+    });
+  }
+
+  let lastErr: unknown;
+  for (const attempt of attempts) {
+    try {
+      return JSON.parse(attempt.src);
+    } catch (err) {
+      lastErr = err;
+    }
+  }
+
+  // Final fallback: jsonrepair handles missing colons, unquoted keys,
+  // unescaped quotes, truncated output — every common LLM mistake.
+  for (const attempt of attempts) {
+    try {
+      const repaired = jsonrepair(attempt.src);
+      return JSON.parse(repaired);
+    } catch (err) {
+      lastErr = err;
+    }
+  }
+
+  console.error('[parseModelJson] all parse attempts (including jsonrepair) failed. Raw model output:');
+  console.error(stripped.slice(0, 4000));
+  throw new Error(
+    `Model output did not contain valid JSON: ${
+      lastErr instanceof Error ? lastErr.message : String(lastErr)
+    }`
+  );
 };
 
 const sanitizeUserPrompt = (prompt: string) => {
@@ -647,6 +769,74 @@ const getGroqMessageContent = (payload: Record<string, unknown>) => {
 };
 
 // ---------------------------------------------------------------------------
+// Gemini API — used for Pass-1 analysis when GEMINI_API_KEY is set, because
+// gemini-2.5-flash reads screenshots far more accurately than Llama 4 Scout
+// (font families, exact hex colors, pixel spacing).
+// ---------------------------------------------------------------------------
+type GeminiPart =
+  | { text: string }
+  | { inline_data: { mime_type: string; data: string } };
+
+const groqContentToGeminiParts = (
+  parts: GroqContentPart[],
+  fallbackImageDataUrl: string
+): GeminiPart[] => {
+  return parts
+    .map<GeminiPart | null>((part) => {
+      if (part.type === 'text') return { text: part.text };
+      if (part.type === 'image_url') {
+        const url = part.image_url.url || fallbackImageDataUrl;
+        const match = url.match(/^data:([^;]+);base64,(.+)$/);
+        if (!match) return null;
+        return { inline_data: { mime_type: match[1], data: match[2] } };
+      }
+      return null;
+    })
+    .filter((p): p is GeminiPart => Boolean(p));
+};
+
+const callGeminiJson = async (
+  apiKey: string,
+  model: string,
+  parts: GeminiPart[],
+  maxOutputTokens: number,
+  temperature = 0.05
+): Promise<Record<string, unknown>> => {
+  const url = `${GEMINI_API_BASE}/${model}:generateContent?key=${apiKey}`;
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{ role: 'user', parts }],
+      generationConfig: {
+        temperature,
+        responseMimeType: 'application/json',
+        maxOutputTokens,
+      },
+    }),
+  });
+
+  const payload = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    console.error('[Gemini error]', response.status, JSON.stringify(payload?.error ?? payload, null, 2));
+    throw new Error(payload?.error?.message || `Gemini API error ${response.status}`);
+  }
+
+  return payload as Record<string, unknown>;
+};
+
+const getGeminiText = (payload: Record<string, unknown>): string => {
+  const candidates = Array.isArray(payload.candidates) ? payload.candidates : [];
+  const first = candidates[0];
+  if (!isRecord(first) || !isRecord(first.content)) return '';
+  const parts = Array.isArray(first.content.parts) ? first.content.parts : [];
+  return parts
+    .map((p) => (isRecord(p) && typeof p.text === 'string' ? p.text : ''))
+    .join('');
+};
+
+// ---------------------------------------------------------------------------
 // Pass 1: Analysis — explicitly identifies column count, block types, and
 // which column each element belongs to.
 // ---------------------------------------------------------------------------
@@ -654,17 +844,34 @@ const buildAnalysisContent = ({
   prompt,
   requestedLayoutInstruction,
   focusInstruction,
+  paletteHint,
 }: {
   prompt: string;
   requestedLayoutInstruction: string;
   focusInstruction: string;
+  paletteHint: string;
 }): GroqContentPart[] => [
   {
     type: 'text',
-    text: `You are analyzing a webpage screenshot to map it to an editor block system.
+    text: `You are analyzing a webpage screenshot to map it to an editor block system. Your goal is PIXEL-PERFECT VISUAL FIDELITY — capture every visible color, font, spacing, and style.
 
 ${focusInstruction}
 
+${VISUAL_FIDELITY_RULES}
+
+${paletteHint}
+
+LAYOUT GRID DETECTION — DO THIS FIRST, BEFORE LISTING ELEMENTS:
+For each visible section of the page, look at the horizontal positions of its content.
+- If you can draw 3 vertical guide lines that separate distinct content groups left-to-right, the section has columnCount:3 — even if the columns have different widths.
+- If you can draw 2 vertical guide lines, columnCount:2.
+- A heading on the LEFT and a stack of cards/progress bars/timers on the RIGHT is at MINIMUM a 2-column. If the right side itself has two visibly separated stacks of content, the whole section is a 3-column.
+- DO NOT collapse 3 columns into 2. If you see content in the LEFT THIRD, MIDDLE THIRD, and RIGHT THIRD of the screenshot, that is THREE columns.
+- A timer/countdown sitting visually apart from a stack of progress bars belongs in a DIFFERENT column from the progress bars — even if both are on the right half of the page.
+- Trust horizontal position more than logical grouping. If two elements are at clearly different X positions, they are in different columns.
+
+VERIFICATION CHECK (run this mentally before outputting):
+For every section you marked as columnCount:2, ask: "Is there a third visually-separated content area I'm missing?" If yes, it's a 3-column. Similarly check 1-column → could it be 2?
 
 The editor has these block ids:
 CONTAINERS (have children): nav-bar, 1-column, 2-column, 3-column, row
@@ -685,6 +892,7 @@ KEY MAPPING RULES:
 Return ONLY this JSON (no markdown, no fences):
 {
   "scope": "full-page|section|viewport",
+  "globalFontFamily": "Inter, system-ui, sans-serif",
   "sections": [
     {
       "order": 1,
@@ -692,22 +900,45 @@ Return ONLY this JSON (no markdown, no fences):
       "containerBlockId": "1-column|2-column|3-column|nav-bar",
       "columnCount": 3,
       "backgroundColor": "#1e2330",
-      "padding": "48px 32px",
+      "backgroundImage": "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%) — only if a gradient is visible, otherwise omit",
+      "padding": "96px 64px",
+      "gap": "32px",
+      "alignItems": "center|flex-start|stretch",
+      "justifyContent": "center|flex-start|space-between",
+      "borderRadius": "0px",
+      "borderTop": "1px solid #e5e7eb — only if visible",
       "elements": [
         {
           "blockId": "heading|text|button|stats|progress|countdown|icon|card|image|...",
           "column": 0,
-          "text": "visible text only",
+          "text": "visible text only — verbatim, including punctuation and capitalization",
           "statsValue": "200+",
           "statsLabel": "Project Delivered",
           "progressLabel": "Delivery Rate",
           "progressPercentage": 100,
           "iconName": "lucide icon name if blockId=icon",
-          "cardData": {"eyebrow":"","title":"","body":"","buttonText":""},
-          "color": "#hex text color",
-          "fontSize": "24px",
+          "cardData": {"eyebrow":"","title":"","body":"","buttonText":"","image":"/placeholder-image.png"},
+          "imageAlt": "precise description of what the image shows (for image blocks)",
+          "color": "#hex text color sampled from image",
+          "backgroundColor": "#hex element background (buttons, badges, cards)",
+          "backgroundImage": "linear-gradient(...) — only if element has a gradient bg",
+          "fontFamily": "Inter, system-ui, sans-serif",
+          "fontSize": "48px",
           "fontWeight": "700",
-          "styleNotes": "any other style notes"
+          "fontStyle": "normal|italic",
+          "lineHeight": "1.2",
+          "letterSpacing": "-0.02em",
+          "textAlign": "left|center|right",
+          "textTransform": "none|uppercase|lowercase|capitalize",
+          "padding": "12px 24px",
+          "margin": "0 0 16px 0",
+          "borderRadius": "8px",
+          "border": "1px solid #e5e7eb",
+          "boxShadow": "0 4px 12px rgba(0,0,0,0.08)",
+          "width": "auto|100%|320px",
+          "maxWidth": "640px",
+          "opacity": "1",
+          "styleNotes": "anything else that makes this element look the way it does"
         }
       ]
     }
@@ -717,15 +948,158 @@ Return ONLY this JSON (no markdown, no fences):
 User request: ${prompt || 'Recreate the visible screenshot.'}
 ${requestedLayoutInstruction ? `Layout requirement: ${requestedLayoutInstruction}` : ''}
 
-Rules:
+CRITICAL RULES:
 - List ALL visible sections top-to-bottom. Do not skip any.
 - For each section, correctly identify columnCount by counting side-by-side groups.
 - Assign each element to the correct 0-based column index.
 - Elements in the LEFT column get column:0, MIDDLE column:1, RIGHT column:2.
 - Use stats/progress/countdown blocks — never use plain "text" for numbers+labels or progress bars.
-- Do not include elements not visible in the image.`,
+- Do not include elements not visible in the image.
+- FONT FAMILY IS REQUIRED on every text element. Look carefully — is it sans-serif, serif, or mono? Geometric (Poppins, DM Sans) or humanist (Open Sans, Lato)? Modern (Inter) or traditional (Helvetica)? Pick the closest match and use the full CSS stack.
+- EXACT COLORS REQUIRED. Sample with your eyes. Distinguish #111827 (slate-900) from #000000 (pure black). Distinguish #2563EB (blue-600) from #3B82F6 (blue-500). Use 6-digit hex.
+- MEASURE SPACING. A tight card has 16px-24px padding; a hero has 64px-128px padding. Buttons typically use 12px 24px or 16px 32px. Don't default everything to "16px".
+- OMIT fields that don't apply (e.g. boxShadow on a flat card) — don't fill them with empty strings.`,
   },
 ];
+
+// ---------------------------------------------------------------------------
+// Pass 1 (TEXT-ONLY): Plan a complete, deploy-ready landing page from a topic
+// prompt — no screenshot involved. Emits the same `sections[]` analysis schema
+// as the image flow so Pass-2 stays unchanged.
+// ---------------------------------------------------------------------------
+const buildTextOnlyPlannerContent = ({
+  prompt,
+  requestedLayoutInstruction,
+  pageType,
+}: {
+  prompt: string;
+  requestedLayoutInstruction: string;
+  pageType: PageContext;
+}): GroqContentPart[] => {
+  const pageScopeBlock =
+    pageType === 'header'
+      ? `SCOPE — HEADER PAGE ONLY:
+- Output EXACTLY one section: containerBlockId:"nav-bar", columnCount:1.
+- That section's elements describe the navigation: brand name + 4-6 nav links + (optional) CTA button.
+- Do NOT plan a hero, services, footer or any body sections.`
+      : pageType === 'footer'
+        ? `SCOPE — FOOTER PAGE ONLY:
+- Output 1-2 sections that form a typical site footer.
+- A 3-column or 4-column section with link groups (Company / Product / Resources / Legal) + a 1-column copyright row at the bottom.
+- Each link group is a column containing one heading + 4-6 text links (use blockId:"text", each on its own row).
+- Do NOT plan a hero, services, testimonials, or any body sections.
+- Use a dark background (e.g. #0F172A or #111827) with light text.`
+        : `SCOPE — FULL LANDING PAGE:
+- Plan a complete, deploy-ready home page tailored to the user's topic.
+- Default section flow (skip a section only if it makes no sense for the topic, add a section if the topic clearly needs it):
+   1. nav-bar (containerBlockId:"nav-bar", columnCount:1) — brand + 4-6 links + primary CTA button
+   2. Hero — MUST be containerBlockId:"2-column", columnCount:2. Left column: eyebrow tag + large headline + supporting subhead + 2 CTA buttons. Right column: ONE element with blockId:"image", imageAlt set to a topic-specific description (e.g. "modern IT operations center with dashboards", "developers collaborating around a laptop", "fintech mobile app on a phone screen"). DO NOT skip the image.
+   3. Trust strip / logo cloud (1-column) — small heading "Trusted by teams at" + a row of company/text logos
+   4. Services or features grid (3-column) — 3 cards (one per column), each as blockId:"card" with cardData {eyebrow, title, body, buttonText, image:"/placeholder-image.png"}. The image field MUST be present with that placeholder string — the system will swap in a real topic photo automatically.
+   5. Stats band (3-column or 4-column on dark bg) — 3-4 stats blocks ("200+ Projects", "98% Uptime", "12yr Experience")
+   6. Why-us / value props — MUST be containerBlockId:"2-column", columnCount:2. One column has ONE blockId:"image" element with a topic-specific imageAlt (e.g. "engineer reviewing code on multiple monitors"). The other column has a heading + 3-4 feature rows (each row = icon + heading + text). DO NOT skip the image.
+   7. Testimonials (3-column) — 3 cards (one per column), each blockId:"card" with cardData {eyebrow: client role, title: client name, body: 2-sentence quote, image:"/placeholder-image.png", buttonText:""}. The image becomes the client headshot — placeholder is fine, system swaps it.
+   8. Pricing or CTA section (3-column for pricing, 1-column for CTA) — pricing has 3 plan cards (Starter / Pro / Enterprise); skip pricing and use a single big CTA when the topic is services-focused (agency, IT, consulting).
+   9. Final CTA (1-column) — bold headline + sub-line + primary CTA button on a dark or gradient background
+  10. Footer (3-column) — link groups + copyright. ONLY include if the user asks for a "full page" or "with header and footer"; otherwise omit and let the global footer handle it.
+- A "home page" prompt should produce 7-9 sections by default. Do not produce only 2-3 sections.
+- IMAGES ARE MANDATORY: hero must have an image, why-us must have an image, service cards must have cardData.image set (placeholder string is fine), testimonial cards must have cardData.image set. A page with no images is a failed output — never omit them.`;
+
+  return [
+    {
+      type: 'text',
+      text: `You are designing a real, deploy-ready webpage from a text brief. There is NO screenshot. Plan a full page from scratch and output the structured "analysis" JSON our pipeline consumes.
+
+USER BRIEF: ${prompt}
+${requestedLayoutInstruction ? `\nLayout requirement: ${requestedLayoutInstruction}` : ''}
+
+${pageScopeBlock}
+
+DESIGN DIRECTION — make it look authentic, not generic:
+- INFER THE INDUSTRY from the brief (e.g. "IT services", "SaaS", "law firm", "restaurant", "bakery", "fintech", "fitness app"). Pick design choices appropriate to that industry.
+- COLOR PALETTE — invent a small, consistent palette (1 background, 1 surface, 1 text, 1 accent, 1 muted-text) and reuse it across all sections. Industry cues:
+   - IT / tech / SaaS / fintech: deep navy or near-black bg (#0B1220, #0F172A) with a vivid accent (electric blue #2563EB, indigo #6366F1, cyan #06B6D4, or violet #7C3AED). Light sections use #FFFFFF / #F8FAFC.
+   - Agency / creative: warm cream (#FAF7F2) + bold accent (#FF6B35, #E11D48) with charcoal text.
+   - Healthcare / wellness: soft white + teal/green accent (#0D9488, #16A34A).
+   - Finance / legal: navy + gold accent (#0F1F3D + #B8932A) or muted slate.
+   - Restaurant / hospitality: warm beige / dark forest + amber accent.
+   - Use 6-digit hex EVERYWHERE. Never named colors.
+- TYPOGRAPHY — pick one display font and one body font from this shortlist and reuse them:
+   - Display options: Poppins, Montserrat, "Plus Jakarta Sans", "Playfair Display"
+   - Body options: Inter, "DM Sans", "Open Sans", Roboto
+   - Set analysis.globalFontFamily to the body font CSS stack (e.g. "Inter, system-ui, sans-serif"). Override fontFamily on headings/buttons with the display font stack.
+- COPY — write SPECIFIC, AUTHENTIC copy tailored to the topic. NEVER write "Lorem ipsum", "Your headline here", "Sample text", or generic filler. A heading for an IT site should read like "Enterprise IT solutions that scale with you" — not "Welcome to our website". Use plausible company-style language: short, confident, benefit-driven.
+- STATS — invent plausible numbers ("200+ projects delivered", "98% client retention", "24/7 SOC monitoring", "15yr industry experience"). They should reinforce the topic.
+- TESTIMONIALS — write 2-3 sentence quotes with a believable name + role + company ("Sarah Lin, CTO at Northwind Logistics"). Make them topic-specific.
+- ICONS — use real lucide icon names matching each feature/card. For IT: "shield-check", "cloud", "server", "lock", "zap", "users", "code", "git-branch", "monitor", "database", "wifi", "cpu". For SaaS: "rocket", "trending-up", "bar-chart-3", "workflow". Pick ones that actually exist.
+- SPACING — sections should breathe. Hero padding 96px-128px vertical. Other sections 80px-96px vertical. Side padding 64px-128px on a desktop layout. Gaps between cards 24px-32px. Don't default to 16px.
+- VISUAL VARIETY — alternate light and dark sections to add rhythm. The hero might be light, stats on dark, services on light, testimonials on a tinted surface, final CTA on a gradient.
+- BUTTONS — primary CTAs use the accent color background with white text, 12-16px vertical padding, 24-32px horizontal padding, 8px or 10px border-radius. Secondary CTAs use a subtle border + transparent bg.
+
+OUTPUT FORMAT — RETURN ONLY THIS JSON (no markdown, no fences):
+{
+  "scope": "full-page",
+  "globalFontFamily": "Inter, system-ui, sans-serif",
+  "sections": [
+    {
+      "order": 1,
+      "name": "Hero",
+      "containerBlockId": "1-column|2-column|3-column|nav-bar",
+      "columnCount": 1,
+      "backgroundColor": "#0F172A",
+      "backgroundImage": "linear-gradient(...) — only if section uses a gradient bg",
+      "padding": "112px 96px",
+      "gap": "24px",
+      "alignItems": "center|flex-start|stretch",
+      "justifyContent": "center|flex-start",
+      "elements": [
+        {
+          "blockId": "heading|text|button|stats|progress|countdown|icon|card|image",
+          "column": 0,
+          "text": "the actual visible text for this element — written for the user's topic, not placeholder",
+          "iconName": "lucide icon name when blockId=icon",
+          "statsValue": "200+",
+          "statsLabel": "Projects delivered",
+          "progressLabel": "Uptime",
+          "progressPercentage": 99,
+          "cardData": {"eyebrow":"","title":"","body":"","buttonText":"","image":"/placeholder-image.png"},
+          "imageAlt": "describe what image should go here",
+          "color": "#hex",
+          "backgroundColor": "#hex (for buttons / chips / cards)",
+          "backgroundImage": "linear-gradient(...) — only when element has gradient bg",
+          "fontFamily": "Poppins, system-ui, sans-serif",
+          "fontSize": "60px",
+          "fontWeight": "700",
+          "lineHeight": "1.1",
+          "letterSpacing": "-0.02em",
+          "textAlign": "left|center|right",
+          "textTransform": "none|uppercase",
+          "padding": "14px 28px",
+          "margin": "0 0 16px 0",
+          "borderRadius": "10px",
+          "border": "1px solid #hex (only when visible)",
+          "boxShadow": "0 10px 30px rgba(0,0,0,0.12) (only when visible)",
+          "maxWidth": "640px"
+        }
+      ]
+    }
+  ]
+}
+
+CRITICAL RULES:
+- Distribute elements correctly across columns: a 3-column section has elements with column:0, column:1, column:2.
+- For services/features grids (3-column): each column holds ONE card block (eyebrow/title/body/buttonText/image) OR an icon + heading + text trio. Be consistent within a section.
+- For stats bands (3-column or 4-column): each column holds ONE stats block.
+- For testimonial grids (3-column): each column holds ONE card with the quote in body, author name in title, role in eyebrow.
+- The nav-bar section has containerBlockId:"nav-bar", columnCount:1, and exactly ONE element with blockId:"nav-bar". Provide a navData field on that element: {"logo":"Brand name appropriate to the topic","logoType":"text","layout":"horizontal","links":[{"label":"Home","href":"#"},{"label":"Services","href":"#services"},{"label":"About","href":"#about"},{"label":"Pricing","href":"#pricing"},{"label":"Contact","href":"#contact"}]}. Pick a real-feeling brand name (e.g. "Corecore IT", "Nimbus Cloud", "Apex Legal") rather than the word "Brand".
+- Every text element MUST have fontFamily, fontSize, fontWeight, lineHeight, color, textAlign.
+- Every container MUST have backgroundColor (or backgroundImage), padding, gap.
+- All hex colors must be 6-digit #RRGGBB.
+- Do NOT include sections that are not visually distinct. No empty filler sections.
+- Use blocks the catalog actually supports — never invent block ids.`,
+    },
+  ];
+};
 
 // ---------------------------------------------------------------------------
 // Pass 2: JSON generation — converts structured analysis into builder JSON
@@ -736,19 +1110,24 @@ const buildJsonGenerationContent = ({
   visibleAnalysis,
   imageDataUrl,
   focusInstruction,
+  paletteHint,
 }: {
   prompt: string;
   requestedLayoutInstruction: string;
   visibleAnalysis: unknown;
   imageDataUrl: string;
   focusInstruction: string;
+  paletteHint: string;
 }): GroqContentPart[] => [
   {
     type: 'text',
-    text: `Convert this analysis into editor builder JSON.
+    text: `Convert this analysis into editor builder JSON. Preserve EVERY style detail from the analysis so the output is pixel-identical to the source screenshot.
 
 ${focusInstruction}
 
+${VISUAL_FIDELITY_RULES}
+
+${paletteHint}
 
 ANALYSIS:
 ${JSON.stringify(visibleAnalysis, null, 2)}
@@ -768,11 +1147,35 @@ STEP BY STEP:
 7. For HEADING blocks: id="heading", type="text", content = element.text
 8. For TEXT blocks: id="text", type="text", content = element.text
 9. For ICON blocks: content = element.iconName
-10. For CARD blocks: content = JSON.stringify(element.cardData)
-11. Set container style.backgroundColor from section.backgroundColor.
-12. Set container style: display:"flex", flexDirection:"row" (for 2-col and 3-col), gap:"32px", padding: section.padding or "48px 32px", width:"100%", alignItems:"flex-start".
-13. Set 1-column container style: display:"flex", flexDirection:"column".
-14. Set element text color from element.color. Set fontSize from element.fontSize. Set fontWeight from element.fontWeight.
+10. For CARD blocks: content = JSON.stringify({...element.cardData, image: element.cardData.image || "/placeholder-image.png"})
+11. For IMAGE blocks: content = JSON.stringify({"src": element.imageSrc || "/placeholder-image.png", "alt": element.imageAlt || "image", "caption": ""}). The src may be an external https URL — preserve it verbatim, do not rewrite or normalize.
+12. For NAV-BAR sections — the section contains ONE element with blockId:"nav-bar". Emit a single top-level block with id:"nav-bar", type:"nav-bar", NO children, and content = JSON.stringify(element.navData) if element.navData is provided. If navData is missing, fall back to {"logo": element.text || "Brand", "logoType":"text","logoImage":"","layout":"horizontal","links":[{"label":"Home","href":"#","onClick":"none","onClickValue":""},{"label":"Services","href":"#services","onClick":"none","onClickValue":""},{"label":"About","href":"#about","onClick":"none","onClickValue":""},{"label":"Contact","href":"#contact","onClick":"none","onClickValue":""}]}. Each link MUST have onClick:"none" and onClickValue:"" — add those defaults if navData.links entries are missing them. Style on the nav-bar block carries section-level padding/backgroundColor/color.
+
+CONTAINER STYLE (apply ALL from analysis section):
+- backgroundColor: section.backgroundColor
+- backgroundImage: section.backgroundImage (if present — for gradients)
+- padding: section.padding (preserve the EXACT value, e.g. "96px 64px" — do NOT default to "48px 32px")
+- gap: section.gap (preserve EXACT value)
+- alignItems: section.alignItems
+- justifyContent: section.justifyContent
+- borderRadius: section.borderRadius (if present)
+- borderTop / borderBottom: if present
+- For 2-col and 3-col: display:"flex", flexDirection:"row", width:"100%"
+- For 1-col: display:"flex", flexDirection:"column", width:"100%"
+
+ELEMENT STYLE — APPLY EVERY FIELD FROM THE ANALYSIS, do not drop any:
+- color, backgroundColor, backgroundImage
+- fontFamily (REQUIRED — copy verbatim from element.fontFamily, e.g. "Inter, system-ui, sans-serif")
+- fontSize, fontWeight, fontStyle
+- lineHeight, letterSpacing
+- textAlign, textTransform
+- padding, margin
+- borderRadius, border, boxShadow
+- width, maxWidth, opacity
+- If element.backgroundImage is a gradient string, set style.backgroundImage AND omit backgroundColor.
+
+GLOBAL FONT (if analysis.globalFontFamily is set):
+- Apply analysis.globalFontFamily to every text element that does NOT have its own fontFamily.
 
 VALIDATION (check before returning):
 - Every 2-column block must have children with EXACTLY 2 arrays.
@@ -780,6 +1183,9 @@ VALIDATION (check before returning):
 - NEVER place all elements into children[0] — distribute them across column arrays by their element.column value.
 - A 3-column block with children: [[a,b,c,d,e],[],[]] is WRONG. Distribute correctly.
 - For sections with columnCount > 1, the container MUST have style.display="flex" and style.flexDirection="row".
+- Every heading/text/button MUST have a fontFamily in style.
+- Every color value MUST be a 6-digit hex (#RRGGBB) — never named colors like "blue" or "white".
+- Preserve element.padding, element.margin, element.borderRadius, element.boxShadow EXACTLY — do not normalize to round numbers.
 
 Return ONLY: {"components":[...]}
 No markdown. No explanation.`,
@@ -822,6 +1228,7 @@ export async function POST(request: NextRequest) {
       rawPageType === 'header' ? 'header' : rawPageType === 'footer' ? 'footer' : 'page';
     const focusInstruction = getFocusInstruction(pageType);
     let imageDataUrl = '';
+    let imageBuffer: Buffer | null = null;
 
     if (hasImage) {
       if (!image.type.startsWith('image/')) {
@@ -833,31 +1240,102 @@ export async function POST(request: NextRequest) {
           { status: 400 }
         );
       }
-      const buffer = Buffer.from(await image.arrayBuffer());
-      imageDataUrl = `data:${image.type};base64,${buffer.toString('base64')}`;
+      imageBuffer = Buffer.from(await image.arrayBuffer());
+      imageDataUrl = `data:${image.type};base64,${imageBuffer.toString('base64')}`;
     }
 
-    // -- PASS 1: structured visual analysis ---------------------------------
-    const analysisContentParts = buildAnalysisContent({
-      prompt,
-      requestedLayoutInstruction,
-      focusInstruction,
-    });
+    // -- PRE-PASS: programmatic palette extraction (free, no API call) ------
+    // Sampled hex codes pinned into both prompts so the model can't hallucinate
+    // colors. Falls back to LLM-only color reasoning if extraction fails.
+    let extractedPalette: ExtractedPalette | null = null;
+    let paletteHint = '';
+    if (imageBuffer) {
+      extractedPalette = await extractPalette(imageBuffer);
+      if (extractedPalette) {
+        paletteHint = formatPaletteForPrompt(extractedPalette);
+      }
+    }
 
-    const analysisPayload = await callGroqJson(apiKey, {
-      model: GROQ_VISION_MODEL,
-      messages: [
-        {
-          role: 'user',
-          content: hasImage
-            ? [...analysisContentParts, { type: 'image_url', image_url: { url: imageDataUrl } }]
-            : analysisContentParts,
-        },
-      ],
-      max_completion_tokens: 2048,
-    });
+    // -- PASS 1: structured analysis (image flow) OR full-page plan (text flow)
+    const analysisContentParts = hasImage
+      ? buildAnalysisContent({
+          prompt,
+          requestedLayoutInstruction,
+          focusInstruction,
+          paletteHint,
+        })
+      : buildTextOnlyPlannerContent({
+          prompt,
+          requestedLayoutInstruction,
+          pageType,
+        });
 
-    const visibleAnalysis = parseModelJson(getGroqMessageContent(analysisPayload));
+    const geminiApiKey = process.env.GEMINI_API_KEY;
+    // Use Gemini for both image-analysis (vision is much better than Llama) and
+    // text-only planning (creative writing is much better than Llama).
+    const useGeminiForAnalysis = Boolean(geminiApiKey);
+    let analysisRawText = '';
+
+    if (useGeminiForAnalysis) {
+      const geminiParts: GeminiPart[] = [
+        ...groqContentToGeminiParts(analysisContentParts, imageDataUrl),
+        ...(hasImage && imageDataUrl
+          ? groqContentToGeminiParts(
+              [{ type: 'image_url' as const, image_url: { url: imageDataUrl } }],
+              imageDataUrl
+            )
+          : []),
+      ];
+      try {
+        const geminiPayload = await callGeminiJson(
+          geminiApiKey!,
+          GEMINI_MODEL,
+          geminiParts,
+          hasImage ? 8192 : 12288,
+          // Creative planning benefits from a higher temp; image analysis must
+          // stay deterministic to match the source pixel-for-pixel.
+          hasImage ? 0.05 : 0.7
+        );
+        analysisRawText = getGeminiText(geminiPayload);
+      } catch (err) {
+        console.warn('[Gemini] analysis failed, falling back to Groq:', err);
+      }
+    }
+
+    if (!analysisRawText) {
+      // Text-only planner gets more tokens — full-page plans are large.
+      const plannerTokens = hasImage ? 6144 : 8192;
+      const analysisPayload = await callGroqJson(apiKey, {
+        model: hasImage ? GROQ_VISION_MODEL : GROQ_TEXT_MODEL,
+        // Text-only planning benefits from a higher temperature so the model
+        // produces specific, authentic copy instead of generic boilerplate.
+        temperature: hasImage ? 0.05 : 0.7,
+        messages: [
+          {
+            role: 'user',
+            content: hasImage
+              ? [...analysisContentParts, { type: 'image_url', image_url: { url: imageDataUrl } }]
+              : analysisContentParts,
+          },
+        ],
+        max_completion_tokens: plannerTokens,
+      });
+      analysisRawText = safeString(getGroqMessageContent(analysisPayload));
+    }
+
+    const rawAnalysis = parseModelJson(analysisRawText);
+
+    // -- PASS 1.5: enrich analysis with real photos from Unsplash ------------
+    // For every image/card element with a placeholder URL, swap in a real
+    // topic-relevant photo so the generated page looks deploy-ready. Fails
+    // open: on any error we fall through to the original placeholder.
+    let visibleAnalysis: unknown = rawAnalysis;
+    try {
+      visibleAnalysis = await enrichAnalysisWithImages(rawAnalysis, prompt);
+    } catch (err) {
+      console.warn('[image enrichment] failed, using placeholders:', err);
+      visibleAnalysis = rawAnalysis;
+    }
 
     // -- PASS 2: generate builder JSON --------------------------------------
     const jsonGenerationMessage = buildJsonGenerationContent({
@@ -866,18 +1344,43 @@ export async function POST(request: NextRequest) {
       visibleAnalysis,
       imageDataUrl,
       focusInstruction,
+      paletteHint,
     });
 
-    const groqPayload = await callGroqJson(apiKey, {
-      model: hasImage ? GROQ_VISION_MODEL : GROQ_TEXT_MODEL,
-      messages: [
-        { role: 'system', content: baseSystemPrompt },
-        { role: 'user', content: jsonGenerationMessage },
-      ],
-      max_completion_tokens: 8192,
-    });
+    const useGeminiForGeneration = Boolean(geminiApiKey);
+    let modelContent = '';
+    let groqPayload: Record<string, unknown> | null = null;
 
-    const modelContent = getGroqMessageContent(groqPayload);
+    if (useGeminiForGeneration) {
+      // Gemini equivalent of: [system, user] → single user turn prefixed with system instructions.
+      const generationParts: GeminiPart[] = [
+        { text: `${baseSystemPrompt}\n\n---\n\n` },
+        ...groqContentToGeminiParts(jsonGenerationMessage, imageDataUrl),
+      ];
+      try {
+        const geminiGenPayload = await callGeminiJson(
+          geminiApiKey!,
+          GEMINI_MODEL,
+          generationParts,
+          16384
+        );
+        modelContent = getGeminiText(geminiGenPayload);
+      } catch (err) {
+        console.warn('[Gemini] generation failed, falling back to Groq:', err);
+      }
+    }
+
+    if (!modelContent) {
+      groqPayload = await callGroqJson(apiKey, {
+        model: hasImage ? GROQ_VISION_MODEL : GROQ_TEXT_MODEL,
+        messages: [
+          { role: 'system', content: baseSystemPrompt },
+          { role: 'user', content: jsonGenerationMessage },
+        ],
+        max_completion_tokens: 8192,
+      });
+      modelContent = safeString(getGroqMessageContent(groqPayload));
+    }
     const parsed = parseModelJson(modelContent);
     const rawComponents = Array.isArray(parsed)
       ? parsed
@@ -907,6 +1410,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // -- POST-PASS-2: enrich image/card blocks with real photos -------------
+    // Authoritative pass — walks the final BlockData tree and replaces any
+    // placeholder src/image (which is what the renderer actually consumes)
+    // with a real Unsplash/picsum URL. Independent of how the LLM emitted the
+    // analysis, so this is the safety net that guarantees images show up.
+    let finalComponents = layoutAdjustedComponents;
+    try {
+      finalComponents = await enrichComponentsWithImages(layoutAdjustedComponents, prompt);
+    } catch (err) {
+      console.warn('[image enrichment] post-pass failed:', err);
+    }
+
     // -- PASS 3: when editing a regular page with an image, also extract the
     //    header and footer regions so the client can spin up matching pages.
     let headerComponents: BlockData[] | undefined;
@@ -922,21 +1437,46 @@ export async function POST(request: NextRequest) {
             prompt: `Extract ONLY the ${focus} of the image.`,
             requestedLayoutInstruction: '',
             focusInstruction: instruction,
+            paletteHint,
           });
-          const focusedAnalysisPayload = await callGroqJson(apiKey, {
-            model: GROQ_VISION_MODEL,
-            messages: [
-              {
-                role: 'user',
-                content: [
-                  ...focusedAnalysisParts,
-                  { type: 'image_url', image_url: { url: imageDataUrl } },
-                ],
-              },
-            ],
-            max_completion_tokens: 1024,
-          });
-          const focusedAnalysis = parseModelJson(getGroqMessageContent(focusedAnalysisPayload));
+          let focusedAnalysisText = '';
+          if (geminiApiKey) {
+            try {
+              const focusedGeminiParts: GeminiPart[] = [
+                ...groqContentToGeminiParts(focusedAnalysisParts, imageDataUrl),
+                ...groqContentToGeminiParts(
+                  [{ type: 'image_url' as const, image_url: { url: imageDataUrl } }],
+                  imageDataUrl
+                ),
+              ];
+              const focusedGeminiPayload = await callGeminiJson(
+                geminiApiKey,
+                GEMINI_MODEL,
+                focusedGeminiParts,
+                4096
+              );
+              focusedAnalysisText = getGeminiText(focusedGeminiPayload);
+            } catch (err) {
+              console.warn(`[Gemini] focused ${focus} analysis failed, falling back to Groq:`, err);
+            }
+          }
+          if (!focusedAnalysisText) {
+            const focusedAnalysisPayload = await callGroqJson(apiKey, {
+              model: GROQ_VISION_MODEL,
+              messages: [
+                {
+                  role: 'user',
+                  content: [
+                    ...focusedAnalysisParts,
+                    { type: 'image_url', image_url: { url: imageDataUrl } },
+                  ],
+                },
+              ],
+              max_completion_tokens: 3072,
+            });
+            focusedAnalysisText = safeString(getGroqMessageContent(focusedAnalysisPayload));
+          }
+          const focusedAnalysis = parseModelJson(focusedAnalysisText);
 
           const focusedJsonParts = buildJsonGenerationContent({
             prompt: `Extract ONLY the ${focus} of the image.`,
@@ -944,16 +1484,37 @@ export async function POST(request: NextRequest) {
             visibleAnalysis: focusedAnalysis,
             imageDataUrl,
             focusInstruction: instruction,
+            paletteHint,
           });
-          const focusedJsonPayload = await callGroqJson(apiKey, {
-            model: GROQ_VISION_MODEL,
-            messages: [
-              { role: 'system', content: baseSystemPrompt },
-              { role: 'user', content: focusedJsonParts },
-            ],
-            max_completion_tokens: 2048,
-          });
-          const focusedContent = getGroqMessageContent(focusedJsonPayload);
+          let focusedContent: unknown = '';
+          if (geminiApiKey) {
+            try {
+              const focusedGenParts: GeminiPart[] = [
+                { text: `${baseSystemPrompt}\n\n---\n\n` },
+                ...groqContentToGeminiParts(focusedJsonParts, imageDataUrl),
+              ];
+              const focusedGeminiPayload = await callGeminiJson(
+                geminiApiKey,
+                GEMINI_MODEL,
+                focusedGenParts,
+                8192
+              );
+              focusedContent = getGeminiText(focusedGeminiPayload);
+            } catch (err) {
+              console.warn(`[Gemini] focused ${focus} generation failed, falling back to Groq:`, err);
+            }
+          }
+          if (!focusedContent) {
+            const focusedJsonPayload = await callGroqJson(apiKey, {
+              model: GROQ_VISION_MODEL,
+              messages: [
+                { role: 'system', content: baseSystemPrompt },
+                { role: 'user', content: focusedJsonParts },
+              ],
+              max_completion_tokens: 6144,
+            });
+            focusedContent = getGroqMessageContent(focusedJsonPayload);
+          }
           const focusedParsed = parseModelJson(focusedContent);
           const focusedRaw = Array.isArray(focusedParsed)
             ? focusedParsed
@@ -986,13 +1547,16 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({
-      components: layoutAdjustedComponents,
+      components: finalComponents,
       headerComponents,
       footerComponents,
       analysis: visibleAnalysis,
+      palette: extractedPalette,
       requestedLayout,
       pageType,
-      model: GROQ_VISION_MODEL,
+      model: useGeminiForGeneration ? GEMINI_MODEL : GROQ_VISION_MODEL,
+      analysisModel: useGeminiForAnalysis ? GEMINI_MODEL : GROQ_VISION_MODEL,
+      generationModel: useGeminiForGeneration ? GEMINI_MODEL : GROQ_VISION_MODEL,
       usage: groqPayload?.usage,
     });
   } catch (error) {

@@ -90,15 +90,53 @@ export const iconOptionMap: Record<string, IconComponent> = iconOptions.reduce(
   {} as Record<string, IconComponent>
 );
 
+// Normalize an icon name to its likely Iconify counterpart. The AI tends to
+// emit "shield-check" or "mdi-shield-check" or "fa-user-shield" — strip the
+// known prefixes and route to the right Iconify set.
+const resolveRemoteIcon = (iconName: string): { set: string; name: string } => {
+  const lower = iconName.trim().toLowerCase();
+  if (lower.startsWith('md-')) return { set: 'mdi', name: lower.slice(3) };
+  if (lower.startsWith('mdi-')) return { set: 'mdi', name: lower.slice(4) };
+  if (lower.startsWith('fa-')) return { set: 'fa6-solid', name: lower.slice(3) };
+  if (lower.startsWith('material-')) return { set: 'material-symbols', name: lower.slice(9) };
+  // Default to lucide — that's what the page-generation prompts emit.
+  return { set: 'lucide', name: lower };
+};
+
+// Fallback renderer for icon names that aren't in the local map. Uses Iconify's
+// public CDN with a CSS mask so the SVG inherits the parent currentColor — no
+// hardcoded color, works on light and dark backgrounds.
+const RemoteIcon = ({ iconName, className }: { iconName: string; className: string }) => {
+  const { set, name } = resolveRemoteIcon(iconName);
+  const url = `https://api.iconify.design/${set}/${encodeURIComponent(name)}.svg`;
+  return (
+    <span
+      role="img"
+      aria-label={iconName}
+      className={className}
+      style={{
+        display: 'inline-block',
+        width: '100%',
+        height: '100%',
+        backgroundColor: 'currentColor',
+        WebkitMask: `url(${url}) no-repeat center / contain`,
+        mask: `url(${url}) no-repeat center / contain`,
+      }}
+    />
+  );
+};
+
 export const renderSelectedIcon = (iconName?: string, className = 'h-4 w-4') => {
   if (!iconName || iconName === 'none') {
     return null;
   }
 
   const IconComponent = iconOptionMap[iconName];
-  if (!IconComponent) {
-    return null;
+  if (IconComponent) {
+    return <IconComponent className={className} />;
   }
 
-  return <IconComponent className={className} />;
+  // Not in the local set — pull from Iconify's CDN. Covers every lucide,
+  // material, and fa-solid icon without bundling them.
+  return <RemoteIcon iconName={iconName} className={className} />;
 };
