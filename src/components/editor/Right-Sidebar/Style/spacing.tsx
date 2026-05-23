@@ -21,6 +21,7 @@ export default function Spacing({ spacingOpen, setSpacingOpen }: SpacingProps) {
   const [padding, setPadding] = useState({ top: 0, right: 0, bottom: 0, left: 0 });
 
   const selectedBlock = useAppSelector((state) => state.canvas.selectedBlock);
+  const selectedPart = useAppSelector((state) => state.canvas.selectedPart);
 
   // Helper to construct CSS margin/padding string
   const getSpacingString = (values: { top: number; right: number; bottom: number; left: number }) => {
@@ -63,29 +64,43 @@ export default function Spacing({ spacingOpen, setSpacingOpen }: SpacingProps) {
     dispatch(updateSelectedBlockStyles({ padding: '0px' }));
   };
 
-  // Sync from Redux when block changes
+  // Sync from Redux when block or part changes
   useEffect(() => {
-    if (selectedBlock?.style) {
-      const p = selectedBlock.style.padding;
-      const m = selectedBlock.style.margin;
-
-      if (typeof p === 'string') {
-        const parts = p.split(' ').map((val) => parseInt(val) || 0);
-        if (parts.length === 4) setPadding({ top: parts[0], right: parts[1], bottom: parts[2], left: parts[3] });
-        else if (parts.length === 1) setPadding({ top: parts[0], right: parts[0], bottom: parts[0], left: parts[0] });
+    let style: React.CSSProperties = {};
+    
+    if (selectedBlock) {
+      if (selectedPart) {
+        try {
+          const content = JSON.parse(selectedBlock.content);
+          const partStyleKey = selectedPart.endsWith('Style') ? selectedPart : `${selectedPart}Style`;
+          style = content[partStyleKey] || {};
+        } catch (e) {
+          style = {};
+        }
       } else {
-        setPadding({ top: 0, right: 0, bottom: 0, left: 0 });
-      }
-
-      if (typeof m === 'string') {
-        const parts = m.split(' ').map((val) => parseInt(val) || 0);
-        if (parts.length === 4) setMargin({ top: parts[0], right: parts[1], bottom: parts[2], left: parts[3] });
-        else if (parts.length === 1) setMargin({ top: parts[0], right: parts[0], bottom: parts[0], left: parts[0] });
-      } else {
-        setMargin({ top: 0, right: 0, bottom: 0, left: 0 });
+        style = selectedBlock.style || {};
       }
     }
-  }, [selectedBlock]);
+
+    const p = style.padding;
+    const m = style.margin;
+
+    if (typeof p === 'string') {
+      const parts = p.split(' ').map((val) => parseInt(val) || 0);
+      if (parts.length === 4) setPadding({ top: parts[0], right: parts[1], bottom: parts[2], left: parts[3] });
+      else if (parts.length === 1) setPadding({ top: parts[0], right: parts[0], bottom: parts[0], left: parts[0] });
+    } else {
+      setPadding({ top: 0, right: 0, bottom: 0, left: 0 });
+    }
+
+    if (typeof m === 'string') {
+      const parts = m.split(' ').map((val) => parseInt(val) || 0);
+      if (parts.length === 4) setMargin({ top: parts[0], right: parts[1], bottom: parts[2], left: parts[3] });
+      else if (parts.length === 1) setMargin({ top: parts[0], right: parts[0], bottom: parts[0], left: parts[0] });
+    } else {
+      setMargin({ top: 0, right: 0, bottom: 0, left: 0 });
+    }
+  }, [selectedBlock, selectedPart]);
 
   return (
     <Collapsible

@@ -3,7 +3,8 @@ import { IUser, userSchema } from '@/models/User';
 import { ISettings, settingsSchema } from '@/models/Settings';
 import { PageSchema } from '@/models/Page';
 import { roleSchema } from '@/models/Role';
-import type { PageDocument, ISettingsDocument, ITheme } from '@/types/index';
+import { PluginSchema } from '@/models/Plugin';
+import type { PageDocument, ISettingsDocument, ITheme, IPluginDocument } from '@/types/index';
 import { getDynamicEnv } from '@/utils/dynamicEnv';
 import { withDbName } from '@/utils/mongoUri';
 
@@ -76,6 +77,10 @@ export const getUserDbConnection = async () => {
 
       if (!userDb.models.User) {
         userDb.model<IUser>('User', userSchema);
+      }
+
+      if (!userDb.models.Plugin) {
+        userDb.model<IPluginDocument>('Plugin', PluginSchema);
       }
 
       const RoleModel = userDb.models.Role || userDb.model('Role', roleSchema);
@@ -193,6 +198,16 @@ export function getSettingsModel(): mongoose.Model<ISettings> {
   return (
     (userDb.models.Settings as mongoose.Model<ISettings>) ||
     userDb.model<ISettings>('Settings', settingsSchema)
+  );
+}
+
+export function getPluginModel(): mongoose.Model<IPluginDocument> {
+  if (!userDb) {
+    throw new Error('User database connection not initialized');
+  }
+  return (
+    (userDb.models.Plugin as mongoose.Model<IPluginDocument>) ||
+    userDb.model<IPluginDocument>('Plugin', PluginSchema)
   );
 }
 

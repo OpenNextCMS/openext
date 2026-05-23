@@ -12,6 +12,8 @@ export interface BlockData {
     | 'text'
     | 'row'
     | 'hero'
+    | 'hero-main'
+    | 'hero-centered'
     | 'stats'
     | 'progress'
     | 'countdown'
@@ -32,7 +34,29 @@ export interface BlockData {
     | 'image'
     | 'card'
     | 'shape-divider'
-    | 'nav-bar';
+    | 'slider'
+    | 'nav-bar'
+    | 'contact'
+    | 'contact-simple'
+    | 'content-features'
+    | 'content-gallery'
+    | 'content-icons'
+    | 'content-categories'
+    | 'content-detail'
+    | 'content-split'
+    | 'content-trio'
+    | 'ecommerce-grid'
+    | 'ecommerce-detail'
+    | 'ecommerce-info'
+    | 'ecommerce-info-alt'
+    | 'feature-trio'
+    | 'feature-vertical'
+    | 'feature-side-image'
+    | 'feature-horizontal'
+    | 'feature-boxed'
+    | 'feature-zigzag'
+    | 'feature-checklist'
+    | 'feature-list';
   children?: BlockData[][];
   style?: React.CSSProperties;
   hoverStyle?: React.CSSProperties;
@@ -50,6 +74,7 @@ export interface CanvasState {
   viewMode: 'desktop' | 'tablet' | 'mobile';
   selectedLabel: string;
   selectedBlock: BlockData | null;
+  selectedPart: string | null; // e.g. "titleStyle", "descriptionStyle"
   selectedValue: number | null;
 }
 
@@ -60,6 +85,7 @@ const initialState: CanvasState = {
   viewMode: 'desktop',
   selectedLabel: '',
   selectedBlock: null,
+  selectedPart: null,
   selectedValue: null,
 };
 
@@ -169,6 +195,22 @@ const findBlockById = (blocks: BlockData[], blockId: string): BlockData | null =
 
   return null;
 };
+
+const normalizeBlockTreeIds = (
+  blocks: BlockData[] = [],
+  usedIds = new Set<string>()
+): BlockData[] =>
+  blocks.map((block) => {
+    const currentId = typeof block.uniqueId === 'string' ? block.uniqueId.trim() : '';
+    const uniqueId = currentId && !usedIds.has(currentId) ? currentId : uuidv4();
+    usedIds.add(uniqueId);
+
+    return {
+      ...block,
+      uniqueId,
+      children: block.children?.map((column) => normalizeBlockTreeIds(column, usedIds)),
+    };
+  });
 
 const moveColumnBetweenRows = (
   blocks: BlockData[],
@@ -333,7 +375,7 @@ const canvasSlice = createSlice({
       state.viewMode = action.payload;
     },
     setBlocks: (state, action: PayloadAction<BlockData[]>) => {
-      state.blocks = action.payload;
+      state.blocks = normalizeBlockTreeIds(action.payload);
     },
     removeBlock: (state, action: PayloadAction<string>) => {
       // First try to remove from top-level blocks
@@ -438,42 +480,82 @@ const canvasSlice = createSlice({
     },
     setSelectedBlock: (state, action: PayloadAction<BlockData>) => {
       state.selectedBlock = action.payload;
+      state.selectedPart = null; // Clear sub-part when selecting a new block
+    },
+    setSelectedPart: (state, action: PayloadAction<string | null>) => {
+      state.selectedPart = action.payload;
     },
     setSelectedValue: (state, action: PayloadAction<number>) => {
       state.selectedValue = action.payload;
     },
     clearSelectedLabel: (state) => {
       state.selectedLabel = '';
+      state.selectedBlock = null;
+      state.selectedPart = null;
     },
     updateSelectedBlockStyles: (state, action: PayloadAction<Partial<React.CSSProperties>>) => {
       if (state.selectedBlock) {
-        state.selectedBlock.style = {
-          ...state.selectedBlock.style,
-          ...action.payload,
-        };
+        const { selectedPart } = state;
 
-        const updateBlock = (block: BlockData): BlockData => {
-          if (block.uniqueId === state.selectedBlock!.uniqueId) {
-            return {
-              ...block,
-              style: {
-                ...block.style,
-                ...action.payload,
-              },
+        if (selectedPart) {
+          // Update a specific part inside the content JSON
+          try {
+            const contentObj = JSON.parse(state.selectedBlock.content);
+            const partStyleKey = selectedPart.endsWith('Style') ? selectedPart : `${selectedPart}Style`;
+            contentObj[partStyleKey] = {
+              ...(contentObj[partStyleKey] || {}),
+              ...action.payload,
             };
-          }
+            const newContent = JSON.stringify(contentObj);
+            state.selectedBlock.content = newContent;
 
-          if (block.children) {
-            return {
-              ...block,
-              children: block.children.map((col) => col.map((child) => updateBlock(child))),
+            // Sync with main blocks tree
+            const updateInTree = (block: BlockData): BlockData => {
+              if (block.uniqueId === state.selectedBlock!.uniqueId) {
+                return { ...block, content: newContent };
+              }
+              if (block.children) {
+                return {
+                  ...block,
+                  children: block.children.map((col) => col.map(updateInTree)),
+                };
+              }
+              return block;
             };
+            state.blocks = state.blocks.map(updateInTree);
+          } catch (e) {
+            console.error('Failed to update part style:', e);
           }
+        } else {
+          // Standard block style update
+          state.selectedBlock.style = {
+            ...state.selectedBlock.style,
+            ...action.payload,
+          };
 
-          return block;
-        };
+          const updateBlock = (block: BlockData): BlockData => {
+            if (block.uniqueId === state.selectedBlock!.uniqueId) {
+              return {
+                ...block,
+                style: {
+                  ...block.style,
+                  ...action.payload,
+                },
+              };
+            }
 
-        state.blocks = state.blocks.map(updateBlock);
+            if (block.children) {
+              return {
+                ...block,
+                children: block.children.map((col) => col.map((child) => updateBlock(child))),
+              };
+            }
+
+            return block;
+          };
+
+          state.blocks = state.blocks.map(updateBlock);
+        }
       }
     },
     updateSelectedBlockHoverStyles: (
@@ -589,14 +671,23 @@ const canvasSlice = createSlice({
       }
     },
     setCanvasState: (state, action: PayloadAction<CanvasState>) => {
-      return action.payload;
+      const usedIds = new Set<string>();
+
+      return {
+        ...action.payload,
+        blocks: normalizeBlockTreeIds(action.payload.blocks, usedIds),
+        headerBlocks: normalizeBlockTreeIds(action.payload.headerBlocks, usedIds),
+        footerBlocks: normalizeBlockTreeIds(action.payload.footerBlocks, usedIds),
+        selectedBlock: null,
+      };
     },
     setLayoutBlocks: (
       state,
       action: PayloadAction<{ headerBlocks: BlockData[]; footerBlocks: BlockData[] }>
     ) => {
-      state.headerBlocks = action.payload.headerBlocks;
-      state.footerBlocks = action.payload.footerBlocks;
+      const usedIds = new Set<string>();
+      state.headerBlocks = normalizeBlockTreeIds(action.payload.headerBlocks, usedIds);
+      state.footerBlocks = normalizeBlockTreeIds(action.payload.footerBlocks, usedIds);
     },
   },
 });
@@ -614,6 +705,7 @@ export const {
   removeBlock,
   setSelectedLabel,
   setSelectedBlock,
+  setSelectedPart,
   setSelectedValue,
   clearSelectedLabel,
   updateSelectedBlockStyles,

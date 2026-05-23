@@ -10,7 +10,7 @@ import {
   updateBlockContent,
 } from '@/redux/canvasSlice';
 import { useState } from 'react';
-import { useBlockEvents, triggerBlockEvent } from '@/hooks/useBlockEvents';
+import { resolveRedirectUrl, useBlockEvents, triggerBlockEvent } from '@/hooks/useBlockEvents';
 
 type NavbarLayout = 'horizontal' | 'vertical' | 'hamburger' | 'two-line';
 
@@ -65,11 +65,18 @@ export const NavbarBlock = ({ block, isEditing = true }: BlockRendererProps) => 
 
   const handleLinkClick = (e: React.MouseEvent, link: any) => {
     if (isEditing) return;
-    
+
     if (link.onClick && link.onClick !== 'none') {
       e.preventDefault();
       e.stopPropagation();
-      triggerBlockEvent({ onClick: link.onClick, onClickValue: link.onClickValue });
+      triggerBlockEvent({ onClick: link.onClick, onClickValue: link.onClickValue || link.href });
+      return;
+    }
+
+    if (link.href) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.location.href = resolveRedirectUrl(link.href);
     }
   };
 

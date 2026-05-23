@@ -81,6 +81,7 @@ export const aiEditorBlocks: AiEditorBlock[] = [
       logo: 'Brand',
       logoType: 'text',
       logoImage: '',
+      layout: 'horizontal',
       links: [
         { label: 'Home', href: '#', onClick: 'none', onClickValue: '' },
         { label: 'About', href: '#', onClick: 'none', onClickValue: '' },

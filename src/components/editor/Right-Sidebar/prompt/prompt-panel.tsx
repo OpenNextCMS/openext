@@ -3,7 +3,7 @@
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useSearchParams } from 'next/navigation';
-import { ImagePlus, Loader2, PlusCircle, RefreshCw, Trash2, Wand2 } from 'lucide-react';
+import { Braces, ImagePlus, Loader2, PlusCircle, RefreshCw, Trash2, Wand2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -16,19 +16,212 @@ const slugify = (value: string) =>
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/(^-|-$)/g, '');
 
-// Re-mint uniqueId on every block (and recursively on children) so re-inserting
-// or merging with the existing canvas never produces duplicate React keys.
-const cloneBlocksWithFreshIds = (blocks: BlockData[]): BlockData[] =>
-  blocks.map((block) => ({
-    ...block,
-    uniqueId:
-      typeof crypto !== 'undefined' && 'randomUUID' in crypto
-        ? crypto.randomUUID()
-        : `${Date.now()}-${Math.random().toString(36).slice(2)}`,
-    children: block.children
-      ? block.children.map((column) => cloneBlocksWithFreshIds(column))
-      : undefined,
-  }));
+const normalizeLabel = (value: unknown) =>
+  String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[_-]+/g, ' ')
+    .replace(/\s+/g, ' ');
+
+type RawBlock = Partial<BlockData> & {
+  placeholder?: string;
+  children?: RawBlock[][];
+};
+
+const getTextFromColumns = (children?: RawBlock[][]) => {
+  if (!children) return [];
+  return children
+    .flat()
+    .map((child) => (typeof child.content === 'string' ? child.content.trim() : ''))
+    .filter(Boolean);
+};
+
+const getColumnIdFromChildren = (children?: RawBlock[][]) => {
+  const count = Math.max(1, Math.min(children?.length || 1, 3));
+  return `${count}-column`;
+};
+
+const normalizeImportedBlockShape = (rawBlock: RawBlock): BlockData => {
+  const marker = `${normalizeLabel(rawBlock.id)} ${normalizeLabel(rawBlock.type)} ${normalizeLabel(
+    rawBlock.label
+  )}`;
+  const looseStyle = rawBlock.style as Record<string, unknown> | undefined;
+  const rawChildren = Array.isArray(rawBlock.children) ? rawBlock.children : undefined;
+  const normalizedChildren = rawChildren?.map((column) =>
+    Array.isArray(column) ? column.map(normalizeImportedBlockShape) : []
+  );
+
+  let type: BlockData['type'] = 'text';
+  let id = typeof rawBlock.id === 'string' ? rawBlock.id : undefined;
+  let content = typeof rawBlock.content === 'string' ? rawBlock.content : '';
+  let icon = rawBlock.icon;
+  let children = normalizedChildren;
+
+  if (marker.includes('nav bar') || marker.includes('navbar')) {
+    type = 'nav-bar';
+    id = 'nav-bar';
+    const [logo] = getTextFromColumns(rawChildren);
+    content = JSON.stringify({
+      logo: logo || 'Brand',
+      logoType: 'text',
+      logoImage: '',
+      layout: 'horizontal',
+      links: [
+        { label: 'Home', href: '#', onClick: 'none', onClickValue: '' },
+        { label: 'About', href: '#', onClick: 'none', onClickValue: '' },
+        { label: 'Services', href: '#', onClick: 'none', onClickValue: '' },
+        { label: 'Contact', href: '#', onClick: 'none', onClickValue: '' },
+      ],
+    });
+    children = undefined;
+  } else if (marker.includes('3 column')) {
+    type = 'column';
+    id = '3-column';
+  } else if (marker.includes('2 column')) {
+    type = 'column';
+    id = '2-column';
+  } else if (marker.includes('1 column') || marker.includes('single column')) {
+    type = 'column';
+    id = '1-column';
+  } else if (marker.includes('row layout') || marker === ' row ') {
+    type = 'row';
+    id = 'row';
+  } else if (marker.includes('card block')) {
+    type = 'card';
+    id = 'card';
+    const [title, body] = getTextFromColumns(rawChildren);
+    if (!content && (title || body)) {
+      content = JSON.stringify({
+        title: title || rawBlock.label || 'Card',
+        body: body || '',
+        buttonText: '',
+      });
+    }
+    children = undefined;
+  } else if (marker.includes('stats block') && rawChildren?.length) {
+    type = 'column';
+    id = getColumnIdFromChildren(rawChildren);
+  } else if (marker.includes('stats block')) {
+    type = 'stats';
+    id = 'stats';
+  } else if (marker.includes('heading block')) {
+    type = 'text';
+    id = 'heading';
+  } else if (marker.includes('text block')) {
+    type = 'text';
+    id = 'text';
+  } else if (marker.includes('button')) {
+    type = 'button';
+    id = 'button';
+  } else if (marker.includes('icon block')) {
+    type = 'icon';
+    id = 'icon';
+    icon = typeof content === 'string' ? content : icon;
+  } else if (marker.includes('input box')) {
+    type = 'input';
+    id = 'input';
+  } else if (marker.includes('textarea')) {
+    type = 'textarea';
+    id = 'textarea';
+  } else if (marker.includes('separator')) {
+    type = 'separator';
+    id = 'separator';
+  } else if (marker.includes('shape divider')) {
+    type = 'shape-divider';
+    id = 'shape-divider';
+  } else if (marker.includes('progress bar')) {
+    type = 'progress';
+    id = 'progress';
+    const percentage = Number.parseInt(content, 10);
+    content = JSON.stringify({
+      label: rawBlock.label || 'Progress',
+      percentage: Number.isFinite(percentage) ? percentage : 100,
+      barColor: typeof looseStyle?.progressColor === 'string' ? looseStyle.progressColor : '#22d3ee',
+    });
+  } else if (marker.includes('countdown')) {
+    type = 'countdown';
+    id = 'countdown';
+  } else if (marker.includes('image')) {
+    type = 'image';
+    id = 'image';
+  } else if (marker.includes('radio')) {
+    type = 'radio';
+    id = 'radio';
+  } else if (marker.includes('checkbox')) {
+    type = 'checkbox';
+    id = 'checkbox';
+  } else if (marker.includes('column') && rawChildren?.length) {
+    type = 'column';
+    id = getColumnIdFromChildren(rawChildren);
+  } else if (marker.includes('row') && rawChildren?.length) {
+    type = 'row';
+    id = 'row';
+  }
+
+  return {
+    ...rawBlock,
+    id,
+    type,
+    content,
+    icon,
+    style: rawBlock.style || {},
+    uniqueId: rawBlock.uniqueId || createBlockId(),
+    ...(children ? { children } : {}),
+  } as BlockData;
+};
+
+const parseBlocksJson = (value: string): BlockData[] => {
+  const parsed = JSON.parse(value);
+  const blocks = Array.isArray(parsed) ? parsed : parsed?.components;
+
+  if (!Array.isArray(blocks)) {
+    throw new Error('JSON must be an array of blocks or an object with a components array');
+  }
+
+  return (blocks as RawBlock[]).map(normalizeImportedBlockShape);
+};
+
+/** Body blocks only, or full object when header/footer were extracted from an image. */
+const stringifyGeneratedOutput = (
+  components: BlockData[],
+  headerComponents: BlockData[],
+  footerComponents: BlockData[]
+): string => {
+  const hasLayoutExtras =
+    headerComponents.length > 0 || footerComponents.length > 0;
+  if (!hasLayoutExtras) {
+    return JSON.stringify(components, null, 2);
+  }
+  const payload: {
+    components: BlockData[];
+    headerComponents?: BlockData[];
+    footerComponents?: BlockData[];
+  } = { components };
+  if (headerComponents.length > 0) payload.headerComponents = headerComponents;
+  if (footerComponents.length > 0) payload.footerComponents = footerComponents;
+  return JSON.stringify(payload, null, 2);
+};
+
+const createBlockId = () => {
+  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
+    return crypto.randomUUID();
+  }
+
+  return `block-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+};
+
+const normalizeBlockIds = (blocks: BlockData[], usedIds = new Set<string>()): BlockData[] =>
+  blocks.map((block) => {
+    const currentId = typeof block.uniqueId === 'string' ? block.uniqueId.trim() : '';
+    const uniqueId = currentId && !usedIds.has(currentId) ? currentId : createBlockId();
+    usedIds.add(uniqueId);
+
+    return {
+      ...block,
+      uniqueId,
+      children: block.children?.map((column) => normalizeBlockIds(column, usedIds)),
+    };
+  });
 
 export default function PromptPanel() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -43,12 +236,14 @@ export default function PromptPanel() {
   const [imagePreview, setImagePreview] = useState<string>('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedBlocks, setGeneratedBlocks] = useState<BlockData[]>([]);
+  const [generatedJson, setGeneratedJson] = useState('');
+  const [jsonError, setJsonError] = useState('');
   const [lastUsage, setLastUsage] = useState<{
     body: number;
     header?: number;
     footer?: number;
   } | null>(null);
-  const [autoCreateLayoutParts, setAutoCreateLayoutParts] = useState(false);
+  const [autoCreateLayoutParts, setAutoCreateLayoutParts] = useState(true);
   const canvasBlocks = useAppSelector((state) => state.canvas.blocks);
   const selectedBlock = useAppSelector((state) => state.canvas.selectedBlock);
   const blockCount = canvasBlocks.length;
@@ -79,6 +274,8 @@ export default function PromptPanel() {
     setImageFile(null);
     setImageName('');
     setGeneratedBlocks([]);
+    setGeneratedJson('');
+    setJsonError('');
     setLastUsage(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -152,6 +349,10 @@ export default function PromptPanel() {
         : [];
 
       setGeneratedBlocks(components);
+      setGeneratedJson(
+        stringifyGeneratedOutput(components, headerComponents, footerComponents)
+      );
+      setJsonError('');
       setLastUsage({
         body: components.length,
         header: headerComponents.length || undefined,
@@ -182,11 +383,58 @@ export default function PromptPanel() {
     }
   };
 
-  const insertGeneratedBlocks = (mode: 'append' | 'replace') => {
-    if (generatedBlocks.length === 0) return;
+  const getEditedBlocks = () => {
+    try {
+      const blocks = normalizeBlockIds(parseBlocksJson(generatedJson));
+      setGeneratedBlocks(blocks);
+      setJsonError('');
+      return blocks;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Invalid JSON';
+      setJsonError(message);
+      toast.error(message);
+      return null;
+    }
+  };
 
-    const fresh = cloneBlocksWithFreshIds(generatedBlocks);
-    dispatch(setBlocks(mode === 'replace' ? fresh : [...canvasBlocks, ...fresh]));
+  const formatGeneratedJson = () => {
+    const trimmed = generatedJson.trim();
+    if (!trimmed) return;
+
+    try {
+      const parsed: unknown = JSON.parse(trimmed);
+      const blocks = normalizeBlockIds(parseBlocksJson(trimmed));
+      setGeneratedBlocks(blocks);
+      setJsonError('');
+
+      if (Array.isArray(parsed)) {
+        setGeneratedJson(JSON.stringify(blocks, null, 2));
+      } else if (parsed && typeof parsed === 'object') {
+        const rec = parsed as Record<string, unknown>;
+        const out: Record<string, unknown> = { components: blocks };
+        if (Array.isArray(rec.headerComponents)) out.headerComponents = rec.headerComponents;
+        if (Array.isArray(rec.footerComponents)) out.footerComponents = rec.footerComponents;
+        setGeneratedJson(JSON.stringify(out, null, 2));
+      } else {
+        setGeneratedJson(JSON.stringify(blocks, null, 2));
+      }
+      toast.success('JSON formatted');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Invalid JSON';
+      setJsonError(message);
+      toast.error(message);
+    }
+  };
+
+  const insertGeneratedBlocks = (mode: 'append' | 'replace') => {
+    if (!generatedJson.trim()) return;
+
+    const editedBlocks = getEditedBlocks();
+    if (!editedBlocks) return;
+
+    dispatch(
+      setBlocks(mode === 'replace' ? editedBlocks : [...canvasBlocks, ...editedBlocks])
+    );
     toast.success(mode === 'replace' ? 'Canvas replaced' : 'Blocks inserted');
   };
 
@@ -312,11 +560,23 @@ export default function PromptPanel() {
               Replace
             </Button>
           </div>
+          <div className="flex items-center justify-between gap-2">
+            <Label htmlFor="generated-json-editor">Generated JSON</Label>
+            <Button type="button" size="sm" variant="ghost" onClick={formatGeneratedJson}>
+              <Braces className="mr-2 h-4 w-4" />
+              Format
+            </Button>
+          </div>
           <Textarea
-            readOnly
-            value={JSON.stringify(generatedBlocks, null, 2)}
-            className="min-h-[220px] resize-none font-mono text-[11px]"
+            id="generated-json-editor"
+            value={generatedJson}
+            onChange={(event) => {
+              setGeneratedJson(event.target.value);
+              if (jsonError) setJsonError('');
+            }}
+            className="min-h-[280px] resize-y font-mono text-[11px]"
           />
+          {jsonError && <p className="text-xs text-destructive">{jsonError}</p>}
         </div>
       )}
     </div>
