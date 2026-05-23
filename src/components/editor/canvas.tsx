@@ -3,12 +3,13 @@ import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import RenderBlock from './renderblock';
-import { GripVertical, LayoutGrid, PlusSquare, MousePointerClick } from 'lucide-react';
+import { GripVertical, LayoutGrid, PlusSquare, MousePointerClick, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { Block, BlockData } from '@/types/index';
 import Box from './blocks/Box';
-import { useAppSelector } from '@/redux/hooks';
+import { useAppSelector, useAppDispatch } from '@/redux/hooks';
 import { hasVerticalHeader } from '@/utils/headerLayout';
+import { removeBlock } from '@/redux/canvasSlice';
 
 interface CanvasProps {
   canvasBlocks: Block[];
@@ -16,6 +17,7 @@ interface CanvasProps {
 }
 
 function SortableCanvasBlock({ block }: { block: Block }) {
+  const dispatch = useAppDispatch();
   const blockDisplay = (block.style?.display as string) || 'block';
   const isInlineDisplay = blockDisplay === 'inline' || blockDisplay === 'inline-block';
 
@@ -27,6 +29,13 @@ function SortableCanvasBlock({ block }: { block: Block }) {
     },
     disabled: !block.uniqueId,
   });
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (block.uniqueId) {
+      dispatch(removeBlock(block.uniqueId));
+    }
+  };
 
   return (
     <div
@@ -43,15 +52,25 @@ function SortableCanvasBlock({ block }: { block: Block }) {
       }}
       className="group/sortable relative"
     >
-      <button
-        type="button"
-        className="absolute left-[-10px] top-2 z-20 hidden h-7 w-7 cursor-grab items-center justify-center rounded-full border bg-background text-muted-foreground shadow-sm hover:text-primary group-hover/sortable:flex active:cursor-grabbing"
-        title="Move block"
-        {...attributes}
-        {...listeners}
-      >
-        <GripVertical className="h-4 w-4" />
-      </button>
+      <div className="absolute left-[-35px] top-2 z-20 hidden group-hover/sortable:flex gap-1">
+        <button
+          type="button"
+          className="h-7 w-7 flex cursor-grab items-center justify-center rounded-full border bg-background text-muted-foreground shadow-sm hover:text-primary active:cursor-grabbing"
+          title="Move block"
+          {...attributes}
+          {...listeners}
+        >
+          <GripVertical className="h-4 w-4" />
+        </button>
+        <button
+          type="button"
+          className="h-7 w-7 flex items-center justify-center rounded-full border bg-background text-muted-foreground shadow-sm hover:text-destructive hover:border-destructive"
+          title="Delete block"
+          onClick={handleDelete}
+        >
+          <Trash2 className="h-4 w-4" />
+        </button>
+      </div>
       <RenderBlock block={block} isEditing={true} />
     </div>
   );
@@ -135,8 +154,11 @@ export default function Canvas({ canvasBlocks, viewMode }: CanvasProps) {
                       items={canvasBlocks.map((block) => block.uniqueId || '')}
                       strategy={verticalListSortingStrategy}
                     >
-                      {canvasBlocks.map((block) => (
-                        <SortableCanvasBlock key={block.uniqueId} block={block} />
+                      {canvasBlocks.map((block, index) => (
+                        <SortableCanvasBlock
+                          key={`${block.uniqueId || 'block'}-${index}`}
+                          block={block}
+                        />
                       ))}
                     </SortableContext>
                   ) : (
@@ -172,8 +194,11 @@ export default function Canvas({ canvasBlocks, viewMode }: CanvasProps) {
                   items={canvasBlocks.map((block) => block.uniqueId || '')}
                   strategy={verticalListSortingStrategy}
                 >
-                  {canvasBlocks.map((block) => (
-                    <SortableCanvasBlock key={block.uniqueId} block={block} />
+                  {canvasBlocks.map((block, index) => (
+                    <SortableCanvasBlock
+                      key={`${block.uniqueId || 'block'}-${index}`}
+                      block={block}
+                    />
                   ))}
                 </SortableContext>
               ) : (

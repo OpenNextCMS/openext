@@ -19,6 +19,7 @@ import {
   Paintbrush,
   ArrowUpToLine,
   ArrowDownToLine,
+  BrainCircuit,
 } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Button } from '@/components/ui/button';
@@ -64,6 +65,12 @@ const navItems = [
     label: 'Plugins',
     icon: Wrench,
     path: '/dashboard/plugins',
+    links: [],
+  },
+  {
+    label: 'AI Settings',
+    icon: BrainCircuit,
+    path: '/dashboard/ai-settings',
     links: [],
   },
   {

@@ -33,6 +33,7 @@ function rgbToHex(rgb: string) {
 
 const Background = () => {
   const selectedBlock = useAppSelector((state) => state.canvas.selectedBlock);
+  const selectedPart = useAppSelector((state) => state.canvas.selectedPart);
   const dispatch = useAppDispatch();
   const [bgOpen, setBgOpen] = useState(false);
   const [bgOption, setBgOption] = useState('color');
@@ -55,45 +56,32 @@ const Background = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [imageUrlError, setImageUrlError] = useState('');
 
-  const isValidImageUrl = (url: string) => {
-    const trimmedUrl = url.trim();
+  // ... (isValidImageUrl stays same)
 
-    if (!trimmedUrl) {
-      return { valid: true, normalizedUrl: '' };
-    }
-
-    try {
-      const parsedUrl = new URL(trimmedUrl);
-      const pathname = parsedUrl.pathname.toLowerCase();
-      const hasImageExtension = /\.(jpg|jpeg|png|webp|gif|svg|bmp|avif)$/.test(pathname);
-
-      if (!hasImageExtension) {
-        return {
-          valid: false,
-          normalizedUrl: trimmedUrl,
-          message: 'Enter a direct image URL ending in .jpg, .png, .webp, .gif, .svg, .bmp, or .avif',
-        };
-      }
-
-      return { valid: true, normalizedUrl: trimmedUrl };
-    } catch {
-      return {
-        valid: false,
-        normalizedUrl: trimmedUrl,
-        message: 'Enter a valid absolute image URL',
-      };
-    }
-  };
-
-  // ✅ Sync from selectedBlock when changed
+  // ✅ Sync from selectedBlock or selectedPart when changed
   useEffect(() => {
-    if (!selectedBlock?.style) return;
-
-    const style = selectedBlock.style;
+    let style: React.CSSProperties = {};
+    
+    if (selectedBlock) {
+      if (selectedPart) {
+        try {
+          const content = JSON.parse(selectedBlock.content);
+          const partStyleKey = selectedPart.endsWith('Style') ? selectedPart : `${selectedPart}Style`;
+          style = content[partStyleKey] || {};
+        } catch (e) {
+          style = {};
+        }
+      } else {
+        style = selectedBlock.style || {};
+      }
+    }
 
     if (style.backgroundColor && style.backgroundColor !== 'transparent') {
       const hex = style.backgroundColor.includes('rgb') ? rgbToHex(style.backgroundColor) : style.backgroundColor;
       setBackgroundColor(hex);
+      setBgOption('color');
+    } else {
+      setBackgroundColor('#ffffff');
       setBgOption('color');
     }
 
@@ -116,14 +104,16 @@ const Background = () => {
         const urlMatch = bgImg.match(/url\(['"]?([^'"]+)['"]?\)/);
         if (urlMatch) setImageUrl(urlMatch[1]);
       }
+    } else {
+      setImageUrl('');
     }
 
-    if (style.backgroundSize) setBgSize(style.backgroundSize as string);
-    if (style.backgroundPosition) setBgPosition(style.backgroundPosition as string);
-    if (style.backgroundRepeat) setBgRepeat(style.backgroundRepeat as string);
-    if (style.backgroundAttachment) setBgAttachment(style.backgroundAttachment as string);
+    setBgSize((style.backgroundSize as string) || 'cover');
+    setBgPosition((style.backgroundPosition as string) || 'center');
+    setBgRepeat((style.backgroundRepeat as string) || 'no-repeat');
+    setBgAttachment((style.backgroundAttachment as string) || 'scroll');
 
-  }, [selectedBlock]);
+  }, [selectedBlock, selectedPart]);
 
   const handleColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newColor = e.target.value;

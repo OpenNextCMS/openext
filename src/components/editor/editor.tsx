@@ -20,10 +20,13 @@ import {
   moveBlockToColumn,
   moveRowColumn,
   setCanvasState,
+  setBlocks,
   setLayoutBlocks,
+  type BlockData as CanvasBlockData,
 } from '@/redux/canvasSlice';
 import { BlockDragData, Block } from '@/types/index';
 import { safeStorageGet } from '@/utils/safeStorage';
+import { pluginRegistry } from '@/lib/pluginRegistry';
 
 type EditableBlockType = Block['type'];
 
@@ -67,12 +70,59 @@ const editableBlockTypes: EditableBlockType[] = [
   'card',
   'shape-divider',
   'nav-bar',
+  'contact',
+  'contact-simple',
+  'statistics-main',
+  'statistics-side-image',
+  'statistics-boxed',
+  'testimonial-main',
+  'testimonial-single',
+  'testimonial-single-large',
+  'hero-main',
+  'hero-centered',
+  'content-features',
+  'content-gallery',
+  'content-icons',
+  'content-categories',
+  'content-detail',
+  'content-split',
+  'content-trio',
+  'feature-trio',
+  'feature-vertical',
+  'feature-side-image',
+  'feature-horizontal',
+  'feature-boxed',
+  'feature-zigzag',
+  'feature-checklist',
+  'feature-list',
+  'ecommerce-grid',
+  'ecommerce-detail',
+  'ecommerce-info',
 ];
 
 const getEditableBlockType = (type?: string): EditableBlockType => {
+  // Allow plugin types
+  if (type && pluginRegistry.getExtension(type)) {
+    return type as any;
+  }
+
   return editableBlockTypes.includes(type as EditableBlockType)
     ? (type as EditableBlockType)
     : 'text';
+};
+
+const hasInvalidOrDuplicateBlockIds = (blocks: Block[], seen = new Set<string>()): boolean => {
+  for (const block of blocks) {
+    const uniqueId = typeof block.uniqueId === 'string' ? block.uniqueId.trim() : '';
+    if (!uniqueId || seen.has(uniqueId)) return true;
+    seen.add(uniqueId);
+
+    for (const column of block.children || []) {
+      if (hasInvalidOrDuplicateBlockIds(column, seen)) return true;
+    }
+  }
+
+  return false;
 };
 
 export default function Editor() {
@@ -118,7 +168,6 @@ export default function Editor() {
         console.log('Extracted headerBlocks:', headerBlocks); // Log extracted header blocks
         console.log('Extracted footerBlocks:', footerBlocks); // Log extracted footer blocks
 
-
         if (existing) {
           // If already persisted, just update the layout blocks (header/footer)
           // so the user sees the latest global layout parts
@@ -128,7 +177,6 @@ export default function Editor() {
 
         const blocks = data?.page?.component || [];
         console.log('Blocks from fetched data (if no existing data):', blocks); // Log blocks if no existing data
-
 
         const newCanvasState = {
           blocks,
@@ -150,13 +198,20 @@ export default function Editor() {
     getDBPageData();
   }, [dispatch, backendUrl]);
 
-
   useEffect(() => {
     document.body.style.overflow = 'hidden';
     return () => {
       document.body.style.overflow = '';
     };
   }, []);
+
+  useEffect(() => {
+    if (canvasBlocks.length === 0 || !hasInvalidOrDuplicateBlockIds(canvasBlocks as Block[])) {
+      return;
+    }
+
+    dispatch(setBlocks(canvasBlocks as CanvasBlockData[]));
+  }, [canvasBlocks, dispatch]);
 
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
@@ -370,4 +425,3 @@ export default function Editor() {
     </div>
   );
 }
-

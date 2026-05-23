@@ -13,6 +13,7 @@ import {
   SquareCheck,
   PanelTop,
   Trash2,
+  Settings,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -28,10 +29,7 @@ import {
   setBlocks,
   updateBlockEvents,
 } from '@/redux/canvasSlice';
-import {
-  headerColorPresets,
-  matchPreset,
-} from '@/app/dashboard/pages/headerColors';
+import { headerColorPresets, matchPreset } from '@/app/dashboard/pages/headerColors';
 import { footerTemplates } from '@/app/dashboard/pages/footerTemplates';
 import { useSearchParams } from 'next/navigation';
 import type { BlockData } from '@/types/index';
@@ -40,6 +38,23 @@ import {
   renderSelectedIcon,
   type IconLibrary,
 } from '@/components/editor/data/iconOptions';
+
+import { pluginRegistry } from '@/lib/pluginRegistry';
+import { useAvailableContent } from '@/hooks/useAvailableContent';
+import { CustomBlockProperties } from './CustomBlockProperties';
+import { MenuPluginProperties } from './MenuPluginProperties';
+import { SliderPluginProperties } from './SliderPluginProperties';
+import { NavbarProperties } from './NavbarProperties';
+import { TextBlockProperties } from './standard/TextBlockProperties';
+import { ImageBlockProperties } from './standard/ImageBlockProperties';
+import { CardBlockProperties } from './standard/CardBlockProperties';
+
+type NavbarLinkContent = {
+  label: string;
+  href: string;
+  onClick: string;
+  onClickValue: string;
+};
 
 function applyColorsRecursively(
   blocks: BlockData[],
@@ -72,34 +87,15 @@ export default function ElementProperties() {
   const pageType = searchParams?.get('pageType') || 'page';
   const isFooterPage = pageType === 'footer';
 
-  const [availablePages, setAvailablePages] = useState<
-    { slug: string; pageName: string }[]
-  >([]);
   const isNavbarSelected = selectedBlock?.type === 'nav-bar';
-  const needsPagePicker = isNavbarSelected || selectedBlock?.type === 'text';
+  const selectedPluginName = selectedBlock?.type
+    ? pluginRegistry.getExtension(selectedBlock.type)?.name.toLowerCase() || ''
+    : '';
+  const isMenuPluginSelected = selectedPluginName.includes('menu');
+  const needsPagePicker =
+    isNavbarSelected || selectedBlock?.type === 'text' || isMenuPluginSelected;
 
-  useEffect(() => {
-    if (!needsPagePicker || availablePages.length > 0) return;
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
-    fetch(`${backendUrl}/api/pages/get-pages`, {
-      credentials: 'include',
-      cache: 'no-store',
-    })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (!data?.pages) return;
-        const list = (data.pages as Array<{ slug?: string; pageName?: string; pageType?: string }>)
-          .filter(
-            (p) =>
-              !!p.slug &&
-              !!p.pageName &&
-              (p.pageType || 'page') === 'page'
-          )
-          .map((p) => ({ slug: p.slug as string, pageName: p.pageName as string }));
-        setAvailablePages(list);
-      })
-      .catch((err) => console.error('Failed to fetch pages for link picker:', err));
-  }, [needsPagePicker, availablePages.length]);
+  const { availablePages, availableBlogs } = useAvailableContent(needsPagePicker);
 
   const handleContentChange = (newContent: string) => {
     if (!selectedBlock || !selectedBlock.uniqueId) return;
@@ -190,6 +186,39 @@ export default function ElementProperties() {
   const isReusableUiBlock = Boolean(
     selectedBlock?.type && reusableUiBlockTypes.includes(selectedBlock.type)
   );
+
+  const isPluginBlock = Boolean(
+    selectedBlock?.type &&
+      (pluginRegistry.getExtension(selectedBlock.type) ||
+        [
+          'slider',
+          'casarole',
+          'contact',
+          'contact-simple',
+          'content-features',
+          'content-gallery',
+          'content-icons',
+          'content-categories',
+          'content-detail',
+          'content-split',
+          'content-trio',
+          'feature-trio',
+          'feature-vertical',
+          'feature-side-image',
+          'feature-horizontal',
+          'feature-boxed',
+          'feature-zigzag',
+          'feature-checklist',
+          'feature-list',
+          'hero-main',
+          'hero-centered',
+          'ecommerce-grid',
+          'ecommerce-detail',
+          'ecommerce-info',
+          'ecommerce-info-alt',
+        ].includes(selectedBlock.type))
+  );
+
   const supportsIcons =
     selectedBlock?.type === 'text' ||
     selectedBlock?.type === 'button' ||
@@ -282,6 +311,10 @@ export default function ElementProperties() {
     logo: 'Brand',
     logoType: 'text',
     logoImage: '',
+    layout: 'horizontal',
+    ctaLabel: '',
+    ctaHref: '#',
+    ctaColor: '#111827',
     links: [
       { label: 'Home', href: '#', onClick: 'none', onClickValue: '' },
       { label: 'About', href: '#', onClick: 'none', onClickValue: '' },
@@ -290,25 +323,33 @@ export default function ElementProperties() {
     ],
   });
 
-  const handleNavbarLinkChange = (index: number, key: string, value: string) => {
+  const handleNavbarLinkChange = (index: number, key: keyof NavbarLinkContent, value: string) => {
     const updatedLinks = [...navbarContent.links];
     updatedLinks[index] = { ...updatedLinks[index], [key]: value };
     handleJsonContentChange(navbarContent, 'links', updatedLinks);
   };
 
   const addNavbarLink = () => {
-    const updatedLinks = [...navbarContent.links, { label: 'New Link', href: '#', onClick: 'none', onClickValue: '' }];
+    const updatedLinks = [
+      ...navbarContent.links,
+      { label: 'New Link', href: '#', onClick: 'none', onClickValue: '' },
+    ];
     handleJsonContentChange(navbarContent, 'links', updatedLinks);
   };
 
   const removeNavbarLink = (index: number) => {
-    const updatedLinks = navbarContent.links.filter((_: any, i: number) => i !== index);
+    const updatedLinks = navbarContent.links.filter(
+      (_link: NavbarLinkContent, i: number) => i !== index
+    );
     handleJsonContentChange(navbarContent, 'links', updatedLinks);
   };
 
   const [isUploadingImage, setIsUploadingImage] = useState(false);
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, callback: (path: string) => void) => {
+  const handleImageUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    callback: (path: string) => void
+  ) => {
     const file = e.target.files?.[0];
     if (!file || !selectedBlock?.uniqueId) return;
 
@@ -359,9 +400,7 @@ export default function ElementProperties() {
             </Label>
             <div className="space-y-4">
               <div className="flex flex-col gap-1">
-                <Label className="text-[10px] text-muted-foreground uppercase">
-                  Footer Layout
-                </Label>
+                <Label className="text-[10px] text-muted-foreground uppercase">Footer Layout</Label>
                 <select
                   className="h-8 rounded-md border bg-background px-2 text-sm"
                   value=""
@@ -395,8 +434,7 @@ export default function ElementProperties() {
 
               {(() => {
                 const firstBlock = (allBlocks || [])[0];
-                const currentBg =
-                  (firstBlock?.style?.backgroundColor as string) || '#ffffff';
+                const currentBg = (firstBlock?.style?.backgroundColor as string) || '#ffffff';
                 const currentFg = (firstBlock?.style?.color as string) || '#111111';
                 const currentPreset = matchPreset(currentBg, currentFg);
                 return (
@@ -474,9 +512,7 @@ export default function ElementProperties() {
                         </div>
                       </div>
                       <div className="flex flex-col gap-1">
-                        <Label className="text-[10px] text-muted-foreground uppercase">
-                          Text
-                        </Label>
+                        <Label className="text-[10px] text-muted-foreground uppercase">Text</Label>
                         <div className="flex items-center gap-1">
                           <input
                             type="color"
@@ -522,96 +558,11 @@ export default function ElementProperties() {
 
         {/* Text Block Content */}
         {isTextBlock && (
-          <div className="space-y-1.5 p-3 rounded-md bg-background border shadow-sm">
-            <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-              <Type className="h-3 w-3" />
-              Text Content
-            </Label>
-            <Textarea
-              className="min-h-[100px] text-sm"
-              value={selectedBlock?.content || ''}
-              onChange={(e) => handleContentChange(e.target.value)}
-              placeholder="Enter text content..."
-            />
-          </div>
-        )}
-
-        {isTextBlock && (
-          <div className="space-y-3 p-3 rounded-md bg-background border shadow-sm">
-            <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-              <Type className="h-3 w-3" />
-              Link
-            </Label>
-            {(() => {
-              const isLinked = selectedBlock?.events?.onClick === 'redirect';
-              const currentHref = (selectedBlock?.events?.onClickValue as string) || '';
-              const setHref = (value: string) => {
-                if (!selectedBlock?.uniqueId) return;
-                if (!value) {
-                  dispatch(
-                    updateBlockEvents({
-                      id: selectedBlock.uniqueId,
-                      events: { onClick: 'none', onClickValue: '' },
-                    })
-                  );
-                  return;
-                }
-                dispatch(
-                  updateBlockEvents({
-                    id: selectedBlock.uniqueId,
-                    events: { onClick: 'redirect', onClickValue: value },
-                  })
-                );
-              };
-              return (
-                <div className="space-y-2">
-                  <div className="flex flex-col gap-1">
-                    <Label className="text-[10px] text-muted-foreground uppercase">
-                      Href
-                    </Label>
-                    <Input
-                      className="h-8 text-sm"
-                      value={currentHref}
-                      onChange={(e) => setHref(e.target.value)}
-                      placeholder="/about or https://example.com"
-                    />
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <Label className="text-[10px] text-muted-foreground uppercase">
-                      Link to page
-                    </Label>
-                    <select
-                      className="h-8 rounded border bg-background px-2 text-sm"
-                      value=""
-                      onChange={(e) => {
-                        const slug = e.target.value;
-                        if (!slug) return;
-                        setHref(`/${slug}`);
-                      }}
-                    >
-                      <option value="">
-                        {availablePages.length === 0
-                          ? 'No pages found'
-                          : 'Pick a page…'}
-                      </option>
-                      {availablePages.map((p) => (
-                        <option key={p.slug} value={p.slug}>
-                          {p.pageName} (/{p.slug})
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  {isLinked && (
-                    <p className="text-[10px] text-muted-foreground">
-                      Click on the rendered page will navigate to{' '}
-                      <code className="bg-muted px-1 rounded">{currentHref}</code>. Clear the
-                      Href field to remove the link.
-                    </p>
-                  )}
-                </div>
-              );
-            })()}
-          </div>
+          <TextBlockProperties
+            selectedBlock={selectedBlock}
+            handleContentChange={handleContentChange}
+            availablePages={availablePages}
+          />
         )}
 
         {/* Stats Block Content */}
@@ -959,121 +910,21 @@ export default function ElementProperties() {
         )}
 
         {isImageBlock && (
-          <div className="space-y-3 p-3 rounded-md bg-background border shadow-sm">
-            <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-              <ImageIcon className="h-3 w-3" />
-              Image Settings
-            </Label>
-            <div className="space-y-2">
-              <div className="flex flex-col gap-1">
-                <Label className="text-[10px] text-muted-foreground uppercase">Image URL</Label>
-                <Input
-                  className="h-8 text-sm"
-                  value={imageContent.src}
-                  onChange={(e) => handleJsonContentChange(imageContent, 'src', e.target.value)}
-                  placeholder="https://example.com/image.jpg"
-                />
-              </div>
-              <div className="flex flex-col gap-1">
-                <Label className="text-[10px] text-muted-foreground uppercase">Upload From System</Label>
-                <Input
-                  type="file"
-                  accept="image/*"
-                  className="h-8 text-xs"
-                  onChange={(e) => handleImageUpload(e, (path) => handleJsonContentChange(imageContent, 'src', path))}
-                  disabled={isUploadingImage}
-                />
-                {isUploadingImage && <p className="text-[10px] text-muted-foreground">Uploading...</p>}
-              </div>
-              <div className="flex flex-col gap-1">
-                <Label className="text-[10px] text-muted-foreground uppercase">Alt Text</Label>
-                <Input
-                  className="h-8 text-sm"
-                  value={imageContent.alt}
-                  onChange={(e) => handleJsonContentChange(imageContent, 'alt', e.target.value)}
-                  placeholder="Describe the image"
-                />
-              </div>
-              <div className="flex flex-col gap-1">
-                <Label className="text-[10px] text-muted-foreground uppercase">Caption</Label>
-                <Input
-                  className="h-8 text-sm"
-                  value={imageContent.caption}
-                  onChange={(e) => handleJsonContentChange(imageContent, 'caption', e.target.value)}
-                  placeholder="Optional caption"
-                />
-              </div>
-            </div>
-          </div>
+          <ImageBlockProperties
+            imageContent={imageContent}
+            handleJsonContentChange={handleJsonContentChange}
+            handleImageUpload={handleImageUpload}
+            isUploadingImage={isUploadingImage}
+          />
         )}
 
         {isCardBlock && (
-          <div className="space-y-3 p-3 rounded-md bg-background border shadow-sm">
-            <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-              <CreditCard className="h-3 w-3" />
-              Card Content
-            </Label>
-            <div className="space-y-2">
-              <div className="flex flex-col gap-1">
-                <Label className="text-[10px] text-muted-foreground uppercase">Image URL</Label>
-                <Input
-                  className="h-8 text-sm"
-                  value={cardContent.image}
-                  onChange={(e) => handleJsonContentChange(cardContent, 'image', e.target.value)}
-                  placeholder="https://example.com/card.jpg"
-                />
-              </div>
-              <div className="flex flex-col gap-1">
-                <Label className="text-[10px] text-muted-foreground uppercase">Upload From System</Label>
-                <Input
-                  type="file"
-                  accept="image/*"
-                  className="h-8 text-xs"
-                  onChange={(e) => handleImageUpload(e, (path) => handleJsonContentChange(cardContent, 'image', path))}
-                  disabled={isUploadingImage}
-                />
-                {isUploadingImage && <p className="text-[10px] text-muted-foreground">Uploading...</p>}
-              </div>
-              <div className="flex flex-col gap-1">
-                <Label className="text-[10px] text-muted-foreground uppercase">Eyebrow</Label>
-                <Input
-                  className="h-8 text-sm"
-                  value={cardContent.eyebrow}
-                  onChange={(e) => handleJsonContentChange(cardContent, 'eyebrow', e.target.value)}
-                  placeholder="Small label"
-                />
-              </div>
-              <div className="flex flex-col gap-1">
-                <Label className="text-[10px] text-muted-foreground uppercase">Title</Label>
-                <Input
-                  className="h-8 text-sm"
-                  value={cardContent.title}
-                  onChange={(e) => handleJsonContentChange(cardContent, 'title', e.target.value)}
-                  placeholder="Card title"
-                />
-              </div>
-              <div className="flex flex-col gap-1">
-                <Label className="text-[10px] text-muted-foreground uppercase">Body</Label>
-                <Textarea
-                  className="min-h-[90px] text-sm"
-                  value={cardContent.body}
-                  onChange={(e) => handleJsonContentChange(cardContent, 'body', e.target.value)}
-                  placeholder="Card description"
-                />
-              </div>
-              <div className="flex flex-col gap-1">
-                <Label className="text-[10px] text-muted-foreground uppercase">Button Text</Label>
-                <Input
-                  className="h-8 text-sm"
-                  value={cardContent.buttonText}
-                  onChange={(e) =>
-                    handleJsonContentChange(cardContent, 'buttonText', e.target.value)
-                  }
-                  placeholder="Read More"
-                />
-              </div>
-            </div>
-          </div>
+          <CardBlockProperties
+            cardContent={cardContent}
+            handleJsonContentChange={handleJsonContentChange}
+            handleImageUpload={handleImageUpload}
+            isUploadingImage={isUploadingImage}
+          />
         )}
 
         {isNavbarBlock && (
@@ -1082,261 +933,14 @@ export default function ElementProperties() {
               <PanelTop className="h-3 w-3" />
               Navbar Settings
             </Label>
-            <div className="space-y-4">
-              <div className="flex flex-col gap-1">
-                <Label className="text-[10px] text-muted-foreground uppercase">Layout</Label>
-                <select
-                  className="h-8 rounded-md border bg-background px-2 text-sm"
-                  value={navbarContent.layout || 'horizontal'}
-                  onChange={(e) =>
-                    handleJsonContentChange(navbarContent, 'layout', e.target.value)
-                  }
-                >
-                  <option value="horizontal">Horizontal</option>
-                  <option value="vertical">Vertical</option>
-                  <option value="hamburger">Hamburger</option>
-                  <option value="two-line">Two Line</option>
-                </select>
-              </div>
-
-              {(() => {
-                const currentBg =
-                  (selectedBlock?.style?.backgroundColor as string) || '#ffffff';
-                const currentFg = (selectedBlock?.style?.color as string) || '#111111';
-                const currentPreset = matchPreset(currentBg, currentFg);
-                return (
-                  <>
-                    <div className="flex flex-col gap-1">
-                      <Label className="text-[10px] text-muted-foreground uppercase">
-                        Color Preset
-                      </Label>
-                      <select
-                        className="h-8 rounded-md border bg-background px-2 text-sm"
-                        value={currentPreset?.id || 'custom'}
-                        onChange={(e) => {
-                          const id = e.target.value;
-                          if (id === 'custom') return;
-                          const preset = headerColorPresets.find((p) => p.id === id);
-                          if (!preset) return;
-                          dispatch(
-                            updateSelectedBlockStyles({
-                              backgroundColor: preset.backgroundColor,
-                              color: preset.color,
-                            })
-                          );
-                        }}
-                      >
-                        {headerColorPresets.map((p) => (
-                          <option key={p.id} value={p.id}>
-                            {p.label}
-                          </option>
-                        ))}
-                        <option value="custom">Custom</option>
-                      </select>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="flex flex-col gap-1">
-                        <Label className="text-[10px] text-muted-foreground uppercase">
-                          Background
-                        </Label>
-                        <div className="flex items-center gap-1">
-                          <input
-                            type="color"
-                            value={currentBg.startsWith('#') ? currentBg : '#ffffff'}
-                            onChange={(e) =>
-                              dispatch(
-                                updateSelectedBlockStyles({ backgroundColor: e.target.value })
-                              )
-                            }
-                            className="h-8 w-10 cursor-pointer rounded border"
-                          />
-                          <Input
-                            className="h-8 text-xs"
-                            value={currentBg}
-                            onChange={(e) =>
-                              dispatch(
-                                updateSelectedBlockStyles({ backgroundColor: e.target.value })
-                              )
-                            }
-                            placeholder="#ffffff"
-                          />
-                        </div>
-                      </div>
-                      <div className="flex flex-col gap-1">
-                        <Label className="text-[10px] text-muted-foreground uppercase">
-                          Text
-                        </Label>
-                        <div className="flex items-center gap-1">
-                          <input
-                            type="color"
-                            value={currentFg.startsWith('#') ? currentFg : '#111111'}
-                            onChange={(e) =>
-                              dispatch(updateSelectedBlockStyles({ color: e.target.value }))
-                            }
-                            className="h-8 w-10 cursor-pointer rounded border"
-                          />
-                          <Input
-                            className="h-8 text-xs"
-                            value={currentFg}
-                            onChange={(e) =>
-                              dispatch(updateSelectedBlockStyles({ color: e.target.value }))
-                            }
-                            placeholder="#111111"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </>
-                );
-              })()}
-
-              <div className="flex flex-col gap-1">
-                <Label className="text-[10px] text-muted-foreground uppercase">Logo Type</Label>
-                <select
-                  className="h-8 rounded-md border bg-background px-2 text-sm"
-                  value={navbarContent.logoType || 'text'}
-                  onChange={(e) => handleJsonContentChange(navbarContent, 'logoType', e.target.value)}
-                >
-                  <option value="text">Text</option>
-                  <option value="image">Image</option>
-                </select>
-              </div>
-
-              {navbarContent.logoType === 'image' ? (
-                <div className="space-y-3">
-                  <div className="flex flex-col gap-1">
-                    <Label className="text-[10px] text-muted-foreground uppercase">Logo Image URL</Label>
-                    <Input
-                      className="h-8 text-sm"
-                      value={navbarContent.logoImage || ''}
-                      onChange={(e) => handleJsonContentChange(navbarContent, 'logoImage', e.target.value)}
-                      placeholder="https://example.com/logo.png"
-                    />
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <Label className="text-[10px] text-muted-foreground uppercase">Upload From System</Label>
-                    <Input
-                      type="file"
-                      accept="image/*"
-                      className="h-8 text-xs"
-                      onChange={(e) => handleImageUpload(e, (path) => handleJsonContentChange(navbarContent, 'logoImage', path))}
-                      disabled={isUploadingImage}
-                    />
-                    {isUploadingImage && <p className="text-[10px] text-muted-foreground">Uploading...</p>}
-                  </div>
-                </div>
-              ) : (
-                <div className="flex flex-col gap-1">
-                  <Label className="text-[10px] text-muted-foreground uppercase">Logo Text</Label>
-                  <Input
-                    className="h-8 text-sm"
-                    value={navbarContent.logo}
-                    onChange={(e) => handleJsonContentChange(navbarContent, 'logo', e.target.value)}
-                    placeholder="Brand Logo"
-                  />
-                </div>
-              )}
-
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label className="text-[10px] text-muted-foreground uppercase">Nav Links</Label>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-6 px-2 text-[10px]"
-                    onClick={addNavbarLink}
-                  >
-                    Add Link
-                  </Button>
-                </div>
-
-                <div className="space-y-3">
-                  {navbarContent.links.map((link: any, index: number) => (
-                    <div key={index} className="space-y-2 p-2 border rounded bg-muted/10 relative">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-5 w-5 p-0 absolute top-1 right-1 text-muted-foreground hover:text-destructive"
-                        onClick={() => removeNavbarLink(index)}
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
-                      
-                      <div className="grid grid-cols-2 gap-2">
-                        <div className="flex flex-col gap-1">
-                          <Label className="text-[9px] text-muted-foreground">Label</Label>
-                          <Input
-                            className="h-7 text-[11px]"
-                            value={link.label}
-                            onChange={(e) =>
-                              handleNavbarLinkChange(index, 'label', e.target.value)
-                            }
-                          />
-                        </div>
-                        <div className="flex flex-col gap-1">
-                          <Label className="text-[9px] text-muted-foreground">Href</Label>
-                          <Input
-                            className="h-7 text-[11px]"
-                            value={link.href}
-                            onChange={(e) => handleNavbarLinkChange(index, 'href', e.target.value)}
-                            placeholder="/ or /about or https://…"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="flex flex-col gap-1">
-                        <Label className="text-[9px] text-muted-foreground">Link to page</Label>
-                        <select
-                          className="h-7 rounded border bg-background px-1 text-[10px]"
-                          value=""
-                          onChange={(e) => {
-                            const slug = e.target.value;
-                            if (!slug) return;
-                            handleNavbarLinkChange(index, 'href', `/${slug}`);
-                          }}
-                        >
-                          <option value="">
-                            {availablePages.length === 0
-                              ? 'No pages found'
-                              : 'Pick a page…'}
-                          </option>
-                          {availablePages.map((p) => (
-                            <option key={p.slug} value={p.slug}>
-                              {p.pageName} (/{p.slug})
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-2 border-t pt-2">
-                        <div className="flex flex-col gap-1">
-                          <Label className="text-[9px] text-muted-foreground">On Click</Label>
-                          <select
-                            className="h-7 rounded border bg-background px-1 text-[10px]"
-                            value={link.onClick || 'none'}
-                            onChange={(e) => handleNavbarLinkChange(index, 'onClick', e.target.value)}
-                          >
-                            <option value="none">None</option>
-                            <option value="alert">Alert</option>
-                            <option value="redirect">Redirect</option>
-                          </select>
-                        </div>
-                        <div className="flex flex-col gap-1">
-                          <Label className="text-[9px] text-muted-foreground">Value</Label>
-                          <Input
-                            className="h-7 text-[11px]"
-                            value={link.onClickValue || ''}
-                            onChange={(e) => handleNavbarLinkChange(index, 'onClickValue', e.target.value)}
-                            placeholder="Value..."
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
+            <NavbarProperties
+              selectedBlock={selectedBlock}
+              navbarContent={navbarContent}
+              availablePages={availablePages}
+              handleJsonContentChange={handleJsonContentChange}
+              handleImageUpload={handleImageUpload}
+              isUploadingImage={isUploadingImage}
+            />
           </div>
         )}
 
@@ -1457,6 +1061,182 @@ export default function ElementProperties() {
                 </TabsContent>
               ))}
             </Tabs>
+          </div>
+        )}
+
+        {isPluginBlock && (
+          <div className="space-y-3 p-3 rounded-md bg-primary/5 border border-primary/20 shadow-sm">
+            <Label className="text-xs font-bold uppercase tracking-widest text-primary flex items-center gap-2">
+              <Settings className="h-3 w-3" />
+              Plugin Settings
+            </Label>
+            {(() => {
+              const ext = pluginRegistry.getExtension(selectedBlock!.type);
+              const pluginName = ext?.name.toLowerCase() || '';
+              const content = parseJsonContent<any>({});
+
+              if (pluginName.includes('menu')) {
+                return (
+                  <MenuPluginProperties
+                    selectedBlock={selectedBlock}
+                    content={content}
+                    availablePages={availablePages}
+                    availableBlogs={availableBlogs}
+                    handleJsonContentChange={handleJsonContentChange}
+                  />
+                );
+              }
+
+              if (pluginName.includes('slider') || pluginName.includes('casarole')) {
+                return (
+                  <SliderPluginProperties
+                    content={content}
+                    handleJsonContentChange={handleJsonContentChange}
+                  />
+                );
+              }
+
+              if (['contact', 'contact-simple', 'content-features', 'content-gallery', 'content-icons', 'content-categories', 'content-detail', 'content-split', 'content-trio', 'feature-trio', 'feature-vertical', 'feature-side-image', 'feature-horizontal', 'feature-boxed', 'feature-zigzag', 'feature-checklist', 'feature-list', 'hero-main', 'hero-centered', 'ecommerce-grid', 'ecommerce-detail', 'ecommerce-info', 'statistics-main', 'statistics-side-image', 'statistics-boxed', 'testimonial-main', 'testimonial-single', 'testimonial-single-large'].includes(selectedBlock!.type)) {
+                return (
+                  <CustomBlockProperties
+                    selectedBlock={selectedBlock!}
+                    availablePages={availablePages}
+                    availableBlogs={availableBlogs}
+                    handleImageUpload={handleImageUpload}
+                    isUploadingImage={isUploadingImage}
+                  />
+                );
+              }
+
+              if (pluginName.includes('video') || pluginName.includes('content editor')) {
+                return (
+                  <div className="space-y-2">
+                    <Label className="text-[10px] text-muted-foreground uppercase">Video URL</Label>
+                    <Input
+                      className="h-8 text-sm"
+                      value={content.url || ''}
+                      onChange={(e) => handleJsonContentChange(content, 'url', e.target.value)}
+                      placeholder="YouTube or Vimeo URL"
+                    />
+                  </div>
+                );
+              }
+
+              if (pluginName.includes('visualizer') || pluginName.includes('analytics')) {
+                return (
+                  <div className="space-y-2">
+                    <Label className="text-[10px] text-muted-foreground uppercase">
+                      Chart Title
+                    </Label>
+                    <Input
+                      className="h-8 text-sm"
+                      value={selectedBlock?.label || ''}
+                      onChange={(e) => {
+                        if (!selectedBlock?.uniqueId) return;
+                        dispatch(
+                          updateBlockContent({
+                            id: selectedBlock.uniqueId,
+                            content: selectedBlock.content || '',
+                          })
+                        );
+                      }}
+                    />
+                  </div>
+                );
+              }
+
+              return (
+                <div className="space-y-2">
+                  <Label className="text-[10px] text-muted-foreground uppercase">
+                    JSON Configuration
+                  </Label>
+                  <Textarea
+                    className="min-h-[100px] text-xs font-mono"
+                    value={selectedBlock?.content || ''}
+                    onChange={(e) => handleContentChange(e.target.value)}
+                    placeholder='{"key": "value"}'
+                  />
+                </div>
+              );
+            })()}
+
+            <div className="space-y-2 border-t pt-3 mt-3">
+              <Label className="text-[10px] text-muted-foreground uppercase">
+                Background Color
+              </Label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="color"
+                  value={(selectedBlock?.style?.backgroundColor as string) || '#ffffff'}
+                  onChange={(e) =>
+                    dispatch(updateSelectedBlockStyles({ backgroundColor: e.target.value }))
+                  }
+                  className="h-8 w-10 cursor-pointer rounded border"
+                />
+                <Input
+                  className="h-8 text-xs font-mono"
+                  value={(selectedBlock?.style?.backgroundColor as string) || '#ffffff'}
+                  onChange={(e) =>
+                    dispatch(updateSelectedBlockStyles({ backgroundColor: e.target.value }))
+                  }
+                  placeholder="#ffffff"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2 border-t pt-3 mt-3">
+              <Label className="text-[10px] text-muted-foreground uppercase">Dimensions</Label>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="flex flex-col gap-1">
+                  <Label className="text-[9px]">Width</Label>
+                  <Input
+                    className="h-7 text-xs"
+                    value={selectedBlock?.style?.width || ''}
+                    onChange={(e) => dispatch(updateSelectedBlockStyles({ width: e.target.value }))}
+                    placeholder="100%"
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <Label className="text-[9px]">Height</Label>
+                  <Input
+                    className="h-7 text-xs"
+                    value={selectedBlock?.style?.height || ''}
+                    onChange={(e) =>
+                      dispatch(updateSelectedBlockStyles({ height: e.target.value }))
+                    }
+                    placeholder="auto"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-2 border-t pt-3 mt-3">
+              <Label className="text-[10px] text-muted-foreground uppercase">Spacing</Label>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="flex flex-col gap-1">
+                  <Label className="text-[9px]">Padding</Label>
+                  <Input
+                    className="h-7 text-xs"
+                    value={selectedBlock?.style?.padding || ''}
+                    onChange={(e) =>
+                      dispatch(updateSelectedBlockStyles({ padding: e.target.value }))
+                    }
+                    placeholder="0px"
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <Label className="text-[9px]">Margin</Label>
+                  <Input
+                    className="h-7 text-xs"
+                    value={selectedBlock?.style?.margin || ''}
+                    onChange={(e) =>
+                      dispatch(updateSelectedBlockStyles({ margin: e.target.value }))
+                    }
+                    placeholder="0px"
+                  />
+                </div>
+              </div>
+            </div>
           </div>
         )}
 

@@ -29,6 +29,7 @@ export default function Typography() {
   const [fontOpen, setFontOpen] = useState(false);
 
   const selectedBlock = useAppSelector((state) => state.canvas.selectedBlock);
+  const selectedPart = useAppSelector((state) => state.canvas.selectedPart);
   const [fontFamily, setFontFamily] = useState('Arial');
   const [fontSize, setFontSize] = useState('16');
   const [lineHeight, setLineHeight] = useState('1.5');
@@ -40,9 +41,24 @@ export default function Typography() {
   const [textDecoration, setTextDecoration] = useState('none');
   const [textColor, setTextColor] = useState('#000000');
 
-  // Update local state when block changes
+  // Update local state when block or part changes
   useEffect(() => {
-    const style = (selectedBlock?.style || {}) as React.CSSProperties;
+    let style: React.CSSProperties = {};
+    
+    if (selectedBlock) {
+      if (selectedPart) {
+        try {
+          const content = JSON.parse(selectedBlock.content);
+          const partStyleKey = selectedPart.endsWith('Style') ? selectedPart : `${selectedPart}Style`;
+          style = content[partStyleKey] || {};
+        } catch (e) {
+          style = {};
+        }
+      } else {
+        style = selectedBlock.style || {};
+      }
+    }
+
     setFontFamily(String(style.fontFamily || 'Arial').replace(/['"]/g, ''));
     setFontSize(String(style.fontSize || '16').replace(/[^0-9.]/g, ''));
     setLineHeight(String(style.lineHeight || '1.5').replace(/[^0-9.]/g, ''));
@@ -57,7 +73,7 @@ export default function Typography() {
     const rawColor = style.color ? String(style.color) : '#000000';
     const hex = rawColor.includes('rgb') ? rgbToHex(rawColor) : rawColor;
     setTextColor(hex);
-  }, [selectedBlock]);
+  }, [selectedBlock, selectedPart]);
 
   // Generic handler to update style
   const handleStyleChange = (property: string, value: string) => {
