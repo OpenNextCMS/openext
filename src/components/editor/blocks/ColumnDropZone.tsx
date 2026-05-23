@@ -50,8 +50,8 @@ export const ColumnDropZone = ({
         minHeight: isEditing ? (rowHasExplicitHeight ? '0px' : '48px') : '0px',
       }}
     >
-      {/* Visual indicator for empty state */}
-      {Array.isArray(children) && children.length === 0 && (
+      {/* Editor-only placeholder for empty drop zone */}
+      {isEditing && Array.isArray(children) && children.length === 0 && (
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
           <MousePointerClick
             className={`h-5 w-5 mb-2 ${isOver ? 'text-primary' : 'text-muted-foreground'}`}

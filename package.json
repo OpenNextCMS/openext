@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "node --require ./src/utils/node-localstorage-polyfill.cjs ./node_modules/next/dist/bin/next dev",
+    "dev": "node --require ./src/utils/node-localstorage-polyfill.cjs ./node_modules/next/dist/bin/next dev -p 3011",
     "build": "next build",
     "start": "node --require ./src/utils/node-localstorage-polyfill.cjs ./node_modules/next/dist/bin/next start",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",

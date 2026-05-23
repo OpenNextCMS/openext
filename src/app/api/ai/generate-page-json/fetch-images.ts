@@ -1,7 +1,15 @@
-// Image enrichment: replace placeholder URLs in the Pass-1 analysis with real
-// topic-relevant photos. Uses Unsplash when UNSPLASH_ACCESS_KEY is set; falls
-// back to source.unsplash.com (no-auth keyword endpoint) and finally to
-// picsum.photos so generation never fails on a missing image.
+// Image enrichment: replace placeholder URLs with topic-relevant photos.
+// Lookup order:
+//   1. Unsplash API search (best results, requires UNSPLASH_ACCESS_KEY env).
+//   2. LoremFlickr — Flickr photos tagged with the query keywords; no key
+//      needed, free, works for most common business/topic words.
+//
+// Query construction strategy: rather than mashing the alt text together with
+// the brand and prompt (which produces useless tags like "story,aviral,trendz"
+// for an IT site about page), we infer the SITE'S INDUSTRY from the prompt
+// once, then build photo queries as INDUSTRY_TAGS + per-image ROLE_TAGS
+// (hero/about/portrait/etc.). Brand names and marketing copy never reach the
+// photo search, so images always match the site's actual subject matter.
 
 import type { BlockData } from '@/types';
 
@@ -25,28 +33,102 @@ const looksLikePlaceholder = (src: unknown): boolean => {
   return false;
 };
 
-const cleanQuery = (raw: string): string =>
-  raw
-    .toLowerCase()
-    .replace(/[^a-z0-9\s]/g, ' ')
-    .replace(/\b(image|photo|picture|of|the|a|an|for|with|and|or)\b/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .split(' ')
-    .slice(0, 5)
-    .join(' ');
+// ---------------------------------------------------------------------------
+// Industry detection — pick photo tags that match the site's subject matter.
+// First matching rule wins; default fallback is generic business imagery.
+// ---------------------------------------------------------------------------
+const INDUSTRY_RULES: Array<{ test: RegExp; tags: string[] }> = [
+  { test: /\b(it|software|saas|cloud|devops|cyber|security|developer|programming|programmer|api|database|server|tech|startup|fintech|crypto|blockchain|ai|ml)\b/i, tags: ['technology', 'office', 'computer'] },
+  { test: /\b(restaurant|cafe|bistro|chef|menu|bakery|cuisine|dining|catering|food|kitchen)\b/i, tags: ['restaurant', 'food', 'cuisine'] },
+  { test: /\b(coffee|barista|espresso|brew|roastery)\b/i, tags: ['coffee', 'cafe', 'barista'] },
+  { test: /\b(fitness|gym|yoga|workout|athletic|trainer|crossfit|pilates)\b/i, tags: ['fitness', 'gym', 'workout'] },
+  { test: /\b(fashion|clothing|apparel|jewelry|model|boutique|couture|streetwear)\b/i, tags: ['fashion', 'clothing', 'model'] },
+  { test: /\b(real\s?estate|property|housing|realtor|apartment|architecture)\b/i, tags: ['architecture', 'building', 'realestate'] },
+  { test: /\b(medical|doctor|health|wellness|clinic|hospital|dental|pharmacy|therapy)\b/i, tags: ['medical', 'healthcare', 'hospital'] },
+  { test: /\b(law|legal|attorney|lawyer|firm|paralegal)\b/i, tags: ['law', 'office', 'business'] },
+  { test: /\b(education|school|university|teacher|student|course|academy|learning|tutor)\b/i, tags: ['education', 'classroom', 'student'] },
+  { test: /\b(travel|hotel|tourism|vacation|airline|booking|resort|cruise)\b/i, tags: ['travel', 'tourism', 'destination'] },
+  { test: /\b(finance|banking|investment|insurance|trading|accounting)\b/i, tags: ['finance', 'business', 'office'] },
+  { test: /\b(ecommerce|shop|store|retail|product|marketplace)\b/i, tags: ['shopping', 'retail', 'product'] },
+  { test: /\b(agency|creative|design|marketing|branding|advertising)\b/i, tags: ['creative', 'design', 'office'] },
+  { test: /\b(portfolio|photographer|artist|designer|illustrator)\b/i, tags: ['portfolio', 'art', 'creative'] },
+  { test: /\b(beauty|salon|spa|hair|cosmetics|makeup|skincare)\b/i, tags: ['beauty', 'salon', 'spa'] },
+  { test: /\b(automotive|car|vehicle|garage|mechanic|dealership)\b/i, tags: ['automotive', 'car', 'vehicle'] },
+  { test: /\b(construction|builder|contractor|renovation|carpentry)\b/i, tags: ['construction', 'building', 'tools'] },
+  { test: /\b(music|band|concert|studio|recording|dj)\b/i, tags: ['music', 'concert', 'studio'] },
+  { test: /\b(pet|veterinary|dog|cat|animal)\b/i, tags: ['pet', 'animal', 'veterinary'] },
+  { test: /\b(consulting|consultant|advisory|strategy)\b/i, tags: ['business', 'meeting', 'office'] },
+  { test: /\b(non[- ]?profit|charity|foundation|community)\b/i, tags: ['community', 'volunteer', 'people'] },
+];
 
-const seededPicsumUrl = (query: string): string => {
-  let hash = 0;
-  for (let i = 0; i < query.length; i++) {
-    hash = (hash * 31 + query.charCodeAt(i)) | 0;
+export const inferIndustryTags = (prompt: string): string[] => {
+  if (!prompt) return ['business', 'office', 'professional'];
+  for (const { test, tags } of INDUSTRY_RULES) {
+    if (test.test(prompt)) return tags;
   }
-  return `https://picsum.photos/seed/${Math.abs(hash) || 1}/1200/800`;
+  return ['business', 'office', 'professional'];
 };
 
-const buildSourceUnsplashUrl = (query: string): string => {
-  const encoded = encodeURIComponent(query || 'business');
-  return `https://source.unsplash.com/1200x800/?${encoded}`;
+// ---------------------------------------------------------------------------
+// Role-tag extraction from alt text — recognizes what KIND of photo each
+// image block expects (hero banner, portrait, dashboard screen, etc.).
+// ---------------------------------------------------------------------------
+const ROLE_RULES: Array<{ test: RegExp; tags: string[] }> = [
+  { test: /\b(portrait|headshot|avatar|profile|team\s?member|employee|staff)\b/i, tags: ['portrait', 'professional'] },
+  { test: /\bdashboard|preview|interface|screen|app\b/i, tags: ['laptop', 'screen'] },
+  { test: /\b(gallery|portfolio|work|project)\b/i, tags: ['workspace', 'creative'] },
+  { test: /\b(logo|brand|trustedby|partner|client)\b/i, tags: ['logo', 'minimal'] },
+  { test: /\bhero|banner|cover\b/i, tags: ['modern'] },
+  { test: /\b(about|story|founder|history)\b/i, tags: ['team', 'collaboration'] },
+  { test: /\b(service|feature|solution)\b/i, tags: ['professional'] },
+  { test: /\b(contact|location|map)\b/i, tags: ['office', 'workspace'] },
+];
+
+const extractRoleTags = (text: string): string[] => {
+  if (!text) return [];
+  for (const { test, tags } of ROLE_RULES) {
+    if (test.test(text)) return tags;
+  }
+  return [];
+};
+
+// ---------------------------------------------------------------------------
+// Query construction — combines industry tags (primary) with role tags
+// (secondary). Brand names and marketing copy are deliberately excluded.
+// ---------------------------------------------------------------------------
+const buildPhotoTags = (industryTags: string[], roleHint: string): string[] => {
+  const role = extractRoleTags(roleHint);
+  // Take up to 2 industry tags + 1 role tag → 3 distinct keywords total.
+  const merged: string[] = [];
+  const seen = new Set<string>();
+  const push = (t: string) => {
+    if (!t) return;
+    const lower = t.toLowerCase();
+    if (seen.has(lower)) return;
+    seen.add(lower);
+    merged.push(lower);
+  };
+  industryTags.slice(0, 2).forEach(push);
+  role.slice(0, 1).forEach(push);
+  // If we somehow ended up empty, fall back to a sensible default.
+  if (!merged.length) {
+    ['business', 'office'].forEach(push);
+  }
+  return merged.slice(0, 3);
+};
+
+const stringHash = (s: string): number => {
+  let hash = 0;
+  for (let i = 0; i < s.length; i++) {
+    hash = (hash * 31 + s.charCodeAt(i)) | 0;
+  }
+  return Math.abs(hash) || 1;
+};
+
+const buildLoremFlickrUrl = (tags: string[], seedSource: string): string => {
+  const tagPart = tags.length ? tags.join(',') : 'business,office';
+  const seed = stringHash(seedSource || tagPart);
+  return `https://loremflickr.com/1200/800/${encodeURIComponent(tagPart)}?lock=${seed}`;
 };
 
 const fetchFromUnsplashApi = async (
@@ -84,57 +166,30 @@ const fetchFromUnsplashApi = async (
 
 const queryCache = new Map<string, string>();
 
-const resolveImageForQuery = async (rawQuery: string): Promise<string> => {
-  const query = cleanQuery(rawQuery) || 'business modern office';
-  if (queryCache.has(query)) return queryCache.get(query)!;
+const resolveImageForTags = async (tags: string[], seedSource: string): Promise<string> => {
+  const cacheKey = `${tags.join(',')}|${seedSource}`;
+  if (queryCache.has(cacheKey)) return queryCache.get(cacheKey)!;
 
   const accessKey = process.env.UNSPLASH_ACCESS_KEY;
   let resolved: string | null = null;
 
   if (accessKey) {
-    resolved = await fetchFromUnsplashApi(query, accessKey);
+    resolved = await fetchFromUnsplashApi(tags.join(' '), accessKey);
   }
 
-  // source.unsplash.com is a redirect endpoint that works without a key. If it
-  // ever stops returning images, the picsum fallback still keeps the page
-  // visually complete.
   if (!resolved) {
-    resolved = buildSourceUnsplashUrl(query);
+    resolved = buildLoremFlickrUrl(tags, seedSource);
   }
 
-  // Final safety net — always returns a valid image.
-  if (!resolved) {
-    resolved = seededPicsumUrl(query);
-  }
-
-  queryCache.set(query, resolved);
+  queryCache.set(cacheKey, resolved);
   return resolved;
 };
 
-const buildElementQuery = (
-  element: UnknownRecord,
-  sectionName: string,
-  topic: string
-): string => {
-  const imageAlt = typeof element.imageAlt === 'string' ? element.imageAlt : '';
-  if (imageAlt) return imageAlt;
-
-  const cardData = isRecord(element.cardData) ? element.cardData : null;
-  if (cardData) {
-    const title = typeof cardData.title === 'string' ? cardData.title : '';
-    const eyebrow = typeof cardData.eyebrow === 'string' ? cardData.eyebrow : '';
-    if (title || eyebrow) return [eyebrow, title].filter(Boolean).join(' ');
-  }
-
-  const text = typeof element.text === 'string' ? element.text : '';
-  if (text) return text;
-
-  return [sectionName, topic].filter(Boolean).join(' ');
-};
-
-// Walk the Pass-1 analysis. For every image/card element with a placeholder
-// image, swap in a real photo URL based on the element's alt text or its
-// surrounding card fields. Returns a NEW analysis object — does not mutate.
+// ---------------------------------------------------------------------------
+// Public: enrich the analysis pass-1 output (legacy "sections[]" shape).
+// Kept for backward compatibility; new site-mode flow uses the components
+// enrichment below.
+// ---------------------------------------------------------------------------
 export const enrichAnalysisWithImages = async <T>(
   analysis: T,
   topicHint: string
@@ -143,6 +198,7 @@ export const enrichAnalysisWithImages = async <T>(
   const sections = Array.isArray(analysis.sections) ? analysis.sections : null;
   if (!sections) return analysis;
 
+  const industryTags = inferIndustryTags(topicHint);
   const enrichedSections: unknown[] = [];
 
   for (const section of sections) {
@@ -157,26 +213,32 @@ export const enrichAnalysisWithImages = async <T>(
       elements.map(async (element) => {
         if (!isRecord(element)) return element;
         const blockId = typeof element.blockId === 'string' ? element.blockId : '';
+        const roleHint =
+          (typeof element.imageAlt === 'string' ? element.imageAlt : '') ||
+          (typeof element.text === 'string' ? element.text : '') ||
+          sectionName;
+        const tags = buildPhotoTags(industryTags, roleHint);
 
-        // Image blocks: look for element.imageSrc, fall through if placeholder.
         if (blockId === 'image') {
           const currentSrc = typeof element.imageSrc === 'string' ? element.imageSrc : '';
           if (looksLikePlaceholder(currentSrc)) {
-            const query = buildElementQuery(element, sectionName, topicHint);
-            const realSrc = await resolveImageForQuery(query);
+            const realSrc = await resolveImageForTags(tags, roleHint);
             return { ...element, imageSrc: realSrc };
           }
           return element;
         }
 
-        // Card blocks: cardData.image carries the URL.
         if (blockId === 'card') {
           const cardData = isRecord(element.cardData) ? element.cardData : {};
           const currentImage =
             typeof cardData.image === 'string' ? cardData.image : '';
           if (looksLikePlaceholder(currentImage)) {
-            const query = buildElementQuery(element, sectionName, topicHint);
-            const realSrc = await resolveImageForQuery(query);
+            const cardRoleHint =
+              (typeof cardData.title === 'string' ? cardData.title : '') ||
+              (typeof cardData.eyebrow === 'string' ? cardData.eyebrow : '') ||
+              roleHint;
+            const cardTags = buildPhotoTags(industryTags, cardRoleHint);
+            const realSrc = await resolveImageForTags(cardTags, cardRoleHint);
             return { ...element, cardData: { ...cardData, image: realSrc } };
           }
           return element;
@@ -193,10 +255,8 @@ export const enrichAnalysisWithImages = async <T>(
 };
 
 // ---------------------------------------------------------------------------
-// Post-Pass-2 enrichment: walk the final BlockData tree and replace any
-// placeholder URLs that survived (or were never enriched upstream). This is
-// the authoritative pass — it doesn't matter what the planner or generator
-// produced as long as content is a valid JSON shape with src/image.
+// Public: enrich the final BlockData tree. Walks every image/card block and
+// fills empty/placeholder URLs with topic-relevant photos.
 // ---------------------------------------------------------------------------
 
 const parseJsonContent = (content: unknown): UnknownRecord | null => {
@@ -211,26 +271,14 @@ const parseJsonContent = (content: unknown): UnknownRecord | null => {
   }
 };
 
-const queryForImageBlock = (parsedContent: UnknownRecord, topic: string): string => {
-  const alt = typeof parsedContent.alt === 'string' ? parsedContent.alt : '';
-  const caption = typeof parsedContent.caption === 'string' ? parsedContent.caption : '';
-  return [alt, caption, topic].filter(Boolean).join(' ');
-};
-
-const queryForCardBlock = (parsedContent: UnknownRecord, topic: string): string => {
-  const eyebrow = typeof parsedContent.eyebrow === 'string' ? parsedContent.eyebrow : '';
-  const title = typeof parsedContent.title === 'string' ? parsedContent.title : '';
-  const body = typeof parsedContent.body === 'string' ? parsedContent.body : '';
-  return [eyebrow, title, body.slice(0, 60), topic].filter(Boolean).join(' ');
-};
-
-// Recursively walks BlockData[]. For each image/card block whose content has a
-// placeholder src/image, replaces it with a real photo URL. Mutates a clone —
-// the input tree is left untouched.
 export const enrichComponentsWithImages = async (
   components: BlockData[],
-  topic: string
+  topic: string,
+  industryTagsArg?: string[]
 ): Promise<BlockData[]> => {
+  const industryTags =
+    industryTagsArg && industryTagsArg.length ? industryTagsArg : inferIndustryTags(topic);
+
   const enrichOne = async (block: BlockData): Promise<BlockData> => {
     let nextContent = block.content;
 
@@ -239,13 +287,14 @@ export const enrichComponentsWithImages = async (
       if (parsed) {
         const currentSrc = typeof parsed.src === 'string' ? parsed.src : '';
         if (looksLikePlaceholder(currentSrc)) {
-          const query = queryForImageBlock(parsed, topic);
-          const realSrc = await resolveImageForQuery(query);
+          const alt = typeof parsed.alt === 'string' ? parsed.alt : '';
+          const tags = buildPhotoTags(industryTags, alt);
+          const realSrc = await resolveImageForTags(tags, alt || tags.join(','));
           nextContent = JSON.stringify({ ...parsed, src: realSrc });
         }
       } else if (looksLikePlaceholder(block.content)) {
-        // content was a plain string placeholder, not JSON — wrap as JSON.
-        const realSrc = await resolveImageForQuery(topic);
+        const tags = buildPhotoTags(industryTags, '');
+        const realSrc = await resolveImageForTags(tags, topic);
         nextContent = JSON.stringify({ src: realSrc, alt: topic, caption: '' });
       }
     } else if (block.type === 'card') {
@@ -253,8 +302,11 @@ export const enrichComponentsWithImages = async (
       if (parsed) {
         const currentImage = typeof parsed.image === 'string' ? parsed.image : '';
         if (looksLikePlaceholder(currentImage)) {
-          const query = queryForCardBlock(parsed, topic);
-          const realSrc = await resolveImageForQuery(query);
+          const roleHint =
+            (typeof parsed.eyebrow === 'string' ? parsed.eyebrow : '') ||
+            (typeof parsed.title === 'string' ? parsed.title : '');
+          const tags = buildPhotoTags(industryTags, roleHint);
+          const realSrc = await resolveImageForTags(tags, roleHint || tags.join(','));
           nextContent = JSON.stringify({ ...parsed, image: realSrc });
         }
       }

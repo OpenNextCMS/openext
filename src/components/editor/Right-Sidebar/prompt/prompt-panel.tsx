@@ -340,6 +340,39 @@ export default function PromptPanel() {
         throw new Error(result?.message || 'Failed to generate JSON');
       }
 
+      if (result?.mode === 'site' && result?.home) {
+        const sitePages = Array.isArray(result.pages) ? result.pages : [];
+        const bodyCount = sitePages.filter(
+          (p: { pageType?: string }) => p.pageType === 'page'
+        ).length;
+        const hasHeader = sitePages.some((p: { pageType?: string }) => p.pageType === 'header');
+        const hasFooter = sitePages.some((p: { pageType?: string }) => p.pageType === 'footer');
+        const parts = [
+          `${bodyCount} page${bodyCount === 1 ? '' : 's'}`,
+          hasHeader ? '+ header' : '',
+          hasFooter ? '+ footer' : '',
+        ]
+          .filter(Boolean)
+          .join(' ');
+        const liveUrl = result.home.url || `/${result.home.slug || ''}`;
+        toast.success(`Site created: ${parts}. Live: ${liveUrl}`, { duration: 8000 });
+
+        // Open the live site in a new tab so the user can navigate the whole
+        // website with working header/footer links, while the editor loads the
+        // home page in this tab.
+        try {
+          window.open(liveUrl, '_blank', 'noopener,noreferrer');
+        } catch {
+          /* popup blocked — user can still click the live URL in the toast */
+        }
+
+        const homeSlug = encodeURIComponent(result.home.slug || '');
+        const homeId = encodeURIComponent(result.home._id || '');
+        const userId = encodeURIComponent(result.userId || '');
+        window.location.href = `/Editor?pagename=${homeSlug}&userId=${userId}&pageId=${homeId}&pageType=page`;
+        return;
+      }
+
       const components = Array.isArray(result?.components) ? result.components : [];
       const headerComponents = Array.isArray(result?.headerComponents)
         ? result.headerComponents

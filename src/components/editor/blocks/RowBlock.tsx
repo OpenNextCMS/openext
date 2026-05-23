@@ -138,12 +138,12 @@ export const RowBlock = ({ block, isEditing = true }: BlockRendererProps) => {
               ))}
             </DraggableRowColumn>
           ))
-        ) : (
+        ) : isEditing ? (
           <div className="w-full text-center text-muted-foreground p-4 border border-dashed rounded flex flex-col items-center justify-center">
             <LayoutGrid className="h-8 w-8 mb-2 opacity-20" />
             <p>Row Layout (Empty)</p>
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );

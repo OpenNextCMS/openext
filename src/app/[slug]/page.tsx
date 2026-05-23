@@ -37,7 +37,7 @@ export default async function Page({ params }: PageProps) {
           <aside className="w-64 flex-shrink-0 sticky top-0 self-start h-screen overflow-y-auto">
             {pageData.headerBlocks.map((block) => renderFromJson(block as BlockData))}
           </aside>
-          <div className="flex-1 flex flex-col min-h-screen bg-gray-50 dark:bg-black">
+          <div className="flex-1 flex flex-col min-h-screen bg-gray-50">
             <main className="flex-1 p-8">
               <div className="max-w-screen-xl mx-auto space-y-4">
                 {pageData.blocks.map((block) => renderFromJson(block as BlockData))}
@@ -54,7 +54,7 @@ export default async function Page({ params }: PageProps) {
     <PageClientWrapper>
       {pageData.headerBlocks.map((block) => renderFromJson(block as BlockData))}
 
-      <div className="min-h-screen bg-gray-50 dark:bg-black">
+      <div className="min-h-screen bg-gray-50">
         <main className="p-8">
           <div className="max-w-screen-xl mx-auto space-y-4">
             {pageData.blocks.map((block) => renderFromJson(block as BlockData))}

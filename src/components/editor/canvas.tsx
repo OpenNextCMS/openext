@@ -103,7 +103,7 @@ export default function Canvas({ canvasBlocks, viewMode }: CanvasProps) {
 
   return (
     <div
-      className="flex-1 bg-muted/30 dark:bg-muted/10 overflow-auto p-4 transition-colors duration-300"
+      className="flex-1 bg-muted/30 dark:bg-neutral-800 overflow-auto p-4 transition-colors duration-300"
       ref={setNodeRef}
     >
       <div className="max-w-screen-xl mx-auto">
