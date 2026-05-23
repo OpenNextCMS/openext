@@ -31,8 +31,37 @@ interface Block {
     | 'image'
     | 'card'
     | 'shape-divider'
-    | 'nav-bar';
-  uniqueId: string;
+    | 'slider'
+    | 'nav-bar'
+    | 'contact'
+    | 'contact-simple'
+    | 'statistics-main'
+    | 'statistics-side-image'
+    | 'statistics-boxed'
+    | 'testimonial-main'
+    | 'testimonial-single'
+    | 'testimonial-single-large'
+    | 'hero-main'
+    | 'hero-centered'
+    | 'content-features'
+    | 'content-gallery'
+    | 'content-icons'
+    | 'content-categories'
+    | 'content-detail'
+    | 'content-split'
+    | 'content-trio'
+    | 'feature-trio'
+    | 'feature-vertical'
+    | 'feature-side-image'
+    | 'feature-horizontal'
+    | 'feature-boxed'
+    | 'feature-zigzag'
+    | 'feature-checklist'
+    | 'feature-list'
+    | 'ecommerce-grid'
+    | 'ecommerce-detail'
+    | 'ecommerce-info';
+    uniqueId: string;
   content?: string;
   icon?: React.ReactNode | string;
   style?: React.CSSProperties;

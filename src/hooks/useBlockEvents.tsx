@@ -1,6 +1,6 @@
 import { BlockData } from '@/types';
 
-function resolveRedirectUrl(raw: string): string {
+export function resolveRedirectUrl(raw: string): string {
   const value = raw.trim();
   if (
     value.startsWith('http://') ||

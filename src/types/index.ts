@@ -132,6 +132,14 @@ export interface Block {
     | 'button'
     | 'row'
     | 'icon'
+    | 'hero-main'
+    | 'hero-centered'
+    | 'statistics-main'
+    | 'statistics-side-image'
+    | 'statistics-boxed'
+    | 'testimonial-main'
+    | 'testimonial-single'
+    | 'testimonial-single-large'
     | 'input'
     | 'radio'
     | 'checkbox'
@@ -147,7 +155,28 @@ export interface Block {
     | 'image'
     | 'card'
     | 'shape-divider'
-    | 'nav-bar';
+    | 'slider'
+    | 'nav-bar'
+    | 'contact'
+    | 'contact-simple'
+    | 'content-features'
+    | 'content-gallery'
+    | 'content-icons'
+    | 'content-categories'
+    | 'content-detail'
+    | 'content-split'
+    | 'content-trio'
+    | 'ecommerce-grid'
+    | 'ecommerce-detail'
+    | 'ecommerce-info'
+    | 'feature-trio'
+    | 'feature-vertical'
+    | 'feature-side-image'
+    | 'feature-horizontal'
+    | 'feature-boxed'
+    | 'feature-zigzag'
+    | 'feature-checklist'
+    | 'feature-list';
   children?: ColumnChild[]; // Updated type for children
   content?: string;
   icon?: ReactNode | string;
@@ -208,7 +237,7 @@ export interface IModification {
 export interface PageDocument extends Document {
   pageName: string;
   createdBy: Types.ObjectId;
-  pageType: 'page' | 'header' | 'footer';
+  pageType: 'page' | 'header' | 'footer' | 'blog';
   isPublished: boolean;
   isHome: boolean;
   isGlobal: boolean;
@@ -222,6 +251,21 @@ export interface PageDocument extends Document {
   modifications: IModification[];
 }
 
+export interface IPlugin {
+  pluginId: string;
+  name: string;
+  version: string;
+  description: string;
+  author: string;
+  type?: string;
+  isActive: boolean;
+  icon: string;
+  entryPoint?: string; // Path to the JS/TS file for execution
+  hasUpdate?: boolean;
+}
+
+export interface IPluginDocument extends IPlugin, Document {}
+
 export interface ITheme {
   name: string;
   isActive: boolean;
@@ -233,6 +277,12 @@ export interface ISettingsDocument extends Document {
   dateFormat: string;
   timeFormat: string;
   themes: ITheme[];
+  aiConfig?: {
+    openrouterApiKey?: string;
+    openrouterModel?: string;
+    openrouterReviewModel?: string;
+    aiMinQualityScore?: number;
+  };
 }
 
 export interface BlockData {
@@ -251,6 +301,14 @@ export interface BlockData {
     | 'button'
     | 'row'
     | 'icon'
+    | 'hero-main'
+    | 'hero-centered'
+    | 'statistics-main'
+    | 'statistics-side-image'
+    | 'statistics-boxed'
+    | 'testimonial-main'
+    | 'testimonial-single'
+    | 'testimonial-single-large'
     | 'input'
     | 'radio'
     | 'checkbox'
@@ -266,7 +324,28 @@ export interface BlockData {
     | 'image'
     | 'card'
     | 'shape-divider'
-    | 'nav-bar';
+    | 'slider'
+    | 'nav-bar'
+    | 'contact'
+    | 'contact-simple'
+    | 'content-features'
+    | 'content-gallery'
+    | 'content-icons'
+    | 'content-categories'
+    | 'content-detail'
+    | 'content-split'
+    | 'content-trio'
+    | 'ecommerce-grid'
+    | 'ecommerce-detail'
+    | 'ecommerce-info'
+    | 'feature-trio'
+    | 'feature-vertical'
+    | 'feature-side-image'
+    | 'feature-horizontal'
+    | 'feature-boxed'
+    | 'feature-zigzag'
+    | 'feature-checklist'
+    | 'feature-list';
   children?: BlockData[][];
   style?: React.CSSProperties;
   hoverStyle?: React.CSSProperties;
@@ -291,7 +370,7 @@ export interface Page {
   id?: string;
   _id?: string; // Add MongoDB _id
   pageName: string;
-  pageType?: 'page' | 'header' | 'footer';
+  pageType?: 'page' | 'header' | 'footer' | 'blog';
   preHeading: string;
   description: string;
   seoName: string;
