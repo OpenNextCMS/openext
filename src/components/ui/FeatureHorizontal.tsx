@@ -1,10 +1,12 @@
-import React from 'react';
+﻿import React from 'react';
 
 import { InlineEditableText } from '@/components/editor/InlineEditableText';
+import type { BlockRendererProps } from '@/types/index';
+import type { BlockContentItem } from '@/types/blockContent';
 import { useAppDispatch } from '@/redux/hooks';
 import { updateBlockContent } from '@/redux/canvasSlice';
 
-export const FeatureHorizontal = ({ block, isEditing = false }: any) => {
+export const FeatureHorizontal = ({ block, isEditing = false }: BlockRendererProps) => {
   const dispatch = useAppDispatch();
   const content = React.useMemo(() => {
     try {
@@ -16,12 +18,12 @@ export const FeatureHorizontal = ({ block, isEditing = false }: any) => {
     }
   }, [block.content]);
 
-  const handleUpdate = (key: string, newValue: any) => {
+  const handleUpdate = (key: string, newValue: unknown) => {
     if (!isEditing) return;
     const updatedContent = { ...content, [key]: newValue };
     dispatch(
       updateBlockContent({
-        id: block.uniqueId,
+        id: block.uniqueId ?? '',
         content: JSON.stringify(updatedContent),
       })
     );
@@ -43,7 +45,7 @@ export const FeatureHorizontal = ({ block, isEditing = false }: any) => {
     <section className="text-gray-600 body-font w-full" style={block.style}>
       <div className="container px-5 py-24 mx-auto flex flex-wrap">
         <div className="flex flex-wrap -m-4">
-          {features.map((feature: any, index: number) => (
+          {features.map((feature: BlockContentItem, index: number) => (
             <div key={index} className="p-4 lg:w-1/2 md:w-full">
               <div className="flex border-2 rounded-lg border-gray-200 border-opacity-50 p-8 sm:flex-row flex-col">
                 <div className="w-16 h-16 sm:mr-8 sm:mb-0 mb-4 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0 overflow-hidden">

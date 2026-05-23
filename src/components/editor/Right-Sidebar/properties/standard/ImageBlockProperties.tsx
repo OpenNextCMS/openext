@@ -3,12 +3,25 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Image as ImageIcon } from 'lucide-react';
 
-export const ImageBlockProperties = ({ 
-  imageContent, 
-  handleJsonContentChange, 
-  handleImageUpload, 
-  isUploadingImage 
-}: any) => {
+interface ImageContent extends Record<string, unknown> {
+  src?: string;
+  alt?: string;
+  caption?: string;
+}
+
+interface ImageBlockPropertiesProps {
+  imageContent: ImageContent;
+  handleJsonContentChange: <T extends Record<string, unknown>>(content: T, key: keyof T, value: unknown) => void;
+  handleImageUpload: (e: React.ChangeEvent<HTMLInputElement>, callback: (path: string) => void) => void;
+  isUploadingImage: boolean;
+}
+
+export const ImageBlockProperties: React.FC<ImageBlockPropertiesProps> = ({
+  imageContent,
+  handleJsonContentChange,
+  handleImageUpload,
+  isUploadingImage,
+}) => {
   return (
     <div className="space-y-3 p-3 rounded-md bg-background border shadow-sm">
       <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">

@@ -1,14 +1,29 @@
 import React from 'react';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { PropertyInput } from './PropertyInput';
 import { PropertyImageInput } from './PropertyImageInput';
 
-export const FeatureProperties = ({ type, content, handleJsonContentChange, handleImageUpload, isUploadingImage }: any) => {
+type ContentRecord = Record<string, unknown>;
+
+interface FeaturePropertiesProps {
+  type: string;
+  content: ContentRecord;
+  handleJsonContentChange: (key: string, value: unknown) => void;
+  handleImageUpload: (e: React.ChangeEvent<HTMLInputElement>, callback: (path: string) => void) => void;
+  isUploadingImage: boolean;
+}
+
+export const FeatureProperties: React.FC<FeaturePropertiesProps> = ({
+  type,
+  content,
+  handleJsonContentChange,
+  handleImageUpload,
+  isUploadingImage,
+}) => {
   const features = Array.isArray(content.features) ? content.features : [];
 
-  const updateFeature = (index: number, key: string, value: any) => {
+  const updateFeature = (index: number, key: string, value: unknown) => {
     const updatedFeatures = [...features];
     updatedFeatures[index] = { ...updatedFeatures[index], [key]: value };
     handleJsonContentChange('features', updatedFeatures);
@@ -28,11 +43,11 @@ export const FeatureProperties = ({ type, content, handleJsonContentChange, hand
           Add Item
         </button>
       </div>
-      {features.map((feature: any, index: number) => (
+      {features.map((feature: ContentRecord, index: number) => (
         <div key={index} className="space-y-2 p-3 border rounded-md bg-muted/5 relative group">
           <button
             onClick={() => {
-              const newFeatures = features.filter((_: any, i: number) => i !== index);
+              const newFeatures = features.filter((_: ContentRecord, i: number) => i !== index);
               handleJsonContentChange('features', newFeatures);
             }}
             className="absolute top-2 right-2 text-red-500 hover:text-red-700 opacity-0 group-hover:opacity-100 transition-opacity"
@@ -94,7 +109,7 @@ export const FeatureProperties = ({ type, content, handleJsonContentChange, hand
               <Label className="text-[10px]">Item #{index + 1}</Label>
               <button
                 onClick={() => {
-                  const newItems = items.filter((_: any, i: number) => i !== index);
+                  const newItems = items.filter((_: unknown, i: number) => i !== index);
                   handleJsonContentChange('items', newItems);
                 }}
                 className="text-red-500 hover:text-red-700"
@@ -113,11 +128,12 @@ export const FeatureProperties = ({ type, content, handleJsonContentChange, hand
       { title: 'CATEGORY', links: ['Link 1', 'Link 2', 'Link 3'] }
     ];
 
-    const categories = rawCategories.map((cat: any) => ({
+    const rawCategoriesArr = rawCategories as ContentRecord[];
+    const categories: ContentRecord[] = rawCategoriesArr.map((cat: ContentRecord) => ({
       ...cat,
-      links: (cat.links || []).map((link: any) => 
-        typeof link === 'string' ? { text: link, url: '#' } : link
-      )
+      links: ((cat.links as unknown[]) || []).map((link: unknown) =>
+        typeof link === 'string' ? { text: link, url: '#' } : (link as ContentRecord)
+      ),
     }));
 
     const updateCategoryTitle = (idx: number, title: string) => {
@@ -148,11 +164,11 @@ export const FeatureProperties = ({ type, content, handleJsonContentChange, hand
             </button>
           </div>
           
-          {categories.map((cat: any, cIdx: number) => (
+          {categories.map((cat: ContentRecord, cIdx: number) => (
             <div key={cIdx} className="space-y-3 p-3 border rounded-md bg-muted/5 relative group">
               <button
                 onClick={() => {
-                  const newCats = categories.filter((_: any, i: number) => i !== cIdx);
+                  const newCats = categories.filter((_: ContentRecord, i: number) => i !== cIdx);
                   handleJsonContentChange('categories', newCats);
                 }}
                 className="absolute top-2 right-2 text-red-500 hover:text-red-700 opacity-0 group-hover:opacity-100 transition-opacity"
@@ -177,12 +193,12 @@ export const FeatureProperties = ({ type, content, handleJsonContentChange, hand
                   </button>
                 </div>
                 
-                {cat.links.map((link: any, lIdx: number) => (
+                {(cat.links as ContentRecord[]).map((link: ContentRecord, lIdx: number) => (
                   <div key={lIdx} className="space-y-1 relative group/link">
                     <button
                       onClick={() => {
                         const newCats = JSON.parse(JSON.stringify(categories));
-                        newCats[cIdx].links = newCats[cIdx].links.filter((_: any, i: number) => i !== lIdx);
+                        newCats[cIdx].links = newCats[cIdx].links.filter((_: unknown, i: number) => i !== lIdx);
                         handleJsonContentChange('categories', newCats);
                       }}
                       className="absolute -left-5 top-1 text-red-400 hover:text-red-600 opacity-0 group-hover/link:opacity-100"
@@ -190,8 +206,8 @@ export const FeatureProperties = ({ type, content, handleJsonContentChange, hand
                       <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
                     </button>
                     <div className="grid grid-cols-2 gap-1">
-                      <Input className="h-7 text-[10px]" value={link.text} onChange={(e) => updateLink(cIdx, lIdx, 'text', e.target.value)} placeholder="Text" />
-                      <Input className="h-7 text-[10px]" value={link.url} onChange={(e) => updateLink(cIdx, lIdx, 'url', e.target.value)} placeholder="URL" />
+                      <Input className="h-7 text-[10px]" value={typeof link.text === 'string' ? link.text : ''} onChange={(e) => updateLink(cIdx, lIdx, 'text', e.target.value)} placeholder="Text" />
+                      <Input className="h-7 text-[10px]" value={typeof link.url === 'string' ? link.url : ''} onChange={(e) => updateLink(cIdx, lIdx, 'url', e.target.value)} placeholder="URL" />
                     </div>
                   </div>
                 ))}

@@ -8,7 +8,7 @@ import { removeBlock, setSelectedBlock, setSelectedLabel } from '@/redux/canvasS
 import { useBlockEvents } from '@/hooks/useBlockEvents';
 
 interface GenericUiBlockProps extends BlockRendererProps {
-  Component: React.ComponentType<any>;
+  Component: React.ComponentType<BlockRendererProps>;
   label?: string;
 }
 

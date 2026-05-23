@@ -4,8 +4,8 @@ export interface PluginExtension {
   id: string;
   name: string;
   type: 'block' | 'toolbar' | 'widget';
-  component: React.ComponentType<any>;
-  metadata?: any;
+  component: React.ComponentType<Record<string, unknown>>;
+  metadata?: Record<string, unknown>;
 }
 
 class PluginRegistry {

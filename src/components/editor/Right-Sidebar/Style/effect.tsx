@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type CSSProperties } from 'react';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Button } from '@/components/ui/button';
@@ -50,8 +50,8 @@ export default function Effect() {
     }
   }, [selectedBlock]);
 
-  const handleStyleChange = (styles: any) => {
-    dispatch(updateSelectedBlockStyles(styles));
+  const handleStyleChange = (styles: Record<string, unknown>) => {
+    dispatch(updateSelectedBlockStyles(styles as CSSProperties));
   };
 
   const boxShadowPresets = [

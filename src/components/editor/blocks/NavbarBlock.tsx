@@ -38,7 +38,7 @@ export const NavbarBlock = ({ block, isEditing = true }: BlockRendererProps) => 
       return typeof block.content === 'string' && block.content.startsWith('{')
         ? JSON.parse(block.content)
         : { logo: block.content || 'Brand', links: [] };
-    } catch (e) {
+    } catch {
       return { logo: 'Brand', links: [] };
     }
   })();
@@ -63,7 +63,7 @@ export const NavbarBlock = ({ block, isEditing = true }: BlockRendererProps) => 
     dispatch(updateBlockContent({ id: block.uniqueId ?? '', content: updatedContent }));
   };
 
-  const handleLinkClick = (e: React.MouseEvent, link: any) => {
+  const handleLinkClick = (e: React.MouseEvent, link: NonNullable<NavbarContent['links']>[number]) => {
     if (isEditing) return;
 
     if (link.onClick && link.onClick !== 'none') {

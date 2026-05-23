@@ -3,22 +3,23 @@
 import React, { useRef, useEffect } from 'react';
 
 interface InlineEditableTextProps {
-  value: string;
+  value: unknown;
   onBlur: (newValue: string) => void;
   isEditing?: boolean;
   className?: string;
   style?: React.CSSProperties;
-  tagName?: keyof JSX.IntrinsicElements;
+  tagName?: keyof React.JSX.IntrinsicElements;
 }
 
 export const InlineEditableText: React.FC<InlineEditableTextProps> = ({
-  value,
+  value: rawValue,
   onBlur,
   isEditing = true,
   className,
   style,
   tagName: Tag = 'div',
 }) => {
+  const value = typeof rawValue === 'string' ? rawValue : rawValue == null ? '' : String(rawValue);
   const contentRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -43,9 +44,10 @@ export const InlineEditableText: React.FC<InlineEditableTextProps> = ({
     }
   };
 
+  const TagComponent = Tag as 'div';
   return (
-    <Tag
-      ref={contentRef as any}
+    <TagComponent
+      ref={contentRef as React.RefObject<HTMLDivElement | null>}
       contentEditable={isEditing}
       suppressContentEditableWarning={true}
       onBlur={handleBlur}
@@ -57,6 +59,6 @@ export const InlineEditableText: React.FC<InlineEditableTextProps> = ({
       }}
     >
       {value}
-    </Tag>
+    </TagComponent>
   );
 };

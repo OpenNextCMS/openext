@@ -3,8 +3,6 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Trash2 } from 'lucide-react';
-import { useAppDispatch } from '@/redux/hooks';
-import { updateBlockContent } from '@/redux/canvasSlice';
 
 type NavbarLinkContent = {
   label: string;
@@ -13,16 +11,23 @@ type NavbarLinkContent = {
   onClickValue: string;
 };
 
+interface MenuContent extends Record<string, unknown> {
+  logo?: string;
+  links?: NavbarLinkContent[];
+}
+
 interface MenuPluginPropertiesProps {
-  selectedBlock: any;
-  content: any;
+  content: MenuContent;
   availablePages: { slug: string; pageName: string }[];
   availableBlogs: { slug: string; pageName: string }[];
-  handleJsonContentChange: (content: any, key: string, value: any) => void;
+  handleJsonContentChange: <T extends Record<string, unknown>>(
+    content: T,
+    key: keyof T,
+    value: unknown
+  ) => void;
 }
 
 export const MenuPluginProperties: React.FC<MenuPluginPropertiesProps> = ({
-  selectedBlock,
   content,
   availablePages,
   availableBlogs,

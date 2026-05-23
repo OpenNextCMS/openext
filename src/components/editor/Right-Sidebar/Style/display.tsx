@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { updateSelectedBlockStyles } from '@/redux/canvasSlice';
 
@@ -62,8 +62,8 @@ const Display = ({ displayOpen, setDisplayOpen, displayChanges }: DisplayProps) 
     setGap((style.gap as string) || '0');
   }, [selectedBlock]);
 
-  const handleStyleChange = (props: any) => {
-    dispatch(updateSelectedBlockStyles(props));
+  const handleStyleChange = (props: Record<string, unknown>) => {
+    dispatch(updateSelectedBlockStyles(props as CSSProperties));
   };
 
   const handleJustifyChange = (value: string) => {

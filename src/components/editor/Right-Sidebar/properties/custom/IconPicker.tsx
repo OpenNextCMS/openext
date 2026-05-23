@@ -7,11 +7,12 @@ import { iconOptions, renderSelectedIcon, type IconLibrary } from '@/components/
 
 interface IconPickerProps {
   label: string;
-  value: string;
+  value: unknown;
   onChange: (value: string) => void;
 }
 
 export const IconPicker: React.FC<IconPickerProps> = ({ label, value, onChange }) => {
+  const currentValue = typeof value === 'string' ? value : '';
   return (
     <div className="space-y-2 p-3 rounded-md bg-background border shadow-sm mt-2">
       <div className="space-y-1">
@@ -33,7 +34,7 @@ export const IconPicker: React.FC<IconPickerProps> = ({ label, value, onChange }
               {iconOptions
                 .filter((option) => option.library === library)
                 .map((option) => {
-                  const isSelected = value === option.value;
+                  const isSelected = currentValue === option.value;
                   const previewIcon = renderSelectedIcon(option.value, 'h-4 w-4');
 
                   return (

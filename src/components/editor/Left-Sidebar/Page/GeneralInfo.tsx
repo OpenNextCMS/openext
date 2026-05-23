@@ -7,7 +7,7 @@ interface Props {
     preHeading: string;
     description: string;
     slug?: string;
-    pageType?: 'page' | 'header' | 'footer';
+    pageType?: 'page' | 'header' | 'footer' | 'blog';
     isHome?: boolean;
     isGlobal?: boolean;
   };

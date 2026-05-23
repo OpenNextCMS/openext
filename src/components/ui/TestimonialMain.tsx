@@ -1,11 +1,13 @@
-'use client';
+﻿'use client';
 
 import React from 'react';
 import { useAppDispatch } from '@/redux/hooks';
 import { updateBlockContent } from '@/redux/canvasSlice';
 import { InlineEditableText } from '@/components/editor/InlineEditableText';
+import type { BlockRendererProps } from '@/types/index';
+import type { BlockContentItem } from '@/types/blockContent';
 
-export const TestimonialMain = ({ block, isEditing = false }: any) => {
+export const TestimonialMain = ({ block, isEditing = false }: BlockRendererProps) => {
   const dispatch = useAppDispatch();
   
   const content = React.useMemo(() => {
@@ -33,12 +35,12 @@ export const TestimonialMain = ({ block, isEditing = false }: any) => {
     },
   ];
 
-  const handleUpdate = (key: string, newValue: any) => {
+  const handleUpdate = (key: string, newValue: unknown) => {
     if (!isEditing) return;
     const updatedContent = { ...content, [key]: newValue };
     dispatch(
       updateBlockContent({
-        id: block.uniqueId,
+        id: block.uniqueId ?? '',
         content: JSON.stringify(updatedContent),
       })
     );
@@ -67,7 +69,7 @@ export const TestimonialMain = ({ block, isEditing = false }: any) => {
           }}
         />
         <div className="flex flex-wrap -m-4">
-          {testimonials.map((testimonial: any, index: number) => (
+          {testimonials.map((testimonial: BlockContentItem, index: number) => (
             <div key={index} className="p-4 md:w-1/2 w-full">
               <div className="h-full bg-gray-100 p-8 rounded">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" className="block w-5 h-5 text-gray-400 mb-4" viewBox="0 0 975.036 975.036">

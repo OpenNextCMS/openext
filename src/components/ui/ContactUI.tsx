@@ -1,9 +1,10 @@
-import React from 'react';
+﻿import React from 'react';
 import { useAppDispatch } from '@/redux/hooks';
 import { updateBlockContent, setSelectedBlock, setSelectedLabel } from '@/redux/canvasSlice';
 import { InlineEditableText } from '@/components/editor/InlineEditableText';
+import type { BlockRendererProps, BlockData } from '@/types/index';
 
-export const ContactUI = ({ block, isEditing = false }: any) => {
+export const ContactUI = ({ block, isEditing = false }: BlockRendererProps) => {
   const dispatch = useAppDispatch();
   const content = React.useMemo(() => {
     try {
@@ -15,12 +16,12 @@ export const ContactUI = ({ block, isEditing = false }: any) => {
     }
   }, [block.content]);
 
-  const handleUpdate = (key: string, newValue: any) => {
+  const handleUpdate = (key: string, newValue: unknown) => {
     if (!isEditing) return;
     const updatedContent = { ...content, [key]: newValue };
     dispatch(
       updateBlockContent({
-        id: block.uniqueId,
+        id: block.uniqueId ?? '',
         content: JSON.stringify(updatedContent),
       })
     );
@@ -29,7 +30,7 @@ export const ContactUI = ({ block, isEditing = false }: any) => {
   const handleSelect = (e: React.MouseEvent) => {
     if (!isEditing) return;
     e.stopPropagation();
-    dispatch(setSelectedBlock(block));
+    dispatch(setSelectedBlock(block as BlockData));
     dispatch(setSelectedLabel('Contact UI'));
   };
 

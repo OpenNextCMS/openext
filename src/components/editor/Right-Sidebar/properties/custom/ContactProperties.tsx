@@ -1,9 +1,18 @@
 import React from 'react';
 import { PropertyInput } from './PropertyInput';
-import { TextStyleProperties } from './TextStyleProperties';
 import { Label } from '@/components/ui/label';
 
-export const ContactProperties = ({ type, content, handleJsonContentChange }: any) => {
+interface ContactPropertiesProps {
+  type: string;
+  content: { mapUrl?: string } & Record<string, unknown>;
+  handleJsonContentChange: (key: string, value: unknown) => void;
+}
+
+export const ContactProperties: React.FC<ContactPropertiesProps> = ({
+  type,
+  content,
+  handleJsonContentChange,
+}) => {
   if (type === 'contact') {
     return (
       <div className="space-y-4">

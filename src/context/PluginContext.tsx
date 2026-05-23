@@ -1,13 +1,22 @@
-'use client';
+﻿'use client';
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { pluginRegistry } from '@/lib/pluginRegistry';
 import * as Library from '@/components/plugins/PluginComponents';
 import { ContactUI } from '@/components/ui/ContactUI';
 
+interface PluginRecord {
+  pluginId: string;
+  name: string;
+  description?: string;
+  icon?: string;
+  type?: string;
+  isActive?: boolean;
+}
+
 interface PluginContextType {
   isLoaded: boolean;
-  activePlugins: any[];
+  activePlugins: PluginRecord[];
   refreshPlugins: () => Promise<void>;
 }
 
@@ -15,7 +24,7 @@ const PluginContext = createContext<PluginContextType | undefined>(undefined);
 
 export const PluginProvider = ({ children }: { children: ReactNode }) => {
   const [isLoaded, setIsLoaded] = useState(false);
-  const [activePlugins, setActivePlugins] = useState<any[]>([]);
+  const [activePlugins, setActivePlugins] = useState<PluginRecord[]>([]);
 
   const loadPlugins = async () => {
     try {
@@ -24,14 +33,14 @@ export const PluginProvider = ({ children }: { children: ReactNode }) => {
 
       if (response.ok) {
         const plugins = data.plugins || [];
-        const activeOnes = plugins.filter((p: any) => p.isActive);
+        const activeOnes = plugins.filter((p: PluginRecord) => p.isActive);
 
         // Clear registry before re-registering
         pluginRegistry.clear();
 
-        for (const plugin of activeOnes) {
+        for (const plugin of activeOnes as PluginRecord[]) {
           // Determine which component to use from our Library
-          let Component: React.ComponentType<any> = Library.GenericPlugin;
+          let Component: React.ComponentType<Record<string, unknown>> = Library.GenericPlugin as unknown as React.ComponentType<Record<string, unknown>>;
 
           // Map by type (for marketplace installs) or by name (for existing ones)
           const pluginType = (plugin.type || '').toLowerCase();
@@ -42,25 +51,25 @@ export const PluginProvider = ({ children }: { children: ReactNode }) => {
             pluginName.includes('visualizer') ||
             pluginName.includes('analytics')
           ) {
-            Component = Library.ChartPlugin;
+            Component = Library.ChartPlugin as unknown as React.ComponentType<Record<string, unknown>>;
           } else if (pluginType === 'social' || pluginName.includes('social')) {
-            Component = Library.SocialPlugin;
+            Component = Library.SocialPlugin as unknown as React.ComponentType<Record<string, unknown>>;
           } else if (pluginType === 'form' || pluginName.includes('form')) {
-            Component = Library.FormPlugin;
+            Component = Library.FormPlugin as unknown as React.ComponentType<Record<string, unknown>>;
           } else if (pluginType === 'menu' || pluginName.includes('menu')) {
-            Component = Library.MenuPlugin;
+            Component = Library.MenuPlugin as unknown as React.ComponentType<Record<string, unknown>>;
           } else if (pluginType === 'contact' || pluginName.includes('contact')) {
-            Component = ContactUI;
+            Component = ContactUI as unknown as unknown as React.ComponentType<Record<string, unknown>>;
           } else if (
             pluginType === 'slider' ||
             pluginName.includes('slider') ||
             pluginName.includes('casarole')
           ) {
-            Component = Library.SliderPlugin;
+            Component = Library.SliderPlugin as unknown as React.ComponentType<Record<string, unknown>>;
           } else if (pluginName.includes('video') || pluginName.includes('content editor')) {
-            Component = Library.VideoPlugin;
+            Component = Library.VideoPlugin as unknown as React.ComponentType<Record<string, unknown>>;
           } else if (pluginName.includes('seo')) {
-            Component = Library.SeoPlugin;
+            Component = Library.SeoPlugin as unknown as React.ComponentType<Record<string, unknown>>;
           }
 
           pluginRegistry.register({

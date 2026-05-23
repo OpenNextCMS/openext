@@ -1,10 +1,12 @@
-import React from 'react';
+﻿import React from 'react';
 
 import { InlineEditableText } from '@/components/editor/InlineEditableText';
+import type { BlockRendererProps } from '@/types/index';
+import type { BlockContentItem } from '@/types/blockContent';
 import { useAppDispatch } from '@/redux/hooks';
 import { updateBlockContent } from '@/redux/canvasSlice';
 
-export const ContentGallery = ({ block, isEditing = false }: any) => {
+export const ContentGallery = ({ block, isEditing = false }: BlockRendererProps) => {
   const dispatch = useAppDispatch();
   const content = React.useMemo(() => {
     try {
@@ -16,12 +18,12 @@ export const ContentGallery = ({ block, isEditing = false }: any) => {
     }
   }, [block.content]);
 
-  const handleUpdate = (key: string, newValue: any) => {
+  const handleUpdate = (key: string, newValue: unknown) => {
     if (!isEditing) return;
     const updatedContent = { ...content, [key]: newValue };
     dispatch(
       updateBlockContent({
-        id: block.uniqueId,
+        id: block.uniqueId ?? '',
         content: JSON.stringify(updatedContent),
       })
     );
@@ -74,7 +76,7 @@ export const ContentGallery = ({ block, isEditing = false }: any) => {
           />
         </div>
         <div className="flex flex-wrap -m-4">
-          {items.map((item: any, index: number) => (
+          {items.map((item: BlockContentItem, index: number) => (
             <div key={index} className="xl:w-1/4 md:w-1/2 p-4">
               <div className="bg-gray-100 p-6 rounded-lg">
                 <img className="h-40 rounded w-full object-cover object-center mb-6" src={item.image} alt="content" />

@@ -48,7 +48,7 @@ import { EcommerceGrid } from '@/components/ui/EcommerceGrid';
 import { EcommerceDetail } from '@/components/ui/EcommerceDetail';
 import { EcommerceInfo } from '@/components/ui/EcommerceInfo';
 
-const blockComponents: Record<string, React.ComponentType<any>> = {
+const blockComponents: Record<string, React.ComponentType<BlockRendererProps>> = {
   column: ColumnBlock,
   row: RowBlock,
   button: ButtonBlock,
@@ -64,7 +64,7 @@ const blockComponents: Record<string, React.ComponentType<any>> = {
   countdown: CountdownBlock,
 };
 
-const genericUiBlocks: Record<string, { component: React.ComponentType<any>; label: string }> = {
+const genericUiBlocks: Record<string, { component: React.ComponentType<BlockRendererProps>; label: string }> = {
   contact: { component: ContactUI, label: 'Contact UI' },
   'contact-simple': { component: ContactSimple, label: 'Contact Simple' },
   'statistics-main': { component: StatisticsMain, label: 'Statistics Main' },

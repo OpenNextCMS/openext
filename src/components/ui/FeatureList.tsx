@@ -1,10 +1,12 @@
-import React from 'react';
+﻿import React from 'react';
 
 import { InlineEditableText } from '@/components/editor/InlineEditableText';
+import type { BlockRendererProps } from '@/types/index';
+import type { BlockContentItem } from '@/types/blockContent';
 import { useAppDispatch } from '@/redux/hooks';
 import { updateBlockContent } from '@/redux/canvasSlice';
 
-export const FeatureList = ({ block, isEditing = false }: any) => {
+export const FeatureList = ({ block, isEditing = false }: BlockRendererProps) => {
   const dispatch = useAppDispatch();
   const content = React.useMemo(() => {
     try {
@@ -16,12 +18,12 @@ export const FeatureList = ({ block, isEditing = false }: any) => {
     }
   }, [block.content]);
 
-  const handleUpdate = (key: string, newValue: any) => {
+  const handleUpdate = (key: string, newValue: unknown) => {
     if (!isEditing) return;
     const updatedContent = { ...content, [key]: newValue };
     dispatch(
       updateBlockContent({
-        id: block.uniqueId,
+        id: block.uniqueId ?? '',
         content: JSON.stringify(updatedContent),
       })
     );
@@ -36,9 +38,9 @@ export const FeatureList = ({ block, isEditing = false }: any) => {
 
   // Convert nested links to objects for consistent handling
   const categories = React.useMemo(() => {
-    return rawCategories.map((cat: any) => ({
+    return rawCategories.map((cat: BlockContentItem) => ({
       ...cat,
-      links: (cat.links || []).map((link: any) => 
+      links: (cat.links || []).map((link: unknown) => 
         typeof link === 'string' ? { text: link, url: '#' } : link
       )
     }));
@@ -88,7 +90,7 @@ export const FeatureList = ({ block, isEditing = false }: any) => {
           />
         </div>
         <div className="flex flex-wrap -m-4">
-          {categories.map((cat: any, idx: number) => (
+          {categories.map((cat: BlockContentItem, idx: number) => (
             <div key={idx} className="p-4 lg:w-1/4 sm:w-1/2 w-full">
               <InlineEditableText
                 tagName="h2"
@@ -103,7 +105,7 @@ export const FeatureList = ({ block, isEditing = false }: any) => {
                 }}
               />
               <nav className="flex flex-col sm:items-start sm:text-left text-center items-center -mb-1 space-y-2.5">
-                {cat.links.map((link: any, lIdx: number) => (
+                {(cat.links || []).map((link: BlockContentItem, lIdx: number) => (
                   <a 
                     key={lIdx} 
                     href={isEditing ? undefined : (link.url || content.linkUrl || '#')}

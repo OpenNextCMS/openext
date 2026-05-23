@@ -1,15 +1,30 @@
 import React from 'react';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { PropertyInput } from './PropertyInput';
 import { PropertyImageInput } from './PropertyImageInput';
 import { IconPicker } from './IconPicker';
 
-export const ContentProperties = ({ type, content, handleJsonContentChange, handleImageUpload, isUploadingImage }: any) => {
+type ContentRecord = Record<string, unknown>;
+
+interface ContentPropertiesProps {
+  type: string;
+  content: ContentRecord;
+  handleJsonContentChange: (key: string, value: unknown) => void;
+  handleImageUpload: (e: React.ChangeEvent<HTMLInputElement>, callback: (path: string) => void) => void;
+  isUploadingImage: boolean;
+}
+
+export const ContentProperties: React.FC<ContentPropertiesProps> = ({
+  type,
+  content,
+  handleJsonContentChange,
+  handleImageUpload,
+  isUploadingImage,
+}) => {
   if (type === 'statistics-main' || type === 'statistics-side-image' || type === 'statistics-boxed') {
     const stats = Array.isArray(content.stats) ? content.stats : [];
 
-    const updateStat = (index: number, key: string, value: any) => {
+    const updateStat = (index: number, key: string, value: unknown) => {
       const newStats = [...stats];
       newStats[index] = { ...newStats[index], [key]: value };
       handleJsonContentChange('stats', newStats);
@@ -40,11 +55,11 @@ export const ContentProperties = ({ type, content, handleJsonContentChange, hand
               Add Stat
             </button>
           </div>
-          {stats.map((stat: any, index: number) => (
+          {stats.map((stat: ContentRecord, index: number) => (
             <div key={index} className="space-y-2 p-3 border rounded-md bg-muted/5 relative group">
               <button
                 onClick={() => {
-                  const newStats = stats.filter((_: any, i: number) => i !== index);
+                  const newStats = stats.filter((_: ContentRecord, i: number) => i !== index);
                   handleJsonContentChange('stats', newStats);
                 }}
                 className="absolute top-2 right-2 text-red-500 hover:text-red-700 opacity-0 group-hover:opacity-100 transition-opacity"
@@ -69,7 +84,7 @@ export const ContentProperties = ({ type, content, handleJsonContentChange, hand
   if (type === 'testimonial-main') {
     const testimonials = Array.isArray(content.testimonials) ? content.testimonials : [];
 
-    const updateTestimonial = (index: number, key: string, value: any) => {
+    const updateTestimonial = (index: number, key: string, value: unknown) => {
       const updated = [...testimonials];
       updated[index] = { ...updated[index], [key]: value };
       handleJsonContentChange('testimonials', updated);
@@ -90,11 +105,11 @@ export const ContentProperties = ({ type, content, handleJsonContentChange, hand
               Add Item
             </button>
           </div>
-          {testimonials.map((testimonial: any, index: number) => (
+          {testimonials.map((testimonial: ContentRecord, index: number) => (
             <div key={index} className="space-y-2 p-3 border rounded-md bg-muted/5 relative group">
               <button
                 onClick={() => {
-                  const updated = testimonials.filter((_: any, i: number) => i !== index);
+                  const updated = testimonials.filter((_: ContentRecord, i: number) => i !== index);
                   handleJsonContentChange('testimonials', updated);
                 }}
                 className="absolute top-2 right-2 text-red-500 hover:text-red-700 opacity-0 group-hover:opacity-100 transition-opacity"
@@ -119,7 +134,7 @@ export const ContentProperties = ({ type, content, handleJsonContentChange, hand
   if (type === 'content-features') {
     const features = Array.isArray(content.features) ? content.features : [];
 
-    const updateFeature = (index: number, key: string, value: any) => {
+    const updateFeature = (index: number, key: string, value: unknown) => {
       const updatedFeatures = [...features];
       updatedFeatures[index] = { ...updatedFeatures[index], [key]: value };
       handleJsonContentChange('features', updatedFeatures);
@@ -140,11 +155,11 @@ export const ContentProperties = ({ type, content, handleJsonContentChange, hand
               Add Feature
             </button>
           </div>
-          {features.map((feature: any, index: number) => (
+          {features.map((feature: ContentRecord, index: number) => (
             <div key={index} className="space-y-2 p-3 border rounded-md bg-muted/5 relative group">
               <button
                 onClick={() => {
-                  const newFeatures = features.filter((_: any, i: number) => i !== index);
+                  const newFeatures = features.filter((_: ContentRecord, i: number) => i !== index);
                   handleJsonContentChange('features', newFeatures);
                 }}
                 className="absolute top-2 right-2 text-red-500 hover:text-red-700 opacity-0 group-hover:opacity-100 transition-opacity"
@@ -166,7 +181,7 @@ export const ContentProperties = ({ type, content, handleJsonContentChange, hand
   if (type === 'content-gallery') {
     const items = Array.isArray(content.items) ? content.items : [];
 
-    const updateItem = (index: number, key: string, value: any) => {
+    const updateItem = (index: number, key: string, value: unknown) => {
       const updatedItems = [...items];
       updatedItems[index] = { ...updatedItems[index], [key]: value };
       handleJsonContentChange('items', updatedItems);
@@ -187,11 +202,11 @@ export const ContentProperties = ({ type, content, handleJsonContentChange, hand
               Add Item
             </button>
           </div>
-          {items.map((item: any, index: number) => (
+          {items.map((item: ContentRecord, index: number) => (
             <div key={index} className="space-y-2 p-3 border rounded-md bg-muted/5 relative group">
               <button
                 onClick={() => {
-                  const newItems = items.filter((_: any, i: number) => i !== index);
+                  const newItems = items.filter((_: ContentRecord, i: number) => i !== index);
                   handleJsonContentChange('items', newItems);
                 }}
                 className="absolute top-2 right-2 text-red-500 hover:text-red-700 opacity-0 group-hover:opacity-100 transition-opacity"
@@ -216,7 +231,7 @@ export const ContentProperties = ({ type, content, handleJsonContentChange, hand
   if (type === 'content-icons') {
     const features = Array.isArray(content.features) ? content.features : [];
 
-    const updateFeature = (index: number, key: string, value: any) => {
+    const updateFeature = (index: number, key: string, value: unknown) => {
       const updatedFeatures = [...features];
       updatedFeatures[index] = { ...updatedFeatures[index], [key]: value };
       handleJsonContentChange('features', updatedFeatures);
@@ -237,11 +252,11 @@ export const ContentProperties = ({ type, content, handleJsonContentChange, hand
               Add Feature
             </button>
           </div>
-          {features.map((feature: any, index: number) => (
+          {features.map((feature: ContentRecord, index: number) => (
             <div key={index} className="space-y-2 p-3 border rounded-md bg-muted/5 relative group">
               <button
                 onClick={() => {
-                  const newFeatures = features.filter((_: any, i: number) => i !== index);
+                  const newFeatures = features.filter((_: ContentRecord, i: number) => i !== index);
                   handleJsonContentChange('features', newFeatures);
                 }}
                 className="absolute top-2 right-2 text-red-500 hover:text-red-700 opacity-0 group-hover:opacity-100 transition-opacity"
@@ -269,9 +284,9 @@ export const ContentProperties = ({ type, content, handleJsonContentChange, hand
   }
 
   if (type === 'content-categories') {
-    const rawLinks = content.links || [];
-    const links = rawLinks.map((link: any) => 
-      typeof link === 'string' ? { text: link, url: '#' } : link
+    const rawLinks = (content.links as unknown[]) || [];
+    const links: ContentRecord[] = rawLinks.map((link: unknown) =>
+      typeof link === 'string' ? ({ text: link, url: '#' } as ContentRecord) : (link as ContentRecord)
     );
 
     const updateLink = (index: number, field: 'text' | 'url', value: string) => {
@@ -297,11 +312,11 @@ export const ContentProperties = ({ type, content, handleJsonContentChange, hand
               Add Link
             </button>
           </div>
-          {links.map((link: any, index: number) => (
+          {links.map((link: ContentRecord, index: number) => (
             <div key={index} className="space-y-2 p-3 border rounded-md bg-muted/5 relative group">
               <button
                 onClick={() => {
-                  const newLinks = links.filter((_: any, i: number) => i !== index);
+                  const newLinks = links.filter((_: ContentRecord, i: number) => i !== index);
                   handleJsonContentChange('links', newLinks);
                 }}
                 className="absolute top-2 right-2 text-red-500 hover:text-red-700 opacity-0 group-hover:opacity-100 transition-opacity"
@@ -328,17 +343,19 @@ export const ContentProperties = ({ type, content, handleJsonContentChange, hand
   }
 
   if (type === 'content-split') {
+    const left = (content.left as ContentRecord | undefined) ?? {};
+    const right = (content.right as ContentRecord | undefined) ?? {};
     return (
       <div className="space-y-4">
         <div className="space-y-2 border-b pb-2">
           <Label className="text-[11px] font-bold text-primary">Left Card</Label>
-          <PropertyImageInput label="Image" value={content.left?.image} onChange={(v) => handleJsonContentChange('left', { ...content.left, image: v })} onUpload={handleImageUpload} isUploading={isUploadingImage} />
-          <PropertyInput label="Redirect URL" value={content.left?.url} onChange={(v) => handleJsonContentChange('left', { ...content.left, url: v })} placeholder="https://..." />
+          <PropertyImageInput label="Image" value={left.image} onChange={(v) => handleJsonContentChange('left', { ...left, image: v })} onUpload={handleImageUpload} isUploading={isUploadingImage} />
+          <PropertyInput label="Redirect URL" value={left.url} onChange={(v) => handleJsonContentChange('left', { ...left, url: v })} placeholder="https://..." />
         </div>
         <div className="space-y-2">
           <Label className="text-[11px] font-bold text-primary">Right Card</Label>
-          <PropertyImageInput label="Image" value={content.right?.image} onChange={(v) => handleJsonContentChange('right', { ...content.right, image: v })} onUpload={handleImageUpload} isUploading={isUploadingImage} />
-          <PropertyInput label="Redirect URL" value={content.right?.url} onChange={(v) => handleJsonContentChange('right', { ...content.right, url: v })} placeholder="https://..." />
+          <PropertyImageInput label="Image" value={right.image} onChange={(v) => handleJsonContentChange('right', { ...right, image: v })} onUpload={handleImageUpload} isUploading={isUploadingImage} />
+          <PropertyInput label="Redirect URL" value={right.url} onChange={(v) => handleJsonContentChange('right', { ...right, url: v })} placeholder="https://..." />
         </div>
       </div>
     );
@@ -347,7 +364,7 @@ export const ContentProperties = ({ type, content, handleJsonContentChange, hand
   if (type === 'content-trio') {
     const items = Array.isArray(content.items) ? content.items : [];
 
-    const updateItem = (index: number, key: string, value: any) => {
+    const updateItem = (index: number, key: string, value: unknown) => {
       const updatedItems = [...items];
       updatedItems[index] = { ...updatedItems[index], [key]: value };
       handleJsonContentChange('items', updatedItems);
@@ -368,11 +385,11 @@ export const ContentProperties = ({ type, content, handleJsonContentChange, hand
               Add Card
             </button>
           </div>
-          {items.map((item: any, index: number) => (
+          {items.map((item: ContentRecord, index: number) => (
             <div key={index} className="space-y-2 p-3 border rounded-md bg-muted/5 relative group">
               <button
                 onClick={() => {
-                  const newItems = items.filter((_: any, i: number) => i !== index);
+                  const newItems = items.filter((_: ContentRecord, i: number) => i !== index);
                   handleJsonContentChange('items', newItems);
                 }}
                 className="absolute top-2 right-2 text-red-500 hover:text-red-700 opacity-0 group-hover:opacity-100 transition-opacity"

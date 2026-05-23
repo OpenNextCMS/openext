@@ -1,14 +1,29 @@
 import React from 'react';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { PropertyInput } from './PropertyInput';
 import { PropertyImageInput } from './PropertyImageInput';
 
-export const EcommerceCustomProperties = ({ type, content, handleJsonContentChange, handleImageUpload, isUploadingImage }: any) => {
+type ContentRecord = Record<string, unknown>;
+
+interface EcommerceCustomPropertiesProps {
+  type: string;
+  content: ContentRecord;
+  handleJsonContentChange: (key: string, value: unknown) => void;
+  handleImageUpload: (e: React.ChangeEvent<HTMLInputElement>, callback: (path: string) => void) => void;
+  isUploadingImage: boolean;
+}
+
+export const EcommerceCustomProperties: React.FC<EcommerceCustomPropertiesProps> = ({
+  type,
+  content,
+  handleJsonContentChange,
+  handleImageUpload,
+  isUploadingImage,
+}) => {
   if (type === 'ecommerce-grid') {
     const products = Array.isArray(content.products) ? content.products : [];
 
-    const updateProduct = (index: number, key: string, value: any) => {
+    const updateProduct = (index: number, key: string, value: unknown) => {
       const updatedProducts = [...products];
       updatedProducts[index] = { ...updatedProducts[index], [key]: value };
       handleJsonContentChange('products', updatedProducts);
@@ -29,11 +44,11 @@ export const EcommerceCustomProperties = ({ type, content, handleJsonContentChan
           </button>
         </div>
         <div className="space-y-4">
-          {products.map((product: any, index: number) => (
+          {products.map((product: ContentRecord, index: number) => (
             <div key={index} className="space-y-2 p-3 border rounded-md bg-muted/5 relative group">
               <button
                 onClick={() => {
-                  const newProducts = products.filter((_: any, i: number) => i !== index);
+                  const newProducts = products.filter((_: ContentRecord, i: number) => i !== index);
                   handleJsonContentChange('products', newProducts);
                 }}
                 className="absolute top-2 right-2 text-red-500 hover:text-red-700 opacity-0 group-hover:opacity-100 transition-opacity"

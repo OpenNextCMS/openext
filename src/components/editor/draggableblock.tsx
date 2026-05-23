@@ -60,7 +60,8 @@ interface Block {
     | 'feature-list'
     | 'ecommerce-grid'
     | 'ecommerce-detail'
-    | 'ecommerce-info';
+    | 'ecommerce-info'
+    | 'ecommerce-info-alt';
     uniqueId: string;
   content?: string;
   icon?: React.ReactNode | string;

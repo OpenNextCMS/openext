@@ -1,10 +1,12 @@
-import React from 'react';
+﻿import React from 'react';
 
 import { InlineEditableText } from '@/components/editor/InlineEditableText';
+import type { BlockRendererProps } from '@/types/index';
+import type { BlockContentItem } from '@/types/blockContent';
 import { useAppDispatch } from '@/redux/hooks';
 import { updateBlockContent } from '@/redux/canvasSlice';
 
-export const FeatureBoxed = ({ block, isEditing = false }: any) => {
+export const FeatureBoxed = ({ block, isEditing = false }: BlockRendererProps) => {
   const dispatch = useAppDispatch();
   const content = React.useMemo(() => {
     try {
@@ -16,12 +18,12 @@ export const FeatureBoxed = ({ block, isEditing = false }: any) => {
     }
   }, [block.content]);
 
-  const handleUpdate = (key: string, newValue: any) => {
+  const handleUpdate = (key: string, newValue: unknown) => {
     if (!isEditing) return;
     const updatedContent = { ...content, [key]: newValue };
     dispatch(
       updateBlockContent({
-        id: block.uniqueId,
+        id: block.uniqueId ?? '',
         content: JSON.stringify(updatedContent),
       })
     );
@@ -70,7 +72,7 @@ export const FeatureBoxed = ({ block, isEditing = false }: any) => {
           />
         </div>
         <div className="flex flex-wrap -m-4">
-          {features.map((feature: any, index: number) => (
+          {features.map((feature: BlockContentItem, index: number) => (
             <div key={index} className="p-4 md:w-1/3">
               <div className="flex rounded-lg h-full bg-gray-100 p-8 flex-col">
                 <div className="flex items-center mb-3">

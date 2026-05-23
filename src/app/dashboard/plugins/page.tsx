@@ -53,39 +53,30 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { usePlugins } from '@/context/PluginContext';
 
-// Mock data for installed plugins
-const installedPlugins = [
-  {
-    pluginId: '1',
-    name: 'Data Visualizer',
-    version: '1.2.0',
-    description: 'Advanced data visualization tools with interactive charts and graphs',
-    author: 'DataViz Inc.',
-    isActive: true,
-    hasUpdate: false,
-    icon: '📊',
-  },
-  {
-    pluginId: '2',
-    name: 'Content Editor Pro',
-    version: '2.1.5',
-    description: 'Enhanced content editing capabilities with markdown support',
-    author: 'EditMaster',
-    isActive: true,
-    hasUpdate: true,
-    icon: '✏️',
-  },
-  {
-    pluginId: '3',
-    name: 'SEO Optimizer',
-    version: '1.0.3',
-    description: 'Optimize your content for search engines with real-time suggestions',
-    author: 'SEO Tools Ltd',
-    isActive: false,
-    hasUpdate: false,
-    icon: '🔍',
-  },
-];
+interface PluginRecord {
+  pluginId?: string;
+  _id?: string;
+  id?: string;
+  name: string;
+  version: string;
+  description: string;
+  author: string;
+  isActive?: boolean;
+  hasUpdate?: boolean;
+  icon: string;
+}
+
+interface MarketplacePlugin {
+  id: string;
+  name: string;
+  version: string;
+  description: string;
+  author: string;
+  downloads: string;
+  rating: number;
+  icon: string;
+  type: string;
+}
 
 // Mock data for marketplace plugins
 const marketplacePlugins = [
@@ -166,8 +157,8 @@ export default function PluginManagementPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [activePlugins, setActivePlugins] = useState<Record<string, boolean>>({});
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
-  const [editingPlugin, setEditingPlugin] = useState<any | null>(null);
-  const [installedPluginsList, setInstalledPluginsList] = useState<any[]>([]);
+  const [editingPlugin, setEditingPlugin] = useState<PluginRecord | MarketplacePlugin | null>(null);
+  const [installedPluginsList, setInstalledPluginsList] = useState<PluginRecord[]>([]);
   const [marketplacePluginsList, setMarketplacePluginsList] = useState(marketplacePlugins);
   const [activeTab, setActiveTab] = useState('upload');
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -180,10 +171,13 @@ export default function PluginManagementPage() {
       const data = await response.json();
       if (response.ok) {
         setInstalledPluginsList(data.plugins || []);
-        const activeStates = (data.plugins || []).reduce((acc: any, plugin: any) => {
-          acc[plugin.pluginId] = plugin.isActive;
-          return acc;
-        }, {});
+        const activeStates = (data.plugins || []).reduce(
+          (acc: Record<string, boolean>, plugin: PluginRecord) => {
+            if (plugin.pluginId) acc[plugin.pluginId] = !!plugin.isActive;
+            return acc;
+          },
+          {}
+        );
         setActivePlugins(activeStates);
       }
     } catch (error) {
@@ -262,11 +256,12 @@ export default function PluginManagementPage() {
       } else {
         throw new Error(data.message);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       clearInterval(progressInterval);
       setUploadProgress(0);
       setUploadStatus('error');
-      handleSuccess(false, null, error.message || 'Plugin upload error');
+      const message = error instanceof Error ? error.message : 'Plugin upload error';
+      handleSuccess(false, null, message);
     } finally {
       setIsLoading(false);
     }
@@ -299,7 +294,7 @@ export default function PluginManagementPage() {
         handleSuccess(true, null, `Plugin ${newStatus ? 'enabled' : 'disabled'} successfully`);
         await refreshPlugins();
       }
-    } catch (error) {
+    } catch {
       handleSuccess(false, null, 'Failed to toggle plugin status');
     }
   };
@@ -315,7 +310,7 @@ export default function PluginManagementPage() {
         handleSuccess(true, null, 'Plugin removed successfully');
         await refreshPlugins();
       }
-    } catch (error) {
+    } catch {
       handleSuccess(false, null, 'Failed to remove plugin');
     }
     setConfirmDeleteId(null);
@@ -345,7 +340,7 @@ export default function PluginManagementPage() {
         await fetchPlugins();
         await refreshPlugins();
       }
-    } catch (error) {
+    } catch {
       handleSuccess(false, null, 'Failed to install plugin');
     }
   };
@@ -370,27 +365,29 @@ export default function PluginManagementPage() {
     if (!editingPlugin) return;
 
     // Check if it's a marketplace plugin (not yet installed)
-    const isMarketplace = !editingPlugin.pluginId;
+    const isMarketplace = !('pluginId' in editingPlugin) || !editingPlugin.pluginId;
 
     if (isMarketplace) {
+      const marketplaceEdit = editingPlugin as MarketplacePlugin;
       setMarketplacePluginsList((prev) =>
-        prev.map((p) => (p.id === editingPlugin.id ? { ...p, ...editingPlugin } : p))
+        prev.map((p) => (p.id === marketplaceEdit.id ? { ...p, ...marketplaceEdit } : p))
       );
       handleSuccess(true, null, 'Marketplace plugin updated locally');
       setEditingPlugin(null);
       return;
     }
 
+    const installedEdit = editingPlugin as PluginRecord;
     try {
       const response = await fetch('/api/dashboard/plugins/update-plugin', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          pluginId: editingPlugin.pluginId,
-          name: editingPlugin.name,
-          description: editingPlugin.description,
-          version: editingPlugin.version,
-          icon: editingPlugin.icon,
+          pluginId: installedEdit.pluginId,
+          name: installedEdit.name,
+          description: installedEdit.description,
+          version: installedEdit.version,
+          icon: installedEdit.icon,
         }),
       });
 
@@ -404,8 +401,9 @@ export default function PluginManagementPage() {
       } else {
         throw new Error(data.message);
       }
-    } catch (error: any) {
-      handleSuccess(false, null, error.message || 'Failed to update plugin');
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to update plugin';
+      handleSuccess(false, null, message);
     }
   };
 
@@ -494,7 +492,7 @@ export default function PluginManagementPage() {
             ) : (
               <div className="grid gap-4">
                 {filteredInstalledPlugins.map((plugin) => {
-                  const pId = plugin.pluginId || plugin._id || plugin.id;
+                  const pId = plugin.pluginId || plugin._id || plugin.id || '';
                   return (
                     <Card key={pId} className="border overflow-hidden">
                       <CardContent className="p-0">
@@ -913,7 +911,9 @@ export default function PluginManagementPage() {
               <Input
                 id="edit-name"
                 value={editingPlugin?.name || ''}
-                onChange={(e) => setEditingPlugin({ ...editingPlugin, name: e.target.value })}
+                onChange={(e) =>
+                  editingPlugin && setEditingPlugin({ ...editingPlugin, name: e.target.value })
+                }
               />
             </div>
             <div className="grid gap-2">
@@ -921,7 +921,9 @@ export default function PluginManagementPage() {
               <Input
                 id="edit-version"
                 value={editingPlugin?.version || ''}
-                onChange={(e) => setEditingPlugin({ ...editingPlugin, version: e.target.value })}
+                onChange={(e) =>
+                  editingPlugin && setEditingPlugin({ ...editingPlugin, version: e.target.value })
+                }
               />
             </div>
             <div className="grid gap-2">
@@ -929,7 +931,9 @@ export default function PluginManagementPage() {
               <Input
                 id="edit-icon"
                 value={editingPlugin?.icon || ''}
-                onChange={(e) => setEditingPlugin({ ...editingPlugin, icon: e.target.value })}
+                onChange={(e) =>
+                  editingPlugin && setEditingPlugin({ ...editingPlugin, icon: e.target.value })
+                }
               />
             </div>
             <div className="grid gap-2">
@@ -937,7 +941,10 @@ export default function PluginManagementPage() {
               <Input
                 id="edit-description"
                 value={editingPlugin?.description || ''}
-                onChange={(e) => setEditingPlugin({ ...editingPlugin, description: e.target.value })}
+                onChange={(e) =>
+                  editingPlugin &&
+                  setEditingPlugin({ ...editingPlugin, description: e.target.value })
+                }
               />
             </div>
           </div>

@@ -74,7 +74,7 @@ export default function Spacing({ spacingOpen, setSpacingOpen }: SpacingProps) {
           const content = JSON.parse(selectedBlock.content);
           const partStyleKey = selectedPart.endsWith('Style') ? selectedPart : `${selectedPart}Style`;
           style = content[partStyleKey] || {};
-        } catch (e) {
+        } catch {
           style = {};
         }
       } else {

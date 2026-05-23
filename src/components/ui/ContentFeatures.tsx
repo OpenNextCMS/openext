@@ -1,10 +1,12 @@
-import React from 'react';
+﻿import React from 'react';
 
 import { InlineEditableText } from '@/components/editor/InlineEditableText';
+import type { BlockRendererProps } from '@/types/index';
+import type { BlockContentItem } from '@/types/blockContent';
 import { useAppDispatch } from '@/redux/hooks';
 import { updateBlockContent } from '@/redux/canvasSlice';
 
-export const ContentFeatures = ({ block, isEditing = false }: any) => {
+export const ContentFeatures = ({ block, isEditing = false }: BlockRendererProps) => {
   const dispatch = useAppDispatch();
   const content = React.useMemo(() => {
     try {
@@ -16,12 +18,12 @@ export const ContentFeatures = ({ block, isEditing = false }: any) => {
     }
   }, [block.content]);
 
-  const handleUpdate = (key: string, newValue: any) => {
+  const handleUpdate = (key: string, newValue: unknown) => {
     if (!isEditing) return;
     const updatedContent = { ...content, [key]: newValue };
     dispatch(
       updateBlockContent({
-        id: block.uniqueId,
+        id: block.uniqueId ?? '',
         content: JSON.stringify(updatedContent),
       })
     );
@@ -83,7 +85,7 @@ export const ContentFeatures = ({ block, isEditing = false }: any) => {
           />
         </div>
         <div className="flex flex-wrap">
-          {features.map((feature: any, index: number) => (
+          {features.map((feature: BlockContentItem, index: number) => (
             <div key={index} className="xl:w-1/4 lg:w-1/2 md:w-full px-8 py-6 border-l-2 border-gray-200 border-opacity-60">
               <InlineEditableText
                 tagName="h2"

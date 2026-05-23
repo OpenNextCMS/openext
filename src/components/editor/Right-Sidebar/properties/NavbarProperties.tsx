@@ -6,6 +6,7 @@ import { Trash2 } from 'lucide-react';
 import { useAppDispatch } from '@/redux/hooks';
 import { updateSelectedBlockStyles } from '@/redux/canvasSlice';
 import { headerColorPresets, matchPreset } from '@/app/dashboard/pages/headerColors';
+import type { BlockData } from '@/types/index';
 
 type NavbarLinkContent = {
   label: string;
@@ -14,11 +15,23 @@ type NavbarLinkContent = {
   onClickValue: string;
 };
 
+interface NavbarContent extends Record<string, unknown> {
+  layout?: string;
+  logo?: string;
+  logoType?: string;
+  logoImage?: string;
+  links: NavbarLinkContent[];
+}
+
 interface NavbarPropertiesProps {
-  selectedBlock: any;
-  navbarContent: any;
+  selectedBlock: BlockData;
+  navbarContent: NavbarContent;
   availablePages: { slug: string; pageName: string }[];
-  handleJsonContentChange: (content: any, key: string, value: any) => void;
+  handleJsonContentChange: <T extends Record<string, unknown>>(
+    content: T,
+    key: keyof T,
+    value: unknown
+  ) => void;
   handleImageUpload: (e: React.ChangeEvent<HTMLInputElement>, callback: (path: string) => void) => void;
   isUploadingImage: boolean;
 }

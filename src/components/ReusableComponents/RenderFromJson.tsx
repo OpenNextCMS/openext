@@ -12,7 +12,7 @@ const RenderFromJson = (element: JsonElement): JSX.Element => {
     right: element.style?.right,
     bottom: element.style?.bottom,
     left: element.style?.left,
-    zIndex: element.style?.zIndex as any,
+    zIndex: element.style?.zIndex as React.CSSProperties['zIndex'],
   };
 
   // Pass remaining styles to the block internally

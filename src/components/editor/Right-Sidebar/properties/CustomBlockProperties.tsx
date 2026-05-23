@@ -10,16 +10,12 @@ import { HeroProperties } from './custom/HeroProperties';
 
 interface CustomBlockPropertiesProps {
   selectedBlock: BlockData;
-  availablePages: { slug: string; pageName: string }[];
-  availableBlogs: { slug: string; pageName: string }[];
   handleImageUpload: (e: React.ChangeEvent<HTMLInputElement>, callback: (path: string) => void) => void;
   isUploadingImage: boolean;
 }
 
 export const CustomBlockProperties: React.FC<CustomBlockPropertiesProps> = ({
   selectedBlock,
-  availablePages,
-  availableBlogs,
   handleImageUpload,
   isUploadingImage,
 }) => {
@@ -34,7 +30,7 @@ export const CustomBlockProperties: React.FC<CustomBlockPropertiesProps> = ({
     }
   }, [selectedBlock.content]);
 
-  const handleJsonContentChange = (key: string, value: any) => {
+  const handleJsonContentChange = (key: string, value: unknown) => {
     const updatedContent = { ...content, [key]: value };
     dispatch(
       updateBlockContent({ id: selectedBlock.uniqueId, content: JSON.stringify(updatedContent) })

@@ -646,7 +646,7 @@ const parseModelJson = (content: unknown) => {
     if (start !== -1 && end !== -1 && end > start) {
       try {
         return tryParse(stripped.slice(start, end + 1));
-      } catch (innerErr) {
+      } catch {
         throw new Error(
           `Model output did not contain valid JSON: ${err instanceof Error ? err.message : String(err)}`
         );
@@ -881,15 +881,6 @@ const textareaBlock = (placeholder: string, label = 'Message'): BlockData => ({
   label: 'Textarea',
   content: JSON.stringify({ label, placeholder, value: '' }),
   type: 'textarea',
-  style: {},
-});
-
-const avatarBlock = (src: string, alt: string): BlockData => ({
-  uniqueId: newId(),
-  id: 'avatar',
-  label: 'Avatar',
-  content: JSON.stringify({ src, alt, size: 80 }),
-  type: 'avatar',
   style: {},
 });
 
@@ -2747,15 +2738,6 @@ const buildSiteFooterBlocks = (brand: string, copyrightLine: string): BlockData[
   ];
 };
 
-const buildComponentsFromSiteLayout = (
-  layout: SiteLayout | undefined,
-  theme: PageTheme | undefined,
-  pageType: PageContext
-): BlockData[] => {
-  if (!layout?.blocks?.length) return [];
-  return buildComponentsFromPage({ page: { theme, blocks: layout.blocks } }, pageType);
-};
-
 const buildSitePromptContent = ({
   prompt,
   hasImage,
@@ -3006,13 +2988,11 @@ const runAnalysisProvider = async ({
   provider,
   apiKey,
   content,
-  hasImage,
   config,
 }: {
   provider: AnalysisProvider;
   apiKey: string;
   content: GroqContentPart[];
-  hasImage: boolean;
   config: AiRuntimeConfig;
 }) => {
   if (provider === 'openrouter') {
@@ -3034,14 +3014,12 @@ const runAnalysisProvider = async ({
 
 const generateReviewedAnalysisWithFallback = async ({
   content,
-  hasImage,
   prompt,
   requestedLayoutInstruction,
   focusInstruction,
   config,
 }: {
   content: GroqContentPart[];
-  hasImage: boolean;
   prompt: string;
   requestedLayoutInstruction: string;
   focusInstruction: string;
@@ -3060,7 +3038,6 @@ const generateReviewedAnalysisWithFallback = async ({
           provider,
           apiKey,
           content,
-          hasImage,
           config,
         });
 
@@ -3244,7 +3221,7 @@ export async function POST(request: NextRequest) {
         `${kebabify(base) || suffix}-${ts}`;
 
       const brand = plan.site.brand || 'Site';
-      const enrichmentTopic = `${brand} ${prompt}`.trim();
+
       // Industry tags drive all image searches across the site so a single
       // "IT services" prompt never ends up with cat photos in the about
       // section. Computed once from the user prompt and reused for every page.
@@ -3447,7 +3424,6 @@ export async function POST(request: NextRequest) {
       : analysisContentParts;
     const analysisResult = await generateReviewedAnalysisWithFallback({
       content: analysisContent,
-      hasImage,
       prompt,
       requestedLayoutInstruction,
       focusInstruction,
@@ -3522,7 +3498,6 @@ export async function POST(request: NextRequest) {
               ...focusedAnalysisParts,
               { type: 'image_url' as const, image_url: { url: imageDataUrl } },
             ],
-            hasImage: true,
             prompt: `Extract ONLY the ${focus} of the image.`,
             requestedLayoutInstruction: '',
             focusInstruction: instruction,

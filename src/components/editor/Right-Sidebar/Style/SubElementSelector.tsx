@@ -240,7 +240,7 @@ export default function SubElementSelector() {
     try {
       const content = JSON.parse(selectedBlock.content);
       return content[currentPart.contentKey] || '';
-    } catch (e) {
+    } catch {
       return '';
     }
   };

@@ -5,12 +5,27 @@ import { Textarea } from '@/components/ui/textarea';
 import { CreditCard } from 'lucide-react';
 import { PropertyImageInput } from '../custom/PropertyImageInput';
 
-export const CardBlockProperties = ({ 
-  cardContent, 
-  handleJsonContentChange, 
-  handleImageUpload, 
-  isUploadingImage 
-}: any) => {
+interface CardContent extends Record<string, unknown> {
+  image?: string;
+  eyebrow?: string;
+  title?: string;
+  body?: string;
+  buttonText?: string;
+}
+
+interface CardBlockPropertiesProps {
+  cardContent: CardContent;
+  handleJsonContentChange: <T extends Record<string, unknown>>(content: T, key: keyof T, value: unknown) => void;
+  handleImageUpload: (e: React.ChangeEvent<HTMLInputElement>, callback: (path: string) => void) => void;
+  isUploadingImage: boolean;
+}
+
+export const CardBlockProperties: React.FC<CardBlockPropertiesProps> = ({
+  cardContent,
+  handleJsonContentChange,
+  handleImageUpload,
+  isUploadingImage,
+}) => {
   return (
     <div className="space-y-3 p-3 rounded-md bg-background border shadow-sm">
       <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">

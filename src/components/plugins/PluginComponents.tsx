@@ -1,9 +1,15 @@
-import React from 'react';
+﻿import React from 'react';
 import { Menu, X } from 'lucide-react';
 import { resolveRedirectUrl, triggerBlockEvent } from '@/hooks/useBlockEvents';
+import type { BlockRendererProps } from '@/types/index';
+
+interface PluginBlockProps {
+  block: BlockRendererProps['block'] & { data?: Record<string, unknown> };
+  isEditing?: boolean;
+}
 
 // 1. Chart Component (for Data Visualizer, Analytics)
-export const ChartPlugin = ({ block }: any) => (
+export const ChartPlugin = ({ block }: PluginBlockProps) => (
   <div className="p-4 bg-white border-2 border-primary/10 rounded-xl shadow-sm">
     <div className="flex items-center gap-2 mb-4">
       <span className="p-2 bg-primary/10 rounded-lg">📊</span>
@@ -32,8 +38,8 @@ export const ChartPlugin = ({ block }: any) => (
 );
 
 // 2. Video Player Component (for Video Player, Content Pro)
-export const VideoPlugin = ({ block }: any) => {
-  const videoUrl = block.data?.url || 'https://www.youtube.com/embed/dQw4w9WgXcQ';
+export const VideoPlugin = ({ block }: PluginBlockProps) => {
+  const videoUrl = (block.data?.url as string) || 'https://www.youtube.com/embed/dQw4w9WgXcQ';
   return (
     <div className="w-full aspect-video bg-black rounded-lg overflow-hidden shadow-2xl border-4 border-black">
       <iframe
@@ -50,7 +56,7 @@ export const VideoPlugin = ({ block }: any) => {
 };
 
 // 3. SEO / Checklist Component (for SEO Optimizer)
-export const SeoPlugin = ({ block }: any) => (
+export const SeoPlugin: React.FC<PluginBlockProps> = () => (
   <div className="p-6 bg-slate-50 border-l-4 border-green-500 rounded-r-lg shadow-sm">
     <div className="flex justify-between items-center mb-4">
       <h3 className="font-bold text-slate-800 flex items-center gap-2">
@@ -75,7 +81,7 @@ export const SeoPlugin = ({ block }: any) => (
 );
 
 // 4. Social Integration Component (for Social Media plugins)
-export const SocialPlugin = ({ block }: any) => (
+export const SocialPlugin: React.FC<PluginBlockProps> = () => (
   <div className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-2xl">
     <div className="flex gap-4 justify-center py-2">
       {['Facebook', 'Twitter', 'LinkedIn', 'Instagram'].map((platform) => (
@@ -102,7 +108,7 @@ export const SocialPlugin = ({ block }: any) => (
 );
 
 // 5. Form Builder Component (for Form plugins)
-export const FormPlugin = ({ block }: any) => (
+export const FormPlugin: React.FC<PluginBlockProps> = () => (
   <div className="p-6 bg-white border border-slate-200 rounded-xl shadow-sm space-y-4">
     <h3 className="font-bold text-slate-700 border-b pb-2">Contact Us</h3>
     <div className="space-y-3">
@@ -123,7 +129,7 @@ export const FormPlugin = ({ block }: any) => (
 );
 
 // 6. Carousel Slider Component (for Casarole Slider)
-export const SliderPlugin = ({ block }: any) => {
+export const SliderPlugin = ({ block }: PluginBlockProps) => {
   const [currentIndex, setCurrentIndex] = React.useState(0);
 
   // Parse content if it exists
@@ -132,7 +138,7 @@ export const SliderPlugin = ({ block }: any) => {
       return typeof block.content === 'string' && block.content.startsWith('{')
         ? JSON.parse(block.content)
         : block.data || {};
-    } catch (e) {
+    } catch {
       return block.data || {};
     }
   }, [block.content, block.data]);
@@ -263,7 +269,7 @@ type MenuPluginLink = {
 };
 
 // 7. Menu Redirect Component
-export const MenuPlugin = ({ block, isEditing = true }: any) => {
+export const MenuPlugin = ({ block, isEditing = true }: PluginBlockProps) => {
   const [isOpen, setIsOpen] = React.useState(false);
 
   const content = React.useMemo(() => {
@@ -361,7 +367,7 @@ export const MenuPlugin = ({ block, isEditing = true }: any) => {
 };
 
 // 8. Generic Plugin Component (Fallback)
-export const GenericPlugin = ({ block, plugin }: any) => (
+export const GenericPlugin = ({ plugin }: { block?: unknown; plugin?: { icon?: string; name?: string } }) => (
   <div className="p-8 bg-muted/20 border-2 border-dashed border-muted rounded-2xl flex flex-col items-center justify-center text-center">
     <span className="text-5xl mb-4">{plugin?.icon || '🧩'}</span>
     <h3 className="text-xl font-bold">{plugin?.name || 'Plugin Block'}</h3>

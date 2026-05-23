@@ -13,8 +13,8 @@ export async function POST(req: NextRequest) {
 
     // Process the zip file with JSZip
     const arrayBuffer = await file.arrayBuffer();
-    const zip = await JSZip.loadAsync(arrayBuffer);
-    
+    await JSZip.loadAsync(arrayBuffer);
+
     // In a real implementation, we would extract files to public/plugins/
     // and look for a manifest.json. For Phase 1, we'll simulate this.
     

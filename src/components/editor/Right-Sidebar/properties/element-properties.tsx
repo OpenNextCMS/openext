@@ -1,18 +1,14 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import {
   Pointer,
-  Type,
   BarChart,
-  ImageIcon,
-  CreditCard,
   Waves,
   Keyboard,
   CircleDot,
   SquareCheck,
   PanelTop,
-  Trash2,
   Settings,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -27,7 +23,6 @@ import {
   updateBlockIcon,
   updateSelectedBlockStyles,
   setBlocks,
-  updateBlockEvents,
 } from '@/redux/canvasSlice';
 import { headerColorPresets, matchPreset } from '@/app/dashboard/pages/headerColors';
 import { footerTemplates } from '@/app/dashboard/pages/footerTemplates';
@@ -48,13 +43,6 @@ import { NavbarProperties } from './NavbarProperties';
 import { TextBlockProperties } from './standard/TextBlockProperties';
 import { ImageBlockProperties } from './standard/ImageBlockProperties';
 import { CardBlockProperties } from './standard/CardBlockProperties';
-
-type NavbarLinkContent = {
-  label: string;
-  href: string;
-  onClick: string;
-  onClickValue: string;
-};
 
 function applyColorsRecursively(
   blocks: BlockData[],
@@ -322,27 +310,6 @@ export default function ElementProperties() {
       { label: 'Contact', href: '#', onClick: 'none', onClickValue: '' },
     ],
   });
-
-  const handleNavbarLinkChange = (index: number, key: keyof NavbarLinkContent, value: string) => {
-    const updatedLinks = [...navbarContent.links];
-    updatedLinks[index] = { ...updatedLinks[index], [key]: value };
-    handleJsonContentChange(navbarContent, 'links', updatedLinks);
-  };
-
-  const addNavbarLink = () => {
-    const updatedLinks = [
-      ...navbarContent.links,
-      { label: 'New Link', href: '#', onClick: 'none', onClickValue: '' },
-    ];
-    handleJsonContentChange(navbarContent, 'links', updatedLinks);
-  };
-
-  const removeNavbarLink = (index: number) => {
-    const updatedLinks = navbarContent.links.filter(
-      (_link: NavbarLinkContent, i: number) => i !== index
-    );
-    handleJsonContentChange(navbarContent, 'links', updatedLinks);
-  };
 
   const [isUploadingImage, setIsUploadingImage] = useState(false);
 
@@ -1073,12 +1040,11 @@ export default function ElementProperties() {
             {(() => {
               const ext = pluginRegistry.getExtension(selectedBlock!.type);
               const pluginName = ext?.name.toLowerCase() || '';
-              const content = parseJsonContent<any>({});
+              const content = parseJsonContent<Record<string, unknown>>({});
 
               if (pluginName.includes('menu')) {
                 return (
                   <MenuPluginProperties
-                    selectedBlock={selectedBlock}
                     content={content}
                     availablePages={availablePages}
                     availableBlogs={availableBlogs}
@@ -1100,8 +1066,6 @@ export default function ElementProperties() {
                 return (
                   <CustomBlockProperties
                     selectedBlock={selectedBlock!}
-                    availablePages={availablePages}
-                    availableBlogs={availableBlogs}
                     handleImageUpload={handleImageUpload}
                     isUploadingImage={isUploadingImage}
                   />
@@ -1114,7 +1078,7 @@ export default function ElementProperties() {
                     <Label className="text-[10px] text-muted-foreground uppercase">Video URL</Label>
                     <Input
                       className="h-8 text-sm"
-                      value={content.url || ''}
+                      value={(content.url as string) || ''}
                       onChange={(e) => handleJsonContentChange(content, 'url', e.target.value)}
                       placeholder="YouTube or Vimeo URL"
                     />
@@ -1131,7 +1095,7 @@ export default function ElementProperties() {
                     <Input
                       className="h-8 text-sm"
                       value={selectedBlock?.label || ''}
-                      onChange={(e) => {
+                      onChange={() => {
                         if (!selectedBlock?.uniqueId) return;
                         dispatch(
                           updateBlockContent({

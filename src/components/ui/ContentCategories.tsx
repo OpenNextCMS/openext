@@ -1,9 +1,11 @@
-import React from 'react';
+﻿import React from 'react';
 import { useAppDispatch } from '@/redux/hooks';
 import { updateBlockContent, setSelectedBlock, setSelectedLabel } from '@/redux/canvasSlice';
 import { InlineEditableText } from '@/components/editor/InlineEditableText';
+import type { BlockRendererProps, BlockData } from '@/types/index';
+import type { BlockContentItem } from '@/types/blockContent';
 
-export const ContentCategories = ({ block, isEditing = false }: any) => {
+export const ContentCategories = ({ block, isEditing = false }: BlockRendererProps) => {
   const dispatch = useAppDispatch();
   const content = React.useMemo(() => {
     try {
@@ -15,12 +17,12 @@ export const ContentCategories = ({ block, isEditing = false }: any) => {
     }
   }, [block.content]);
 
-  const handleUpdate = (key: string, newValue: any) => {
+  const handleUpdate = (key: string, newValue: unknown) => {
     if (!isEditing) return;
     const updatedContent = { ...content, [key]: newValue };
     dispatch(
       updateBlockContent({
-        id: block.uniqueId,
+        id: block.uniqueId ?? '',
         content: JSON.stringify(updatedContent),
       })
     );
@@ -29,7 +31,7 @@ export const ContentCategories = ({ block, isEditing = false }: any) => {
   const handleSelect = (e: React.MouseEvent) => {
     if (!isEditing) return;
     e.stopPropagation();
-    dispatch(setSelectedBlock(block));
+    dispatch(setSelectedBlock(block as BlockData));
     dispatch(setSelectedLabel('Content Categories'));
   };
 
@@ -40,7 +42,7 @@ export const ContentCategories = ({ block, isEditing = false }: any) => {
 
   // Convert string links to objects for consistent handling
   const links = React.useMemo(() => {
-    return rawLinks.map((link: any) => 
+    return rawLinks.map((link: unknown) => 
       typeof link === 'string' ? { text: link, url: '#' } : link
     );
   }, [rawLinks]);
@@ -118,21 +120,21 @@ export const ContentCategories = ({ block, isEditing = false }: any) => {
             }}
           />
           <nav className="flex flex-wrap list-none -mb-1">
-            {links.map((link: any, index: number) => (
+            {links.map((link: BlockContentItem, index: number) => (
               <li key={index} className="lg:w-1/3 mb-1 w-1/2">
-                <a 
-                  href={isEditing ? undefined : link.url} 
+                <a
+                  href={isEditing ? undefined : (link.url as string | undefined)}
                   className="text-gray-600 hover:text-gray-800 cursor-pointer"
-                  style={{ 
-                    color: block.style?.color, 
+                  style={{
+                    color: block.style?.color,
                     fontFamily: block.style?.fontFamily,
-                    ...content.linkItemStyle 
+                    ...(content.linkItemStyle as React.CSSProperties)
                   }}
                   onClick={(e) => isEditing && e.preventDefault()}
                 >
                   <InlineEditableText
                     tagName="span"
-                    value={link.text}
+                    value={typeof link.text === 'string' ? link.text : ''}
                     onBlur={(v) => updateLink(index, 'text', v)}
                     isEditing={isEditing}
                   />

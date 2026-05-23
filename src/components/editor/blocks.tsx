@@ -18,14 +18,14 @@ interface BlockProps {
 
 export default function Blocks({ toggleSidebar }: BlockProps) {
   const [searchTerm, setSearchTerm] = useState('');
-  const { isLoaded } = usePlugins(); // Triggers re-render when plugins finish loading
+  usePlugins(); // Triggers re-render when plugins finish loading
 
   const pluginBlocks: Block[] = pluginRegistry.getExtensionsByType('block').map((ext) => ({
     id: ext.id,
-    type: ext.id as any,
+    type: ext.id as Block['type'],
     label: ext.name,
-    icon: ext.metadata?.icon || <Grip className="h-4 w-4" />,
-    description: ext.metadata?.description || 'Plugin provided block',
+    icon: (ext.metadata?.icon as React.ReactNode) || <Grip className="h-4 w-4" />,
+    description: (ext.metadata?.description as string) || 'Plugin provided block',
   }));
 
   const getFilteredBlocks = (blocks: Block[]): Block[] => {

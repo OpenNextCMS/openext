@@ -3,9 +3,19 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 
+interface SliderContent extends Record<string, unknown> {
+  accentColor?: string;
+  slidesToShow?: number;
+  slides?: unknown[];
+}
+
 interface SliderPluginPropertiesProps {
-  content: any;
-  handleJsonContentChange: (content: any, key: string, value: any) => void;
+  content: SliderContent;
+  handleJsonContentChange: <T extends Record<string, unknown>>(
+    content: T,
+    key: keyof T,
+    value: unknown
+  ) => void;
 }
 
 export const SliderPluginProperties: React.FC<SliderPluginPropertiesProps> = ({
@@ -60,7 +70,7 @@ export const SliderPluginProperties: React.FC<SliderPluginPropertiesProps> = ({
           placeholder='[ { "title": "Title", "desc": "Description", "image": "..." } ]'
         />
         <p className="text-[9px] text-muted-foreground italic">
-          Tip: Add an "image" field to each slide to display pictures.
+          Tip: Add an &quot;image&quot; field to each slide to display pictures.
         </p>
       </div>
     </div>

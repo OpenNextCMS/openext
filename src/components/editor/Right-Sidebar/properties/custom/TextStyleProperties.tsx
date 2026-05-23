@@ -3,14 +3,16 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import SelectComp from '@/components/ReusableComponents/SelectComp';
 
-export const TextStyleProperties = ({ 
-  label, 
-  style = {}, 
-  onChange 
-}: { 
-  label: string, 
-  style: any, 
-  onChange: (newStyle: any) => void 
+type TextStyle = React.CSSProperties & Record<string, unknown>;
+
+export const TextStyleProperties = ({
+  label,
+  style = {},
+  onChange,
+}: {
+  label: string;
+  style: TextStyle;
+  onChange: (newStyle: TextStyle) => void;
 }) => {
   const updateStyle = (key: string, value: string) => {
     onChange({ ...style, [key]: value });
@@ -26,7 +28,7 @@ export const TextStyleProperties = ({
           <Input 
             type="color" 
             className="h-8 p-1" 
-            value={style.color || '#000000'} 
+            value={(style.color as string) || '#000000'}
             onChange={(e) => updateStyle('color', e.target.value)} 
           />
         </div>
@@ -35,7 +37,7 @@ export const TextStyleProperties = ({
           <Input 
             type="text" 
             className="h-8 text-xs" 
-            value={style.fontSize || ''} 
+            value={(style.fontSize as string) || ''}
             placeholder="e.g. 16px" 
             onChange={(e) => updateStyle('fontSize', e.target.value)} 
           />
@@ -45,7 +47,7 @@ export const TextStyleProperties = ({
       <div className="grid grid-cols-2 gap-2">
         <SelectComp
           label="Weight"
-          value={style.fontWeight || '400'}
+          value={String(style.fontWeight || '400')}
           onValueChange={(val) => updateStyle('fontWeight', val)}
           options={[
             { label: 'Normal', value: '400' },
@@ -55,7 +57,7 @@ export const TextStyleProperties = ({
         />
         <SelectComp
           label="Align"
-          value={style.textAlign || 'left'}
+          value={(style.textAlign as string) || 'left'}
           onValueChange={(val) => updateStyle('textAlign', val)}
           options={[
             { label: 'Left', value: 'left' },

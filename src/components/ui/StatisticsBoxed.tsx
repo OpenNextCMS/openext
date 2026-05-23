@@ -1,13 +1,15 @@
-'use client';
+﻿'use client';
 
 import React from 'react';
 import { useAppDispatch } from '@/redux/hooks';
 import { updateBlockContent } from '@/redux/canvasSlice';
 import { InlineEditableText } from '@/components/editor/InlineEditableText';
+import type { BlockRendererProps } from '@/types/index';
+import type { BlockContentItem } from '@/types/blockContent';
 
 import { renderSelectedIcon } from '@/components/editor/data/iconOptions';
 
-export const StatisticsBoxed = ({ block, isEditing = false }: any) => {
+export const StatisticsBoxed = ({ block, isEditing = false }: BlockRendererProps) => {
   const dispatch = useAppDispatch();
   
   const content = React.useMemo(() => {
@@ -27,12 +29,12 @@ export const StatisticsBoxed = ({ block, isEditing = false }: any) => {
     { value: '46', label: 'Places', icon: 'globe' },
   ];
 
-  const handleUpdate = (key: string, newValue: any) => {
+  const handleUpdate = (key: string, newValue: unknown) => {
     if (!isEditing) return;
     const updatedContent = { ...content, [key]: newValue };
     dispatch(
       updateBlockContent({
-        id: block.uniqueId,
+        id: block.uniqueId ?? '',
         content: JSON.stringify(updatedContent),
       })
     );
@@ -75,7 +77,7 @@ export const StatisticsBoxed = ({ block, isEditing = false }: any) => {
           />
         </div>
         <div className="flex flex-wrap -m-4 text-center">
-          {stats.map((stat: any, index: number) => (
+          {stats.map((stat: BlockContentItem, index: number) => (
             <div key={index} className="p-4 md:w-1/4 sm:w-1/2 w-full">
               <div className="border-2 border-gray-200 px-4 py-6 rounded-lg">
                 <div className="text-indigo-500 flex justify-center mb-3">

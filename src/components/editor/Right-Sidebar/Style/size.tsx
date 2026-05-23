@@ -17,7 +17,7 @@ export default function Size() {
   const isTyping = useRef(false);
 
   // Parse CSS values like "100px", "50%", "auto"
-  const parseValue = useCallback((value: any) => {
+  const parseValue = useCallback((value: unknown) => {
     if (value === undefined || value === null || value === 'auto' || value === '') {
       return { val: '', unit: 'px' };
     }
@@ -51,7 +51,7 @@ export default function Size() {
     // Skip sync while typing to prevent cursor jump/clearing
     if (isTyping.current) return;
 
-    const s = (selectedBlock?.style || {}) as any;
+    const s = (selectedBlock?.style || {}) as Record<string, unknown>;
     setStyles({
       width: parseValue(s.width),
       height: parseValue(s.height),
@@ -140,7 +140,7 @@ export default function Size() {
           
           <div className="pt-2.5 border-t border-muted/30">
             <p className="text-[10px] text-muted-foreground/60 leading-normal">
-              Values like 100% or 50vh work. Leave blank to use "auto".
+              Values like 100% or 50vh work. Leave blank to use &quot;auto&quot;.
             </p>
           </div>
         </div>

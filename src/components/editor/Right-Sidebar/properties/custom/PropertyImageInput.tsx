@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 
 interface PropertyImageInputProps {
   label: string;
-  value: string;
+  value: unknown;
   onChange: (v: string) => void;
   onUpload: (e: React.ChangeEvent<HTMLInputElement>, callback: (path: string) => void) => void;
   isUploading: boolean;
@@ -29,7 +29,7 @@ export const PropertyImageInput: React.FC<PropertyImageInputProps> = ({
       <div className="space-y-2">
         <Input
           className="h-8 text-sm"
-          value={value || ''}
+          value={typeof value === 'string' ? value : ''}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder || "https://..."}
         />

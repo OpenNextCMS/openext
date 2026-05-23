@@ -103,7 +103,7 @@ const editableBlockTypes: EditableBlockType[] = [
 const getEditableBlockType = (type?: string): EditableBlockType => {
   // Allow plugin types
   if (type && pluginRegistry.getExtension(type)) {
-    return type as any;
+    return type as EditableBlockType;
   }
 
   return editableBlockTypes.includes(type as EditableBlockType)
@@ -185,6 +185,7 @@ export default function Editor() {
           viewMode: 'desktop' as 'desktop' | 'tablet' | 'mobile',
           selectedLabel: '',
           selectedBlock: null,
+          selectedPart: null,
           selectedValue: null,
         };
 

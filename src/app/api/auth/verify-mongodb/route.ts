@@ -58,16 +58,17 @@ export async function POST(req: NextRequest) {
     await mongoose.disconnect();
 
     return handleSuccess(true, null, successMessage, 200);
-  } catch (error: any) {
-    const errMsg = error.message || '';
-    const code = error.code || '';
+  } catch (error: unknown) {
+    const err = error as { message?: string; code?: string | number; name?: string; reason?: { message?: string } };
+    const errMsg = err.message || '';
+    const code = err.code || '';
 
     // LOG ERROR FOR DEBUGGING
     console.log('MONGOOSE ERROR DEBUG:', {
       message: errMsg,
       code,
-      name: error.name,
-      reason: error.reason?.message,
+      name: err.name,
+      reason: err.reason?.message,
     });
 
     // 1. VPN, DNS Blocking, or DNS Server Failure (c-ares resolution issues)
@@ -87,8 +88,8 @@ export async function POST(req: NextRequest) {
 
     // 3. Server Selection / Network Timeout (IP Whitelist or Firewall)
     if (
-      error.name === 'MongoServerSelectionError' ||
-      error.name === 'MongooseServerSelectionError' ||
+      err.name === 'MongoServerSelectionError' ||
+      err.name === 'MongooseServerSelectionError' ||
       code === 'ETIMEDOUT' ||
       errMsg.includes('timed out') ||
       errMsg.includes('Could not connect to any servers')
@@ -109,7 +110,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Authentication Error
-    if (errMsg.includes('Authentication failed') || error.code === 18) {
+    if (errMsg.includes('Authentication failed') || err.code === 18) {
       return handleError(
         error,
         'INVALID_CREDENTIALS: The provided username or password is incorrect.'

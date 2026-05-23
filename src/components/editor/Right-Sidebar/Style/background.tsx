@@ -18,6 +18,17 @@ import { Input } from '@/components/ui/input';
 import SelectComp from '@/components/ReusableComponents/SelectComp';
 import { toast } from 'react-hot-toast';
 
+function isValidImageUrl(url: string): { valid: boolean; normalizedUrl: string; message?: string } {
+  const trimmed = (url || '').trim();
+  if (!trimmed) return { valid: false, normalizedUrl: '', message: 'URL is empty' };
+  try {
+    new URL(trimmed.startsWith('/') || trimmed.startsWith('http') ? trimmed : `https://${trimmed}`);
+    return { valid: true, normalizedUrl: trimmed };
+  } catch {
+    return { valid: false, normalizedUrl: trimmed, message: 'Invalid URL format' };
+  }
+}
+
 // ✅ RGB to HEX utility
 function rgbToHex(rgb: string) {
   const result = rgb.match(/\d+/g);
@@ -68,7 +79,7 @@ const Background = () => {
           const content = JSON.parse(selectedBlock.content);
           const partStyleKey = selectedPart.endsWith('Style') ? selectedPart : `${selectedPart}Style`;
           style = content[partStyleKey] || {};
-        } catch (e) {
+        } catch {
           style = {};
         }
       } else {

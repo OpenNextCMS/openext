@@ -5,8 +5,19 @@ import { Input } from '@/components/ui/input';
 import { Type } from 'lucide-react';
 import { useAppDispatch } from '@/redux/hooks';
 import { updateBlockEvents } from '@/redux/canvasSlice';
+import type { BlockData } from '@/types/index';
 
-export const TextBlockProperties = ({ selectedBlock, handleContentChange, availablePages }: any) => {
+interface TextBlockPropertiesProps {
+  selectedBlock: BlockData | null;
+  handleContentChange: (value: string) => void;
+  availablePages: { slug: string; pageName: string }[];
+}
+
+export const TextBlockProperties: React.FC<TextBlockPropertiesProps> = ({
+  selectedBlock,
+  handleContentChange,
+  availablePages,
+}) => {
   const dispatch = useAppDispatch();
   const isLinked = selectedBlock?.events?.onClick === 'redirect';
   const currentHref = (selectedBlock?.events?.onClickValue as string) || '';
@@ -74,7 +85,7 @@ export const TextBlockProperties = ({ selectedBlock, handleContentChange, availa
               <option value="">
                 {availablePages.length === 0 ? 'No pages found' : 'Pick a page…'}
               </option>
-              {availablePages.map((p: any) => (
+              {availablePages.map((p) => (
                 <option key={p.slug} value={p.slug}>{p.pageName} (/{p.slug})</option>
               ))}
             </select>

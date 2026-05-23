@@ -1,11 +1,13 @@
-'use client';
+﻿'use client';
 
 import React from 'react';
 import { useAppDispatch } from '@/redux/hooks';
 import { updateBlockContent } from '@/redux/canvasSlice';
 import { InlineEditableText } from '@/components/editor/InlineEditableText';
+import type { BlockRendererProps } from '@/types/index';
+import type { BlockContentItem } from '@/types/blockContent';
 
-export const StatisticsSideImage = ({ block, isEditing = false }: any) => {
+export const StatisticsSideImage = ({ block, isEditing = false }: BlockRendererProps) => {
   const dispatch = useAppDispatch();
   
   const content = React.useMemo(() => {
@@ -25,12 +27,12 @@ export const StatisticsSideImage = ({ block, isEditing = false }: any) => {
     { value: '4', label: 'Products' },
   ];
 
-  const handleUpdate = (key: string, newValue: any) => {
+  const handleUpdate = (key: string, newValue: unknown) => {
     if (!isEditing) return;
     const updatedContent = { ...content, [key]: newValue };
     dispatch(
       updateBlockContent({
-        id: block.uniqueId,
+        id: block.uniqueId ?? '',
         content: JSON.stringify(updatedContent),
       })
     );
@@ -73,7 +75,7 @@ export const StatisticsSideImage = ({ block, isEditing = false }: any) => {
               }}
             />
           </div>
-          {stats.map((stat: any, index: number) => (
+          {stats.map((stat: BlockContentItem, index: number) => (
             <div key={index} className="p-4 sm:w-1/2 lg:w-1/4 w-1/2">
               <InlineEditableText
                 tagName="h2"

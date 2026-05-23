@@ -51,7 +51,7 @@ export default function Typography() {
           const content = JSON.parse(selectedBlock.content);
           const partStyleKey = selectedPart.endsWith('Style') ? selectedPart : `${selectedPart}Style`;
           style = content[partStyleKey] || {};
-        } catch (e) {
+        } catch {
           style = {};
         }
       } else {
