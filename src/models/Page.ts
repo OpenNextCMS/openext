@@ -23,6 +23,19 @@ const ModificationSchema = new Schema<IModification>({
   modifiedBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   modifiedAt: { type: Date, default: Date.now },
 });
+
+// Typed block body for blog posts. `data` is schema-less (Mixed) so each block
+// type can store its own shape (see the BlogBlockType union in types).
+const ContentBlockSchema = new Schema(
+  {
+    id: { type: String, required: true },
+    type: { type: String, required: true },
+    data: { type: Schema.Types.Mixed, default: {} },
+    hidden: { type: Boolean, default: false },
+  },
+  { _id: false }
+);
+
 const PageSchema = new Schema<PageDocument>(
   {
     pageName: { type: String, required: true, trim: true },
@@ -46,6 +59,31 @@ const PageSchema = new Schema<PageDocument>(
     seoMeta: { type: String },
     component: { type: [Schema.Types.Mixed] },
     modifications: [ModificationSchema],
+
+    // --- Blog-specific fields (only populated for pageType 'blog') ---
+    excerpt: { type: String },
+    contentBlocks: { type: [ContentBlockSchema], default: undefined },
+    categories: [{ type: Schema.Types.ObjectId, ref: 'Category' }],
+    tags: [{ type: Schema.Types.ObjectId, ref: 'Tag' }],
+    authorId: { type: Schema.Types.ObjectId, ref: 'Author' },
+    seo: {
+      title: { type: String },
+      description: { type: String },
+      keywords: { type: [String], default: undefined },
+      canonical: { type: String },
+      ogImage: { type: String },
+      index: { type: Boolean, default: true },
+    },
+    status: {
+      type: String,
+      enum: ['draft', 'published', 'scheduled', 'archived'],
+      default: 'draft',
+    },
+    publishedAt: { type: Date },
+    scheduledAt: { type: Date },
+    readingTime: { type: Number, default: 0 },
+    views: { type: Number, default: 0 },
+    slugHistory: { type: [String], default: undefined },
   },
   { timestamps: true }
 );
@@ -53,6 +91,9 @@ const PageSchema = new Schema<PageDocument>(
 // Create indexes for better query performance
 PageSchema.index({ pageName: 1, createdBy: 1 });
 PageSchema.index({ pageType: 1, isGlobal: 1 });
+// Blog listing: filter by type + status, sorted by publish date.
+PageSchema.index({ pageType: 1, status: 1, publishedAt: -1 });
+PageSchema.index({ status: 1, publishedAt: -1 });
 
 const PageModel = models.Page || model<PageDocument>('Page', PageSchema);
 

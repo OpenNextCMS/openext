@@ -11,6 +11,8 @@ import {
 } from '@/redux/canvasSlice';
 import { useState } from 'react';
 import { resolveRedirectUrl, useBlockEvents, triggerBlockEvent } from '@/hooks/useBlockEvents';
+import { useMergedMenu, type MenuDirective } from '@/components/menu-redirect/useMergedMenu';
+import { trackMenuClick } from '@/lib/menu-redirect/track-client';
 
 type NavbarLayout = 'horizontal' | 'vertical' | 'hamburger' | 'two-line';
 
@@ -32,6 +34,9 @@ export const NavbarBlock = ({ block, isEditing = true }: BlockRendererProps) => 
   const [isHovered, setIsHovered] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { handleClick } = useBlockEvents(block as BlockData, isEditing);
+  // Menu Redirect plugin: merge redirect directives into published links.
+  // When the plugin is inactive, `getFor` returns null and links are untouched.
+  const mergedMenu = useMergedMenu();
 
   const navbarData: NavbarContent = (() => {
     try {
@@ -78,6 +83,64 @@ export const NavbarBlock = ({ block, isEditing = true }: BlockRendererProps) => 
       e.stopPropagation();
       window.location.href = resolveRedirectUrl(link.href);
     }
+  };
+
+  // Click handler honoring a Menu Redirect directive (tracking / new tab /
+  // disabled), falling back to the block's normal link behavior otherwise.
+  const handleNavClick = (
+    e: React.MouseEvent,
+    link: NonNullable<NavbarContent['links']>[number],
+    directive: MenuDirective | null
+  ) => {
+    if (isEditing) return;
+    if (!directive) {
+      handleLinkClick(e, link);
+      return;
+    }
+    e.preventDefault();
+    e.stopPropagation();
+    if (!directive.enabled) return; // disabled redirect → non-clickable
+    if (directive.trackClicks && directive.mappingId) trackMenuClick(directive.mappingId);
+    const href = resolveRedirectUrl(directive.href || link.href);
+    if (directive.openInNewTab) window.open(href, '_blank', 'noopener');
+    else window.location.href = href;
+  };
+
+  // Centralized link renderer so merged hrefs/attrs apply across every layout.
+  const renderNavLink = (
+    link: NonNullable<NavbarContent['links']>[number],
+    index: number,
+    className: string
+  ) => {
+    const directive = !isEditing ? mergedMenu.getFor(link.label, index) : null;
+    const effectiveHref = directive?.href || link.href;
+    const disabled = directive ? !directive.enabled : false;
+    const target = directive?.openInNewTab ? '_blank' : undefined;
+    const rel =
+      [target ? 'noopener' : '', directive?.nofollow ? 'nofollow' : ''].filter(Boolean).join(' ') ||
+      undefined;
+    const dataAttrs = directive?.dataAttributes
+      ? Object.fromEntries(
+          Object.entries(directive.dataAttributes).map(([k, v]) => [
+            k.startsWith('data-') ? k : `data-${k}`,
+            v,
+          ])
+        )
+      : {};
+    return (
+      <a
+        key={index}
+        href={isEditing || disabled ? undefined : effectiveHref}
+        target={target}
+        rel={rel}
+        onClick={(e) => handleNavClick(e, link, directive)}
+        className={`${className} ${directive?.customClass ?? ''}`}
+        style={{ color: block.style?.color || 'inherit', ...(disabled ? { opacity: 0.5, cursor: 'not-allowed' } : {}) }}
+        {...dataAttrs}
+      >
+        {link.label}
+      </a>
+    );
   };
 
   const links = navbarData.links || [
@@ -186,17 +249,13 @@ export const NavbarBlock = ({ block, isEditing = true }: BlockRendererProps) => 
             {logoNode}
           </div>
           <div className="flex items-center justify-center gap-8 flex-wrap">
-            {links.map((link, index) => (
-              <a
-                key={index}
-                href={isEditing ? undefined : link.href}
-                onClick={(e) => handleLinkClick(e, link)}
-                className="text-sm font-medium hover:opacity-80 transition-opacity cursor-pointer"
-                style={{ color: block.style?.color || 'inherit' }}
-              >
-                {link.label}
-              </a>
-            ))}
+            {links.map((link, index) =>
+              renderNavLink(
+                link,
+                index,
+                'text-sm font-medium hover:opacity-80 transition-opacity cursor-pointer'
+              )
+            )}
           </div>
         </nav>
       ) : layout === 'vertical' ? (
@@ -215,17 +274,13 @@ export const NavbarBlock = ({ block, isEditing = true }: BlockRendererProps) => 
         >
           <div className="flex items-center">{logoNode}</div>
           <div className="flex flex-col gap-2">
-            {links.map((link, index) => (
-              <a
-                key={index}
-                href={isEditing ? undefined : link.href}
-                onClick={(e) => handleLinkClick(e, link)}
-                className="text-sm font-medium hover:opacity-80 transition-opacity cursor-pointer py-1"
-                style={{ color: block.style?.color || 'inherit' }}
-              >
-                {link.label}
-              </a>
-            ))}
+            {links.map((link, index) =>
+              renderNavLink(
+                link,
+                index,
+                'text-sm font-medium hover:opacity-80 transition-opacity cursor-pointer py-1'
+              )
+            )}
           </div>
         </nav>
       ) : layout === 'hamburger' ? (
@@ -263,17 +318,9 @@ export const NavbarBlock = ({ block, isEditing = true }: BlockRendererProps) => 
               }}
             >
               <div className="flex flex-col p-4 space-y-4">
-                {links.map((link, index) => (
-                  <a
-                    key={index}
-                    href={isEditing ? undefined : link.href}
-                    onClick={(e) => handleLinkClick(e, link)}
-                    className="text-base font-medium hover:opacity-80"
-                    style={{ color: block.style?.color || 'inherit' }}
-                  >
-                    {link.label}
-                  </a>
-                ))}
+                {links.map((link, index) =>
+                  renderNavLink(link, index, 'text-base font-medium hover:opacity-80')
+                )}
               </div>
             </div>
           )}
@@ -294,17 +341,13 @@ export const NavbarBlock = ({ block, isEditing = true }: BlockRendererProps) => 
 
           {/* Desktop Links */}
           <div className="hidden md:flex items-center gap-8">
-            {links.map((link, index) => (
-              <a
-                key={index}
-                href={isEditing ? undefined : link.href}
-                onClick={(e) => handleLinkClick(e, link)}
-                className="text-sm font-medium hover:opacity-80 transition-opacity cursor-pointer"
-                style={{ color: block.style?.color || 'inherit' }}
-              >
-                {link.label}
-              </a>
-            ))}
+            {links.map((link, index) =>
+              renderNavLink(
+                link,
+                index,
+                'text-sm font-medium hover:opacity-80 transition-opacity cursor-pointer'
+              )
+            )}
           </div>
 
           {/* Mobile Toggle */}
@@ -329,17 +372,9 @@ export const NavbarBlock = ({ block, isEditing = true }: BlockRendererProps) => 
               }}
             >
               <div className="flex flex-col p-4 space-y-4">
-                {links.map((link, index) => (
-                  <a
-                    key={index}
-                    href={isEditing ? undefined : link.href}
-                    onClick={(e) => handleLinkClick(e, link)}
-                    className="text-base font-medium hover:opacity-80"
-                    style={{ color: block.style?.color || 'inherit' }}
-                  >
-                    {link.label}
-                  </a>
-                ))}
+                {links.map((link, index) =>
+                  renderNavLink(link, index, 'text-base font-medium hover:opacity-80')
+                )}
               </div>
             </div>
           )}

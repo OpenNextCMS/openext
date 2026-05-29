@@ -4,7 +4,34 @@ import { ISettings, settingsSchema } from '@/models/Settings';
 import { PageSchema } from '@/models/Page';
 import { roleSchema } from '@/models/Role';
 import { PluginSchema } from '@/models/Plugin';
-import type { PageDocument, ISettingsDocument, ITheme, IPluginDocument } from '@/types/index';
+import { CategorySchema } from '@/models/Category';
+import { TagSchema } from '@/models/Tag';
+import { AuthorSchema } from '@/models/Author';
+import { CommentSchema } from '@/models/Comment';
+import { AnalyticsEventSchema } from '@/models/AnalyticsEvent';
+import { LayoutSchema } from '@/models/Layout';
+import { ThemeSettingsSchema } from '@/models/ThemeSettings';
+import { MenuRedirectMappingSchema } from '@/models/MenuRedirectMapping';
+import { MenuRedirectAnalyticsSchema } from '@/models/MenuRedirectAnalytics';
+import { MenuRedirectHistorySchema } from '@/models/MenuRedirectHistory';
+import type {
+  MenuRedirectMappingDocument,
+  MenuRedirectAnalyticsDocument,
+  MenuRedirectHistoryDocument,
+} from '@/types/menu-redirect';
+import type {
+  PageDocument,
+  ISettingsDocument,
+  ITheme,
+  IPluginDocument,
+  ICategoryDocument,
+  ITagDocument,
+  IAuthorDocument,
+  ICommentDocument,
+  IAnalyticsEventDocument,
+  ILayoutDocument,
+  IBlogThemeSettingsDocument,
+} from '@/types/index';
 import { getDynamicEnv } from '@/utils/dynamicEnv';
 import { withDbName } from '@/utils/mongoUri';
 
@@ -159,6 +186,41 @@ export async function getPageDbConnection() {
         pageDb.model<PageDocument>('Page', PageSchema);
       }
 
+      // Register the sibling blog collections on the same per-tenant page DB.
+      if (!pageDb.models.Category) {
+        pageDb.model<ICategoryDocument>('Category', CategorySchema);
+      }
+      if (!pageDb.models.Tag) {
+        pageDb.model<ITagDocument>('Tag', TagSchema);
+      }
+      if (!pageDb.models.Author) {
+        pageDb.model<IAuthorDocument>('Author', AuthorSchema);
+      }
+      if (!pageDb.models.Comment) {
+        pageDb.model<ICommentDocument>('Comment', CommentSchema);
+      }
+      if (!pageDb.models.AnalyticsEvent) {
+        pageDb.model<IAnalyticsEventDocument>('AnalyticsEvent', AnalyticsEventSchema);
+      }
+      if (!pageDb.models.Layout) {
+        pageDb.model<ILayoutDocument>('Layout', LayoutSchema);
+      }
+      if (!pageDb.models.ThemeSettings) {
+        pageDb.model<IBlogThemeSettingsDocument>('ThemeSettings', ThemeSettingsSchema);
+      }
+      if (!pageDb.models.MenuRedirectMapping) {
+        pageDb.model<MenuRedirectMappingDocument>('MenuRedirectMapping', MenuRedirectMappingSchema);
+      }
+      if (!pageDb.models.MenuRedirectAnalytics) {
+        pageDb.model<MenuRedirectAnalyticsDocument>(
+          'MenuRedirectAnalytics',
+          MenuRedirectAnalyticsSchema
+        );
+      }
+      if (!pageDb.models.MenuRedirectHistory) {
+        pageDb.model<MenuRedirectHistoryDocument>('MenuRedirectHistory', MenuRedirectHistorySchema);
+      }
+
       pageDb.on('error', (error) => {
         console.error('❌ MongoDB page database connection error:', error);
         pageDb = null;
@@ -189,6 +251,112 @@ export function getPageModel(pageDb: mongoose.Connection): mongoose.Model<PageDo
     pageDb.model<PageDocument>('Page', PageSchema)
   );
 }
+export function getCategoryModel(
+  pageDb: mongoose.Connection
+): mongoose.Model<ICategoryDocument> {
+  if (!pageDb) {
+    throw new Error('Page database connection not initialized');
+  }
+  return (
+    (pageDb.models.Category as mongoose.Model<ICategoryDocument>) ||
+    pageDb.model<ICategoryDocument>('Category', CategorySchema)
+  );
+}
+
+export function getTagModel(pageDb: mongoose.Connection): mongoose.Model<ITagDocument> {
+  if (!pageDb) {
+    throw new Error('Page database connection not initialized');
+  }
+  return (
+    (pageDb.models.Tag as mongoose.Model<ITagDocument>) ||
+    pageDb.model<ITagDocument>('Tag', TagSchema)
+  );
+}
+
+export function getAuthorModel(pageDb: mongoose.Connection): mongoose.Model<IAuthorDocument> {
+  if (!pageDb) {
+    throw new Error('Page database connection not initialized');
+  }
+  return (
+    (pageDb.models.Author as mongoose.Model<IAuthorDocument>) ||
+    pageDb.model<IAuthorDocument>('Author', AuthorSchema)
+  );
+}
+
+export function getCommentModel(pageDb: mongoose.Connection): mongoose.Model<ICommentDocument> {
+  if (!pageDb) {
+    throw new Error('Page database connection not initialized');
+  }
+  return (
+    (pageDb.models.Comment as mongoose.Model<ICommentDocument>) ||
+    pageDb.model<ICommentDocument>('Comment', CommentSchema)
+  );
+}
+
+export function getAnalyticsEventModel(
+  pageDb: mongoose.Connection
+): mongoose.Model<IAnalyticsEventDocument> {
+  if (!pageDb) {
+    throw new Error('Page database connection not initialized');
+  }
+  return (
+    (pageDb.models.AnalyticsEvent as mongoose.Model<IAnalyticsEventDocument>) ||
+    pageDb.model<IAnalyticsEventDocument>('AnalyticsEvent', AnalyticsEventSchema)
+  );
+}
+
+export function getLayoutModel(pageDb: mongoose.Connection): mongoose.Model<ILayoutDocument> {
+  if (!pageDb) {
+    throw new Error('Page database connection not initialized');
+  }
+  return (
+    (pageDb.models.Layout as mongoose.Model<ILayoutDocument>) ||
+    pageDb.model<ILayoutDocument>('Layout', LayoutSchema)
+  );
+}
+
+export function getThemeSettingsModel(
+  pageDb: mongoose.Connection
+): mongoose.Model<IBlogThemeSettingsDocument> {
+  if (!pageDb) {
+    throw new Error('Page database connection not initialized');
+  }
+  return (
+    (pageDb.models.ThemeSettings as mongoose.Model<IBlogThemeSettingsDocument>) ||
+    pageDb.model<IBlogThemeSettingsDocument>('ThemeSettings', ThemeSettingsSchema)
+  );
+}
+
+export function getMenuRedirectMappingModel(
+  pageDb: mongoose.Connection
+): mongoose.Model<MenuRedirectMappingDocument> {
+  if (!pageDb) throw new Error('Page database connection not initialized');
+  return (
+    (pageDb.models.MenuRedirectMapping as mongoose.Model<MenuRedirectMappingDocument>) ||
+    pageDb.model<MenuRedirectMappingDocument>('MenuRedirectMapping', MenuRedirectMappingSchema)
+  );
+}
+
+export function getMenuRedirectAnalyticsModel(
+  pageDb: mongoose.Connection
+): mongoose.Model<MenuRedirectAnalyticsDocument> {
+  if (!pageDb) throw new Error('Page database connection not initialized');
+  return (
+    (pageDb.models.MenuRedirectAnalytics as mongoose.Model<MenuRedirectAnalyticsDocument>) ||
+    pageDb.model<MenuRedirectAnalyticsDocument>('MenuRedirectAnalytics', MenuRedirectAnalyticsSchema)
+  );
+}
+
+export function getMenuRedirectHistoryModel(
+  pageDb: mongoose.Connection
+): mongoose.Model<MenuRedirectHistoryDocument> {
+  if (!pageDb) throw new Error('Page database connection not initialized');
+  return (
+    (pageDb.models.MenuRedirectHistory as mongoose.Model<MenuRedirectHistoryDocument>) ||
+    pageDb.model<MenuRedirectHistoryDocument>('MenuRedirectHistory', MenuRedirectHistorySchema)
+  );
+}
+
 export function getUserModel(): mongoose.Model<IUser> {
   if (!userDb) {
     throw new Error('User database connection not initialized');

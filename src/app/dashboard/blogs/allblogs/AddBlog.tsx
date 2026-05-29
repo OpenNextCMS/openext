@@ -58,23 +58,8 @@ export default function AddBlog() {
       const result = await response.json();
 
       if (response.ok && result.success) {
-        // Step 2: Get pages and userId
-        const getResponse = await fetch(`${backendUrl}/api/pages/get-pages`, {
-          method: 'GET',
-          credentials: 'include',
-        });
-
-        const getData = await getResponse.json();
-
-        if (getResponse.ok && getData.userId) {
-          const userId = getData.userId;
-          // Step 3: Redirect with page info
-          window.open(
-            `/Editor?pagename=${encodeURIComponent(slug)}&userId=${userId}&pageId=${result.data._id}`
-          );
-        } else {
-          console.error('Failed to fetch user/pages:', getData.message || getData.error);
-        }
+        // Open the new block-based blog editor for the freshly created post.
+        window.location.assign(`/dashboard/blogs/${result.data._id}/edit`);
       } else {
         console.error('Blog post creation failed:', result.message);
       }

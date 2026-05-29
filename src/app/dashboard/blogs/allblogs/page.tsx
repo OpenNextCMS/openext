@@ -330,7 +330,7 @@ function BlogTable({ blogs, loading, userId, onTogglePublish, onPostDelete }: an
               <TableCell className="text-right">
                 <div className="flex items-center justify-end gap-2">
                   <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" asChild>
-                    <a href={`/${blog.slug}`} target="_blank" rel="noopener noreferrer">
+                    <a href={`/blog/${blog.slug}`} target="_blank" rel="noopener noreferrer">
                       <ExternalLink className="h-4 w-4" />
                     </a>
                   </Button>
@@ -344,7 +344,7 @@ function BlogTable({ blogs, loading, userId, onTogglePublish, onPostDelete }: an
                     <DropdownMenuContent align="end" className="w-48 rounded-xl p-2 shadow-xl border-border/50">
                       <DropdownMenuLabel className="text-[10px] font-bold uppercase text-muted-foreground px-2 py-1.5">Editorial Actions</DropdownMenuLabel>
                       <DropdownMenuItem className="rounded-lg gap-2 cursor-pointer py-2.5" asChild>
-                        <Link href={`/Editor?pagename=${encodeURIComponent(blog.slug)}&userId=${userId}&pageId=${blog._id}`}>
+                        <Link href={`/dashboard/blogs/${blog._id}/edit`}>
                           <Edit className="h-4 w-4 text-blue-500" /> Edit Content
                         </Link>
                       </DropdownMenuItem>

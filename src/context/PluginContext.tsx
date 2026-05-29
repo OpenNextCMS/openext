@@ -46,6 +46,15 @@ export const PluginProvider = ({ children }: { children: ReactNode }) => {
           const pluginType = (plugin.type || '').toLowerCase();
           const pluginName = plugin.name.toLowerCase();
 
+          // Menu Redirect is a dashboard *system* (accessed via the sidebar),
+          // not a placeable block. Skip registering it in the block registry so
+          // it never appears in the editor's add-blocks panel. It stays in
+          // `activePlugins`, which the dashboard sidebar uses to surface its nav.
+          const isMenuRedirect =
+            plugin.pluginId === 'menu-redirect' ||
+            (pluginName.includes('menu') && pluginName.includes('redirect'));
+          if (isMenuRedirect) continue;
+
           if (
             pluginType === 'chart' ||
             pluginName.includes('visualizer') ||

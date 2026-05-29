@@ -2,7 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   LayoutDashboard,
   FileText,
@@ -20,7 +20,20 @@ import {
   ArrowUpToLine,
   ArrowDownToLine,
   BrainCircuit,
+  Route,
+  LayoutTemplate,
+  BarChart3,
+  History,
+  type LucideIcon,
 } from 'lucide-react';
+import { usePlugins } from '@/context/PluginContext';
+
+type NavSection = {
+  label: string;
+  icon: LucideIcon;
+  path?: string;
+  links: { label: string; icon: LucideIcon; path: string }[];
+};
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -30,7 +43,7 @@ import img from '../../public/img/openNext.png';
 import dimg from '../../public/img/openNextWhite.png';
 import { useTheme } from '@/context/ThemeContext';
 
-const navItems = [
+const navItems: NavSection[] = [
   {
     label: 'Dashboard',
     icon: LayoutDashboard,
@@ -81,6 +94,28 @@ const navItems = [
   },
 ];
 
+// Nav entry for the Menu Redirect *system* plugin. Only shown in the sidebar
+// when the plugin is active (see PluginContext.activePlugins). It is NOT an
+// add-blocks block — it is accessed entirely from the dashboard.
+const menuRedirectNav: NavSection = {
+  label: 'Menu Redirect',
+  icon: Route,
+  links: [
+    { label: 'Mappings', icon: List, path: '/dashboard/plugins/menu-redirect' },
+    { label: 'Visual Editor', icon: LayoutTemplate, path: '/dashboard/plugins/menu-redirect/editor' },
+    { label: 'Analytics', icon: BarChart3, path: '/dashboard/plugins/menu-redirect/analytics' },
+    { label: 'History', icon: History, path: '/dashboard/plugins/menu-redirect/history' },
+  ],
+};
+
+/** True when the active marketplace plugins include the Menu Redirect system. */
+function hasMenuRedirect(plugins: { pluginId: string; name: string }[]): boolean {
+  return plugins.some((p) => {
+    const name = (p.name || '').toLowerCase();
+    return p.pluginId === 'menu-redirect' || (name.includes('menu') && name.includes('redirect'));
+  });
+}
+
 export default function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
@@ -89,6 +124,13 @@ export default function Sidebar() {
   const pathname = usePathname();
 
   const { theme } = useTheme();
+  const { activePlugins } = usePlugins();
+
+  // Append the Menu Redirect system nav only while its plugin is active.
+  const sections = useMemo(
+    () => (hasMenuRedirect(activePlugins) ? [...navItems, menuRedirectNav] : navItems),
+    [activePlugins]
+  );
 
   useEffect(() => {
     // Check if we're on mobile and set initial state
@@ -103,7 +145,7 @@ export default function Sidebar() {
     window.addEventListener('resize', checkMobile);
 
     // Initialize open dropdown based on current path
-    const currentSection = navItems.find(
+    const currentSection = sections.find(
       (item) => item.links.some((link) => pathname === link.path) || pathname === item.path
     );
     if (currentSection) {
@@ -111,7 +153,7 @@ export default function Sidebar() {
     }
 
     return () => window.removeEventListener('resize', checkMobile);
-  }, [pathname]);
+  }, [pathname, sections]);
 
   const toggleDropdown = (label: string) => {
     setOpenDropdown(openDropdown === label ? null : label);
@@ -119,7 +161,7 @@ export default function Sidebar() {
 
   const isActive = (path: string) => pathname === path;
   const isSectionActive = (label: string) => {
-    const section = navItems.find((item) => item.label === label);
+    const section = sections.find((item) => item.label === label);
     return section?.path === pathname || section?.links.some((link) => link.path === pathname);
   };
 
@@ -185,7 +227,7 @@ export default function Sidebar() {
           <nav className="flex-1 overflow-y-auto py-4 px-3">
             <div className="space-y-1">
               <TooltipProvider delayDuration={0}>
-                {navItems.map((item) => (
+                {sections.map((item) => (
                   <div key={item.label} className="mb-1">
                     {item.links.length > 0 ? (
                       <Collapsible

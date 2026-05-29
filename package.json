@@ -43,6 +43,7 @@
     "framer-motion": "^12.4.7",
     "groq-sdk": "^1.1.2",
     "i18next-resources-to-backend": "^1.2.1",
+    "isomorphic-dompurify": "^3.15.0",
     "js-cookie": "^3.0.5",
     "jsonrepair": "^3.14.0",
     "jsonwebtoken": "^9.0.2",

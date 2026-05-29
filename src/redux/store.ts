@@ -1,5 +1,6 @@
 import { configureStore, combineReducers } from '@reduxjs/toolkit';
 import canvasReducer from './canvasSlice';
+import menuRedirectReducer from './menuRedirectSlice';
 import customStorage from './customStorage';
 import {
   persistStore,
@@ -19,6 +20,7 @@ const persistConfig = {
 };
 const rootReducer = combineReducers({
   canvas: canvasReducer,
+  menuRedirect: menuRedirectReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
