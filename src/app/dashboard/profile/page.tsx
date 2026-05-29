@@ -88,7 +88,7 @@ export default function ProfilePage() {
     setT(translations[langFromCookie as keyof typeof translations] as typeof translations.en);
   }, []);
 
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
 
   useEffect(() => {
     const fetchUserData = async () => {

@@ -91,7 +91,7 @@ export default function UserManagementDashboard() {
   const [activeTab, setActiveTab] = useState('user-list');
   const [filteredUsers, setFilteredUsers] = useState<UserData[]>([]);
 
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
 
   // Fetch roles for both components
   useEffect(() => {

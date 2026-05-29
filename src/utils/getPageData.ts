@@ -2,13 +2,19 @@ import { getPageDbConnection, getPageModel } from '@/utils/db';
 import type { BlockData } from '@/types/index';
 
 interface PageDoc {
-  slug?: string;
-  pageType?: 'page' | 'header' | 'footer';
+  _id?: string;
+  pageName: string;
+  pageType: 'page' | 'header' | 'footer' | 'blog';
   isPublished?: boolean;
   isGlobal?: boolean;
   component?: BlockData[];
   createdBy?: unknown;
   updatedAt?: Date;
+  category?: string;
+  authorName?: string;
+  featuredImage?: string;
+  publishDate?: Date;
+  description?: string;
 }
 
 export interface PageDataResult {
@@ -72,6 +78,7 @@ export async function getPageDataForSlug(slug: string): Promise<{
   blocks: BlockData[];
   headerBlocks: BlockData[];
   footerBlocks: BlockData[];
+  metadata: Partial<PageDoc>;
 } | null> {
   const data = await fetchPageWithLayout(slug);
   if (!data?.page || !Array.isArray(data.page.component)) return null;
@@ -79,8 +86,11 @@ export async function getPageDataForSlug(slug: string): Promise<{
   const isLayoutPart =
     data.page.pageType === 'header' || data.page.pageType === 'footer';
 
+  const { component, ...metadata } = data.page;
+
   return {
-    blocks: data.page.component,
+    blocks: component || [],
+    metadata,
     headerBlocks:
       !isLayoutPart && Array.isArray(data.header?.component) ? data.header!.component : [],
     footerBlocks:

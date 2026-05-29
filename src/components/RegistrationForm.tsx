@@ -109,7 +109,7 @@ const NewRegisterForm = () => {
       const userDbName = safeStorageGet('USER_DB_NAME');
       const pageDbName = safeStorageGet('PAGE_DB_NAME');
 
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000'; // Use external backend URL if it exists
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || ''; // Use external backend URL if it exists
 
       const setupResponse = await fetch(`${backendUrl}/api/auth/setup-databases`, {
         method: 'POST',

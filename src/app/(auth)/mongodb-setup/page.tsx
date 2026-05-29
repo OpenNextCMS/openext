@@ -105,7 +105,7 @@ export default function MongoDBSetup() {
     e.preventDefault();
     setIsLoading(true);
 
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
 
     try {
       // Construct payload based on connection type

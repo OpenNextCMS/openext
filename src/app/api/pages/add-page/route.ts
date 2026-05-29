@@ -26,10 +26,10 @@ export async function POST(req: NextRequest) {
     const pageDb = await getPageDbConnection();
 
     // 2. Get the Page model tied to this DB
-    const Page = getPageModel(pageDb);
+    const PageModel = getPageModel(pageDb);
 
     // 3. Create a new Page
-    const newPage: PageDocument = await Page.create({
+    const newPage = new PageModel({
       ...body,
       createdBy: userId,
       modifications: [
@@ -39,6 +39,8 @@ export async function POST(req: NextRequest) {
         },
       ],
     });
+    
+    await newPage.save();
 
     return NextResponse.json({ success: true, data: newPage, userId }, { status: 201 });
   } catch (error) {
