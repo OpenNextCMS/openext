@@ -117,7 +117,7 @@ export default function SettingsPage() {
   }, [enableDarkMode]);
 
   useEffect(() => {
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
     const fetchSettingsData = async () => {
       try {
         setIsLoading(true);
@@ -176,7 +176,7 @@ export default function SettingsPage() {
   }, [setValue]);
 
   const handleSiteIconChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
     const file = e.target.files?.[0];
     if (!file) return;
     const formData = new FormData();
@@ -214,7 +214,7 @@ export default function SettingsPage() {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
 
     try {
       // Map imgSize to the correct structure for MongoDB

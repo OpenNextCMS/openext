@@ -27,16 +27,26 @@ export default function DynamicTitle() {
   useEffect(() => {
     async function fetchSiteSettings() {
       try {
-        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
-        const res = await fetch(`${backendUrl}/api/dashboard/settings`);
-        const data = await res.json();
+        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
+        
+        // Only fetch if we have a valid URL or if it's a relative path
+        const res = await fetch(`${backendUrl}/api/dashboard/settings`, {
+          headers: { 'Accept': 'application/json' }
+        });
 
-        const siteTitle = data?.data?.settings?.siteTitle || 'Next.js Setup Project';
-        const siteIcon = resolveSiteIcon(data?.data?.settings?.siteIcon);
+        if (res.ok) {
+          const data = await res.json();
+          const siteTitle = data?.data?.settings?.siteTitle || 'Next.js Setup Project';
+          const siteIcon = resolveSiteIcon(data?.data?.settings?.siteIcon);
 
-        const fullTitle = lastSegment ? `${lastSegment} | ${siteTitle}` : siteTitle;
-        setTitle(fullTitle);
-        setIcon(siteIcon);
+          const fullTitle = lastSegment ? `${lastSegment} | ${siteTitle}` : siteTitle;
+          setTitle(fullTitle);
+          setIcon(siteIcon);
+        } else {
+          // Fallback if API fails (e.g. 500 or 404)
+          setTitle(lastSegment ? `${lastSegment} | Next.js Setup Project` : 'Next.js Setup Project');
+          setIcon('/favicon.ico');
+        }
       } catch (error) {
         console.error('Failed to fetch site settings:', error);
         setTitle('Next.js Setup Project');

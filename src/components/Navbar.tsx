@@ -23,7 +23,7 @@ export default function Navbar({ user }: { user: { username: string; email: stri
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { avatarUrl } = useAvatar();
   const router = useRouter();
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
   const avatarSrc = getAvatarSrc(avatarUrl);
 
   const navigateTo = (path: string) => {

@@ -177,7 +177,8 @@ export interface Block {
     | 'feature-boxed'
     | 'feature-zigzag'
     | 'feature-checklist'
-    | 'feature-list';
+    | 'feature-list'
+    | 'blog-feed';
   children?: ColumnChild[]; // Updated type for children
   content?: string;
   icon?: ReactNode | string;
@@ -347,7 +348,8 @@ export interface BlockData {
     | 'feature-boxed'
     | 'feature-zigzag'
     | 'feature-checklist'
-    | 'feature-list';
+    | 'feature-list'
+    | 'blog-feed';
   children?: BlockData[][];
   style?: React.CSSProperties;
   hoverStyle?: React.CSSProperties;
@@ -372,10 +374,15 @@ export interface Page {
   id?: string;
   _id?: string; // Add MongoDB _id
   pageName: string;
-  pageType?: 'page' | 'header' | 'footer' | 'blog';
+  pageType: 'page' | 'header' | 'footer' | 'blog';
   preHeading: string;
   description: string;
+  category?: string;
+  authorName?: string;
+  featuredImage?: string;
+  publishDate?: string;
   seoName: string;
+
   seoMeta: string;
   slug?: string;
   isHome?: boolean;

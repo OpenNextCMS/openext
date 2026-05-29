@@ -39,9 +39,9 @@ interface Page {
   lastModified: string;
   slug: string;
 }
-const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
+const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
 
-export default function PageManagement() {
+export default function AllPagesPage() {
 
   const [pages, setPages] = useState<Page[]>([]);
   const [isLoading, setIsLoading] = useState(false);

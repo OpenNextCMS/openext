@@ -44,6 +44,7 @@ import { FeatureBoxed } from '@/components/ui/FeatureBoxed';
 import { FeatureZigzag } from '@/components/ui/FeatureZigzag';
 import { FeatureChecklist } from '@/components/ui/FeatureChecklist';
 import { FeatureList } from '@/components/ui/FeatureList';
+import { BlogFeed } from '@/components/ui/BlogFeed';
 import { EcommerceGrid } from '@/components/ui/EcommerceGrid';
 import { EcommerceDetail } from '@/components/ui/EcommerceDetail';
 import { EcommerceInfo } from '@/components/ui/EcommerceInfo';
@@ -90,6 +91,7 @@ const genericUiBlocks: Record<string, { component: React.ComponentType<BlockRend
   'feature-zigzag': { component: FeatureZigzag, label: 'Feature Zigzag' },
   'feature-checklist': { component: FeatureChecklist, label: 'Feature Checklist' },
   'feature-list': { component: FeatureList, label: 'Feature List' },
+  'blog-feed': { component: BlogFeed, label: 'Blog Feed' },
   'ecommerce-grid': { component: EcommerceGrid, label: 'Product Grid' },
   'ecommerce-detail': { component: EcommerceDetail, label: 'Ecommerce Detail' },
   'ecommerce-info': { component: EcommerceInfo, label: 'Ecommerce Info' },

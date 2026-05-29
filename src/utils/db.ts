@@ -144,36 +144,41 @@ export const getUserDbConnection = async () => {
 
 export async function getPageDbConnection() {
   const dynamicEnv = getDynamicEnv();
-  const PAGE_DB_NAME = dynamicEnv.PAGE_DB_NAME;
+  const PAGE_DB_NAME = dynamicEnv.PAGE_DB_NAME || 'pages';
 
-  if (!PAGE_DB_NAME) {
-    throw new Error('PAGE_DB_NAME environment variable is not set');
-  }
+  try {
+    if (!pageDb || pageDb.readyState !== 1) {
+      const uri = await createConnectionUri(PAGE_DB_NAME);
+      pageDb = await mongoose.createConnection(uri, {
+        serverSelectionTimeoutMS: 30000,
+        socketTimeoutMS: 45000,
+        maxPoolSize: 10,
+      }).asPromise();
 
-  if (!pageDb) {
-    const uri = await createConnectionUri(PAGE_DB_NAME);
-    pageDb = await mongoose.createConnection(uri, {
-      serverSelectionTimeoutMS: 30000,
-      socketTimeoutMS: 45000,
-      maxPoolSize: 10,
-    });
+      if (!pageDb.models.Page) {
+        pageDb.model<PageDocument>('Page', PageSchema);
+      }
 
-    if (!pageDb.models.Page) {
-      pageDb.model<PageDocument>('Page', PageSchema);
+      pageDb.on('error', (error) => {
+        console.error('❌ MongoDB page database connection error:', error);
+        pageDb = null;
+      });
+
+      pageDb.on('connected', () => {
+        console.log(`✅ MongoDB page database (${PAGE_DB_NAME}) connected successfully`);
+      });
+
+      pageDb.on('disconnected', () => {
+        console.warn('⚠️ MongoDB page database disconnected');
+        pageDb = null;
+      });
     }
 
-    pageDb.on('error', (error) => {
-      console.error('MongoDB page database connection error:', error);
-      pageDb = null;
-    });
-
-    pageDb.on('disconnected', () => {
-      console.warn('MongoDB page database disconnected');
-      pageDb = null;
-    });
+    return pageDb;
+  } catch (error) {
+    console.error('❌ MongoDB page connection error:', error);
+    throw error;
   }
-
-  return pageDb;
 }
 export function getPageModel(pageDb: mongoose.Connection): mongoose.Model<PageDocument> {
   if (!pageDb) {
