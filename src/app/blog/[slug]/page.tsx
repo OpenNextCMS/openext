@@ -94,7 +94,6 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           </header>
 
           {post.featuredImage ? (
-            // eslint-disable-next-line @next/next/no-img-element
             <img
               src={post.featuredImage}
               alt={post.pageName}

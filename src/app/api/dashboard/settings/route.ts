@@ -24,11 +24,11 @@ export async function GET() {
 
     if (token) {
       try {
-        const decodedToken: any = jwtDecode(token);
+        const decodedToken = jwtDecode<{ email?: string }>(token);
         if (decodedToken && decodedToken.email) {
           isAuthenticated = true;
         }
-      } catch (e) {
+      } catch {
         console.warn('Invalid token found, treating as unauthenticated');
       }
     }

@@ -16,7 +16,6 @@ function HeroSection({ settings }: { settings: S }) {
   return (
     <section className="relative overflow-hidden bg-primary/5 px-4 py-20 text-center">
       {settings.image ? (
-        // eslint-disable-next-line @next/next/no-img-element
         <img
           src={String(settings.image)}
           alt=""

@@ -47,7 +47,6 @@ export default function RelatedPosts({ data }: { data: RelatedPostsData }) {
             className="group overflow-hidden rounded-2xl border transition-shadow hover:shadow-lg"
           >
             {post.featuredImage ? (
-              // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={post.featuredImage}
                 alt={post.pageName}

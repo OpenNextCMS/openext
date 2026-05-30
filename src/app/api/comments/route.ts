@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import type { FilterQuery } from 'mongoose';
 import { getPageDbConnection, getCommentModel } from '@/utils/db';
 import type { ICommentDocument } from '@/types/index';
-import { getAuthUser, requireAuth } from '@/lib/api/auth';
+import { getAuthUser } from '@/lib/api/auth';
 import { apiOk, handleApiError } from '@/lib/api/response';
 import { parsePagination } from '@/lib/api/pagination';
 import { createCommentSchema } from '@/lib/validation/comment';

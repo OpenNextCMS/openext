@@ -522,7 +522,6 @@ export default function PromptPanel() {
           {imageName || 'Upload image'}
         </Button>
         {imagePreview && (
-          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={imagePreview}
             alt="Reference preview"

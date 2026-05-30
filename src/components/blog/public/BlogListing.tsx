@@ -157,7 +157,6 @@ export default function BlogListing({ initialCategory }: { initialCategory?: str
             className="group overflow-hidden rounded-2xl border transition-shadow hover:shadow-lg"
           >
             {p.featuredImage ? (
-              // eslint-disable-next-line @next/next/no-img-element
               <img src={p.featuredImage} alt={p.pageName} className="h-48 w-full object-cover" loading="lazy" />
             ) : (
               <div className="h-48 w-full bg-muted" />

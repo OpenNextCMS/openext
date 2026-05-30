@@ -65,7 +65,6 @@ export default function MetaPanel({ post, options, onField, slugEdited, onSlugEd
           placeholder="https://…"
         />
         {post.featuredImage ? (
-          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={post.featuredImage}
             alt="Featured preview"

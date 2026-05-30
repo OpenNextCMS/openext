@@ -74,6 +74,7 @@ export default function PagesComponent({
         const newPage: Page = {
           id: `page-${Date.now()}`,
           pageName,
+          pageType: 'page',
           preHeading: '',
           description: '',
           seoName: '',

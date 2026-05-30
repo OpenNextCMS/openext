@@ -17,6 +17,13 @@ import {
   type AiEditorBlock,
 } from './block-catalog';
 import { enrichComponentsWithImages, inferIndustryTags } from './fetch-images';
+import {
+  AI_STRUCTURE_PROMPT_V2,
+  AI_IMAGE_PRIMITIVE_PROMPT_V2,
+  buildV2ReviewContent,
+  normalizeV2Document,
+  extractPrimitiveComponents,
+} from './v2';
 
 export const runtime = 'nodejs';
 
@@ -665,6 +672,7 @@ type PageTheme = {
   fontFamily?: string;
   buttonStyle?: string;
   borderRadius?: string;
+  typographyScale?: string;
 };
 
 type SemanticBlock = {
@@ -740,6 +748,19 @@ const pickArray = (rec: Record<string, unknown>, ...keys: string[]): unknown[] =
   return [];
 };
 
+/** First positive integer among the given keys (e.g. a model-provided column count). */
+const pickNumber = (rec: Record<string, unknown>, ...keys: string[]): number | undefined => {
+  for (const k of keys) {
+    const v = rec[k];
+    const n = typeof v === 'number' ? v : typeof v === 'string' ? parseInt(v, 10) : NaN;
+    if (Number.isFinite(n) && n > 0) return n;
+  }
+  return undefined;
+};
+
+const clampCols = (n: number | undefined, fallback: 1 | 2 | 3): 1 | 2 | 3 =>
+  n === 1 || n === 2 || n === 3 ? n : n && n >= 3 ? 3 : fallback;
+
 const themeAccent = (theme?: PageTheme) => safeString(theme?.primaryColor, '#3b82f6');
 const themeSurface = (theme?: PageTheme) => safeString(theme?.backgroundColor, '#ffffff');
 const themeText = (theme?: PageTheme) =>
@@ -749,6 +770,16 @@ const themeMuted = (theme?: PageTheme) =>
 const themeRadius = (theme?: PageTheme) => safeString(theme?.borderRadius, '10px');
 const themeFont = (theme?: PageTheme) =>
   safeString(theme?.fontFamily, 'Inter, system-ui, sans-serif');
+
+/** Heading/body size multiplier from the model's typography scale. */
+const TYPE_SCALE: Record<string, number> = {
+  tight: 0.85,
+  balanced: 1,
+  'editorial-loose': 1.15,
+  'display-heavy': 1.4,
+};
+const themeScale = (theme?: PageTheme) => TYPE_SCALE[safeString(theme?.typographyScale)] ?? 1;
+const scalePx = (base: number, theme?: PageTheme) => `${Math.round(base * themeScale(theme))}px`;
 
 const newId = () => crypto.randomUUID();
 
@@ -942,7 +973,7 @@ const heroPadding = '112px 64px';
 const headingStyle = (theme?: PageTheme): CSSProperties => ({
   color: themeText(theme),
   fontFamily: themeFont(theme),
-  fontSize: '40px',
+  fontSize: scalePx(40, theme),
   fontWeight: 700,
   lineHeight: '1.15',
   letterSpacing: '-0.02em',
@@ -952,7 +983,7 @@ const headingStyle = (theme?: PageTheme): CSSProperties => ({
 const bodyTextStyle = (theme?: PageTheme): CSSProperties => ({
   color: themeMuted(theme),
   fontFamily: themeFont(theme),
-  fontSize: '17px',
+  fontSize: scalePx(17, theme),
   lineHeight: '1.6',
   margin: '0 0 8px 0',
 });
@@ -1125,7 +1156,10 @@ const translateCardGrid = (
   const { items, heading, subtitle, eyebrow } = cardListFromContent(block);
   const images = isRecord(block.images) ? block.images : {};
   const description = block.type || 'Card grid';
-  const cols = (items.length === 2 ? 2 : items.length === 1 ? 1 : defaultCols) as 1 | 2 | 3;
+  const cols = clampCols(
+    pickNumber(isRecord(block.content) ? block.content : {}, 'columns'),
+    (items.length === 2 ? 2 : items.length === 1 ? 1 : defaultCols) as 1 | 2 | 3
+  );
 
   const cards: BlockData[] = items.map((item, idx) => {
     const itemImage =
@@ -1173,7 +1207,10 @@ const translateCardGrid = (
 
 const translateFeatureGrid = (block: SemanticBlock, theme?: PageTheme): BlockData => {
   const { items, heading, subtitle, eyebrow } = cardListFromContent(block);
-  const cols: 1 | 2 | 3 = items.length === 2 ? 2 : items.length === 1 ? 1 : 3;
+  const cols: 1 | 2 | 3 = clampCols(
+    pickNumber(isRecord(block.content) ? block.content : {}, 'columns'),
+    items.length === 2 ? 2 : items.length === 1 ? 1 : 3
+  );
 
   const featureBlocks: BlockData[] = items.map((item) => {
     const cell: BlockData[] = [];
@@ -1491,7 +1528,10 @@ const translateGalleryOrPortfolio = (block: SemanticBlock, theme?: PageTheme): B
   const subtitle = pickString(content, 'subtitle', 'description');
   const eyebrow = pickString(content, 'eyebrow', 'tag');
 
-  const cols: 1 | 2 | 3 = tiles.length >= 3 ? 3 : tiles.length === 2 ? 2 : 1;
+  const cols: 1 | 2 | 3 = clampCols(
+    pickNumber(isRecord(block.content) ? block.content : {}, 'columns'),
+    tiles.length >= 3 ? 3 : tiles.length === 2 ? 2 : 1
+  );
   const gridChildren: BlockData[][] = Array.from({ length: cols }, () => []);
   tiles.forEach((t, i) => gridChildren[i % cols].push(t));
 
@@ -1874,7 +1914,7 @@ const translateCustomBlock = (block: SemanticBlock, theme?: PageTheme): BlockDat
   );
 };
 
-const translateSemanticBlock = (block: SemanticBlock, theme?: PageTheme): BlockData | null => {
+const dispatchSemanticBlock = (block: SemanticBlock, theme?: PageTheme): BlockData | null => {
   const type = safeString(block.type).toLowerCase();
   switch (type) {
     case 'navbar':
@@ -1937,11 +1977,27 @@ const translateSemanticBlock = (block: SemanticBlock, theme?: PageTheme): BlockD
   }
 };
 
+/**
+ * Translate a semantic block, then merge the model's per-section `styles`
+ * (background, text colour, padding, alignment, radius, font size…) onto the
+ * resulting container so the rendered section reflects the AI's design rather
+ * than only the fixed template defaults.
+ */
+const translateSemanticBlock = (block: SemanticBlock, theme?: PageTheme): BlockData | null => {
+  const result = dispatchSemanticBlock(block, theme);
+  if (result && isRecord(block.styles) && Object.keys(block.styles).length > 0) {
+    result.style = { ...result.style, ...sanitizeStyle(block.styles) };
+  }
+  return result;
+};
+
 const buildComponentsFromPage = (
   data: unknown,
   pageType: PageContext
 ): BlockData[] => {
-  const plan = parsePagePlan(data);
+  // v2 documents ({ meta, theme, blocks:[{type,data}] }) are rewritten into the
+  // legacy semantic shape here; legacy/site-mode input passes through untouched.
+  const plan = parsePagePlan(normalizeV2Document(data));
   const theme = plan.page.theme;
   const sorted = [...plan.page.blocks].sort(
     (a, b) => (typeof a.order === 'number' ? a.order : 0) - (typeof b.order === 'number' ? b.order : 0)
@@ -2361,20 +2417,20 @@ const buildAnalysisContent = ({
 }): GroqContentPart[] => [
   {
     type: 'text',
-    text: `${AI_WEBSITE_BUILDER_PROMPT}
+    text: `${AI_STRUCTURE_PROMPT_V2}
 
 ${focusInstruction}
 
 ${
   hasImage
-    ? 'A reference image has been attached. Use it as the visual reference for layout, color palette, and section order. Map what you see to the predefined block types listed above — do not output low-level primitive blocks.'
+    ? 'A reference image has been attached. Reconstruct it (Mode 2): preserve section order, column counts, hero type, and nav/CTA placement. Map what you see to the v2 block types — do not output low-level primitive blocks.'
     : ''
 }
 
 USER BRIEF: ${prompt || 'Generate a complete homepage for the described business.'}
 ${requestedLayoutInstruction ? `\nLayout note: ${requestedLayoutInstruction}` : ''}
 
-Return ONLY the JSON object described in JSON OUTPUT STRUCTURE above. The top-level key MUST be "page".`,
+Return ONLY one JSON object with top-level keys "meta", "theme", and "blocks". No markdown, no commentary.`,
   },
 ];
 
@@ -2388,62 +2444,8 @@ const buildReviewContent = ({
   requestedLayoutInstruction: string;
   focusInstruction: string;
   visibleAnalysis: unknown;
-}): GroqContentPart[] => [
-  {
-    type: 'text',
-    text: `You are the second-model quality reviewer for an AI Website Builder.
-
-Your job: take the page JSON the first model produced and return a REPAIRED, production-ready version that follows the predefined-block library exactly.
-
-${focusInstruction}
-
-ALLOWED PREDEFINED BLOCK TYPES:
-navbar, hero, heroSplit, heroCentered, services, features, featureGrid, about, stats, cta, testimonials, team, pricing, portfolio, faq, blog, contact, footer, gallery, process, trustedBy, newsletter, dashboardPreview
-
-Anything else MUST use type:"custom" with a descriptive customType.
-
-CURRENT PAGE JSON:
-${JSON.stringify(visibleAnalysis, null, 2)}
-
-USER BRIEF: ${prompt || 'Generate a complete homepage.'}
-${requestedLayoutInstruction ? `Layout note: ${requestedLayoutInstruction}` : ''}
-
-REVIEW CHECKLIST — apply ALL of these:
-1. Block ordering: navbar first, footer last, hero before any content section, CTA never before hero, testimonials never before hero.
-2. Block types: every block.type must be one of the predefined list above, or "custom" with a customType.
-3. Content quality: NO lorem ipsum, NO "Your headline here", NO placeholder filler. Rewrite generic copy into specific, niche-appropriate copy.
-4. Headings <= 10 words. Subheadings <= 30 words. Feature descriptions <= 20 words.
-5. Images: every block that needs an image (hero, about, services items, testimonials avatars, gallery, portfolio, dashboardPreview) has a real Unsplash/Pexels/Pixabay URL in the images object or item.image field.
-6. Theme: page.theme must have valid hex codes for primaryColor, secondaryColor, backgroundColor, textColor; a fontFamily CSS stack; a buttonStyle; and a borderRadius.
-7. Realistic data: testimonials have name+role+company+feedback; pricing has price+period+features+buttonText; stats have value+label; FAQ items have question+answer.
-8. Coherence: same brand name across navbar, footer, and copy. Consistent tone for the inferred industry.
-9. Block.order is set sequentially starting at 1.
-10. No duplicate sections of the same type unless intentional (only one navbar, only one footer).
-
-RETURN ONLY this JSON shape (no markdown, no fences):
-{
-  "qualityScore": 0,
-  "qualityNotes": ["short repair note"],
-  "page": {
-    "title": "",
-    "description": "",
-    "theme": {
-      "primaryColor": "",
-      "secondaryColor": "",
-      "backgroundColor": "",
-      "textColor": "",
-      "fontFamily": "",
-      "buttonStyle": "",
-      "borderRadius": ""
-    },
-    "blocks": []
-  }
-}
-
-Set qualityScore from 0 to 100 after repairs. Use below 80 only if the JSON is structurally broken or cannot be repaired into a professional page.
-Keep strings short: qualityNotes entries max 120 characters; page.title max 80 characters.`,
-  },
-];
+}): GroqContentPart[] =>
+  buildV2ReviewContent({ prompt, requestedLayoutInstruction, focusInstruction, visibleAnalysis });
 
 const detectSiteMode = (prompt: string): boolean => {
   if (!prompt) return false;
@@ -3079,6 +3081,52 @@ const generateReviewedAnalysisWithFallback = async ({
   throw new Error(`No provider produced professional output. ${errors.join(' | ')}`);
 };
 
+/**
+ * IMAGE mode (Mode 2): ask the vision model for the editor's BlockData
+ * primitives directly (exact colours/fonts/spacing/layout read from the image),
+ * bypassing the semantic templates. Returns the raw block array to sanitize.
+ */
+const generatePrimitiveComponentsFromImage = async ({
+  imageDataUrl,
+  prompt,
+  focusInstruction,
+  config,
+}: {
+  imageDataUrl: string;
+  prompt: string;
+  focusInstruction: string;
+  config: AiRuntimeConfig;
+}): Promise<{ components: unknown[]; payload: Record<string, unknown> | null }> => {
+  const apiKey = getOpenRouterApiKey(config);
+  const text = `${AI_IMAGE_PRIMITIVE_PROMPT_V2}
+
+${focusInstruction}
+
+${prompt ? `USER NOTE: ${prompt}` : ''}`;
+  const content: GroqContentPart[] = [
+    { type: 'text', text },
+    { type: 'image_url', image_url: { url: imageDataUrl } },
+  ];
+
+  let lastError = 'no output';
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const payload = await callOpenRouterJson(apiKey, {
+      model: config.openrouterModel,
+      messages: [{ role: 'user', content }],
+      max_completion_tokens: attempt === 0 ? 12288 : 16384,
+    });
+    try {
+      const parsed = parseModelJson(getOpenRouterMessageContent(payload));
+      const components = extractPrimitiveComponents(parsed);
+      if (components.length > 0) return { components, payload };
+      lastError = 'reconstruction returned no blocks';
+    } catch (err) {
+      lastError = err instanceof Error ? err.message : String(err);
+    }
+  }
+  throw new Error(`Image reconstruction failed: ${lastError}`);
+};
+
 export async function POST(request: NextRequest) {
   const cookieStore = await cookies();
   const token = cookieStore.get('token')?.value;
@@ -3412,52 +3460,85 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    const analysisContentParts = buildAnalysisContent({
-      prompt,
-      requestedLayoutInstruction,
-      focusInstruction,
-      hasImage,
-    });
+    // IMAGE → high-fidelity primitive reconstruction (Mode 2);
+    // TEXT  → semantic v2 generation + style-aware templates (Mode 1).
+    let visibleAnalysis: unknown = null;
+    let qualityScore = 100;
+    let analysisModel = aiConfig.openrouterModel;
+    let analysisProvider = 'openrouter';
+    let analysisReviewerProvider = 'openrouter';
+    let analysisUsage: unknown;
+    let reviewPayload: Record<string, unknown> | null = null;
+    let layoutAdjustedComponents: BlockData[];
 
-    const analysisContent = hasImage
-      ? [...analysisContentParts, { type: 'image_url' as const, image_url: { url: imageDataUrl } }]
-      : analysisContentParts;
-    const analysisResult = await generateReviewedAnalysisWithFallback({
-      content: analysisContent,
-      prompt,
-      requestedLayoutInstruction,
-      focusInstruction,
-      config: aiConfig,
-    });
-    const visibleAnalysis = analysisResult.reviewedAnalysis;
-    const reviewPayload = analysisResult.reviewPayload;
-    const qualityScore = getPageQualityScore(visibleAnalysis);
+    if (hasImage) {
+      const primitive = await generatePrimitiveComponentsFromImage({
+        imageDataUrl,
+        prompt,
+        focusInstruction,
+        config: aiConfig,
+      });
+      analysisUsage = primitive.payload?.usage;
+      visibleAnalysis = { mode: 'image-primitive', blockCount: primitive.components.length };
 
-    if (qualityScore < aiConfig.minQualityScore) {
-      return NextResponse.json(
-        {
-          message:
-            'The AI result did not pass the quality check. Try a clearer prompt or a higher-resolution image.',
-          qualityScore,
-          qualityNotes: getPageQualityNotes(visibleAnalysis),
-        },
-        { status: 422 }
-      );
+      const built = primitive.components
+        .map((block) => sanitizeBlock(block, 0, { count: 0 }))
+        .filter((block): block is BlockData => Boolean(block))
+        .map(enforceColumnCounts)
+        .map(flattenSingleChildColumns)
+        .map(ensureFlexOnMultiColumnContainers)
+        .map((block) => repairDarkSectionContrast(block))
+        .map(applyEditorBlockDefaults);
+      layoutAdjustedComponents = enforcePageScope(built, pageType);
+    } else {
+      const analysisContentParts = buildAnalysisContent({
+        prompt,
+        requestedLayoutInstruction,
+        focusInstruction,
+        hasImage,
+      });
+      const analysisResult = await generateReviewedAnalysisWithFallback({
+        content: analysisContentParts,
+        prompt,
+        requestedLayoutInstruction,
+        focusInstruction,
+        config: aiConfig,
+      });
+      visibleAnalysis = analysisResult.reviewedAnalysis;
+      reviewPayload = analysisResult.reviewPayload;
+      qualityScore = getPageQualityScore(visibleAnalysis);
+      analysisModel = analysisResult.model;
+      analysisProvider = analysisResult.provider;
+      analysisReviewerProvider =
+        (analysisResult as { reviewerProvider?: string }).reviewerProvider || 'openrouter';
+      analysisUsage = analysisResult.payload?.usage;
+
+      if (qualityScore < aiConfig.minQualityScore) {
+        return NextResponse.json(
+          {
+            message:
+              'The AI result did not pass the quality check. Try a clearer prompt or a higher-resolution image.',
+            qualityScore,
+            qualityNotes: getPageQualityNotes(visibleAnalysis),
+          },
+          { status: 422 }
+        );
+      }
+
+      const components = buildComponentsFromPage(visibleAnalysis, pageType)
+        .map((block) => sanitizeBlock(block, 0, { count: 0 }))
+        .filter((block): block is BlockData => Boolean(block))
+        .map(enforceColumnCounts)
+        .map(flattenSingleChildColumns)
+        .map(ensureFlexOnMultiColumnContainers)
+        .map(repairIntroMetricsTimerSection)
+        .map((block) => repairDarkSectionContrast(block));
+
+      layoutAdjustedComponents = applyRequestedLayout(
+        components.map(applyEditorBlockDefaults),
+        requestedLayout
+      ).map(applyEditorBlockDefaults);
     }
-
-    const components = buildComponentsFromPage(visibleAnalysis, pageType)
-      .map((block) => sanitizeBlock(block, 0, { count: 0 }))
-      .filter((block): block is BlockData => Boolean(block))
-      .map(enforceColumnCounts)
-      .map(flattenSingleChildColumns)
-      .map(ensureFlexOnMultiColumnContainers)
-      .map(repairIntroMetricsTimerSection)
-      .map((block) => repairDarkSectionContrast(block));
-
-    const layoutAdjustedComponents = applyRequestedLayout(
-      components.map(applyEditorBlockDefaults),
-      requestedLayout
-    ).map(applyEditorBlockDefaults);
 
     if (layoutAdjustedComponents.length === 0) {
       return NextResponse.json(
@@ -3547,14 +3628,14 @@ export async function POST(request: NextRequest) {
       analysis: visibleAnalysis,
       requestedLayout,
       pageType,
-      provider: analysisResult.provider,
-      model: analysisResult.model,
+      provider: analysisProvider,
+      model: analysisModel,
       reviewModel: aiConfig.openrouterReviewModel,
-      reviewProvider: (analysisResult as { reviewerProvider?: string }).reviewerProvider || 'openrouter',
+      reviewProvider: analysisReviewerProvider,
       qualityScore,
       qualityNotes: getPageQualityNotes(visibleAnalysis),
       usage: {
-        analysis: analysisResult.payload?.usage,
+        analysis: analysisUsage,
         review: reviewPayload?.usage,
       },
     });

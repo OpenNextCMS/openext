@@ -8,7 +8,6 @@ import { getPageDataForSlug } from '@/utils/getPageData';
 import { Calendar, User, Clock, ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 
 export const revalidate = 30;
 

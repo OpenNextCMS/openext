@@ -1,7 +1,6 @@
 // app/api/pages/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { getPageDbConnection, getPageModel } from '@/utils/db';
-import { PageDocument } from '@/types/index';
 import { jwtDecode } from 'jwt-decode';
 import { cookies } from 'next/headers';
 

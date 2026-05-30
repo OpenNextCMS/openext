@@ -29,12 +29,16 @@ export const FeatureList = ({ block, isEditing = false }: BlockRendererProps) =>
     );
   };
 
-  const rawCategories = content.categories || [
-    { title: 'SHOOTING STARS', links: ['First Link', 'Second Link', 'Third Link', 'Fourth Link', 'Fifth Link'] },
-    { title: 'THE 400 BLOWS', links: ['First Link', 'Second Link', 'Third Link', 'Fourth Link', 'Fifth Link'] },
-    { title: 'THE CATALYZER', links: ['First Link', 'Second Link', 'Third Link', 'Fourth Link', 'Fifth Link'] },
-    { title: 'NEPTUNE', links: ['First Link', 'Second Link', 'Third Link', 'Fourth Link', 'Fifth Link'] },
-  ];
+  const rawCategories = React.useMemo(
+    () =>
+      content.categories || [
+        { title: 'SHOOTING STARS', links: ['First Link', 'Second Link', 'Third Link', 'Fourth Link', 'Fifth Link'] },
+        { title: 'THE 400 BLOWS', links: ['First Link', 'Second Link', 'Third Link', 'Fourth Link', 'Fifth Link'] },
+        { title: 'THE CATALYZER', links: ['First Link', 'Second Link', 'Third Link', 'Fourth Link', 'Fifth Link'] },
+        { title: 'NEPTUNE', links: ['First Link', 'Second Link', 'Third Link', 'Fourth Link', 'Fifth Link'] },
+      ],
+    [content.categories]
+  );
 
   // Convert nested links to objects for consistent handling
   const categories = React.useMemo(() => {

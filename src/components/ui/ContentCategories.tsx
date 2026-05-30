@@ -35,10 +35,14 @@ export const ContentCategories = ({ block, isEditing = false }: BlockRendererPro
     dispatch(setSelectedLabel('Content Categories'));
   };
 
-  const rawLinks = content.links || [
-    'First Link', 'Second Link', 'Third Link', 'Fourth Link',
-    'Fifth Link', 'Sixth Link', 'Seventh Link', 'Eighth Link'
-  ];
+  const rawLinks = React.useMemo(
+    () =>
+      content.links || [
+        'First Link', 'Second Link', 'Third Link', 'Fourth Link',
+        'Fifth Link', 'Sixth Link', 'Seventh Link', 'Eighth Link'
+      ],
+    [content.links]
+  );
 
   // Convert string links to objects for consistent handling
   const links = React.useMemo(() => {

@@ -180,7 +180,6 @@ export default function SeoPanel({ post, onChange, siteUrl = '' }: Props) {
           <Label className="text-xs uppercase text-muted-foreground">Twitter / X card</Label>
           <div className="overflow-hidden rounded-xl border">
             {(seo.ogImage || post.featuredImage) ? (
-              // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={seo.ogImage || post.featuredImage}
                 alt="Card preview"

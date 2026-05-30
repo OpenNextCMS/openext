@@ -62,7 +62,6 @@ function ImageRenderer({ data }: { data: ImageData }) {
   if (!data.url) return null;
   return (
     <figure className="my-6">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={data.url} alt={data.alt} className="w-full rounded-2xl" loading="lazy" />
       {data.caption ? (
         <figcaption className="mt-2 text-center text-sm text-muted-foreground">
@@ -78,7 +77,6 @@ function GalleryRenderer({ data }: { data: GalleryData }) {
   return (
     <div className="my-6 grid grid-cols-2 gap-3 md:grid-cols-3">
       {data.images.map((img, i) => (
-        // eslint-disable-next-line @next/next/no-img-element
         <img
           key={i}
           src={img.url}

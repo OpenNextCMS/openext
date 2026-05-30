@@ -49,7 +49,6 @@ export function LatestPostsSection({ settings }: { settings: Record<string, unkn
             className="group overflow-hidden rounded-2xl border transition-shadow hover:shadow-lg"
           >
             {p.featuredImage ? (
-              // eslint-disable-next-line @next/next/no-img-element
               <img src={p.featuredImage} alt={p.pageName} className="h-44 w-full object-cover" />
             ) : null}
             <div className="space-y-1 p-4">
@@ -79,7 +78,6 @@ export function FeaturedPostSection({ settings }: { settings: Record<string, unk
         className="group grid gap-6 overflow-hidden rounded-3xl border md:grid-cols-2"
       >
         {post.featuredImage ? (
-          // eslint-disable-next-line @next/next/no-img-element
           <img src={post.featuredImage} alt={post.pageName} className="h-64 w-full object-cover" />
         ) : (
           <div className="h-64 w-full bg-muted" />

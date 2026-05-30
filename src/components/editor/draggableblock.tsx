@@ -50,6 +50,7 @@ interface Block {
     | 'content-detail'
     | 'content-split'
     | 'content-trio'
+    | 'blog-feed'
     | 'feature-trio'
     | 'feature-vertical'
     | 'feature-side-image'

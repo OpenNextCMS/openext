@@ -103,7 +103,6 @@ export const CardBlock = ({ block, isEditing = true }: BlockRendererProps) => {
 
       {card.image && (
         <>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={card.image}
             alt={card.title}

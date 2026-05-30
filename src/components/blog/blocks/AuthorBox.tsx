@@ -27,7 +27,6 @@ export default function AuthorBox({ data }: { data: AuthorBoxData }) {
   return (
     <div className="my-8 flex items-start gap-4 rounded-2xl border bg-muted/30 p-6">
       {author.avatar ? (
-        // eslint-disable-next-line @next/next/no-img-element
         <img
           src={author.avatar}
           alt={author.name}

@@ -3,9 +3,6 @@
 import { useState, useEffect } from 'react';
 import type React from 'react';
 import {
-  Loader2,
-  FileText,
-  Files,
   Search,
   RefreshCw,
   CheckCircle,
@@ -32,7 +29,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -63,7 +60,6 @@ export default function AllBlogs() {
   const [blogs, setBlogs] = useState<BlogPage[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [userId, setUserId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('all');
 
   const fetchBlogs = async () => {
@@ -73,9 +69,10 @@ export default function AllBlogs() {
       const response = await fetch(`${backendUrl}/api/pages/get-pages`);
       if (response.ok) {
         const data = await response.json();
-        const blogPages = (data.pages || []).filter((p: any) => p.pageType === 'blog');
+        const blogPages = (data.pages || []).filter(
+          (p: { pageType?: string }) => p.pageType === 'blog'
+        );
         setBlogs(blogPages);
-        setUserId(data.userId);
       } else {
         toast.error('Failed to fetch blogs');
       }
@@ -108,7 +105,7 @@ export default function AllBlogs() {
         toast.success(`Blog ${!currentStatus ? 'published' : 'moved to drafts'}`);
         fetchBlogs();
       }
-    } catch (err) {
+    } catch {
       toast.error('Failed to update status');
     }
   };
@@ -128,7 +125,7 @@ export default function AllBlogs() {
       } else {
         toast.error('Failed to delete post');
       }
-    } catch (err) {
+    } catch {
       toast.error('An error occurred during deletion');
     }
   };
@@ -147,7 +144,7 @@ export default function AllBlogs() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
           <h1 className="text-3xl font-bold tracking-tight">Editorial Hub</h1>
-          <p className="text-muted-foreground">Manage your publication's content and premium blog posts.</p>
+          <p className="text-muted-foreground">Manage your publication&apos;s content and premium blog posts.</p>
         </div>
         <div className="flex items-center gap-3">
           <Button variant="outline" size="sm" onClick={fetchBlogs}>
@@ -183,28 +180,25 @@ export default function AllBlogs() {
         </div>
 
         <TabsContent value="all" className="mt-0">
-          <BlogTable 
-            blogs={filteredBlogs} 
-            loading={loading} 
-            userId={userId} 
+          <BlogTable
+            blogs={filteredBlogs}
+            loading={loading}
             onTogglePublish={handleTogglePublish}
             onPostDelete={handlePostDelete}
           />
         </TabsContent>
         <TabsContent value="published" className="mt-0">
-          <BlogTable 
-            blogs={filteredBlogs} 
-            loading={loading} 
-            userId={userId} 
+          <BlogTable
+            blogs={filteredBlogs}
+            loading={loading}
             onTogglePublish={handleTogglePublish}
             onPostDelete={handlePostDelete}
           />
         </TabsContent>
         <TabsContent value="drafts" className="mt-0">
-          <BlogTable 
-            blogs={filteredBlogs} 
-            loading={loading} 
-            userId={userId} 
+          <BlogTable
+            blogs={filteredBlogs}
+            loading={loading}
             onTogglePublish={handleTogglePublish}
             onPostDelete={handlePostDelete}
           />
@@ -255,7 +249,17 @@ export default function AllBlogs() {
   );
 }
 
-function BlogTable({ blogs, loading, userId, onTogglePublish, onPostDelete }: any) {
+function BlogTable({
+  blogs,
+  loading,
+  onTogglePublish,
+  onPostDelete,
+}: {
+  blogs: BlogPage[];
+  loading: boolean;
+  onTogglePublish: (id: string, currentStatus: boolean) => void;
+  onPostDelete: (id: string) => void;
+}) {
   if (loading && blogs.length === 0) {
     return (
       <div className="space-y-4">
