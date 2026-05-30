@@ -33,6 +33,12 @@ export async function POST(req: NextRequest) {
     await requireAuth();
     const { topic, tone, length } = generateBlogSchema.parse(await req.json());
 
+    const maxTokensMap: Record<string, number> = {
+      short: 1500,
+      medium: 2500,
+      long: 4000,
+    };
+
     const raw = await callAI(
       [
         {
@@ -54,7 +60,7 @@ Use mostly heading + paragraph blocks. Target ${lengthGuide[length]}.`,
           content: `Write a ${tone} blog post about: ${topic}`,
         },
       ],
-      { temperature: 0.8, maxTokens: 4000 }
+      { temperature: 0.8, maxTokens: maxTokensMap[length] }
     );
 
     const parsed = safeParseJson<RawBlog>(raw);

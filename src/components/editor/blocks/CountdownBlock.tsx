@@ -65,13 +65,13 @@ export const CountdownBlock = ({ block, isEditing = true }: BlockRendererProps) 
       )}
 
       <div
-        className="flex gap-4 h-full"
+        className="flex gap-2 sm:gap-4 h-full flex-wrap justify-center sm:justify-start"
       >
         {Object.entries(timeLeft).map(([label, value]) => (
-          <div key={label} className="flex-1 flex flex-col items-center">
-            <div className="text-6xl text-white font-light mb-2">{value}</div>
-            <div className="w-full h-0.5 bg-cyan-400 mb-2" />
-            <div className="text-xs text-gray-400 uppercase tracking-widest">{label}</div>
+          <div key={label} className="flex flex-col items-center min-w-[60px]">
+            <div className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-white font-light mb-1">{value}</div>
+            <div className="w-full h-0.5 bg-cyan-400 mb-1" />
+            <div className="text-[10px] sm:text-xs text-gray-400 uppercase tracking-widest">{label}</div>
           </div>
         ))}
       </div>

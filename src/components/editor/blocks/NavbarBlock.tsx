@@ -10,7 +10,8 @@ import {
   updateBlockContent,
 } from '@/redux/canvasSlice';
 import { useState } from 'react';
-import { resolveRedirectUrl, useBlockEvents, triggerBlockEvent } from '@/hooks/useBlockEvents';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { resolveRedirectUrl, useBlockEvents } from '@/hooks/useBlockEvents';
 import { useMergedMenu, type MenuDirective } from '@/components/menu-redirect/useMergedMenu';
 import { trackMenuClick } from '@/lib/menu-redirect/track-client';
 
@@ -31,11 +32,14 @@ interface NavbarContent {
 
 export const NavbarBlock = ({ block, isEditing = true }: BlockRendererProps) => {
   const dispatch = useAppDispatch();
+  const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [isHovered, setIsHovered] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { handleClick } = useBlockEvents(block as BlockData, isEditing);
-  // Menu Redirect plugin: merge redirect directives into published links.
-  // When the plugin is inactive, `getFor` returns null and links are untouched.
+  
+  const isPreview = pathname === '/preview';
   const mergedMenu = useMergedMenu();
 
   const navbarData: NavbarContent = (() => {
@@ -68,42 +72,37 @@ export const NavbarBlock = ({ block, isEditing = true }: BlockRendererProps) => 
     dispatch(updateBlockContent({ id: block.uniqueId ?? '', content: updatedContent }));
   };
 
-  const handleLinkClick = (e: React.MouseEvent, link: NonNullable<NavbarContent['links']>[number]) => {
-    if (isEditing) return;
-
-    if (link.onClick && link.onClick !== 'none') {
-      e.preventDefault();
-      e.stopPropagation();
-      triggerBlockEvent({ onClick: link.onClick, onClickValue: link.onClickValue || link.href });
-      return;
-    }
-
-    if (link.href) {
-      e.preventDefault();
-      e.stopPropagation();
-      window.location.href = resolveRedirectUrl(link.href);
-    }
-  };
-
-  // Click handler honoring a Menu Redirect directive (tracking / new tab /
-  // disabled), falling back to the block's normal link behavior otherwise.
   const handleNavClick = (
     e: React.MouseEvent,
     link: NonNullable<NavbarContent['links']>[number],
     directive: MenuDirective | null
   ) => {
     if (isEditing) return;
-    if (!directive) {
-      handleLinkClick(e, link);
-      return;
-    }
+    
     e.preventDefault();
     e.stopPropagation();
-    if (!directive.enabled) return; // disabled redirect → non-clickable
-    if (directive.trackClicks && directive.mappingId) trackMenuClick(directive.mappingId);
-    const href = resolveRedirectUrl(directive.href || link.href);
-    if (directive.openInNewTab) window.open(href, '_blank', 'noopener');
-    else window.location.href = href;
+
+    if (directive && !directive.enabled) return;
+
+    if (directive?.trackClicks && directive.mappingId) trackMenuClick(directive.mappingId);
+
+    const rawHref = directive?.href || link.href;
+    const href = resolveRedirectUrl(rawHref);
+
+    if (directive?.openInNewTab) {
+      window.open(href, '_blank', 'noopener');
+      return;
+    }
+
+    if (isPreview) {
+      // In preview mode, navigate by updating the pagename query param
+      const targetPage = rawHref.startsWith('/') ? rawHref.slice(1) : rawHref;
+      const params = new URLSearchParams(searchParams.toString());
+      params.set('pagename', targetPage);
+      router.push(`/preview?${params.toString()}`);
+    } else {
+      window.location.href = href;
+    }
   };
 
   // Centralized link renderer so merged hrefs/attrs apply across every layout.

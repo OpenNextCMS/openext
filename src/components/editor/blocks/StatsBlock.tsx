@@ -28,9 +28,19 @@ export const StatsBlock = ({ block, isEditing = true }: BlockRendererProps) => {
     dispatch(setSelectedLabel('Stats Block'));
   };
 
-  const content = block.content && block.content.startsWith('{') 
-    ? JSON.parse(block.content) 
-    : { value: '200+', label: 'Project Delivered' };
+  let content;
+  try {
+    content = block.content && block.content.startsWith('{') 
+      ? JSON.parse(block.content) 
+      : { value: block.content || '200+', label: 'Project Delivered' };
+  } catch {
+    content = { value: '200+', label: 'Project Delivered' };
+  }
+
+  // Sanitize value (remove trailing '{' or other JSON artifacts if they somehow leaked)
+  if (typeof content.value === 'string') {
+    content.value = content.value.replace(/[{}]$/, '').trim();
+  }
 
   const handleTextBlur = (key: 'value' | 'label', newValue: string) => {
     if (!isEditing) return;
@@ -44,12 +54,13 @@ export const StatsBlock = ({ block, isEditing = true }: BlockRendererProps) => {
   return (
     <div
       onClick={handleSelect}
-      className="relative mb-4 group cursor-pointer transition-all"
+      className="relative mb-4 group cursor-pointer transition-all w-full"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       style={{
         ...block.style,
         outline: isHovered && isEditing ? '1px dashed #3b82f6' : 'none',
+        wordBreak: 'break-word'
       }}
     >
       {isEditing && isHovered && (
@@ -68,10 +79,10 @@ export const StatsBlock = ({ block, isEditing = true }: BlockRendererProps) => {
       )}
 
       <div
-        className="h-full"
+        className="h-full flex flex-col"
       >
         <div 
-          className="text-4xl font-bold text-white mb-1 outline-none"
+          className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-1 outline-none break-words"
           contentEditable={isEditing}
           suppressContentEditableWarning={true}
           onBlur={(e) => handleTextBlur('value', e.currentTarget.textContent || '')}
@@ -79,7 +90,7 @@ export const StatsBlock = ({ block, isEditing = true }: BlockRendererProps) => {
           {content.value}
         </div>
         <div 
-          className="text-sm text-gray-400 uppercase tracking-wider outline-none"
+          className="text-xs sm:text-sm text-gray-400 uppercase tracking-wider outline-none break-words"
           contentEditable={isEditing}
           suppressContentEditableWarning={true}
           onBlur={(e) => handleTextBlur('label', e.currentTarget.textContent || '')}

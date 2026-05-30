@@ -35,7 +35,7 @@ function DraggableRowColumn({
   return (
     <div
       ref={setNodeRef}
-      className="group/row-column relative min-w-0"
+      className="group/row-column relative min-w-0 overflow-hidden"
       style={{
         flex: '1 1 0',
         minWidth: 0,

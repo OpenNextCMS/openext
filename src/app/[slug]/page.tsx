@@ -110,8 +110,8 @@ export default async function Page({ params }: PageProps) {
           </aside>
           <div className="flex-1 flex flex-col min-h-screen bg-white">
             {renderBlogHero()}
-            <main className="flex-1 p-8">
-              <div className="max-w-screen-xl mx-auto space-y-4">
+            <main className="flex-1">
+              <div>
                 {pageData.blocks.map((block) => renderFromJson(block as BlockData))}
               </div>
             </main>
@@ -126,10 +126,10 @@ export default async function Page({ params }: PageProps) {
     <PageClientWrapper>
       {pageData.headerBlocks.map((block) => renderFromJson(block as BlockData))}
 
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen">
         {renderBlogHero()}
-        <main className="p-8">
-          <div className="max-w-screen-xl mx-auto space-y-4">
+        <main>
+          <div>
             {pageData.blocks.map((block) => renderFromJson(block as BlockData))}
           </div>
         </main>

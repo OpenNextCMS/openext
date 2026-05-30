@@ -138,7 +138,7 @@ export const ColumnBlock = ({ block, isEditing = false }: Props) => {
           }}
         >
           {block.children?.map((childBlocks, index) => (
-            <div key={`${block.uniqueId}-col-${index}`} className="min-w-0 flex-1">
+            <div key={`${block.uniqueId}-col-${index}`} className="min-w-0 flex-1 overflow-hidden">
               {Array.isArray(childBlocks) && childBlocks.length > 0
                 ? childBlocks.map((child) => (
                     <RenderBlock key={child.uniqueId} block={child} isEditing={false} />
@@ -228,7 +228,7 @@ export const ColumnBlock = ({ block, isEditing = false }: Props) => {
         {block.children?.map((childBlocks, index) => (
           <div
             key={`${block.uniqueId}-col-wrap-${index}`}
-            className="group/column relative min-w-0 flex-1"
+            className="group/column relative min-w-0 flex-1 overflow-hidden"
           >
             {block.children && block.children.length > 1 && (
               <button

@@ -64,7 +64,12 @@ export async function callAI(
 
   if (!res.ok) {
     const text = await res.text().catch(() => '');
-    throw new ApiError(`AI request failed (${res.status}): ${text.slice(0, 200)}`, 502);
+    console.error(`[AI] OpenRouter request failed: Status ${res.status}`, text);
+
+    // Pass through relevant status codes (401: Auth, 402: Quota, 429: Rate Limit)
+    // Otherwise use 502 (Bad Gateway) to indicate the upstream provider failed.
+    const status = [401, 402, 429].includes(res.status) ? res.status : 502;
+    throw new ApiError(`AI request failed (${res.status}): ${text.slice(0, 200)}`, status);
   }
 
   const json = (await res.json()) as {

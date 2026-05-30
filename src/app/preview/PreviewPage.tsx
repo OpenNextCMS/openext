@@ -7,6 +7,8 @@ import renderFromJson from '@/components/ReusableComponents/RenderFromJson';
 import { safeStorageGet } from '@/utils/safeStorage';
 import { hasVerticalHeader } from '@/utils/headerLayout';
 
+import PageClientWrapper from '@/components/PageClientWrapper';
+
 import type { BlockData, Page } from '@/types';
 
 export default function PreviewPage() {
@@ -39,6 +41,7 @@ export default function PreviewPage() {
     };
 
     const loadData = async () => {
+      setLoading(true);
       try {
         const loadLayoutBlocks = async () => {
           if (!pagename || pageType !== 'page') return;
@@ -116,33 +119,37 @@ export default function PreviewPage() {
 
   if (sidebarHeader) {
     return (
-      <div className="flex min-h-screen">
-        <aside className="w-64 flex-shrink-0 sticky top-0 self-start h-screen overflow-y-auto">
-          {headerBlocks.map((block) => renderFromJson(block))}
-        </aside>
-        <div className="flex-1 flex flex-col min-h-screen">
-          <main className="flex-1">
-            {blocks.length > 0 ? (
-              blocks.map((block) => renderFromJson(block))
-            ) : (
-              <div className="p-6 text-center text-muted-foreground">No blocks to preview</div>
-            )}
-          </main>
-          {footerBlocks.map((block) => renderFromJson(block))}
+      <PageClientWrapper>
+        <div className="flex min-h-screen">
+          <aside className="w-64 flex-shrink-0 sticky top-0 self-start h-screen overflow-y-auto">
+            {headerBlocks.map((block) => renderFromJson(block))}
+          </aside>
+          <div className="flex-1 flex flex-col min-h-screen">
+            <main className="flex-1">
+              {blocks.length > 0 ? (
+                blocks.map((block) => renderFromJson(block))
+              ) : (
+                <div className="p-6 text-center text-muted-foreground">No blocks to preview</div>
+              )}
+            </main>
+            {footerBlocks.map((block) => renderFromJson(block))}
+          </div>
         </div>
-      </div>
+      </PageClientWrapper>
     );
   }
 
   return (
-    <div>
-      {headerBlocks.map((block) => renderFromJson(block))}
-      {blocks.length > 0 ? (
-        blocks.map((block) => renderFromJson(block))
-      ) : (
-        <div className="p-6 text-center text-muted-foreground">No blocks to preview</div>
-      )}
-      {footerBlocks.map((block) => renderFromJson(block))}
-    </div>
+    <PageClientWrapper>
+      <div>
+        {headerBlocks.map((block) => renderFromJson(block))}
+        {blocks.length > 0 ? (
+          blocks.map((block) => renderFromJson(block))
+        ) : (
+          <div className="p-6 text-center text-muted-foreground">No blocks to preview</div>
+        )}
+        {footerBlocks.map((block) => renderFromJson(block))}
+      </div>
+    </PageClientWrapper>
   );
 }
