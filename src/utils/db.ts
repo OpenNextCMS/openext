@@ -15,11 +15,19 @@ import { ThemeSettingsSchema } from '@/models/ThemeSettings';
 import { MenuRedirectMappingSchema } from '@/models/MenuRedirectMapping';
 import { MenuRedirectAnalyticsSchema } from '@/models/MenuRedirectAnalytics';
 import { MenuRedirectHistorySchema } from '@/models/MenuRedirectHistory';
+import { FormSchema } from '@/models/Form';
+import { FormSubmissionSchema } from '@/models/FormSubmission';
+import { FormVersionSchema } from '@/models/FormVersion';
 import type {
   MenuRedirectMappingDocument,
   MenuRedirectAnalyticsDocument,
   MenuRedirectHistoryDocument,
 } from '@/types/menu-redirect';
+import type {
+  IFormDocument,
+  ISubmissionDocument,
+  IFormVersionDocument,
+} from '@/types/form-builder';
 import type {
   PageDocument,
   IBlogPostDocument,
@@ -227,6 +235,17 @@ export async function getPageDbConnection() {
         pageDb.model<MenuRedirectHistoryDocument>('MenuRedirectHistory', MenuRedirectHistorySchema);
       }
 
+      // Form Builder plugin collections (per-tenant page DB).
+      if (!pageDb.models.Form) {
+        pageDb.model<IFormDocument>('Form', FormSchema);
+      }
+      if (!pageDb.models.FormSubmission) {
+        pageDb.model<ISubmissionDocument>('FormSubmission', FormSubmissionSchema);
+      }
+      if (!pageDb.models.FormVersion) {
+        pageDb.model<IFormVersionDocument>('FormVersion', FormVersionSchema);
+      }
+
       pageDb.on('error', (error) => {
         console.error('❌ MongoDB page database connection error:', error);
         pageDb = null;
@@ -372,6 +391,34 @@ export function getMenuRedirectHistoryModel(
   return (
     (pageDb.models.MenuRedirectHistory as mongoose.Model<MenuRedirectHistoryDocument>) ||
     pageDb.model<MenuRedirectHistoryDocument>('MenuRedirectHistory', MenuRedirectHistorySchema)
+  );
+}
+
+export function getFormModel(pageDb: mongoose.Connection): mongoose.Model<IFormDocument> {
+  if (!pageDb) throw new Error('Page database connection not initialized');
+  return (
+    (pageDb.models.Form as mongoose.Model<IFormDocument>) ||
+    pageDb.model<IFormDocument>('Form', FormSchema)
+  );
+}
+
+export function getFormSubmissionModel(
+  pageDb: mongoose.Connection
+): mongoose.Model<ISubmissionDocument> {
+  if (!pageDb) throw new Error('Page database connection not initialized');
+  return (
+    (pageDb.models.FormSubmission as mongoose.Model<ISubmissionDocument>) ||
+    pageDb.model<ISubmissionDocument>('FormSubmission', FormSubmissionSchema)
+  );
+}
+
+export function getFormVersionModel(
+  pageDb: mongoose.Connection
+): mongoose.Model<IFormVersionDocument> {
+  if (!pageDb) throw new Error('Page database connection not initialized');
+  return (
+    (pageDb.models.FormVersion as mongoose.Model<IFormVersionDocument>) ||
+    pageDb.model<IFormVersionDocument>('FormVersion', FormVersionSchema)
   );
 }
 

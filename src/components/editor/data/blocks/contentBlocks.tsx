@@ -65,6 +65,17 @@ export const contactBlocks: BlockWithReactNodeIcon[] = [
       width: '100%',
     },
   },
+  {
+    id: 'form-block',
+    label: 'Form',
+    type: 'form-block',
+    content: JSON.stringify({ formId: '', title: '', description: '', showTitle: true }),
+    icon: <UserCircle className="h-4 w-4 mr-2 text-primary" />,
+    description: 'Embed a published Form Builder form',
+    style: {
+      width: '100%',
+    },
+  },
 ];
 
 export const featuresBlocks: BlockWithReactNodeIcon[] = [

@@ -60,6 +60,15 @@ export const PluginProvider = ({ children }: { children: ReactNode }) => {
             (pluginName.includes('menu') && pluginName.includes('redirect'));
           if (isMenuRedirect) continue;
 
+          // Form Builder is likewise a dashboard *system* (sidebar nav + a
+          // dedicated 'form-block' palette block). Skip the legacy mock-form
+          // block registration so it isn't double-listed in the editor.
+          const isFormBuilder =
+            plugin.pluginId === 'form-builder' ||
+            pluginType === 'form' ||
+            (pluginName.includes('form') && pluginName.includes('builder'));
+          if (isFormBuilder) continue;
+
           if (
             pluginType === 'chart' ||
             pluginName.includes('visualizer') ||

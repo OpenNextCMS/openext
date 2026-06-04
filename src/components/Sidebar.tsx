@@ -24,6 +24,8 @@ import {
   LayoutTemplate,
   BarChart3,
   History,
+  FileInput,
+  PlusSquare,
   type LucideIcon,
 } from 'lucide-react';
 import { usePlugins } from '@/context/PluginContext';
@@ -116,6 +118,30 @@ function hasMenuRedirect(plugins: { pluginId: string; name: string }[]): boolean
   });
 }
 
+// Nav entry for the Form Builder plugin. Only shown in the sidebar when the
+// plugin is installed AND enabled (PluginContext.activePlugins is already
+// filtered to isActive). Accessed entirely from the dashboard.
+const formBuilderNav: NavSection = {
+  label: 'Form Builder',
+  icon: FileInput,
+  links: [
+    { label: 'All Forms', icon: List, path: '/dashboard/plugins/form-builder' },
+    { label: 'New Form', icon: PlusSquare, path: '/dashboard/plugins/form-builder/new' },
+  ],
+};
+
+/** True when the active marketplace plugins include the Form Builder. */
+function hasFormBuilder(plugins: { pluginId: string; name: string; type?: string }[]): boolean {
+  return plugins.some((p) => {
+    const name = (p.name || '').toLowerCase();
+    return (
+      p.pluginId === 'form-builder' ||
+      (name.includes('form') && name.includes('builder')) ||
+      p.type === 'form'
+    );
+  });
+}
+
 export default function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
@@ -126,11 +152,13 @@ export default function Sidebar() {
   const { theme } = useTheme();
   const { activePlugins } = usePlugins();
 
-  // Append the Menu Redirect system nav only while its plugin is active.
-  const sections = useMemo(
-    () => (hasMenuRedirect(activePlugins) ? [...navItems, menuRedirectNav] : navItems),
-    [activePlugins]
-  );
+  // Append plugin system navs only while their plugin is active (installed + enabled).
+  const sections = useMemo(() => {
+    let s = navItems;
+    if (hasMenuRedirect(activePlugins)) s = [...s, menuRedirectNav];
+    if (hasFormBuilder(activePlugins)) s = [...s, formBuilderNav];
+    return s;
+  }, [activePlugins]);
 
   useEffect(() => {
     // Check if we're on mobile and set initial state

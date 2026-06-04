@@ -178,7 +178,8 @@ export interface Block {
     | 'feature-zigzag'
     | 'feature-checklist'
     | 'feature-list'
-    | 'blog-feed';
+    | 'blog-feed'
+    | 'form-block';
   children?: ColumnChild[]; // Updated type for children
   content?: string;
   icon?: ReactNode | string;
@@ -556,7 +557,8 @@ export interface BlockData {
     | 'feature-zigzag'
     | 'feature-checklist'
     | 'feature-list'
-    | 'blog-feed';
+    | 'blog-feed'
+    | 'form-block';
   children?: BlockData[][];
   style?: React.CSSProperties;
   hoverStyle?: React.CSSProperties;
