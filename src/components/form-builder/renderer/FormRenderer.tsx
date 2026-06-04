@@ -32,7 +32,7 @@ export default function FormRenderer({ form: initialForm, formId }: Props) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [step, setStep] = useState(1);
   const [submitting, setSubmitting] = useState(false);
-  const [done, setDone] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const startedRef = useRef(false);
 
   const id = form?._id ?? formId;
@@ -82,15 +82,6 @@ export default function FormRenderer({ form: initialForm, formId }: Props) {
     return (
       <div className="flex items-center justify-center py-10 text-muted-foreground">
         <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Loading…
-      </div>
-    );
-  }
-
-  if (done) {
-    return (
-      <div className="flex flex-col items-center gap-2 rounded-lg border bg-card p-8 text-center">
-        <CheckCircle2 className="h-10 w-10 text-green-600" />
-        <p className="font-medium">{done}</p>
       </div>
     );
   }
@@ -145,7 +136,13 @@ export default function FormRenderer({ form: initialForm, formId }: Props) {
         window.location.href = payload.redirectUrl;
         return;
       }
-      setDone(payload.message || form.settings.successMessage);
+      // Show a dismissible success pop-up and reset the form (instead of
+      // replacing the whole form with the success message).
+      setSuccessMsg(payload.message || form.settings.successMessage);
+      setValues(initialValues(fields));
+      setErrors({});
+      setStep(steps[0]);
+      startedRef.current = false;
     } catch {
       // error surfaced via field errors / message
     } finally {
@@ -157,6 +154,7 @@ export default function FormRenderer({ form: initialForm, formId }: Props) {
   const progress = multiStep ? (steps.indexOf(step) + 1) / steps.length : 1;
 
   return (
+    <>
     <form
       className="blog-theme-scope space-y-4"
       style={{ fontFamily: 'var(--font-body, inherit)' }}
@@ -220,5 +218,33 @@ export default function FormRenderer({ form: initialForm, formId }: Props) {
         </button>
       </div>
     </form>
+
+    {/* Success pop-up — confirms submission without replacing the form. */}
+    {successMsg ? (
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Submission successful"
+        className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/50 p-4"
+        onClick={() => setSuccessMsg(null)}
+      >
+        <div
+          className="w-full max-w-sm rounded-xl bg-white p-6 text-center shadow-2xl"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <CheckCircle2 className="mx-auto mb-3 h-12 w-12 text-green-600" />
+          <p className="mb-5 font-medium text-gray-900">{successMsg}</p>
+          <button
+            type="button"
+            autoFocus
+            onClick={() => setSuccessMsg(null)}
+            className="inline-flex items-center rounded-md bg-[var(--color-primary,#2563eb)] px-6 py-2 text-sm font-medium text-white"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    ) : null}
+    </>
   );
 }
