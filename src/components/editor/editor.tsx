@@ -101,6 +101,8 @@ const editableBlockTypes: EditableBlockType[] = [
   'ecommerce-grid',
   'ecommerce-detail',
   'ecommerce-info',
+  'blog-feed',
+  'form-block',
 ];
 
 const getEditableBlockType = (type?: string): EditableBlockType => {
