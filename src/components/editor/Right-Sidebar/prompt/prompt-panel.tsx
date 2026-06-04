@@ -64,6 +64,7 @@ const normalizeImportedBlockShape = (rawBlock: RawBlock): BlockData => {
     content = JSON.stringify({
       logo: logo || 'Brand',
       logoType: 'text',
+      logoSource: 'custom',
       logoImage: '',
       layout: 'horizontal',
       links: [

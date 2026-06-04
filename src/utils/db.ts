@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import { IUser, userSchema } from '@/models/User';
 import { ISettings, settingsSchema } from '@/models/Settings';
 import { PageSchema } from '@/models/Page';
+import { BlogPostSchema } from '@/models/BlogPost';
 import { roleSchema } from '@/models/Role';
 import { PluginSchema } from '@/models/Plugin';
 import { CategorySchema } from '@/models/Category';
@@ -21,6 +22,7 @@ import type {
 } from '@/types/menu-redirect';
 import type {
   PageDocument,
+  IBlogPostDocument,
   ISettingsDocument,
   ITheme,
   IPluginDocument,
@@ -186,6 +188,10 @@ export async function getPageDbConnection() {
         pageDb.model<PageDocument>('Page', PageSchema);
       }
 
+      if (!pageDb.models.BlogPost) {
+        pageDb.model<IBlogPostDocument>('BlogPost', BlogPostSchema);
+      }
+
       // Register the sibling blog collections on the same per-tenant page DB.
       if (!pageDb.models.Category) {
         pageDb.model<ICategoryDocument>('Category', CategorySchema);
@@ -249,6 +255,18 @@ export function getPageModel(pageDb: mongoose.Connection): mongoose.Model<PageDo
   return (
     (pageDb.models.Page as mongoose.Model<PageDocument>) ||
     pageDb.model<PageDocument>('Page', PageSchema)
+  );
+}
+
+export function getBlogPostModel(
+  pageDb: mongoose.Connection
+): mongoose.Model<IBlogPostDocument> {
+  if (!pageDb) {
+    throw new Error('Page database connection not initialized');
+  }
+  return (
+    (pageDb.models.BlogPost as mongoose.Model<IBlogPostDocument>) ||
+    pageDb.model<IBlogPostDocument>('BlogPost', BlogPostSchema)
   );
 }
 export function getCategoryModel(

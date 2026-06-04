@@ -654,7 +654,7 @@ LEAF BLOCKS (content + style read from the image):
 - Card:      { "id":"card","type":"card","content":"{\\"image\\":\\"\\",\\"eyebrow\\":\\"\\",\\"title\\":\\"...\\",\\"body\\":\\"...\\",\\"buttonText\\":\\"\\"}","style":{"backgroundColor":"#ffffff","borderRadius":"12px","padding":"24px"} }
 - Stat:      { "id":"stats","type":"stats","content":"{\\"value\\":\\"200+\\",\\"label\\":\\"Customers\\"}","style":{} }
 - Icon:      { "id":"icon","type":"icon","content":"rocket","style":{"fontSize":"32px","color":"#2563eb"} }
-- Nav bar:   { "id":"nav-bar","type":"nav-bar","content":"{\\"logo\\":\\"Brand\\",\\"logoType\\":\\"text\\",\\"layout\\":\\"horizontal\\",\\"links\\":[{\\"label\\":\\"Home\\",\\"href\\":\\"#\\"}]}","style":{"backgroundColor":"#ffffff","padding":"16px 32px"} }
+- Nav bar:   { "id":"nav-bar","type":"nav-bar","content":"{\\"logo\\":\\"Brand\\",\\"logoType\\":\\"text\\",\\"logoSource\\":\\"custom\\",\\"layout\\":\\"horizontal\\",\\"links\\":[{\\"label\\":\\"Home\\",\\"href\\":\\"#\\"}]}","style":{"backgroundColor":"#ffffff","padding":"16px 32px"} }
 - Input:     { "id":"input","type":"input","content":"{\\"label\\":\\"Email\\",\\"placeholder\\":\\"you@example.com\\"}","style":{} }
 
 RULES:

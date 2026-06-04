@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import type { FilterQuery } from 'mongoose';
-import { getPageDbConnection, getPageModel } from '@/utils/db';
-import type { PageDocument } from '@/types/index';
+import { getPageDbConnection, getBlogPostModel } from '@/utils/db';
+import type { IBlogPostDocument } from '@/types/index';
 import { requireAuth } from '@/lib/api/auth';
 import { apiOk, handleApiError } from '@/lib/api/response';
 import { generateUniqueSlug } from '@/lib/api/slug';
@@ -13,7 +13,7 @@ import type { ContentBlock } from '@/types/index';
 
 /**
  * GET /api/blogs
- * List blog posts (pageType 'blog') with filtering + pagination.
+ * List blog posts with filtering + pagination.
  * Query: ?status=&category=&tag=&search=&page=&limit=&cursor=
  * - page/limit -> offset pagination (meta.total/page/limit/hasMore)
  * - cursor (ISO createdAt) -> keyset pagination for infinite scroll
@@ -30,9 +30,9 @@ export async function GET(req: NextRequest) {
     const { page, limit, cursor } = parsePagination(searchParams);
 
     const pageDb = await getPageDbConnection();
-    const PageModel = getPageModel(pageDb);
+    const BlogPostModel = getBlogPostModel(pageDb);
 
-    const filter: FilterQuery<PageDocument> = { pageType: 'blog' };
+    const filter: FilterQuery<IBlogPostDocument> = {};
     if (status) filter.status = status;
     if (category) filter.categories = category;
     if (tag) filter.tags = tag;
@@ -52,7 +52,7 @@ export async function GET(req: NextRequest) {
       // Keyset pagination: items strictly older than the cursor.
       const cursorDate = new Date(cursor);
       const keysetFilter = { ...filter, createdAt: { $lt: cursorDate } };
-      const items = await PageModel.find(keysetFilter)
+      const items = await BlogPostModel.find(keysetFilter)
         .sort({ createdAt: -1 })
         .limit(limit + 1)
         .populate(populate)
@@ -71,14 +71,14 @@ export async function GET(req: NextRequest) {
     }
 
     const [items, total] = await Promise.all([
-      PageModel.find(filter)
+      BlogPostModel.find(filter)
         .sort(sort)
         .skip((page - 1) * limit)
         .limit(limit)
         .populate(populate)
         .lean()
         .exec(),
-      PageModel.countDocuments(filter),
+      BlogPostModel.countDocuments(filter),
     ]);
 
     return apiOk(items, {
@@ -98,18 +98,17 @@ export async function POST(req: NextRequest) {
     const body = createBlogSchema.parse(await req.json());
 
     const pageDb = await getPageDbConnection();
-    const PageModel = getPageModel(pageDb);
+    const BlogPostModel = getBlogPostModel(pageDb);
 
-    const slug = await generateUniqueSlug(PageModel, body.slug || body.pageName);
+    const slug = await generateUniqueSlug(BlogPostModel, body.slug || body.pageName);
     const readingTime = calculateReadingTime((body.contentBlocks as ContentBlock[]) || []);
     const statusFields = resolveStatusFields(body.status ?? 'draft', {
       scheduledAt: body.scheduledAt ?? null,
     });
 
-    const created = await PageModel.create({
+    const created = await BlogPostModel.create({
       ...body,
       slug,
-      pageType: 'blog',
       readingTime,
       ...statusFields,
       createdBy: user.userId,

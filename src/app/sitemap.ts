@@ -1,5 +1,5 @@
 import type { MetadataRoute } from 'next';
-import { getPageDbConnection, getPageModel, getCategoryModel } from '@/utils/db';
+import { getPageDbConnection, getPageModel, getBlogPostModel, getCategoryModel } from '@/utils/db';
 import { getSiteUrl } from '@/lib/seo/url';
 
 // Regenerate hourly.
@@ -18,18 +18,30 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {
     const pageDb = await getPageDbConnection();
     const Page = getPageModel(pageDb);
+    const BlogPost = getBlogPostModel(pageDb);
     const Category = getCategoryModel(pageDb);
 
-    const [posts, categories] = await Promise.all([
-      Page.find({ pageType: 'blog', $or: [{ status: 'published' }, { isPublished: true }] })
+    const [pages, posts, categories] = await Promise.all([
+      Page.find({ isPublished: true })
+        .select('slug updatedAt')
+        .lean()
+        .exec(),
+      BlogPost.find({ $or: [{ status: 'published' }, { isPublished: true }] })
         .select('slug updatedAt publishedAt')
         .lean()
         .exec(),
       Category.find({}).select('_id updatedAt').lean().exec(),
     ]);
 
-    const postEntries: MetadataRoute.Sitemap = posts.map((p) => ({
+    const pageEntries: MetadataRoute.Sitemap = pages.map((p) => ({
       url: `${siteUrl}/${(p as { slug?: string }).slug}`,
+      lastModified: (p as { updatedAt?: Date }).updatedAt || new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.7,
+    }));
+
+    const postEntries: MetadataRoute.Sitemap = posts.map((p) => ({
+      url: `${siteUrl}/blog/${(p as { slug?: string }).slug}`,
       lastModified:
         (p as { updatedAt?: Date }).updatedAt ||
         (p as { publishedAt?: Date }).publishedAt ||
@@ -45,7 +57,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.5,
     }));
 
-    return [...base, ...postEntries, ...categoryEntries];
+    return [...base, ...pageEntries, ...postEntries, ...categoryEntries];
   } catch (err) {
     console.error('Failed to build sitemap:', err);
     return base;

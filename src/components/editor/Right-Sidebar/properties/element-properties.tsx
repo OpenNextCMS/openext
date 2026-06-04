@@ -298,6 +298,7 @@ export default function ElementProperties() {
   const navbarContent = parseJsonContent({
     logo: 'Brand',
     logoType: 'text',
+    logoSource: 'custom',
     logoImage: '',
     layout: 'horizontal',
     ctaLabel: '',
@@ -903,7 +904,6 @@ export default function ElementProperties() {
             <NavbarProperties
               selectedBlock={selectedBlock}
               navbarContent={navbarContent}
-              availablePages={availablePages}
               handleJsonContentChange={handleJsonContentChange}
               handleImageUpload={handleImageUpload}
               isUploadingImage={isUploadingImage}
@@ -1053,7 +1053,12 @@ export default function ElementProperties() {
                 );
               }
 
-              if (pluginName.includes('slider') || pluginName.includes('casarole')) {
+              if (
+                selectedBlock!.type === 'slider' ||
+                String(selectedBlock!.type) === 'casarole' ||
+                pluginName.includes('slider') ||
+                pluginName.includes('casarole')
+              ) {
                 return (
                   <SliderPluginProperties
                     content={content}

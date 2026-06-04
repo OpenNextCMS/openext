@@ -5,9 +5,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { updateMapping } from '@/redux/menuRedirectSlice';
 import type { MenuRedirectMapping } from '@/types/menu-redirect';
+import MenuLinksEditor from './MenuLinksEditor';
 
 function KeyValueEditor({
   value,
@@ -68,7 +70,7 @@ function KeyValueEditor({
   );
 }
 
-export default function RightPanel({ canEdit }: { canEdit: boolean }) {
+function RedirectSettings({ canEdit }: { canEdit: boolean }) {
   const dispatch = useAppDispatch();
   const selectedId = useAppSelector((s) => s.menuRedirect.selectedMenuItemId);
   const mapping = useAppSelector((s) =>
@@ -80,7 +82,7 @@ export default function RightPanel({ canEdit }: { canEdit: boolean }) {
 
   if (!selectedId) {
     return (
-      <div className="flex h-full flex-col items-center justify-center border-l p-6 text-center text-muted-foreground">
+      <div className="flex h-full flex-col items-center justify-center p-6 text-center text-muted-foreground">
         <Settings2 className="mb-3 h-8 w-8" />
         <p className="text-sm">Select a menu item to configure its redirect.</p>
       </div>
@@ -89,7 +91,7 @@ export default function RightPanel({ canEdit }: { canEdit: boolean }) {
 
   if (!mapping) {
     return (
-      <div className="flex h-full flex-col items-center justify-center border-l p-6 text-center text-muted-foreground">
+      <div className="flex h-full flex-col items-center justify-center p-6 text-center text-muted-foreground">
         <p className="font-medium">{menuItem?.label}</p>
         <p className="mt-1 text-sm">Drag a target from the left to link this item.</p>
       </div>
@@ -122,7 +124,7 @@ export default function RightPanel({ canEdit }: { canEdit: boolean }) {
   );
 
   return (
-    <div className="h-full space-y-5 overflow-y-auto border-l p-4">
+    <div className="h-full space-y-5 overflow-y-auto p-4">
       <div>
         <h3 className="font-semibold">{menuItem?.label}</h3>
         <p className="text-xs text-muted-foreground">Redirect configuration</p>
@@ -195,6 +197,27 @@ export default function RightPanel({ canEdit }: { canEdit: boolean }) {
           onChange={(v) => patch({ dataAttributes: v })}
         />
       </div>
+    </div>
+  );
+}
+
+export default function RightPanel({ canEdit }: { canEdit: boolean }) {
+  return (
+    <div className="h-full overflow-hidden border-l">
+      <Tabs defaultValue="redirect" className="flex h-full flex-col">
+        <div className="border-b p-3">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="redirect">Redirect</TabsTrigger>
+            <TabsTrigger value="links">Menu Links</TabsTrigger>
+          </TabsList>
+        </div>
+        <TabsContent value="redirect" className="m-0 min-h-0 flex-1 overflow-hidden">
+          <RedirectSettings canEdit={canEdit} />
+        </TabsContent>
+        <TabsContent value="links" className="m-0 min-h-0 flex-1 overflow-hidden">
+          <MenuLinksEditor canEdit={canEdit} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

@@ -78,6 +78,8 @@ export interface CanvasState {
   blocks: BlockData[];
   headerBlocks: BlockData[];
   footerBlocks: BlockData[];
+  historyPast?: CanvasHistoryEntry[];
+  historyFuture?: CanvasHistoryEntry[];
   viewMode: 'desktop' | 'tablet' | 'mobile';
   selectedLabel: string;
   selectedBlock: BlockData | null;
@@ -85,15 +87,36 @@ export interface CanvasState {
   selectedValue: number | null;
 }
 
+interface CanvasHistoryEntry {
+  blocks: BlockData[];
+  selectedBlock: BlockData | null;
+}
+
 const initialState: CanvasState = {
   blocks: [],
   headerBlocks: [],
   footerBlocks: [],
+  historyPast: [],
+  historyFuture: [],
   viewMode: 'desktop',
   selectedLabel: '',
   selectedBlock: null,
   selectedPart: null,
   selectedValue: null,
+};
+
+const cloneHistoryValue = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
+
+const pushCanvasHistory = (state: CanvasState) => {
+  const past = state.historyPast || [];
+  state.historyPast = [
+    ...past,
+    {
+      blocks: cloneHistoryValue(state.blocks),
+      selectedBlock: state.selectedBlock ? cloneHistoryValue(state.selectedBlock) : null,
+    },
+  ].slice(-50);
+  state.historyFuture = [];
 };
 
 const removeBlockFromChildren = (blocks: BlockData[][], blockId: string): BlockData[][] => {
@@ -332,6 +355,75 @@ const canvasSlice = createSlice({
       };
 
       state.blocks = state.blocks.map(updateBlock);
+    },
+    addBlockToSliderSlide: (
+      state,
+      action: PayloadAction<{
+        targetBlockId: string;
+        slideId: string;
+        newBlock: Omit<BlockData, 'uniqueId'>;
+      }>
+    ) => {
+      const { targetBlockId, slideId, newBlock } = action.payload;
+      pushCanvasHistory(state);
+      const blockToInsert: BlockData = {
+        ...newBlock,
+        style: newBlock.style || {},
+        uniqueId: uuidv4(),
+      };
+
+      const updateBlock = (block: BlockData): BlockData => {
+        if (block.uniqueId === targetBlockId) {
+          try {
+            const content = block.content?.startsWith('{') ? JSON.parse(block.content) : {};
+            const slides = Array.isArray(content.slides) ? content.slides : [];
+            const nextSlides = slides.map((slide: Record<string, unknown>) => {
+              if (slide.id !== slideId) return slide;
+
+              const slideContent =
+                typeof slide.content === 'object' && slide.content ? slide.content : {};
+              const blocks = Array.isArray((slideContent as { blocks?: unknown[] }).blocks)
+                ? ((slideContent as { blocks: BlockData[] }).blocks as BlockData[])
+                : [];
+
+              return {
+                ...slide,
+                type: 'custom',
+                content: {
+                  ...slideContent,
+                  blocks: [...blocks, blockToInsert],
+                },
+              };
+            });
+
+            return {
+              ...block,
+              content: JSON.stringify({
+                ...content,
+                slides: nextSlides,
+              }),
+            };
+          } catch {
+            return block;
+          }
+        }
+
+        if (block.children) {
+          return {
+            ...block,
+            children: block.children.map((col) => col.map((child) => updateBlock(child))),
+          };
+        }
+
+        return block;
+      };
+
+      state.blocks = state.blocks.map(updateBlock);
+
+      if (state.selectedBlock?.uniqueId === targetBlockId) {
+        const updated = findBlockById(state.blocks, targetBlockId);
+        if (updated) state.selectedBlock = updated;
+      }
     },
     moveBlockToColumn: (
       state,
@@ -601,6 +693,7 @@ const canvasSlice = createSlice({
     },
     updateBlockContent: (state, action: PayloadAction<{ id: string; content: string }>) => {
       const { id, content } = action.payload;
+      pushCanvasHistory(state);
 
       const updateBlock = (block: BlockData): BlockData => {
         if (block.uniqueId === id) {
@@ -625,6 +718,42 @@ const canvasSlice = createSlice({
           content: content,
         };
       }
+    },
+    undoCanvas: (state) => {
+      const past = state.historyPast || [];
+      const previous = past[past.length - 1];
+      if (!previous) return;
+
+      state.historyPast = past.slice(0, -1);
+      state.historyFuture = [
+        {
+          blocks: cloneHistoryValue(state.blocks),
+          selectedBlock: state.selectedBlock ? cloneHistoryValue(state.selectedBlock) : null,
+        },
+        ...(state.historyFuture || []),
+      ].slice(0, 50);
+      state.blocks = cloneHistoryValue(previous.blocks);
+      state.selectedBlock = previous.selectedBlock
+        ? findBlockById(state.blocks, previous.selectedBlock.uniqueId) || previous.selectedBlock
+        : null;
+    },
+    redoCanvas: (state) => {
+      const future = state.historyFuture || [];
+      const next = future[0];
+      if (!next) return;
+
+      state.historyFuture = future.slice(1);
+      state.historyPast = [
+        ...(state.historyPast || []),
+        {
+          blocks: cloneHistoryValue(state.blocks),
+          selectedBlock: state.selectedBlock ? cloneHistoryValue(state.selectedBlock) : null,
+        },
+      ].slice(-50);
+      state.blocks = cloneHistoryValue(next.blocks);
+      state.selectedBlock = next.selectedBlock
+        ? findBlockById(state.blocks, next.selectedBlock.uniqueId) || next.selectedBlock
+        : null;
     },
     updateBlockEvents: (
       state,
@@ -685,6 +814,8 @@ const canvasSlice = createSlice({
         blocks: normalizeBlockTreeIds(action.payload.blocks, usedIds),
         headerBlocks: normalizeBlockTreeIds(action.payload.headerBlocks, usedIds),
         footerBlocks: normalizeBlockTreeIds(action.payload.footerBlocks, usedIds),
+        historyPast: [],
+        historyFuture: [],
         selectedBlock: null,
       };
     },
@@ -703,6 +834,7 @@ export const {
   addBlock,
   setBlocks,
   addBlockToColumn,
+  addBlockToSliderSlide,
   moveBlockToColumn,
   moveRowColumn,
   moveBlock,
@@ -718,6 +850,8 @@ export const {
   updateSelectedBlockStyles,
   updateSelectedBlockHoverStyles,
   updateBlockContent,
+  undoCanvas,
+  redoCanvas,
   updateBlockEvents,
   updateBlockIcon,
   setCanvasState,

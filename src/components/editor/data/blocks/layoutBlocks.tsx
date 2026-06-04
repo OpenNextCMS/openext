@@ -79,6 +79,7 @@ export const layoutBlocks: BlockWithReactNodeIcon[] = [
     content: JSON.stringify({
       logo: 'Brand',
       logoType: 'text',
+      logoSource: 'custom',
       logoImage: '',
       links: [
         { label: 'Home', href: '#', onClick: 'none', onClickValue: '' },

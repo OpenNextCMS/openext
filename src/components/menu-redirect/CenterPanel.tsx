@@ -14,6 +14,7 @@ function MenuItemRow({
   canEdit,
   onSelect,
   onUnlink,
+  depth = 0,
 }: {
   item: MenuItem;
   mapping?: MenuRedirectMapping;
@@ -21,6 +22,7 @@ function MenuItemRow({
   canEdit: boolean;
   onSelect: () => void;
   onUnlink: () => void;
+  depth?: number;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: item.id, data: { menuItemId: item.id } });
 
@@ -31,6 +33,7 @@ function MenuItemRow({
       className={`flex cursor-pointer items-center justify-between rounded-lg border p-3 transition-colors ${
         selected ? 'border-primary ring-1 ring-primary' : ''
       } ${isOver ? 'border-primary bg-primary/5' : ''}`}
+      style={{ marginLeft: depth ? depth * 16 : 0 }}
     >
       <div className="min-w-0">
         <p className="font-medium">{item.label}</p>
@@ -61,6 +64,52 @@ function MenuItemRow({
   );
 }
 
+function MenuItemRows({
+  items,
+  mappings,
+  selectedMenuItemId,
+  canEdit,
+  depth = 0,
+}: {
+  items: MenuItem[];
+  mappings: Record<string, MenuRedirectMapping>;
+  selectedMenuItemId: string | null;
+  canEdit: boolean;
+  depth?: number;
+}) {
+  const dispatch = useAppDispatch();
+
+  return (
+    <>
+      {items.map((item) => (
+        <div key={item.id} className="space-y-2">
+          <MenuItemRow
+            item={item}
+            mapping={mappings[item.id]}
+            selected={selectedMenuItemId === item.id}
+            canEdit={canEdit}
+            depth={depth}
+            onSelect={() => dispatch(setSelectedMenuItemId(item.id))}
+            onUnlink={() => {
+              const m = mappings[item.id];
+              if (m?._id) dispatch(deleteMapping({ id: m._id, menuItemId: item.id }));
+            }}
+          />
+          {item.children?.length ? (
+            <MenuItemRows
+              items={item.children}
+              mappings={mappings}
+              selectedMenuItemId={selectedMenuItemId}
+              canEdit={canEdit}
+              depth={depth + 1}
+            />
+          ) : null}
+        </div>
+      ))}
+    </>
+  );
+}
+
 export default function CenterPanel({
   canEdit,
   onAutoConnect,
@@ -68,7 +117,6 @@ export default function CenterPanel({
   canEdit: boolean;
   onAutoConnect?: () => void;
 }) {
-  const dispatch = useAppDispatch();
   const { activeHeaderId, headerName, menuItems, mappings, selectedMenuItemId } = useAppSelector(
     (s) => s.menuRedirect
   );
@@ -103,20 +151,12 @@ export default function CenterPanel({
             This header has no menu items.
           </p>
         ) : (
-          menuItems.map((item) => (
-            <MenuItemRow
-              key={item.id}
-              item={item}
-              mapping={mappings[item.id]}
-              selected={selectedMenuItemId === item.id}
-              canEdit={canEdit}
-              onSelect={() => dispatch(setSelectedMenuItemId(item.id))}
-              onUnlink={() => {
-                const m = mappings[item.id];
-                if (m?._id) dispatch(deleteMapping({ id: m._id, menuItemId: item.id }));
-              }}
-            />
-          ))
+          <MenuItemRows
+            items={menuItems}
+            mappings={mappings}
+            selectedMenuItemId={selectedMenuItemId}
+            canEdit={canEdit}
+          />
         )}
       </div>
     </div>

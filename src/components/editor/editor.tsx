@@ -16,6 +16,7 @@ import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import {
   addBlock,
   addBlockToColumn,
+  addBlockToSliderSlide,
   moveBlock,
   moveBlockToColumn,
   moveRowColumn,
@@ -42,6 +43,7 @@ interface DroppableData {
   blockId?: string;
   columnIndex?: number;
   source?: string;
+  slideId?: string;
 }
 
 const editableBlockTypes: EditableBlockType[] = [
@@ -69,6 +71,7 @@ const editableBlockTypes: EditableBlockType[] = [
   'image',
   'card',
   'shape-divider',
+  'slider',
   'nav-bar',
   'contact',
   'contact-simple',
@@ -270,6 +273,46 @@ export default function Editor() {
         );
       }
 
+      return;
+    }
+
+    if (overData?.type === 'slider-slide' && overData.blockId && overData.slideId) {
+      const activeData = active.data.current as BlockDragData;
+      const nestedBlock = {
+        ...activeData,
+        icon:
+          activeData?.type === 'icon'
+            ? activeData?.content || 'sparkles'
+            : typeof activeData?.icon === 'string'
+              ? activeData.icon
+              : undefined,
+        content: activeData?.content || '',
+        type: getEditableBlockType(activeData?.type),
+        style: typeof activeData?.style === 'object' ? activeData.style : undefined,
+        uniqueId: uuidv4(),
+        ...(activeData?.type === 'column' || activeData?.type === 'row'
+          ? {
+              children:
+                activeData.id === '1-column'
+                  ? [[]]
+                  : activeData.id === '2-column'
+                    ? [[], []]
+                    : activeData.id === '3-column'
+                      ? [[], [], []]
+                      : activeData.id === 'row'
+                        ? [[], []]
+                        : [],
+            }
+          : {}),
+      };
+
+      dispatch(
+        addBlockToSliderSlide({
+          targetBlockId: overData.blockId,
+          slideId: overData.slideId,
+          newBlock: nestedBlock,
+        })
+      );
       return;
     }
 

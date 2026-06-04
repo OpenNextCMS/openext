@@ -80,6 +80,7 @@ export const aiEditorBlocks: AiEditorBlock[] = [
     content: JSON.stringify({
       logo: 'Brand',
       logoType: 'text',
+      logoSource: 'custom',
       logoImage: '',
       layout: 'horizontal',
       links: [

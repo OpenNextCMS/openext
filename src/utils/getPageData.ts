@@ -4,16 +4,12 @@ import type { BlockData } from '@/types/index';
 interface PageDoc {
   _id?: string;
   pageName: string;
-  pageType: 'page' | 'header' | 'footer' | 'blog';
+  pageType: 'page' | 'header' | 'footer';
   isPublished?: boolean;
   isGlobal?: boolean;
   component?: BlockData[];
   createdBy?: unknown;
   updatedAt?: Date;
-  category?: string;
-  authorName?: string;
-  featuredImage?: string;
-  publishDate?: Date;
   description?: string;
 }
 

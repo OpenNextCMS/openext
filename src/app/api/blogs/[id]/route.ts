@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { Types } from 'mongoose';
 import { revalidatePath } from 'next/cache';
-import { getPageDbConnection, getPageModel } from '@/utils/db';
+import { getPageDbConnection, getBlogPostModel } from '@/utils/db';
 import { requireAuth } from '@/lib/api/auth';
 import { apiOk, apiError, handleApiError } from '@/lib/api/response';
 import { generateUniqueSlug } from '@/lib/api/slug';
@@ -22,9 +22,9 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     await requireAuth();
     const { id } = await params;
     const pageDb = await getPageDbConnection();
-    const PageModel = getPageModel(pageDb);
+    const BlogPostModel = getBlogPostModel(pageDb);
 
-    const blog = await PageModel.findOne({ _id: id, pageType: 'blog' })
+    const blog = await BlogPostModel.findOne({ _id: id })
       .populate(populate)
       .lean()
       .exec();
@@ -43,9 +43,9 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     const body = updateBlogSchema.parse(await req.json());
 
     const pageDb = await getPageDbConnection();
-    const PageModel = getPageModel(pageDb);
+    const BlogPostModel = getBlogPostModel(pageDb);
 
-    const blog = await PageModel.findOne({ _id: id, pageType: 'blog' });
+    const blog = await BlogPostModel.findOne({ _id: id });
     if (!blog) return apiError('Blog post not found', 404);
 
     const previousSlug = blog.slug;
@@ -61,7 +61,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
     // Slug change: ensure uniqueness and record the old slug for redirects.
     if (slug !== undefined && slug !== previousSlug) {
-      blog.slug = await generateUniqueSlug(PageModel, slug || blog.pageName, { excludeId: id });
+      blog.slug = await generateUniqueSlug(BlogPostModel, slug || blog.pageName, { excludeId: id });
       if (previousSlug && blog.slug !== previousSlug) {
         blog.slugHistory = Array.from(new Set([...(blog.slugHistory || []), previousSlug]));
       }
@@ -105,9 +105,9 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
     await requireAuth();
     const { id } = await params;
     const pageDb = await getPageDbConnection();
-    const PageModel = getPageModel(pageDb);
+    const BlogPostModel = getBlogPostModel(pageDb);
 
-    const deleted = await PageModel.findOneAndDelete({ _id: id, pageType: 'blog' }).lean().exec();
+    const deleted = await BlogPostModel.findOneAndDelete({ _id: id }).lean().exec();
     if (!deleted) return apiError('Blog post not found', 404);
 
     try {

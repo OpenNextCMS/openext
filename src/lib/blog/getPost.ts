@@ -1,4 +1,4 @@
-import { getPageDbConnection, getPageModel } from '@/utils/db';
+import { getPageDbConnection, getBlogPostModel } from '@/utils/db';
 
 const populate = [
   { path: 'categories', select: 'name slug' },
@@ -7,7 +7,6 @@ const populate = [
 ];
 
 const publishedFilter = {
-  pageType: 'blog' as const,
   $or: [{ status: 'published' }, { isPublished: true }],
 };
 
@@ -21,12 +20,12 @@ export interface PublishedPost {
 /** Server-side fetch of a published blog post by slug (with slugHistory fallback). */
 export async function getPublishedPostBySlug(slug: string): Promise<PublishedPost | null> {
   const pageDb = await getPageDbConnection();
-  const Page = getPageModel(pageDb);
+  const BlogPost = getBlogPostModel(pageDb);
 
-  const direct = await Page.findOne({ slug, ...publishedFilter }).populate(populate).lean().exec();
+  const direct = await BlogPost.findOne({ slug, ...publishedFilter }).populate(populate).lean().exec();
   if (direct) return { post: direct, movedFrom: null };
 
-  const byHistory = await Page.findOne({ slugHistory: slug, ...publishedFilter })
+  const byHistory = await BlogPost.findOne({ slugHistory: slug, ...publishedFilter })
     .populate(populate)
     .lean()
     .exec();
@@ -38,7 +37,7 @@ export async function getPublishedPostBySlug(slug: string): Promise<PublishedPos
 /** All published post slugs (for generateStaticParams / sitemap-like uses). */
 export async function getPublishedSlugs(): Promise<string[]> {
   const pageDb = await getPageDbConnection();
-  const Page = getPageModel(pageDb);
-  const docs = await Page.find(publishedFilter).select('slug').lean().exec();
+  const BlogPost = getBlogPostModel(pageDb);
+  const docs = await BlogPost.find(publishedFilter).select('slug').lean().exec();
   return docs.map((d) => (d as { slug?: string }).slug).filter(Boolean) as string[];
 }

@@ -19,6 +19,7 @@ function NavLinkDrop({
   canEdit,
   onSelect,
   onUnlink,
+  depth = 0,
 }: {
   item: MenuItem;
   mapping?: MenuRedirectMapping;
@@ -26,6 +27,7 @@ function NavLinkDrop({
   canEdit: boolean;
   onSelect: () => void;
   onUnlink: () => void;
+  depth?: number;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: item.id, data: { menuItemId: item.id } });
   const linked = !!mapping;
@@ -42,6 +44,7 @@ function NavLinkDrop({
         isOver ? 'bg-primary/15 ring-2 ring-primary ring-offset-1' : '',
         linked ? 'text-primary' : 'text-foreground',
       ].join(' ')}
+      style={{ marginLeft: depth ? depth * 12 : 0 }}
     >
       <span className="flex items-center gap-1 font-medium">
         {linked ? <Link2 className="h-3.5 w-3.5" /> : null}
@@ -74,6 +77,66 @@ function NavLinkDrop({
   );
 }
 
+function countLinked(items: MenuItem[], mappings: Record<string, MenuRedirectMapping>): number {
+  return items.reduce(
+    (total, item) =>
+      total + (mappings[item.id] ? 1 : 0) + countLinked(item.children || [], mappings),
+    0
+  );
+}
+
+function countItems(items: MenuItem[]): number {
+  return items.reduce((total, item) => total + 1 + countItems(item.children || []), 0);
+}
+
+function NavLinkDrops({
+  items,
+  mappings,
+  selectedMenuItemId,
+  canEdit,
+  depth = 0,
+}: {
+  items: MenuItem[];
+  mappings: Record<string, MenuRedirectMapping>;
+  selectedMenuItemId: string | null;
+  canEdit: boolean;
+  depth?: number;
+}) {
+  const dispatch = useAppDispatch();
+
+  return (
+    <>
+      {items.map((item) => (
+        <div key={item.id} className="flex flex-col gap-1">
+          <NavLinkDrop
+            item={item}
+            mapping={mappings[item.id]}
+            selected={selectedMenuItemId === item.id}
+            canEdit={canEdit}
+            depth={depth}
+            onSelect={() => dispatch(setSelectedMenuItemId(item.id))}
+            onUnlink={() => {
+              const m = mappings[item.id];
+              if (m?._id) dispatch(deleteMapping({ id: m._id, menuItemId: item.id }));
+            }}
+          />
+          {item.children?.length ? (
+            <div className="flex flex-wrap gap-1">
+              <NavLinkDrops
+                items={item.children}
+                mappings={mappings}
+                selectedMenuItemId={selectedMenuItemId}
+                canEdit={canEdit}
+                depth={depth + 1}
+              />
+            </div>
+          ) : null}
+        </div>
+      ))}
+    </>
+  );
+}
+
 /**
  * Simplified, live preview of the active header. Renders the header's real menu
  * items inside a browser-chrome frame; each item is a drop zone for the left-bar
@@ -86,7 +149,6 @@ export default function HeaderCanvas({
   canEdit: boolean;
   onAutoConnect?: () => void;
 }) {
-  const dispatch = useAppDispatch();
   const { activeHeaderId, headerName, menuItems, mappings, selectedMenuItemId } = useAppSelector(
     (s) => s.menuRedirect
   );
@@ -101,7 +163,8 @@ export default function HeaderCanvas({
     );
   }
 
-  const linkedCount = menuItems.filter((i) => mappings[i.id]).length;
+  const linkedCount = countLinked(menuItems, mappings);
+  const totalCount = countItems(menuItems);
 
   return (
     <div className="flex h-full flex-col bg-muted/30">
@@ -113,7 +176,7 @@ export default function HeaderCanvas({
         </div>
         <div className="flex items-center gap-3">
           <span className="text-xs text-muted-foreground">
-            {linkedCount}/{menuItems.length} linked
+            {linkedCount}/{totalCount} linked
           </span>
           {onAutoConnect && canEdit ? (
             <Button size="sm" variant="outline" onClick={onAutoConnect}>
@@ -147,20 +210,12 @@ export default function HeaderCanvas({
                   This header has no menu items.
                 </p>
               ) : (
-                menuItems.map((item) => (
-                  <NavLinkDrop
-                    key={item.id}
-                    item={item}
-                    mapping={mappings[item.id]}
-                    selected={selectedMenuItemId === item.id}
-                    canEdit={canEdit}
-                    onSelect={() => dispatch(setSelectedMenuItemId(item.id))}
-                    onUnlink={() => {
-                      const m = mappings[item.id];
-                      if (m?._id) dispatch(deleteMapping({ id: m._id, menuItemId: item.id }));
-                    }}
-                  />
-                ))
+                <NavLinkDrops
+                  items={menuItems}
+                  mappings={mappings}
+                  selectedMenuItemId={selectedMenuItemId}
+                  canEdit={canEdit}
+                />
               )}
             </nav>
           </div>

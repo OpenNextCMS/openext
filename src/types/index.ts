@@ -239,7 +239,7 @@ export interface IModification {
 export interface PageDocument extends Document {
   pageName: string;
   createdBy: Types.ObjectId;
-  pageType: 'page' | 'header' | 'footer' | 'blog';
+  pageType: 'page' | 'header' | 'footer';
   isPublished: boolean;
   isHome: boolean;
   isGlobal: boolean;
@@ -251,8 +251,17 @@ export interface PageDocument extends Document {
   slug: string;
   component: unknown[];
   modifications: IModification[];
+  createdAt?: Date;
+  updatedAt?: Date;
+}
 
-  // --- Blog-specific fields (all optional; only populated for pageType 'blog') ---
+export interface IBlogPostDocument extends Document {
+  pageName: string; // Title of the blog post
+  createdBy: Types.ObjectId;
+  isPublished: boolean;
+  slug: string;
+  modifications: IModification[];
+
   excerpt?: string;
   /** Typed block body for blog posts (distinct from `component`, the visual editor's blocks). */
   contentBlocks?: ContentBlock[];
@@ -572,15 +581,10 @@ export interface Page {
   id?: string;
   _id?: string; // Add MongoDB _id
   pageName: string;
-  pageType: 'page' | 'header' | 'footer' | 'blog';
+  pageType: 'page' | 'header' | 'footer';
   preHeading: string;
   description: string;
-  category?: string;
-  authorName?: string;
-  featuredImage?: string;
-  publishDate?: string;
   seoName: string;
-
   seoMeta: string;
   slug?: string;
   isHome?: boolean;
@@ -590,4 +594,23 @@ export interface Page {
   createdAt?: string;
   updatedAt?: string;
   lastModified?: string;
+}
+
+export interface BlogPost {
+  id?: string;
+  _id?: string;
+  pageName: string; // Title
+  slug: string;
+  excerpt?: string;
+  contentBlocks?: ContentBlock[];
+  featuredImage?: string;
+  category?: string;
+  authorName?: string;
+  status?: BlogStatus;
+  publishedAt?: string;
+  publishDate?: string;
+  readingTime?: number;
+  views?: number;
+  createdAt?: string;
+  updatedAt?: string;
 }
