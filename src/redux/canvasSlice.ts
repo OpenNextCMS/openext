@@ -63,7 +63,8 @@ export interface BlockData {
     | 'feature-zigzag'
     | 'feature-checklist'
     | 'feature-list'
-    | 'blog-feed';
+    | 'blog-feed'
+    | 'form-block';
   children?: BlockData[][];
   style?: React.CSSProperties;
   hoverStyle?: React.CSSProperties;

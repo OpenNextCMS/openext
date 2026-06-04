@@ -62,7 +62,8 @@ interface Block {
     | 'ecommerce-grid'
     | 'ecommerce-detail'
     | 'ecommerce-info'
-    | 'ecommerce-info-alt';
+    | 'ecommerce-info-alt'
+    | 'form-block';
     uniqueId: string;
   content?: string;
   icon?: React.ReactNode | string;

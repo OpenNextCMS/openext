@@ -1,6 +1,9 @@
 import { configureStore, combineReducers } from '@reduxjs/toolkit';
 import canvasReducer from './canvasSlice';
 import menuRedirectReducer from './menuRedirectSlice';
+import formBuilderReducer from './formBuilderSlice';
+import formSubmissionReducer from './formSubmissionSlice';
+import formAnalyticsReducer from './formAnalyticsSlice';
 import customStorage from './customStorage';
 import {
   persistStore,
@@ -21,6 +24,9 @@ const persistConfig = {
 const rootReducer = combineReducers({
   canvas: canvasReducer,
   menuRedirect: menuRedirectReducer,
+  formBuilder: formBuilderReducer,
+  formSubmissions: formSubmissionReducer,
+  formAnalytics: formAnalyticsReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
