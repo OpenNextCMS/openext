@@ -24,25 +24,13 @@ const ModificationSchema = new Schema<IModification>({
   modifiedAt: { type: Date, default: Date.now },
 });
 
-// Typed block body for blog posts. `data` is schema-less (Mixed) so each block
-// type can store its own shape (see the BlogBlockType union in types).
-const ContentBlockSchema = new Schema(
-  {
-    id: { type: String, required: true },
-    type: { type: String, required: true },
-    data: { type: Schema.Types.Mixed, default: {} },
-    hidden: { type: Boolean, default: false },
-  },
-  { _id: false }
-);
-
 const PageSchema = new Schema<PageDocument>(
   {
     pageName: { type: String, required: true, trim: true },
     createdBy: { type: Schema.Types.ObjectId, ref: 'User' },
     pageType: {
       type: String,
-      enum: ['page', 'header', 'footer', 'blog'],
+      enum: ['page', 'header', 'footer'],
       default: 'page',
     },
     isPublished: { type: Boolean, default: false },
@@ -50,50 +38,19 @@ const PageSchema = new Schema<PageDocument>(
     isGlobal: { type: Boolean, default: false },
     preHeading: { type: String },
     description: { type: String },
-    category: { type: String },
-    authorName: { type: String },
-    featuredImage: { type: String },
-    publishDate: { type: Date },
-    slug: { type: String, unique: true },
+    slug: { type: String },
     seoName: { type: String },
     seoMeta: { type: String },
     component: { type: [Schema.Types.Mixed] },
     modifications: [ModificationSchema],
-
-    // --- Blog-specific fields (only populated for pageType 'blog') ---
-    excerpt: { type: String },
-    contentBlocks: { type: [ContentBlockSchema], default: undefined },
-    categories: [{ type: Schema.Types.ObjectId, ref: 'Category' }],
-    tags: [{ type: Schema.Types.ObjectId, ref: 'Tag' }],
-    authorId: { type: Schema.Types.ObjectId, ref: 'Author' },
-    seo: {
-      title: { type: String },
-      description: { type: String },
-      keywords: { type: [String], default: undefined },
-      canonical: { type: String },
-      ogImage: { type: String },
-      index: { type: Boolean, default: true },
-    },
-    status: {
-      type: String,
-      enum: ['draft', 'published', 'scheduled', 'archived'],
-      default: 'draft',
-    },
-    publishedAt: { type: Date },
-    scheduledAt: { type: Date },
-    readingTime: { type: Number, default: 0 },
-    views: { type: Number, default: 0 },
-    slugHistory: { type: [String], default: undefined },
   },
   { timestamps: true }
 );
 
 // Create indexes for better query performance
+PageSchema.index({ slug: 1 }, { unique: true });
 PageSchema.index({ pageName: 1, createdBy: 1 });
 PageSchema.index({ pageType: 1, isGlobal: 1 });
-// Blog listing: filter by type + status, sorted by publish date.
-PageSchema.index({ pageType: 1, status: 1, publishedAt: -1 });
-PageSchema.index({ status: 1, publishedAt: -1 });
 
 const PageModel = models.Page || model<PageDocument>('Page', PageSchema);
 

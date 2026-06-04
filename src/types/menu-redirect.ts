@@ -75,6 +75,15 @@ export interface MenuItem {
   id: string;
   label: string;
   href?: string;
+  children?: MenuItem[];
+}
+
+export interface HeaderMenuLink {
+  label: string;
+  href: string;
+  onClick?: string;
+  onClickValue?: string;
+  children?: HeaderMenuLink[];
 }
 export interface ResolvedHeader {
   headerId: string;

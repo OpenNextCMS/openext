@@ -10,6 +10,7 @@ export { menuItemIdFor };
 interface NavLink {
   label?: string;
   href?: string;
+  children?: NavLink[];
 }
 
 /** Depth-first search for the first nav-bar block within a page's component tree. */
@@ -36,6 +37,19 @@ function parseNavLinks(navbar: any): NavLink[] {
   } catch {
     return [];
   }
+}
+
+function toMenuItems(links: NavLink[], parentId?: string): MenuItem[] {
+  return links.map((l, i) => {
+    const label = l.label || `Link ${i + 1}`;
+    const id = menuItemIdFor(label, i, parentId);
+    return {
+      id,
+      label,
+      href: l.href,
+      children: Array.isArray(l.children) ? toMenuItems(l.children, id) : undefined,
+    };
+  });
 }
 
 /**
@@ -69,10 +83,7 @@ export async function resolveActiveHeader(
     if (!navbar) return { header: null, reason: 'no_navbar' };
 
     const links = parseNavLinks(navbar);
-    const menuItems: MenuItem[] = links.map((l, i) => {
-      const label = l.label || `Link ${i + 1}`;
-      return { id: menuItemIdFor(label, i), label, href: l.href };
-    });
+    const menuItems: MenuItem[] = toMenuItems(links);
 
     return {
       headerId: String((header as { _id: unknown })._id),

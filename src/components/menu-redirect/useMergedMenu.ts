@@ -43,9 +43,9 @@ export function useMergedMenu(headerId?: string) {
   }, [headerId]);
 
   /** Directive for a link by its (label, index) — null when inactive/unmapped. */
-  const getFor = (label: string, index: number): MenuDirective | null => {
+  const getFor = (label: string, index: number, parentId?: string): MenuDirective | null => {
     if (!active) return null;
-    return directives[menuItemIdFor(label, index)] ?? null;
+    return directives[menuItemIdFor(label, index, parentId)] ?? null;
   };
 
   return { active, getFor };

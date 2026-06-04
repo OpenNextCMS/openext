@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { revalidatePath } from 'next/cache';
-import { getPageDbConnection, getPageModel } from '@/utils/db';
+import { getPageDbConnection, getBlogPostModel } from '@/utils/db';
 import { apiOk, apiError, handleApiError } from '@/lib/api/response';
 
 /**
@@ -21,11 +21,10 @@ async function run(req: NextRequest) {
   }
 
   const pageDb = await getPageDbConnection();
-  const Page = getPageModel(pageDb);
+  const BlogPost = getBlogPostModel(pageDb);
   const now = new Date();
 
-  const due = await Page.find({
-    pageType: 'blog',
+  const due = await BlogPost.find({
     status: 'scheduled',
     scheduledAt: { $lte: now },
   })
@@ -33,8 +32,8 @@ async function run(req: NextRequest) {
     .lean()
     .exec();
 
-  const result = await Page.updateMany(
-    { pageType: 'blog', status: 'scheduled', scheduledAt: { $lte: now } },
+  const result = await BlogPost.updateMany(
+    { status: 'scheduled', scheduledAt: { $lte: now } },
     { $set: { status: 'published', isPublished: true, publishedAt: now } }
   );
 

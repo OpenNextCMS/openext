@@ -37,7 +37,7 @@ export default function AddBlog() {
       const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
 
       // Step 1: Create the blog post
-      const response = await fetch(`${backendUrl}/api/pages/add-page`, {
+      const response = await fetch(`${backendUrl}/api/blogs`, {
         method: 'POST',
         credentials: 'include',
         headers: {
@@ -46,22 +46,20 @@ export default function AddBlog() {
         body: JSON.stringify({ 
             pageName, 
             slug, 
-            isPublished, 
-            pageType: 'blog',
+            status: isPublished ? 'published' : 'draft',
             category,
             authorName,
             featuredImage,
-            publishDate: isPublished ? new Date() : null
         }),
       });
 
       const result = await response.json();
 
-      if (response.ok && result.success) {
+      if (response.ok && result.data) {
         // Open the new block-based blog editor for the freshly created post.
         window.location.assign(`/dashboard/blogs/${result.data._id}/edit`);
       } else {
-        console.error('Blog post creation failed:', result.message);
+        console.error('Blog post creation failed:', result.message || 'Unknown error');
       }
     } catch (error) {
       console.error('An error occurred:', error);

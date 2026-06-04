@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { getPageDbConnection, getPageModel } from '@/utils/db';
+import { getPageDbConnection, getBlogPostModel } from '@/utils/db';
 import { apiOk, apiError, handleApiError } from '@/lib/api/response';
 
 /**
@@ -11,7 +11,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ slu
   try {
     const { slug } = await params;
     const pageDb = await getPageDbConnection();
-    const PageModel = getPageModel(pageDb);
+    const BlogPostModel = getBlogPostModel(pageDb);
 
     const populate = [
       { path: 'categories', select: 'name slug' },
@@ -20,11 +20,10 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ slu
     ];
 
     const publishedFilter = {
-      pageType: 'blog',
       $or: [{ status: 'published' }, { isPublished: true }],
     };
 
-    let blog = await PageModel.findOne({ slug, ...publishedFilter })
+    let blog = await BlogPostModel.findOne({ slug, ...publishedFilter })
       .populate(populate)
       .lean()
       .exec();
@@ -32,7 +31,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ slu
     let movedFrom: string | null = null;
     if (!blog) {
       // Try a historical slug.
-      const byHistory = await PageModel.findOne({ slugHistory: slug, ...publishedFilter })
+      const byHistory = await BlogPostModel.findOne({ slugHistory: slug, ...publishedFilter })
         .populate(populate)
         .lean()
         .exec();

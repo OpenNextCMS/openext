@@ -1,7 +1,8 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { useAppSelector } from '@/redux/hooks';
+import { useAppDispatch, useAppSelector } from '@/redux/hooks';
+import { redoCanvas, undoCanvas } from '@/redux/canvasSlice';
 import { useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import {
@@ -45,6 +46,7 @@ interface ToolbarProps {
 
 export default function Toolbar({ toggleSidebar, onViewChange }: ToolbarProps) {
   const [isCodeOpen, setIsCodeOpen] = useState(false);
+  const dispatch = useAppDispatch();
   const searchParams = useSearchParams();
   const slug = searchParams.get('pagename');
   const userId = searchParams.get('userId');
@@ -52,6 +54,8 @@ export default function Toolbar({ toggleSidebar, onViewChange }: ToolbarProps) {
   const pageType = searchParams.get('pageType') || 'page';
   console.log('Page ID:', pageID);
   const components = useAppSelector((state) => state.canvas.blocks);
+  const canUndo = (useAppSelector((state) => state.canvas.historyPast)?.length || 0) > 0;
+  const canRedo = (useAppSelector((state) => state.canvas.historyFuture)?.length || 0) > 0;
   console.log(components);
   const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
 
@@ -138,6 +142,8 @@ export default function Toolbar({ toggleSidebar, onViewChange }: ToolbarProps) {
                 variant="ghost"
                 size="icon"
                 className="h-8 w-8 hover:bg-primary/10 hover:text-primary"
+                disabled={!canUndo}
+                onClick={() => dispatch(undoCanvas())}
               >
                 <RotateCcw className="h-4 w-4" />
               </Button>
@@ -155,6 +161,8 @@ export default function Toolbar({ toggleSidebar, onViewChange }: ToolbarProps) {
                 variant="ghost"
                 size="icon"
                 className="h-8 w-8 hover:bg-primary/10 hover:text-primary"
+                disabled={!canRedo}
+                onClick={() => dispatch(redoCanvas())}
               >
                 <ArrowUndo className="h-4 w-4" />
               </Button>

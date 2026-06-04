@@ -41,7 +41,7 @@ const HEADER_FOCUS_INSTRUCTION = `IMPORTANT CONTEXT — HEADER PAGE:
 - You are editing a HEADER. Output ONLY the header/nav portion of the page.
 - The output should be exactly ONE top-level "nav-bar" block, optionally inside a 1-column wrapper.
 - Do NOT output hero sections, body content, or footer content. Only the visible top navigation.
-- nav-bar content schema: {"logo":"Brand","logoType":"text","logoImage":"","layout":"horizontal","links":[{"label":"Home","href":"#","onClick":"none","onClickValue":""}, ...]}
+- nav-bar content schema: {"logo":"Brand","logoType":"text","logoSource":"custom","logoImage":"","layout":"horizontal","links":[{"label":"Home","href":"#","onClick":"none","onClickValue":""}, ...]}
 - Set layout to "horizontal" (logo left, links right), "vertical" (stacked sidebar), "hamburger" (mobile-style), or "two-line" (logo top, links below) based on the image.`;
 
 const FOOTER_FOCUS_INSTRUCTION = `IMPORTANT CONTEXT — FOOTER PAGE:
@@ -1051,6 +1051,7 @@ const translateNavbar = (block: SemanticBlock, theme?: PageTheme): BlockData => 
     content: JSON.stringify({
       logo: pickString(content, 'logo', 'brand', 'logoText', 'siteName') || 'Brand',
       logoType: 'text',
+      logoSource: 'custom',
       logoImage: '',
       layout: 'horizontal',
       links: finalLinks,
@@ -2685,6 +2686,7 @@ const buildSiteHeaderBlocks = (brand: string, links: NavLink[]): BlockData[] => 
       content: JSON.stringify({
         logo: brand || 'Brand',
         logoType: 'text',
+        logoSource: 'custom',
         logoImage: '',
         layout: 'horizontal',
         links: finalLinks,

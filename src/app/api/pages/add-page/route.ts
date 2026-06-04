@@ -19,6 +19,14 @@ export async function POST(req: NextRequest) {
   }
   try {
     const body = await req.json();
+
+    if (body.pageType === 'blog') {
+      return NextResponse.json(
+        { success: false, message: 'Blog posts must be created via /api/blogs' },
+        { status: 400 }
+      );
+    }
+
     const decodedToken = jwtDecode<DecodedToken>(token);
     const userId = decodedToken.userId;
     // 1. Get DB connection

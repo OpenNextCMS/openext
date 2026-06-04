@@ -1,6 +1,6 @@
 'use client';
 
-import { Trash2, Menu, X, MousePointer2 } from 'lucide-react';
+import { Trash2, Menu, X, MousePointer2, ChevronDown } from 'lucide-react';
 import { BlockRendererProps, BlockData } from '@/types/index';
 import { useAppDispatch } from '@/redux/hooks';
 import {
@@ -9,26 +9,31 @@ import {
   setSelectedBlock,
   updateBlockContent,
 } from '@/redux/canvasSlice';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { resolveRedirectUrl, useBlockEvents } from '@/hooks/useBlockEvents';
 import { useMergedMenu, type MenuDirective } from '@/components/menu-redirect/useMergedMenu';
 import { trackMenuClick } from '@/lib/menu-redirect/track-client';
+import { menuItemIdFor } from '@/lib/menu-redirect/menu-item-id';
 
 type NavbarLayout = 'horizontal' | 'vertical' | 'hamburger' | 'two-line';
 
 interface NavbarContent {
   logo?: string;
   logoType?: 'text' | 'image';
+  logoSource?: 'website' | 'custom';
   logoImage?: string;
   layout?: NavbarLayout;
-  links?: {
+  links?: NavbarLink[];
+}
+
+type NavbarLink = {
     label: string;
     href: string;
     onClick?: string;
     onClickValue?: string;
-  }[];
-}
+    children?: NavbarLink[];
+};
 
 export const NavbarBlock = ({ block, isEditing = true }: BlockRendererProps) => {
   const dispatch = useAppDispatch();
@@ -37,6 +42,9 @@ export const NavbarBlock = ({ block, isEditing = true }: BlockRendererProps) => 
   const searchParams = useSearchParams();
   const [isHovered, setIsHovered] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [openMenuPath, setOpenMenuPath] = useState<string | null>(null);
+  const [siteTitle, setSiteTitle] = useState('Brand');
+  const [siteIcon, setSiteIcon] = useState<string | null>(null);
   const { handleClick } = useBlockEvents(block as BlockData, isEditing);
   
   const isPreview = pathname === '/preview';
@@ -45,12 +53,29 @@ export const NavbarBlock = ({ block, isEditing = true }: BlockRendererProps) => 
   const navbarData: NavbarContent = (() => {
     try {
       return typeof block.content === 'string' && block.content.startsWith('{')
-        ? JSON.parse(block.content)
+        ? { logoSource: 'custom', ...JSON.parse(block.content) }
         : { logo: block.content || 'Brand', links: [] };
     } catch {
       return { logo: 'Brand', links: [] };
     }
   })();
+
+  useEffect(() => {
+    let alive = true;
+    fetch('/api/dashboard/settings')
+      .then((res) => res.json())
+      .then((json) => {
+        if (!alive) return;
+        const settings = json?.data?.settings;
+        if (!settings) return;
+        setSiteTitle(settings.siteTitle || 'Brand');
+        setSiteIcon(settings.siteIcon ? `/siteicon/${settings.siteIcon}` : null);
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   const handleRemove = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -67,6 +92,7 @@ export const NavbarBlock = ({ block, isEditing = true }: BlockRendererProps) => 
 
   const handleLogoBlur = (e: React.FocusEvent<HTMLDivElement>) => {
     if (!isEditing) return;
+    if (navbarData.logoSource === 'website') return;
     const newLogo = e.currentTarget.textContent || '';
     const updatedContent = JSON.stringify({ ...navbarData, logo: newLogo });
     dispatch(updateBlockContent({ id: block.uniqueId ?? '', content: updatedContent }));
@@ -107,11 +133,12 @@ export const NavbarBlock = ({ block, isEditing = true }: BlockRendererProps) => 
 
   // Centralized link renderer so merged hrefs/attrs apply across every layout.
   const renderNavLink = (
-    link: NonNullable<NavbarContent['links']>[number],
+    link: NavbarLink,
     index: number,
-    className: string
+    className: string,
+    parentId?: string
   ) => {
-    const directive = !isEditing ? mergedMenu.getFor(link.label, index) : null;
+    const directive = !isEditing ? mergedMenu.getFor(link.label, index, parentId) : null;
     const effectiveHref = directive?.href || link.href;
     const disabled = directive ? !directive.enabled : false;
     const target = directive?.openInNewTab ? '_blank' : undefined;
@@ -128,7 +155,6 @@ export const NavbarBlock = ({ block, isEditing = true }: BlockRendererProps) => 
       : {};
     return (
       <a
-        key={index}
         href={isEditing || disabled ? undefined : effectiveHref}
         target={target}
         rel={rel}
@@ -142,6 +168,75 @@ export const NavbarBlock = ({ block, isEditing = true }: BlockRendererProps) => 
     );
   };
 
+  const renderNavItem = (
+    link: NavbarLink,
+    index: number,
+    className: string,
+    parentId?: string
+  ) => {
+    const itemId = menuItemIdFor(link.label, index, parentId);
+    const pathKey = parentId ? `${parentId}>${itemId}` : itemId;
+    const children = Array.isArray(link.children) ? link.children : [];
+    if (children.length === 0) {
+      return (
+        <span key={itemId}>
+          {renderNavLink(link, index, className, parentId)}
+        </span>
+      );
+    }
+
+    return (
+      <div
+        key={itemId}
+        className="relative flex items-center"
+        onMouseEnter={() => setOpenMenuPath(pathKey)}
+        onMouseLeave={() => setOpenMenuPath((current) => (current?.startsWith(pathKey) ? null : current))}
+      >
+        <div className="flex items-center gap-1">
+          {renderNavLink(link, index, className, parentId)}
+          <ChevronDown className="h-3.5 w-3.5 opacity-70" />
+        </div>
+        {openMenuPath?.startsWith(pathKey) ? (
+          <div
+            className="absolute left-0 top-full z-50 min-w-40 rounded-md border bg-background p-1 shadow-lg"
+            style={{ color: block.style?.color || 'inherit' }}
+          >
+            {children.map((child, childIndex) =>
+              renderNavItem(
+                child,
+                childIndex,
+                'block rounded px-3 py-2 text-sm font-medium hover:bg-muted hover:opacity-80 transition-opacity cursor-pointer',
+                pathKey
+              )
+            )}
+          </div>
+        ) : null}
+      </div>
+    );
+  };
+
+  const renderNavStackItem = (
+    link: NavbarLink,
+    index: number,
+    className: string,
+    parentId?: string
+  ) => {
+    const itemId = menuItemIdFor(link.label, index, parentId);
+    const children = Array.isArray(link.children) ? link.children : [];
+    return (
+      <div key={itemId} className="flex flex-col gap-2">
+        {renderNavLink(link, index, className, parentId)}
+        {children.length > 0 ? (
+          <div className="ml-4 flex flex-col gap-2 border-l pl-3">
+            {children.map((child, childIndex) =>
+              renderNavStackItem(child, childIndex, className, itemId)
+            )}
+          </div>
+        ) : null}
+      </div>
+    );
+  };
+
   const links = navbarData.links || [
     { label: 'Home', href: '#' },
     { label: 'About', href: '#' },
@@ -149,23 +244,36 @@ export const NavbarBlock = ({ block, isEditing = true }: BlockRendererProps) => 
   ];
 
   const layout: NavbarLayout = navbarData.layout || 'horizontal';
+  const useWebsiteLogo = navbarData.logoType === 'image' && navbarData.logoSource === 'website';
 
   const logoNode =
     navbarData.logoType === 'image' ? (
-      <img
-        src={navbarData.logoImage || 'https://via.placeholder.com/150x50?text=Logo'}
-        alt={navbarData.logo || 'Brand'}
-        style={{ maxHeight: '40px', objectFit: 'contain' }}
-      />
+      useWebsiteLogo && siteIcon ? (
+        <img
+          src={siteIcon}
+          alt={siteTitle}
+          style={{ maxHeight: '40px', objectFit: 'contain' }}
+        />
+      ) : useWebsiteLogo ? (
+        <div className="text-xl font-bold outline-none" style={{ color: block.style?.color || 'inherit' }}>
+          {siteTitle}
+        </div>
+      ) : (
+        <img
+          src={navbarData.logoImage || 'https://via.placeholder.com/150x50?text=Logo'}
+          alt={navbarData.logo || 'Brand'}
+          style={{ maxHeight: '40px', objectFit: 'contain' }}
+        />
+      )
     ) : (
       <div
-        contentEditable={isEditing}
+        contentEditable={isEditing && navbarData.logoSource !== 'website'}
         suppressContentEditableWarning={true}
         onBlur={handleLogoBlur}
         className="text-xl font-bold outline-none"
         style={{ color: block.style?.color || 'inherit' }}
       >
-        {navbarData.logo || 'Brand'}
+        {navbarData.logoSource === 'website' ? siteTitle : navbarData.logo || 'Brand'}
       </div>
     );
 
@@ -249,7 +357,7 @@ export const NavbarBlock = ({ block, isEditing = true }: BlockRendererProps) => 
           </div>
           <div className="flex items-center justify-center gap-8 flex-wrap">
             {links.map((link, index) =>
-              renderNavLink(
+              renderNavItem(
                 link,
                 index,
                 'text-sm font-medium hover:opacity-80 transition-opacity cursor-pointer'
@@ -274,7 +382,7 @@ export const NavbarBlock = ({ block, isEditing = true }: BlockRendererProps) => 
           <div className="flex items-center">{logoNode}</div>
           <div className="flex flex-col gap-2">
             {links.map((link, index) =>
-              renderNavLink(
+              renderNavStackItem(
                 link,
                 index,
                 'text-sm font-medium hover:opacity-80 transition-opacity cursor-pointer py-1'
@@ -318,7 +426,7 @@ export const NavbarBlock = ({ block, isEditing = true }: BlockRendererProps) => 
             >
               <div className="flex flex-col p-4 space-y-4">
                 {links.map((link, index) =>
-                  renderNavLink(link, index, 'text-base font-medium hover:opacity-80')
+                  renderNavStackItem(link, index, 'text-base font-medium hover:opacity-80')
                 )}
               </div>
             </div>
@@ -341,7 +449,7 @@ export const NavbarBlock = ({ block, isEditing = true }: BlockRendererProps) => 
           {/* Desktop Links */}
           <div className="hidden md:flex items-center gap-8">
             {links.map((link, index) =>
-              renderNavLink(
+              renderNavItem(
                 link,
                 index,
                 'text-sm font-medium hover:opacity-80 transition-opacity cursor-pointer'
@@ -372,7 +480,7 @@ export const NavbarBlock = ({ block, isEditing = true }: BlockRendererProps) => 
             >
               <div className="flex flex-col p-4 space-y-4">
                 {links.map((link, index) =>
-                  renderNavLink(link, index, 'text-base font-medium hover:opacity-80')
+                  renderNavStackItem(link, index, 'text-base font-medium hover:opacity-80')
                 )}
               </div>
             </div>

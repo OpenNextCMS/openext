@@ -4,6 +4,7 @@ import React, { createContext, useContext, useEffect, useState, ReactNode } from
 import { pluginRegistry } from '@/lib/pluginRegistry';
 import * as Library from '@/components/plugins/PluginComponents';
 import { ContactUI } from '@/components/ui/ContactUI';
+import { sliderDefaultContentString } from '@/components/plugins/sliderSchema';
 
 interface PluginRecord {
   pluginId: string;
@@ -45,6 +46,10 @@ export const PluginProvider = ({ children }: { children: ReactNode }) => {
           // Map by type (for marketplace installs) or by name (for existing ones)
           const pluginType = (plugin.type || '').toLowerCase();
           const pluginName = plugin.name.toLowerCase();
+          const isSliderPlugin =
+            pluginType === 'slider' ||
+            pluginName.includes('slider') ||
+            pluginName.includes('casarole');
 
           // Menu Redirect is a dashboard *system* (accessed via the sidebar),
           // not a placeable block. Skip registering it in the block registry so
@@ -69,11 +74,7 @@ export const PluginProvider = ({ children }: { children: ReactNode }) => {
             Component = Library.MenuPlugin as unknown as React.ComponentType<Record<string, unknown>>;
           } else if (pluginType === 'contact' || pluginName.includes('contact')) {
             Component = ContactUI as unknown as unknown as React.ComponentType<Record<string, unknown>>;
-          } else if (
-            pluginType === 'slider' ||
-            pluginName.includes('slider') ||
-            pluginName.includes('casarole')
-          ) {
+          } else if (isSliderPlugin) {
             Component = Library.SliderPlugin as unknown as React.ComponentType<Record<string, unknown>>;
           } else if (pluginName.includes('video') || pluginName.includes('content editor')) {
             Component = Library.VideoPlugin as unknown as React.ComponentType<Record<string, unknown>>;
@@ -83,12 +84,17 @@ export const PluginProvider = ({ children }: { children: ReactNode }) => {
 
           pluginRegistry.register({
             id: plugin.pluginId,
-            name: plugin.name,
+            name: isSliderPlugin ? 'Slider' : plugin.name,
             type: 'block',
             component: (props) => <Component {...props} plugin={plugin} />,
             metadata: {
               icon: plugin.icon,
-              description: plugin.description,
+              description: isSliderPlugin
+                ? 'Create banners, cards, products, and content sliders.'
+                : plugin.description,
+              defaultContent: isSliderPlugin ? sliderDefaultContentString : undefined,
+              defaultStyle: isSliderPlugin ? { width: '100%' } : undefined,
+              category: isSliderPlugin ? 'Interactive Components' : 'Plugin Blocks',
             },
           });
         }

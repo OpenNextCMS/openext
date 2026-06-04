@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { X, Search, Grip, Package } from 'lucide-react';
+import { X, Search, Grip, Package, GalleryHorizontal } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import DraggableBlock from './draggableblock';
@@ -11,6 +11,7 @@ import { blockCategories } from '@/components/editor/data/blockCategories';
 import type { Block } from '@/types/index';
 import { pluginRegistry } from '@/lib/pluginRegistry';
 import { usePlugins } from '@/context/PluginContext';
+import { sliderDefaultContentString } from '@/components/plugins/sliderSchema';
 
 interface BlockProps {
   toggleSidebar: () => void;
@@ -20,13 +21,30 @@ export default function Blocks({ toggleSidebar }: BlockProps) {
   const [searchTerm, setSearchTerm] = useState('');
   usePlugins(); // Triggers re-render when plugins finish loading
 
-  const pluginBlocks: Block[] = pluginRegistry.getExtensionsByType('block').map((ext) => ({
-    id: ext.id,
-    type: ext.id as Block['type'],
-    label: ext.name,
-    icon: (ext.metadata?.icon as React.ReactNode) || <Grip className="h-4 w-4" />,
-    description: (ext.metadata?.description as string) || 'Plugin provided block',
-  }));
+  const pluginBlocks: Block[] = pluginRegistry.getExtensionsByType('block').map((ext) => {
+    const isSlider =
+      ext.id.toLowerCase().includes('slider') ||
+      ext.name.toLowerCase().includes('slider') ||
+      ext.name.toLowerCase().includes('casarole');
+
+    return {
+      id: ext.id,
+      type: ext.id as Block['type'],
+      label: isSlider ? 'Slider' : ext.name,
+      icon: isSlider ? (
+        <GalleryHorizontal className="h-4 w-4 mr-2 text-primary" />
+      ) : (
+        (ext.metadata?.icon as React.ReactNode) || <Grip className="h-4 w-4" />
+      ),
+      description: isSlider
+        ? 'Create banners, cards, products, and content sliders.'
+        : (ext.metadata?.description as string) || 'Plugin provided block',
+      content: isSlider
+        ? sliderDefaultContentString
+        : (ext.metadata?.defaultContent as string | undefined),
+      style: (ext.metadata?.defaultStyle as React.CSSProperties | undefined) || {},
+    };
+  });
 
   const getFilteredBlocks = (blocks: Block[]): Block[] => {
     return blocks.filter(
@@ -183,7 +201,7 @@ export default function Blocks({ toggleSidebar }: BlockProps) {
                 {filteredPluginBlocks.length > 0 && (
                   <div className="mt-6">
                     <h4 className="text-sm font-medium mb-2 text-muted-foreground">
-                      Plugin Blocks
+                      Interactive Components
                     </h4>
                     <div className="space-y-2">
                       {filteredPluginBlocks.map((block) => (
@@ -218,6 +236,7 @@ export default function Blocks({ toggleSidebar }: BlockProps) {
                 <TabsTrigger value="testimonial" className="px-2 py-1 text-[10px]">Testimonial</TabsTrigger>
                 <TabsTrigger value="ecommerce" className="px-2 py-1 text-[10px]">Ecom</TabsTrigger>
                 <TabsTrigger value="hero" className="px-2 py-1 text-[10px]">Hero</TabsTrigger>
+                <TabsTrigger value="plugins" className="px-2 py-1 text-[10px]">Interactive</TabsTrigger>
               </TabsList>
             </div>
 
@@ -287,7 +306,9 @@ export default function Blocks({ toggleSidebar }: BlockProps) {
 
               {pluginBlocks.length > 0 && (
                 <div>
-                  <h4 className="text-sm font-medium mb-2 text-muted-foreground">Plugin Blocks</h4>
+                  <h4 className="text-sm font-medium mb-2 text-muted-foreground">
+                    Interactive Components
+                  </h4>
                   <div className="space-y-2">
                     {pluginBlocks.map((block) => (
                       <BlockItem key={block.id} block={block} />

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getPageDbConnection, getPageModel } from '@/utils/db';
+import { getPageDbConnection, getBlogPostModel } from '@/utils/db';
 
 export async function GET() {
   try {
@@ -8,11 +8,10 @@ export async function GET() {
       return NextResponse.json({ success: false, message: 'Database connection error' }, { status: 500 });
     }
 
-    const PageModel = getPageModel(pageDb);
+    const BlogPostModel = getBlogPostModel(pageDb);
 
     // Fetch only published blog posts
-    const blogPosts = await PageModel.find({ 
-      pageType: 'blog', 
+    const blogPosts = await BlogPostModel.find({ 
       isPublished: true 
     })
     .sort({ publishDate: -1, createdAt: -1 })
