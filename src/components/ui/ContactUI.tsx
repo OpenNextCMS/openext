@@ -2,6 +2,7 @@
 import { useAppDispatch } from '@/redux/hooks';
 import { updateBlockContent, setSelectedBlock, setSelectedLabel } from '@/redux/canvasSlice';
 import { InlineEditableText } from '@/components/editor/InlineEditableText';
+import { EditableElement } from '@/components/editor/EditableElement';
 import type { BlockRendererProps, BlockData } from '@/types/index';
 
 export const ContactUI = ({ block, isEditing = false }: BlockRendererProps) => {
@@ -58,7 +59,13 @@ export const ContactUI = ({ block, isEditing = false }: BlockRendererProps) => {
         ></iframe>
       </div>
       <div className="container px-5 py-24 mx-auto flex">
-        <div className="lg:w-1/3 md:w-1/2 bg-white rounded-lg p-8 flex flex-col md:ml-auto w-full mt-10 md:mt-0 relative z-10 shadow-md" style={{ fontFamily: block.style?.fontFamily }}>
+        <EditableElement
+          block={block}
+          isEditing={isEditing}
+          path="cardStyle"
+          className="lg:w-1/3 md:w-1/2 bg-white rounded-lg p-8 flex flex-col md:ml-auto w-full mt-10 md:mt-0 relative z-10 shadow-md"
+          baseStyle={{ fontFamily: block.style?.fontFamily }}
+        >
           <InlineEditableText
             tagName="h2"
             value={content.title || 'Feedback'}
@@ -122,17 +129,23 @@ export const ContactUI = ({ block, isEditing = false }: BlockRendererProps) => {
               className="w-full bg-white rounded border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 h-32 text-base outline-none text-gray-700 py-1 px-3 resize-none leading-6 transition-colors duration-200 ease-in-out"
             ></textarea>
           </div>
-          <InlineEditableText
-            tagName="button"
-            value={content.buttonText || 'Button'}
-            onBlur={(v) => handleUpdate('buttonText', v)}
+          <EditableElement
+            as="button"
+            block={block}
             isEditing={isEditing}
+            path="submitButtonStyle"
             className="text-white bg-indigo-500 border-0 py-2 px-6 focus:outline-none hover:bg-indigo-600 rounded text-lg text-center"
-            style={{ 
-              fontFamily: block.style?.fontFamily,
-              ...content.buttonStyle 
-            }}
-          />
+            baseStyle={{ fontFamily: block.style?.fontFamily }}
+            extraProps={{ type: 'button' }}
+          >
+            <InlineEditableText
+              tagName="span"
+              value={content.buttonText || 'Button'}
+              onBlur={(v) => handleUpdate('buttonText', v)}
+              isEditing={isEditing}
+              style={content.buttonStyle}
+            />
+          </EditableElement>
           <InlineEditableText
             tagName="p"
             value={content.footerText || 'Chicharrones blog helvetica normcore iceland tousled brook viral artisan.'}
@@ -142,10 +155,10 @@ export const ContactUI = ({ block, isEditing = false }: BlockRendererProps) => {
             style={{ 
               fontFamily: block.style?.fontFamily,
               color: block.style?.color,
-              ...content.footerStyle 
+              ...content.footerStyle
             }}
           />
-        </div>
+        </EditableElement>
       </div>
     </section>
   );

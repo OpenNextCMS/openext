@@ -1,6 +1,7 @@
 ﻿import React from 'react';
 
 import { InlineEditableText } from '@/components/editor/InlineEditableText';
+import { EditableElement } from '@/components/editor/EditableElement';
 import type { BlockRendererProps } from '@/types/index';
 import type { BlockContentItem } from '@/types/blockContent';
 import { useAppDispatch } from '@/redux/hooks';
@@ -50,17 +51,29 @@ export const FeatureTrio = ({ block, isEditing = false }: BlockRendererProps) =>
           value={content.mainTitle || 'Raw Denim Heirloom Man Braid\nSelfies Wayfarers'}
           onBlur={(v) => handleUpdate('mainTitle', v)}
           isEditing={isEditing}
-          className="sm:text-3xl text-2xl font-medium title-font text-center text-gray-900 mb-20 whitespace-pre-line"
-          style={{ 
-            color: block.style?.color, 
-            fontFamily: block.style?.fontFamily,
-            ...content.mainTitleStyle 
+          className="sm:text-3xl text-2xl font-medium title-font text-center mb-20 whitespace-pre-line"
+          style={{
+            color: block.style?.color || 'var(--color-text, #111827)',
+            fontFamily: block.style?.fontFamily || 'var(--font-heading)',
+            ...content.mainTitleStyle
           }}
         />
         <div className="flex flex-wrap sm:-m-4 -mx-4 -mb-10 -mt-4 md:space-y-0 space-y-6">
           {features.map((feature: BlockContentItem, index: number) => (
-            <div key={index} className="p-4 md:w-1/3 flex">
-              <div className="w-12 h-12 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 mb-4 flex-shrink-0 overflow-hidden">
+            <EditableElement
+              key={index}
+              block={block}
+              isEditing={isEditing}
+              path={`features.${index}.cardStyle`}
+              className="p-4 md:w-1/3 flex"
+            >
+              <EditableElement
+                block={block}
+                isEditing={isEditing}
+                path={`features.${index}.iconStyle`}
+                className="w-12 h-12 inline-flex items-center justify-center rounded-full bg-indigo-100 mb-4 flex-shrink-0 overflow-hidden"
+                baseStyle={{ color: 'var(--color-primary, #6366f1)' }}
+              >
                 {feature.image ? (
                   <img src={feature.image} alt={feature.title} className="w-full h-full object-cover" />
                 ) : (
@@ -70,18 +83,18 @@ export const FeatureTrio = ({ block, isEditing = false }: BlockRendererProps) =>
                     {index === 2 && <circle cx="12" cy="7" r="4"></circle>}
                   </svg>
                 )}
-              </div>
+              </EditableElement>
               <div className="flex-grow pl-6">
                 <InlineEditableText
                   tagName="h2"
                   value={feature.title || 'Feature Title'}
                   onBlur={(v) => updateFeature(index, 'title', v)}
                   isEditing={isEditing}
-                  className="text-gray-900 text-lg title-font font-medium mb-2"
-                  style={{ 
-                    color: block.style?.color, 
-                    fontFamily: block.style?.fontFamily,
-                    ...content.featureTitleStyle 
+                  className="text-lg title-font font-medium mb-2"
+                  style={{
+                    color: block.style?.color || 'var(--color-text, #111827)',
+                    fontFamily: block.style?.fontFamily || 'var(--font-heading)',
+                    ...content.featureTitleStyle
                   }}
                 />
                 <InlineEditableText
@@ -90,17 +103,20 @@ export const FeatureTrio = ({ block, isEditing = false }: BlockRendererProps) =>
                   onBlur={(v) => updateFeature(index, 'description', v)}
                   isEditing={isEditing}
                   className="leading-relaxed text-base"
-                  style={{ 
-                    color: block.style?.color, 
-                    fontFamily: block.style?.fontFamily,
-                    ...content.featureDescriptionStyle 
+                  style={{
+                    color: block.style?.color || 'var(--color-muted, #4b5563)',
+                    fontFamily: block.style?.fontFamily || 'var(--font-body)',
+                    ...content.featureDescriptionStyle
                   }}
                 />
-                <a 
-                  href={isEditing ? undefined : (feature.url || content.linkUrl || '#')}
-                  className="mt-3 text-indigo-500 inline-flex items-center cursor-pointer" 
-                  style={{ fontFamily: block.style?.fontFamily }}
-                  onClick={(e) => isEditing && e.preventDefault()}
+                <EditableElement
+                  as="a"
+                  block={block}
+                  isEditing={isEditing}
+                  path={`features.${index}.buttonStyle`}
+                  className="mt-3 inline-flex items-center cursor-pointer"
+                  baseStyle={{ color: 'var(--color-primary, #6366f1)', fontFamily: block.style?.fontFamily }}
+                  extraProps={{ href: isEditing ? undefined : feature.url || content.linkUrl || '#' }}
                 >
                   <InlineEditableText
                     tagName="span"
@@ -111,9 +127,9 @@ export const FeatureTrio = ({ block, isEditing = false }: BlockRendererProps) =>
                   <svg fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" className="w-4 h-4 ml-2" viewBox="0 0 24 24">
                     <path d="M5 12h14M12 5l7 7-7 7"></path>
                   </svg>
-                </a>
+                </EditableElement>
               </div>
-            </div>
+            </EditableElement>
           ))}
         </div>
       </div>

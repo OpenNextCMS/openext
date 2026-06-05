@@ -18,6 +18,7 @@ import { MenuRedirectHistorySchema } from '@/models/MenuRedirectHistory';
 import { FormSchema } from '@/models/Form';
 import { FormSubmissionSchema } from '@/models/FormSubmission';
 import { FormVersionSchema } from '@/models/FormVersion';
+import { ThemeSchema } from '@/models/Theme';
 import type {
   MenuRedirectMappingDocument,
   MenuRedirectAnalyticsDocument,
@@ -28,6 +29,7 @@ import type {
   ISubmissionDocument,
   IFormVersionDocument,
 } from '@/types/form-builder';
+import type { IThemeDocument } from '@/types/theme';
 import type {
   PageDocument,
   IBlogPostDocument,
@@ -246,6 +248,26 @@ export async function getPageDbConnection() {
         pageDb.model<IFormVersionDocument>('FormVersion', FormVersionSchema);
       }
 
+      // Site-wide Theme Builder collection (per-tenant page DB).
+      if (!pageDb.models.Theme) {
+        pageDb.model<IThemeDocument>('Theme', ThemeSchema);
+      }
+
+      // Auto-seed the in-code system themes on a fresh tenant DB (mirrors the
+      // Roles/Settings auto-seed above). Idempotent + best-effort: a seed
+      // failure must never break page loads.
+      try {
+        const ThemeModel = pageDb.models.Theme as mongoose.Model<IThemeDocument>;
+        const themeCount = await ThemeModel.countDocuments({});
+        if (themeCount === 0) {
+          const { seedSystemThemes } = await import('@/lib/theme/seed');
+          await seedSystemThemes(pageDb);
+          console.log('System themes seeded in page DB.');
+        }
+      } catch (seedErr) {
+        console.warn('⚠️ System theme auto-seed skipped:', seedErr);
+      }
+
       pageDb.on('error', (error) => {
         console.error('❌ MongoDB page database connection error:', error);
         pageDb = null;
@@ -419,6 +441,14 @@ export function getFormVersionModel(
   return (
     (pageDb.models.FormVersion as mongoose.Model<IFormVersionDocument>) ||
     pageDb.model<IFormVersionDocument>('FormVersion', FormVersionSchema)
+  );
+}
+
+export function getThemeModel(pageDb: mongoose.Connection): mongoose.Model<IThemeDocument> {
+  if (!pageDb) throw new Error('Page database connection not initialized');
+  return (
+    (pageDb.models.Theme as mongoose.Model<IThemeDocument>) ||
+    pageDb.model<IThemeDocument>('Theme', ThemeSchema)
   );
 }
 

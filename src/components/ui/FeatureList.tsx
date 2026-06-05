@@ -1,6 +1,7 @@
 ﻿import React from 'react';
 
 import { InlineEditableText } from '@/components/editor/InlineEditableText';
+import { EditableElement } from '@/components/editor/EditableElement';
 import type { BlockRendererProps } from '@/types/index';
 import type { BlockContentItem } from '@/types/blockContent';
 import { useAppDispatch } from '@/redux/hooks';
@@ -95,7 +96,13 @@ export const FeatureList = ({ block, isEditing = false }: BlockRendererProps) =>
         </div>
         <div className="flex flex-wrap -m-4">
           {categories.map((cat: BlockContentItem, idx: number) => (
-            <div key={idx} className="p-4 lg:w-1/4 sm:w-1/2 w-full">
+            <EditableElement
+              key={idx}
+              block={block}
+              isEditing={isEditing}
+              path={`categories.${idx}.cardStyle`}
+              className="p-4 lg:w-1/4 sm:w-1/2 w-full"
+            >
               <InlineEditableText
                 tagName="h2"
                 value={cat.title || 'CATEGORY'}
@@ -135,7 +142,7 @@ export const FeatureList = ({ block, isEditing = false }: BlockRendererProps) =>
                   </a>
                 ))}
               </nav>
-            </div>
+            </EditableElement>
           ))}
         </div>
         <a 

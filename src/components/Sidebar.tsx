@@ -73,7 +73,7 @@ const navItems: NavSection[] = [
     icon: Palette,
     links: [
       { label: 'All Themes', icon: Paintbrush, path: '/dashboard/themes/allthemes' },
-      { label: 'Add Themes', icon: PlusCircle, path: '/dashboard/themes/addtheme' },
+      { label: 'Create Theme', icon: PlusCircle, path: '/dashboard/themes/new' },
     ],
   },
   {

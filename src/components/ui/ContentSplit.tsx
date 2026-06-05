@@ -1,6 +1,7 @@
 ﻿import React from 'react';
 
 import { InlineEditableText } from '@/components/editor/InlineEditableText';
+import { EditableElement } from '@/components/editor/EditableElement';
 import type { BlockRendererProps } from '@/types/index';
 import { useAppDispatch } from '@/redux/hooks';
 import { updateBlockContent } from '@/redux/canvasSlice';
@@ -53,10 +54,20 @@ export const ContentSplit = ({ block, isEditing = false }: BlockRendererProps) =
     <section className="text-gray-600 body-font w-full" style={block.style}>
       <div className="container px-5 py-24 mx-auto">
         <div className="flex flex-wrap -mx-4 -mb-10 text-center">
-          <div className="sm:w-1/2 mb-10 px-4">
-            <div className="rounded-lg h-64 overflow-hidden">
+          <EditableElement
+            block={block}
+            isEditing={isEditing}
+            path="leftCardStyle"
+            className="sm:w-1/2 mb-10 px-4"
+          >
+            <EditableElement
+              block={block}
+              isEditing={isEditing}
+              path="leftImageStyle"
+              className="rounded-lg h-64 overflow-hidden"
+            >
               <img alt="content" className="object-cover object-center h-full w-full" src={left.image} />
-            </div>
+            </EditableElement>
             <InlineEditableText
               tagName="h2"
               value={left.title || 'Left Title'}
@@ -81,14 +92,14 @@ export const ContentSplit = ({ block, isEditing = false }: BlockRendererProps) =
                 ...content.leftDescriptionStyle 
               }}
             />
-            <a 
-              href={isEditing ? undefined : left.url || '#'}
-              className="flex mx-auto mt-6 text-white bg-indigo-500 border-0 py-2 px-5 focus:outline-none hover:bg-indigo-600 rounded text-center w-max" 
-              style={{ 
-                fontFamily: block.style?.fontFamily,
-                ...content.leftButtonStyle 
-              }}
-              onClick={(e) => isEditing && e.preventDefault()}
+            <EditableElement
+              as="a"
+              block={block}
+              isEditing={isEditing}
+              path="leftButtonStyle"
+              className="flex mx-auto mt-6 text-white bg-indigo-500 border-0 py-2 px-5 focus:outline-none hover:bg-indigo-600 rounded text-center w-max"
+              baseStyle={{ fontFamily: block.style?.fontFamily }}
+              extraProps={{ href: isEditing ? undefined : left.url || '#' }}
             >
               <InlineEditableText
                 value={left.buttonText || 'Button'}
@@ -96,12 +107,22 @@ export const ContentSplit = ({ block, isEditing = false }: BlockRendererProps) =
                 isEditing={isEditing}
                 tagName="span"
               />
-            </a>
-          </div>
-          <div className="sm:w-1/2 mb-10 px-4">
-            <div className="rounded-lg h-64 overflow-hidden">
+            </EditableElement>
+          </EditableElement>
+          <EditableElement
+            block={block}
+            isEditing={isEditing}
+            path="rightCardStyle"
+            className="sm:w-1/2 mb-10 px-4"
+          >
+            <EditableElement
+              block={block}
+              isEditing={isEditing}
+              path="rightImageStyle"
+              className="rounded-lg h-64 overflow-hidden"
+            >
               <img alt="content" className="object-cover object-center h-full w-full" src={right.image} />
-            </div>
+            </EditableElement>
             <InlineEditableText
               tagName="h2"
               value={right.title || 'Right Title'}
@@ -126,14 +147,14 @@ export const ContentSplit = ({ block, isEditing = false }: BlockRendererProps) =
                 ...content.rightDescriptionStyle 
               }}
             />
-            <a 
-              href={isEditing ? undefined : right.url || '#'}
-              className="flex mx-auto mt-6 text-white bg-indigo-500 border-0 py-2 px-5 focus:outline-none hover:bg-indigo-600 rounded text-center w-max" 
-              style={{ 
-                fontFamily: block.style?.fontFamily,
-                ...content.rightButtonStyle 
-              }}
-              onClick={(e) => isEditing && e.preventDefault()}
+            <EditableElement
+              as="a"
+              block={block}
+              isEditing={isEditing}
+              path="rightButtonStyle"
+              className="flex mx-auto mt-6 text-white bg-indigo-500 border-0 py-2 px-5 focus:outline-none hover:bg-indigo-600 rounded text-center w-max"
+              baseStyle={{ fontFamily: block.style?.fontFamily }}
+              extraProps={{ href: isEditing ? undefined : right.url || '#' }}
             >
               <InlineEditableText
                 value={right.buttonText || 'Button'}
@@ -141,8 +162,8 @@ export const ContentSplit = ({ block, isEditing = false }: BlockRendererProps) =
                 isEditing={isEditing}
                 tagName="span"
               />
-            </a>
-          </div>
+            </EditableElement>
+          </EditableElement>
         </div>
       </div>
     </section>

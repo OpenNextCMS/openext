@@ -1,6 +1,7 @@
 ﻿import React from 'react';
 
 import { InlineEditableText } from '@/components/editor/InlineEditableText';
+import { EditableElement } from '@/components/editor/EditableElement';
 import type { BlockRendererProps } from '@/types/index';
 import type { BlockContentItem } from '@/types/blockContent';
 import { useAppDispatch } from '@/redux/hooks';
@@ -48,7 +49,12 @@ export const FeatureZigzag = ({ block, isEditing = false }: BlockRendererProps) 
         {features.map((feature: BlockContentItem, index: number) => {
           const isEven = index % 2 === 1;
           const icon = (
-            <div className={`sm:w-32 sm:h-32 h-20 w-20 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0 overflow-hidden ${isEven ? 'sm:ml-10 sm:order-none order-first' : 'sm:mr-10'}`}>
+            <EditableElement
+              block={block}
+              isEditing={isEditing}
+              path={`features.${index}.iconStyle`}
+              className={`sm:w-32 sm:h-32 h-20 w-20 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0 overflow-hidden ${isEven ? 'sm:ml-10 sm:order-none order-first' : 'sm:mr-10'}`}
+            >
               {feature.image ? (
                 <img src={feature.image} alt={feature.title} className="w-full h-full object-cover" />
               ) : (
@@ -58,7 +64,7 @@ export const FeatureZigzag = ({ block, isEditing = false }: BlockRendererProps) 
                   {index === 2 && <circle cx="12" cy="7" r="4"></circle>}
                 </svg>
               )}
-            </div>
+            </EditableElement>
           );
 
           const textContent = (
@@ -87,11 +93,14 @@ export const FeatureZigzag = ({ block, isEditing = false }: BlockRendererProps) 
                   ...content.featureDescriptionStyle 
                 }}
               />
-              <a 
-                href={isEditing ? undefined : (feature.url || content.linkUrl || '#')}
-                className="mt-3 text-indigo-500 inline-flex items-center cursor-pointer" 
-                style={{ fontFamily: block.style?.fontFamily }}
-                onClick={(e) => isEditing && e.preventDefault()}
+              <EditableElement
+                as="a"
+                block={block}
+                isEditing={isEditing}
+                path={`features.${index}.buttonStyle`}
+                className="mt-3 text-indigo-500 inline-flex items-center cursor-pointer"
+                baseStyle={{ fontFamily: block.style?.fontFamily }}
+                extraProps={{ href: isEditing ? undefined : (feature.url || content.linkUrl || '#') }}
               >
                 <InlineEditableText
                   tagName="span"
@@ -102,12 +111,18 @@ export const FeatureZigzag = ({ block, isEditing = false }: BlockRendererProps) 
                 <svg fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" className="w-4 h-4 ml-2" viewBox="0 0 24 24">
                   <path d="M5 12h14M12 5l7 7-7 7"></path>
                 </svg>
-              </a>
+              </EditableElement>
             </div>
           );
 
           return (
-            <div key={index} className={`flex items-center lg:w-3/5 mx-auto sm:flex-row flex-col ${index !== features.length - 1 ? 'border-b pb-10 mb-10 border-gray-200' : ''}`}>
+            <EditableElement
+              key={index}
+              block={block}
+              isEditing={isEditing}
+              path={`features.${index}.cardStyle`}
+              className={`flex items-center lg:w-3/5 mx-auto sm:flex-row flex-col ${index !== features.length - 1 ? 'border-b pb-10 mb-10 border-gray-200' : ''}`}
+            >
               {!isEven ? (
                 <>
                   {icon}
@@ -119,7 +134,7 @@ export const FeatureZigzag = ({ block, isEditing = false }: BlockRendererProps) 
                   {icon}
                 </>
               )}
-            </div>
+            </EditableElement>
           );
         })}
         <InlineEditableText

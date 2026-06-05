@@ -1,6 +1,7 @@
 ﻿import React from 'react';
 
 import { InlineEditableText } from '@/components/editor/InlineEditableText';
+import { EditableElement } from '@/components/editor/EditableElement';
 import type { BlockRendererProps } from '@/types/index';
 import type { BlockContentItem } from '@/types/blockContent';
 import { useAppDispatch } from '@/redux/hooks';
@@ -78,8 +79,20 @@ export const ContentGallery = ({ block, isEditing = false }: BlockRendererProps)
         <div className="flex flex-wrap -m-4">
           {items.map((item: BlockContentItem, index: number) => (
             <div key={index} className="xl:w-1/4 md:w-1/2 p-4">
-              <div className="bg-gray-100 p-6 rounded-lg">
-                <img className="h-40 rounded w-full object-cover object-center mb-6" src={item.image} alt="content" />
+              <EditableElement
+                block={block}
+                isEditing={isEditing}
+                path={`items.${index}.cardStyle`}
+                className="bg-gray-100 p-6 rounded-lg"
+              >
+                <EditableElement
+                  as="img"
+                  block={block}
+                  isEditing={isEditing}
+                  path={`items.${index}.imageStyle`}
+                  className="h-40 rounded w-full object-cover object-center mb-6"
+                  extraProps={{ src: item.image, alt: "content" }}
+                />
                 <InlineEditableText
                   tagName="h3"
                   value={item.subtitle || 'SUBTITLE'}
@@ -115,7 +128,7 @@ export const ContentGallery = ({ block, isEditing = false }: BlockRendererProps)
                     ...content.itemDescriptionStyle 
                   }}
                 />
-              </div>
+              </EditableElement>
             </div>
           ))}
         </div>

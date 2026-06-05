@@ -6,6 +6,9 @@ import { setSelectedPart, updateBlockContent } from '@/redux/canvasSlice';
 import SelectComp from '@/components/ReusableComponents/SelectComp';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { MousePointerClick, X } from 'lucide-react';
+import { prettyPartLabel } from '@/lib/editor/stylePath';
 
 const subElementMap: Record<string, { label: string; value: string; contentKey?: string }[]> = {
   'contact': [
@@ -220,12 +223,20 @@ export default function SubElementSelector() {
   if (!selectedBlock) return null;
 
   const subElements = subElementMap[selectedBlock.type];
-  if (!subElements) return null;
 
-  const currentPart = subElements.find(p => p.value === (selectedPart || 'root')) || subElements[0];
+  // A per-item element selected by clicking on the canvas — its value is not in
+  // the (text-only) dropdown map. Show a banner + reset instead.
+  const isClickSelectedElement =
+    !!selectedPart && (selectedPart.includes('.') || !subElements?.some((p) => p.value === selectedPart));
+
+  // Nothing to show for this block type and no click-selected element.
+  if (!subElements && !isClickSelectedElement) return null;
+
+  const currentPart =
+    subElements?.find((p) => p.value === (selectedPart || 'root')) || subElements?.[0];
 
   const handleContentChange = (newText: string) => {
-    if (!currentPart.contentKey) return;
+    if (!currentPart?.contentKey) return;
     try {
       const content = JSON.parse(selectedBlock.content);
       content[currentPart.contentKey] = newText;
@@ -236,7 +247,7 @@ export default function SubElementSelector() {
   };
 
   const getContentValue = () => {
-    if (!currentPart.contentKey) return '';
+    if (!currentPart?.contentKey) return '';
     try {
       const content = JSON.parse(selectedBlock.content);
       return content[currentPart.contentKey] || '';
@@ -247,23 +258,50 @@ export default function SubElementSelector() {
 
   return (
     <div className="space-y-3 pb-3 border-b mb-3">
-      <SelectComp
-        label="Edit Element"
-        value={selectedPart || 'root'}
-        onValueChange={(val) => dispatch(setSelectedPart(val === 'root' ? null : val))}
-        options={subElements.map(p => ({ label: p.label, value: p.value }))}
-      />
-
-      {selectedPart && currentPart.contentKey && (
-        <div className="space-y-1.5">
-          <Label className="text-xs">Element Content</Label>
-          <Input
-            className="h-8 text-sm"
-            value={getContentValue()}
-            onChange={(e) => handleContentChange(e.target.value)}
-            placeholder="Enter text content..."
-          />
+      {/* Click-selected per-item element (card/icon/image/button) */}
+      {isClickSelectedElement ? (
+        <div className="rounded-md border bg-muted/40 p-2.5 space-y-2">
+          <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+            <MousePointerClick className="h-3.5 w-3.5" />
+            Editing element
+          </div>
+          <div className="text-sm font-semibold">{prettyPartLabel(selectedPart)}</div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-7 w-full text-xs"
+            onClick={() => dispatch(setSelectedPart(null))}
+          >
+            <X className="mr-1 h-3 w-3" /> Select entire block
+          </Button>
+          <p className="text-[11px] leading-snug text-muted-foreground">
+            Tip: click any card, icon, image or button on the canvas to style it
+            individually.
+          </p>
         </div>
+      ) : (
+        subElements && (
+          <>
+            <SelectComp
+              label="Edit Element"
+              value={selectedPart || 'root'}
+              onValueChange={(val) => dispatch(setSelectedPart(val === 'root' ? null : val))}
+              options={subElements.map((p) => ({ label: p.label, value: p.value }))}
+            />
+
+            {selectedPart && currentPart?.contentKey && (
+              <div className="space-y-1.5">
+                <Label className="text-xs">Element Content</Label>
+                <Input
+                  className="h-8 text-sm"
+                  value={getContentValue()}
+                  onChange={(e) => handleContentChange(e.target.value)}
+                  placeholder="Enter text content..."
+                />
+              </div>
+            )}
+          </>
+        )
       )}
     </div>
   );

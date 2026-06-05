@@ -73,11 +73,11 @@ export const CardBlock = ({ block, isEditing = true }: BlockRendererProps) => {
       style={{
         width: '100%',
         overflow: 'hidden',
-        borderRadius: '8px',
-        backgroundColor: '#ffffff',
-        color: '#111827',
+        borderRadius: 'var(--radius-md, 8px)',
+        backgroundColor: 'var(--color-surface, #ffffff)',
+        color: 'var(--color-text, #111827)',
         border: '1px solid rgba(15, 23, 42, 0.08)',
-        boxShadow: '0 14px 30px rgba(15, 23, 42, 0.12)',
+        boxShadow: 'var(--shadow-lg, 0 14px 30px rgba(15, 23, 42, 0.12))',
         ...block.style,
         cursor: isEditing ? 'pointer' : block.events?.onClick === 'none' ? 'default' : 'pointer',
         outline: isHovered && isEditing ? '1px dashed #3b82f6' : 'none',
@@ -121,7 +121,7 @@ export const CardBlock = ({ block, isEditing = true }: BlockRendererProps) => {
           <p
             style={{
               margin: '0 0 8px',
-              color: '#00a6b2',
+              color: 'var(--color-accent, #00a6b2)',
               fontSize: '12px',
               fontWeight: 700,
               textTransform: 'uppercase',
@@ -134,7 +134,7 @@ export const CardBlock = ({ block, isEditing = true }: BlockRendererProps) => {
         <h3 style={{ margin: '0 0 12px', fontSize: '22px', fontWeight: 700, lineHeight: 1.25 }}>
           {card.title}
         </h3>
-        <p style={{ margin: 0, color: '#4b5563', fontSize: '15px', lineHeight: 1.7 }}>
+        <p style={{ margin: 0, color: 'var(--color-muted, #4b5563)', fontSize: '15px', lineHeight: 1.7 }}>
           {card.body}
         </p>
         {card.buttonText && (
@@ -144,8 +144,8 @@ export const CardBlock = ({ block, isEditing = true }: BlockRendererProps) => {
               marginTop: '18px',
               padding: '9px 14px',
               borderRadius: '999px',
-              backgroundColor: '#ffc400',
-              color: '#111827',
+              backgroundColor: 'var(--color-accent, #ffc400)',
+              color: 'var(--color-text, #111827)',
               fontSize: '13px',
               fontWeight: 700,
             }}

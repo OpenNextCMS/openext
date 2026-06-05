@@ -1,6 +1,7 @@
 ﻿import React from 'react';
 
 import { InlineEditableText } from '@/components/editor/InlineEditableText';
+import { EditableElement } from '@/components/editor/EditableElement';
 import type { BlockRendererProps } from '@/types/index';
 import type { BlockContentItem } from '@/types/blockContent';
 import { useAppDispatch } from '@/redux/hooks';
@@ -78,10 +79,21 @@ export const ContentTrio = ({ block, isEditing = false }: BlockRendererProps) =>
         </div>
         <div className="flex flex-wrap sm:-m-4 -mx-4 -mb-10 -mt-4">
           {items.map((item: BlockContentItem, index: number) => (
-            <div key={index} className="p-4 md:w-1/3 sm:mb-0 mb-6">
-              <div className="rounded-lg h-64 overflow-hidden">
+            <EditableElement
+              key={index}
+              block={block}
+              isEditing={isEditing}
+              path={`items.${index}.cardStyle`}
+              className="p-4 md:w-1/3 sm:mb-0 mb-6"
+            >
+              <EditableElement
+                block={block}
+                isEditing={isEditing}
+                path={`items.${index}.imageStyle`}
+                className="rounded-lg h-64 overflow-hidden"
+              >
                 <img alt="content" className="object-cover object-center h-full w-full" src={item.image} />
-              </div>
+              </EditableElement>
               <InlineEditableText
                 tagName="h2"
                 value={item.title || 'Item Title'}
@@ -106,11 +118,14 @@ export const ContentTrio = ({ block, isEditing = false }: BlockRendererProps) =>
                   ...content.itemDescriptionStyle 
                 }}
               />
-              <a 
-                href={isEditing ? undefined : (item.url || content.linkUrl || '#')}
-                className="text-indigo-500 inline-flex items-center mt-3 cursor-pointer" 
-                style={{ fontFamily: block.style?.fontFamily }}
-                onClick={(e) => isEditing && e.preventDefault()}
+              <EditableElement
+                as="a"
+                block={block}
+                isEditing={isEditing}
+                path={`items.${index}.buttonStyle`}
+                className="text-indigo-500 inline-flex items-center mt-3 cursor-pointer"
+                baseStyle={{ fontFamily: block.style?.fontFamily }}
+                extraProps={{ href: isEditing ? undefined : (item.url || content.linkUrl || '#') }}
               >
                 <InlineEditableText
                   tagName="span"
@@ -121,8 +136,8 @@ export const ContentTrio = ({ block, isEditing = false }: BlockRendererProps) =>
                 <svg fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" className="w-4 h-4 ml-2" viewBox="0 0 24 24">
                   <path d="M5 12h14M12 5l7 7-7 7"></path>
                 </svg>
-              </a>
-            </div>
+              </EditableElement>
+            </EditableElement>
           ))}
         </div>
       </div>

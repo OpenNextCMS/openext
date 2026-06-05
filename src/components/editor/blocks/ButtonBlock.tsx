@@ -54,14 +54,14 @@ export const ButtonBlock = ({ block, isEditing = true }: BlockRendererProps) => 
         ...block.style,
         cursor: isEditing ? 'pointer' : 'default',
         border: isHovered && isEditing ? '1px solid #3b82f6' : block.style?.border || 'none',
-        backgroundColor: isHovered 
-          ? (block.hoverStyle?.backgroundColor || block.style?.backgroundColor || '#2563eb')
-          : (block.style?.backgroundColor || '#3b82f6'),
+        backgroundColor: isHovered
+          ? (block.hoverStyle?.backgroundColor || block.style?.backgroundColor || 'var(--color-primary, #2563eb)')
+          : (block.style?.backgroundColor || 'var(--color-primary, #3b82f6)'),
         color: isHovered
-          ? (block.hoverStyle?.color || block.style?.color || 'white')
-          : (block.style?.color || 'white'),
+          ? (block.hoverStyle?.color || block.style?.color || 'var(--color-bg, white)')
+          : (block.style?.color || 'var(--color-bg, white)'),
         transition: 'all 0.2s ease',
-        borderRadius: block.style?.borderRadius || '4px',
+        borderRadius: block.style?.borderRadius || 'var(--radius-md, 4px)',
       }}
     >
       {isEditing && isHovered && (

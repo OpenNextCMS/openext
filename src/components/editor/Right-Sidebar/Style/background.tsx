@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { updateSelectedBlockStyles } from '@/redux/canvasSlice';
+import { getStyleAtPath } from '@/lib/editor/stylePath';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Button } from '@/components/ui/button';
 import { ChevronDown, ChevronRight } from 'lucide-react';
@@ -42,6 +43,19 @@ function rgbToHex(rgb: string) {
   );
 }
 
+// A theme-bound value looks like `var(--color-surface, #ffffff)`. Native color
+// inputs can't render that, so show the literal fallback in the swatch while the
+// stored value stays token-bound until the user picks an explicit colour.
+function toPickerHex(raw: string) {
+  const value = String(raw || '');
+  if (value.startsWith('var(')) {
+    const fallback = value.match(/,\s*([^)]+)\)/)?.[1]?.trim();
+    if (fallback) return fallback.includes('rgb') ? rgbToHex(fallback) : fallback;
+    return '#000000';
+  }
+  return value.includes('rgb') ? rgbToHex(value) : value;
+}
+
 const Background = () => {
   const selectedBlock = useAppSelector((state) => state.canvas.selectedBlock);
   const selectedPart = useAppSelector((state) => state.canvas.selectedPart);
@@ -77,8 +91,7 @@ const Background = () => {
       if (selectedPart) {
         try {
           const content = JSON.parse(selectedBlock.content);
-          const partStyleKey = selectedPart.endsWith('Style') ? selectedPart : `${selectedPart}Style`;
-          style = content[partStyleKey] || {};
+          style = getStyleAtPath(content, selectedPart);
         } catch {
           style = {};
         }
@@ -88,8 +101,7 @@ const Background = () => {
     }
 
     if (style.backgroundColor && style.backgroundColor !== 'transparent') {
-      const hex = style.backgroundColor.includes('rgb') ? rgbToHex(style.backgroundColor) : style.backgroundColor;
-      setBackgroundColor(hex);
+      setBackgroundColor(toPickerHex(style.backgroundColor));
       setBgOption('color');
     } else {
       setBackgroundColor('#ffffff');

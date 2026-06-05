@@ -364,10 +364,13 @@ export const contentBlocks: BlockWithReactNodeIcon[] = [
     content: 'Click Me',
     icon: <MousePointer2 className="h-4 w-4 mr-2 text-primary" />,
     description: 'Call to action button',
+    // Token-bound defaults: an unedited button follows the active theme's
+    // primary colour / radius and falls back to the original look when no theme
+    // is active. A colour picked in the Style sidebar still overrides these.
     style: {
-      backgroundColor: '#3b82f6',
-      color: '#ffffff',
-      borderRadius: '4px',
+      backgroundColor: 'var(--color-primary, #3b82f6)',
+      color: 'var(--color-bg, #ffffff)',
+      borderRadius: 'var(--radius-md, 4px)',
       padding: '8px 16px',
       fontWeight: '500',
     },
@@ -409,13 +412,15 @@ export const contentBlocks: BlockWithReactNodeIcon[] = [
     }),
     icon: <Keyboard className="h-4 w-4 mr-2 text-primary" />,
     description: 'Input field for website visitor text',
+    // Token-bound surface/text/radius defaults so inputs follow the active
+    // theme; literal fallbacks keep the original look with no theme active.
     style: {
       width: '100%',
       padding: '12px 14px',
       border: '1px solid #d1d5db',
-      borderRadius: '6px',
-      backgroundColor: '#ffffff',
-      color: '#111827',
+      borderRadius: 'var(--radius-md, 6px)',
+      backgroundColor: 'var(--color-bg, #ffffff)',
+      color: 'var(--color-text, #111827)',
       fontSize: '16px',
       lineHeight: '1.4',
     },
