@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { v4 as uuidv4 } from 'uuid';
+import { setStyleAtPath } from '@/lib/editor/stylePath';
 
 export interface BlockData {
   id?: string;
@@ -585,6 +586,17 @@ const canvasSlice = createSlice({
     setSelectedPart: (state, action: PayloadAction<string | null>) => {
       state.selectedPart = action.payload;
     },
+    // Select a block AND a sub-element part in one dispatch (used by click-to-
+    // select on the canvas). setSelectedBlock alone clears selectedPart, so the
+    // two must be set together.
+    selectElement: (
+      state,
+      action: PayloadAction<{ block: BlockData; part: string | null }>
+    ) => {
+      state.selectedBlock = action.payload.block;
+      state.selectedPart = action.payload.part;
+      state.selectedLabel = action.payload.block.label || state.selectedLabel;
+    },
     setSelectedValue: (state, action: PayloadAction<number>) => {
       state.selectedValue = action.payload;
     },
@@ -598,14 +610,13 @@ const canvasSlice = createSlice({
         const { selectedPart } = state;
 
         if (selectedPart) {
-          // Update a specific part inside the content JSON
+          // Update a specific part inside the content JSON. `selectedPart` may be
+          // a flat key (legacy shared text part, e.g. `featureTitleStyle`) or a
+          // dotted per-item path (e.g. `features.2.cardStyle`) — setStyleAtPath
+          // handles both.
           try {
             const contentObj = JSON.parse(state.selectedBlock.content);
-            const partStyleKey = selectedPart.endsWith('Style') ? selectedPart : `${selectedPart}Style`;
-            contentObj[partStyleKey] = {
-              ...(contentObj[partStyleKey] || {}),
-              ...action.payload,
-            };
+            setStyleAtPath(contentObj, selectedPart, action.payload);
             const newContent = JSON.stringify(contentObj);
             state.selectedBlock.content = newContent;
 
@@ -846,6 +857,7 @@ export const {
   setSelectedLabel,
   setSelectedBlock,
   setSelectedPart,
+  selectElement,
   setSelectedValue,
   clearSelectedLabel,
   updateSelectedBlockStyles,

@@ -4,6 +4,7 @@ import React from 'react';
 import { useAppDispatch } from '@/redux/hooks';
 import { updateBlockContent } from '@/redux/canvasSlice';
 import { InlineEditableText } from '@/components/editor/InlineEditableText';
+import { EditableElement } from '@/components/editor/EditableElement';
 import type { BlockRendererProps } from '@/types/index';
 import type { BlockContentItem } from '@/types/blockContent';
 
@@ -79,20 +80,30 @@ export const StatisticsBoxed = ({ block, isEditing = false }: BlockRendererProps
         <div className="flex flex-wrap -m-4 text-center">
           {stats.map((stat: BlockContentItem, index: number) => (
             <div key={index} className="p-4 md:w-1/4 sm:w-1/2 w-full">
-              <div className="border-2 border-gray-200 px-4 py-6 rounded-lg">
-                <div className="text-indigo-500 flex justify-center mb-3">
+              <EditableElement
+                block={block}
+                isEditing={isEditing}
+                path={`stats.${index}.cardStyle`}
+                className="border-2 border-gray-200 px-4 py-6 rounded-lg"
+              >
+                <EditableElement
+                  block={block}
+                  isEditing={isEditing}
+                  path={`stats.${index}.iconStyle`}
+                  className="text-indigo-500 flex justify-center mb-3"
+                >
                   {renderSelectedIcon(stat.icon, "w-12 h-12")}
-                </div>
+                </EditableElement>
                 <InlineEditableText
                   tagName="h2"
                   value={stat.value}
                   onBlur={(v) => updateStat(index, 'value', v)}
                   isEditing={isEditing}
                   className="title-font font-medium text-3xl text-gray-900"
-                  style={{ 
-                    color: block.style?.color, 
+                  style={{
+                    color: block.style?.color,
                     fontFamily: block.style?.fontFamily,
-                    ...content.valueStyle 
+                    ...content.valueStyle
                   }}
                 />
                 <InlineEditableText
@@ -101,13 +112,13 @@ export const StatisticsBoxed = ({ block, isEditing = false }: BlockRendererProps
                   onBlur={(v) => updateStat(index, 'label', v)}
                   isEditing={isEditing}
                   className="leading-relaxed"
-                  style={{ 
-                    color: block.style?.color, 
+                  style={{
+                    color: block.style?.color,
                     fontFamily: block.style?.fontFamily,
-                    ...content.labelStyle 
+                    ...content.labelStyle
                   }}
                 />
-              </div>
+              </EditableElement>
             </div>
           ))}
         </div>

@@ -4,6 +4,7 @@ import React from 'react';
 import { useAppDispatch } from '@/redux/hooks';
 import { updateBlockContent } from '@/redux/canvasSlice';
 import { InlineEditableText } from '@/components/editor/InlineEditableText';
+import { EditableElement } from '@/components/editor/EditableElement';
 import type { BlockRendererProps } from '@/types/index';
 import type { BlockContentItem } from '@/types/blockContent';
 
@@ -76,17 +77,23 @@ export const StatisticsSideImage = ({ block, isEditing = false }: BlockRendererP
             />
           </div>
           {stats.map((stat: BlockContentItem, index: number) => (
-            <div key={index} className="p-4 sm:w-1/2 lg:w-1/4 w-1/2">
+            <EditableElement
+              key={index}
+              block={block}
+              isEditing={isEditing}
+              path={`stats.${index}.cardStyle`}
+              className="p-4 sm:w-1/2 lg:w-1/4 w-1/2"
+            >
               <InlineEditableText
                 tagName="h2"
                 value={stat.value}
                 onBlur={(v) => updateStat(index, 'value', v)}
                 isEditing={isEditing}
                 className="title-font font-medium text-3xl text-gray-900"
-                style={{ 
-                  color: block.style?.color, 
+                style={{
+                  color: block.style?.color,
                   fontFamily: block.style?.fontFamily,
-                  ...content.valueStyle 
+                  ...content.valueStyle
                 }}
               />
               <InlineEditableText
@@ -95,22 +102,27 @@ export const StatisticsSideImage = ({ block, isEditing = false }: BlockRendererP
                 onBlur={(v) => updateStat(index, 'label', v)}
                 isEditing={isEditing}
                 className="leading-relaxed"
-                style={{ 
-                  color: block.style?.color, 
+                style={{
+                  color: block.style?.color,
                   fontFamily: block.style?.fontFamily,
-                  ...content.labelStyle 
+                  ...content.labelStyle
                 }}
               />
-            </div>
+            </EditableElement>
           ))}
         </div>
-        <div className="lg:w-1/2 sm:w-1/3 w-full rounded-lg overflow-hidden mt-6 sm:mt-0">
-          <img 
-            className="object-cover object-center w-full h-full" 
-            src={content.image || "https://dummyimage.com/600x300"} 
-            alt="stats" 
+        <EditableElement
+          block={block}
+          isEditing={isEditing}
+          path="imageStyle"
+          className="lg:w-1/2 sm:w-1/3 w-full rounded-lg overflow-hidden mt-6 sm:mt-0"
+        >
+          <img
+            className="object-cover object-center w-full h-full"
+            src={content.image || "https://dummyimage.com/600x300"}
+            alt="stats"
           />
-        </div>
+        </EditableElement>
       </div>
     </section>
   );

@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAppSelector, useAppDispatch } from '@/redux/hooks';
 import { updateSelectedBlockStyles } from '@/redux/canvasSlice';
+import { getStyleAtPath } from '@/lib/editor/stylePath';
 
 type SpacingProps = {
   spacingOpen: boolean;
@@ -72,8 +73,7 @@ export default function Spacing({ spacingOpen, setSpacingOpen }: SpacingProps) {
       if (selectedPart) {
         try {
           const content = JSON.parse(selectedBlock.content);
-          const partStyleKey = selectedPart.endsWith('Style') ? selectedPart : `${selectedPart}Style`;
-          style = content[partStyleKey] || {};
+          style = getStyleAtPath(content, selectedPart);
         } catch {
           style = {};
         }

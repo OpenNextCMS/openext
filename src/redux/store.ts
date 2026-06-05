@@ -4,6 +4,7 @@ import menuRedirectReducer from './menuRedirectSlice';
 import formBuilderReducer from './formBuilderSlice';
 import formSubmissionReducer from './formSubmissionSlice';
 import formAnalyticsReducer from './formAnalyticsSlice';
+import themeBuilderReducer from './themeBuilderSlice';
 import customStorage from './customStorage';
 import {
   persistStore,
@@ -27,6 +28,7 @@ const rootReducer = combineReducers({
   formBuilder: formBuilderReducer,
   formSubmissions: formSubmissionReducer,
   formAnalytics: formAnalyticsReducer,
+  themeBuilder: themeBuilderReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

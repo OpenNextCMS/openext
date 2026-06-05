@@ -1,6 +1,7 @@
 ﻿import React from 'react';
 
 import { InlineEditableText } from '@/components/editor/InlineEditableText';
+import { EditableElement } from '@/components/editor/EditableElement';
 import type { BlockRendererProps } from '@/types/index';
 import type { BlockContentItem } from '@/types/blockContent';
 import { useAppDispatch } from '@/redux/hooks';
@@ -52,10 +53,22 @@ export const EcommerceGrid = ({ block, isEditing = false }: BlockRendererProps) 
       <div className="container px-5 py-24 mx-auto">
         <div className="flex flex-wrap -m-4">
           {products.map((product: BlockContentItem, index: number) => (
-            <div key={index} className="lg:w-1/4 md:w-1/2 p-4 w-full">
-              <a className="block relative h-48 rounded overflow-hidden">
+            <EditableElement
+              key={index}
+              block={block}
+              isEditing={isEditing}
+              path={`products.${index}.cardStyle`}
+              className="lg:w-1/4 md:w-1/2 p-4 w-full"
+            >
+              <EditableElement
+                as="a"
+                block={block}
+                isEditing={isEditing}
+                path={`products.${index}.imageStyle`}
+                className="block relative h-48 rounded overflow-hidden"
+              >
                 <img alt="ecommerce" className="object-cover object-center w-full h-full block" src={product.image} />
-              </a>
+              </EditableElement>
               <div className="mt-4">
                 <InlineEditableText
                   tagName="h3"
@@ -94,7 +107,7 @@ export const EcommerceGrid = ({ block, isEditing = false }: BlockRendererProps) 
                   }}
                 />
               </div>
-            </div>
+            </EditableElement>
           ))}
         </div>
       </div>

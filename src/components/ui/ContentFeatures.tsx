@@ -1,6 +1,7 @@
 ﻿import React from 'react';
 
 import { InlineEditableText } from '@/components/editor/InlineEditableText';
+import { EditableElement } from '@/components/editor/EditableElement';
 import type { BlockRendererProps } from '@/types/index';
 import type { BlockContentItem } from '@/types/blockContent';
 import { useAppDispatch } from '@/redux/hooks';
@@ -86,7 +87,13 @@ export const ContentFeatures = ({ block, isEditing = false }: BlockRendererProps
         </div>
         <div className="flex flex-wrap">
           {features.map((feature: BlockContentItem, index: number) => (
-            <div key={index} className="xl:w-1/4 lg:w-1/2 md:w-full px-8 py-6 border-l-2 border-gray-200 border-opacity-60">
+            <EditableElement
+              key={index}
+              block={block}
+              isEditing={isEditing}
+              path={`features.${index}.cardStyle`}
+              className="xl:w-1/4 lg:w-1/2 md:w-full px-8 py-6 border-l-2 border-gray-200 border-opacity-60"
+            >
               <InlineEditableText
                 tagName="h2"
                 value={feature.title || 'Feature Title'}
@@ -111,11 +118,14 @@ export const ContentFeatures = ({ block, isEditing = false }: BlockRendererProps
                   ...content.featureDescriptionStyle 
                 }}
               />
-              <a 
-                href={isEditing ? undefined : (feature.url || content.linkUrl || '#')}
-                className="text-indigo-500 inline-flex items-center cursor-pointer" 
-                style={{ fontFamily: block.style?.fontFamily }}
-                onClick={(e) => isEditing && e.preventDefault()}
+              <EditableElement
+                as="a"
+                block={block}
+                isEditing={isEditing}
+                path={`features.${index}.buttonStyle`}
+                className="text-indigo-500 inline-flex items-center cursor-pointer"
+                baseStyle={{ fontFamily: block.style?.fontFamily }}
+                extraProps={{ href: isEditing ? undefined : (feature.url || content.linkUrl || '#') }}
               >
                 <InlineEditableText
                   tagName="span"
@@ -126,8 +136,8 @@ export const ContentFeatures = ({ block, isEditing = false }: BlockRendererProps
                 <svg fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" className="w-4 h-4 ml-2" viewBox="0 0 24 24">
                   <path d="M5 12h14M12 5l7 7-7 7"></path>
                 </svg>
-              </a>
-            </div>
+              </EditableElement>
+            </EditableElement>
           ))}
         </div>
         <InlineEditableText

@@ -1,6 +1,7 @@
 ﻿import React from 'react';
 
 import { InlineEditableText } from '@/components/editor/InlineEditableText';
+import { EditableElement } from '@/components/editor/EditableElement';
 import type { BlockRendererProps } from '@/types/index';
 import type { BlockContentItem } from '@/types/blockContent';
 import { useAppDispatch } from '@/redux/hooks';
@@ -77,12 +78,20 @@ export const ContentIcons = ({ block, isEditing = false }: BlockRendererProps) =
         <div className="flex flex-wrap -m-4">
           {features.map((feature: BlockContentItem, index: number) => (
             <div key={index} className="xl:w-1/3 md:w-1/2 p-4">
-              <a 
-                href={isEditing ? undefined : (feature.url || content.linkUrl || '#')}
+              <EditableElement
+                as="a"
+                block={block}
+                isEditing={isEditing}
+                path={`features.${index}.cardStyle`}
                 className={`block border border-gray-200 p-6 rounded-lg transition-shadow duration-300 ${!isEditing ? 'hover:shadow-lg cursor-pointer' : ''}`}
-                onClick={(e) => isEditing && e.preventDefault()}
+                extraProps={{ href: isEditing ? undefined : (feature.url || content.linkUrl || '#') }}
               >
-                <div className="w-10 h-10 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 mb-4 overflow-hidden">
+                <EditableElement
+                  block={block}
+                  isEditing={isEditing}
+                  path={`features.${index}.iconStyle`}
+                  className="w-10 h-10 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 mb-4 overflow-hidden"
+                >
                    {feature.image ? (
                      <img src={feature.image} alt={feature.title} className="w-full h-full object-cover" />
                    ) : (
@@ -90,7 +99,7 @@ export const ContentIcons = ({ block, isEditing = false }: BlockRendererProps) =
                       <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
                     </svg>
                    )}
-                </div>
+                </EditableElement>
                 <InlineEditableText
                   tagName="h2"
                   value={feature.title || 'Feature Title'}
@@ -115,7 +124,7 @@ export const ContentIcons = ({ block, isEditing = false }: BlockRendererProps) =
                     ...content.featureDescriptionStyle 
                   }}
                 />
-              </a>
+              </EditableElement>
             </div>
           ))}
         </div>

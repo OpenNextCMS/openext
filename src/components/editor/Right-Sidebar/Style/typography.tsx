@@ -8,7 +8,8 @@ import SelectComp from '@/components/ReusableComponents/SelectComp';
 import InputSelect from '@/components/ReusableComponents/SizeInput';
 import { Label } from '@/components/ui/label';
 import { useAppSelector, useAppDispatch } from '@/redux/hooks';
-import { updateSelectedBlockStyles } from '@/redux/canvasSlice'; 
+import { updateSelectedBlockStyles } from '@/redux/canvasSlice';
+import { getStyleAtPath } from '@/lib/editor/stylePath';
 import { Input } from '@/components/ui/input';
 
 // ✅ RGB to HEX utility for syncing color pickers
@@ -22,6 +23,19 @@ function rgbToHex(rgb: string) {
       .map((num) => parseInt(num).toString(16).padStart(2, '0'))
       .join('')
   );
+}
+
+// A theme-bound value looks like `var(--color-text, #111827)`. Native color
+// inputs can't render that, so show the literal fallback in the swatch while
+// the stored value stays token-bound until the user picks an explicit colour.
+function toPickerHex(raw: string) {
+  const value = String(raw || '');
+  if (value.startsWith('var(')) {
+    const fallback = value.match(/,\s*([^)]+)\)/)?.[1]?.trim();
+    if (fallback) return fallback.includes('rgb') ? rgbToHex(fallback) : fallback;
+    return '#000000';
+  }
+  return value.includes('rgb') ? rgbToHex(value) : value;
 }
 
 export default function Typography() {
@@ -49,8 +63,7 @@ export default function Typography() {
       if (selectedPart) {
         try {
           const content = JSON.parse(selectedBlock.content);
-          const partStyleKey = selectedPart.endsWith('Style') ? selectedPart : `${selectedPart}Style`;
-          style = content[partStyleKey] || {};
+          style = getStyleAtPath(content, selectedPart);
         } catch {
           style = {};
         }
@@ -71,8 +84,7 @@ export default function Typography() {
     
     // Sync font color
     const rawColor = style.color ? String(style.color) : '#000000';
-    const hex = rawColor.includes('rgb') ? rgbToHex(rawColor) : rawColor;
-    setTextColor(hex);
+    setTextColor(toPickerHex(rawColor));
   }, [selectedBlock, selectedPart]);
 
   // Generic handler to update style

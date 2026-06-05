@@ -1,6 +1,7 @@
 ﻿import React from 'react';
 
 import { InlineEditableText } from '@/components/editor/InlineEditableText';
+import { EditableElement } from '@/components/editor/EditableElement';
 import type { BlockRendererProps } from '@/types/index';
 import type { BlockContentItem } from '@/types/blockContent';
 import { useAppDispatch } from '@/redux/hooks';
@@ -74,9 +75,19 @@ export const FeatureBoxed = ({ block, isEditing = false }: BlockRendererProps) =
         <div className="flex flex-wrap -m-4">
           {features.map((feature: BlockContentItem, index: number) => (
             <div key={index} className="p-4 md:w-1/3">
-              <div className="flex rounded-lg h-full bg-gray-100 p-8 flex-col">
+              <EditableElement
+                block={block}
+                isEditing={isEditing}
+                path={`features.${index}.cardStyle`}
+                className="flex rounded-lg h-full bg-gray-100 p-8 flex-col"
+              >
                 <div className="flex items-center mb-3">
-                  <div className="w-8 h-8 mr-3 inline-flex items-center justify-center rounded-full bg-indigo-500 text-white flex-shrink-0 overflow-hidden">
+                  <EditableElement
+                    block={block}
+                    isEditing={isEditing}
+                    path={`features.${index}.iconStyle`}
+                    className="w-8 h-8 mr-3 inline-flex items-center justify-center rounded-full bg-indigo-500 text-white flex-shrink-0 overflow-hidden"
+                  >
                     {feature.image ? (
                       <img src={feature.image} alt={feature.title} className="w-full h-full object-cover" />
                     ) : (
@@ -86,7 +97,7 @@ export const FeatureBoxed = ({ block, isEditing = false }: BlockRendererProps) =
                          {index === 2 && <><circle cx="6" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle></>}
                       </svg>
                     )}
-                  </div>
+                  </EditableElement>
                   <InlineEditableText
                     tagName="h2"
                     value={feature.title || 'Feature Title'}
@@ -113,11 +124,14 @@ export const FeatureBoxed = ({ block, isEditing = false }: BlockRendererProps) =
                       ...content.featureDescriptionStyle 
                     }}
                   />
-                  <a 
-                    href={isEditing ? undefined : (feature.url || content.linkUrl || '#')}
-                    className="mt-3 text-indigo-500 inline-flex items-center cursor-pointer" 
-                    style={{ fontFamily: block.style?.fontFamily }}
-                    onClick={(e) => isEditing && e.preventDefault()}
+                  <EditableElement
+                    as="a"
+                    block={block}
+                    isEditing={isEditing}
+                    path={`features.${index}.buttonStyle`}
+                    className="mt-3 text-indigo-500 inline-flex items-center cursor-pointer"
+                    baseStyle={{ fontFamily: block.style?.fontFamily }}
+                    extraProps={{ href: isEditing ? undefined : feature.url || content.linkUrl || '#' }}
                   >
                     <InlineEditableText
                       tagName="span"
@@ -128,9 +142,9 @@ export const FeatureBoxed = ({ block, isEditing = false }: BlockRendererProps) =
                     <svg fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" className="w-4 h-4 ml-2" viewBox="0 0 24 24">
                       <path d="M5 12h14M12 5l7 7-7 7"></path>
                     </svg>
-                  </a>
+                  </EditableElement>
                 </div>
-              </div>
+              </EditableElement>
             </div>
           ))}
         </div>

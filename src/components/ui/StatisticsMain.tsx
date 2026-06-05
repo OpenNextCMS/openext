@@ -4,6 +4,7 @@ import React from 'react';
 import { useAppDispatch } from '@/redux/hooks';
 import { updateBlockContent } from '@/redux/canvasSlice';
 import { InlineEditableText } from '@/components/editor/InlineEditableText';
+import { EditableElement } from '@/components/editor/EditableElement';
 import type { BlockRendererProps } from '@/types/index';
 import type { BlockContentItem } from '@/types/blockContent';
 
@@ -50,17 +51,23 @@ export const StatisticsMain = ({ block, isEditing = false }: BlockRendererProps)
       <div className="container px-5 py-24 mx-auto">
         <div className="flex flex-wrap -m-4 text-center">
           {stats.map((stat: BlockContentItem, index: number) => (
-            <div key={index} className="p-4 sm:w-1/4 w-1/2">
+            <EditableElement
+              key={index}
+              block={block}
+              isEditing={isEditing}
+              path={`stats.${index}.cardStyle`}
+              className="p-4 sm:w-1/4 w-1/2"
+            >
               <InlineEditableText
                 tagName="h2"
                 value={stat.value}
                 onBlur={(v) => updateStat(index, 'value', v)}
                 isEditing={isEditing}
                 className="title-font font-medium sm:text-4xl text-3xl text-gray-900"
-                style={{ 
-                  color: block.style?.color, 
+                style={{
+                  color: block.style?.color,
                   fontFamily: block.style?.fontFamily,
-                  ...content.valueStyle 
+                  ...content.valueStyle
                 }}
               />
               <InlineEditableText
@@ -69,13 +76,13 @@ export const StatisticsMain = ({ block, isEditing = false }: BlockRendererProps)
                 onBlur={(v) => updateStat(index, 'label', v)}
                 isEditing={isEditing}
                 className="leading-relaxed"
-                style={{ 
-                  color: block.style?.color, 
+                style={{
+                  color: block.style?.color,
                   fontFamily: block.style?.fontFamily,
-                  ...content.labelStyle 
+                  ...content.labelStyle
                 }}
               />
-            </div>
+            </EditableElement>
           ))}
         </div>
       </div>

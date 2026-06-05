@@ -160,7 +160,7 @@ export const NavbarBlock = ({ block, isEditing = true }: BlockRendererProps) => 
         rel={rel}
         onClick={(e) => handleNavClick(e, link, directive)}
         className={`${className} ${directive?.customClass ?? ''}`}
-        style={{ color: block.style?.color || 'inherit', ...(disabled ? { opacity: 0.5, cursor: 'not-allowed' } : {}) }}
+        style={{ color: block.style?.color || 'var(--color-text, inherit)', ...(disabled ? { opacity: 0.5, cursor: 'not-allowed' } : {}) }}
         {...dataAttrs}
       >
         {link.label}
@@ -199,7 +199,7 @@ export const NavbarBlock = ({ block, isEditing = true }: BlockRendererProps) => 
         {openMenuPath?.startsWith(pathKey) ? (
           <div
             className="absolute left-0 top-full z-50 min-w-40 rounded-md border bg-background p-1 shadow-lg"
-            style={{ color: block.style?.color || 'inherit' }}
+            style={{ color: block.style?.color || 'var(--color-text, inherit)' }}
           >
             {children.map((child, childIndex) =>
               renderNavItem(
@@ -255,7 +255,7 @@ export const NavbarBlock = ({ block, isEditing = true }: BlockRendererProps) => 
           style={{ maxHeight: '40px', objectFit: 'contain' }}
         />
       ) : useWebsiteLogo ? (
-        <div className="text-xl font-bold outline-none" style={{ color: block.style?.color || 'inherit' }}>
+        <div className="text-xl font-bold outline-none" style={{ color: block.style?.color || 'var(--color-text, inherit)' }}>
           {siteTitle}
         </div>
       ) : (
@@ -271,7 +271,7 @@ export const NavbarBlock = ({ block, isEditing = true }: BlockRendererProps) => 
         suppressContentEditableWarning={true}
         onBlur={handleLogoBlur}
         className="text-xl font-bold outline-none"
-        style={{ color: block.style?.color || 'inherit' }}
+        style={{ color: block.style?.color || 'var(--color-text, inherit)' }}
       >
         {navbarData.logoSource === 'website' ? siteTitle : navbarData.logo || 'Brand'}
       </div>
@@ -346,7 +346,7 @@ export const NavbarBlock = ({ block, isEditing = true }: BlockRendererProps) => 
             backgroundColor:
               isHovered && block.hoverStyle?.backgroundColor
                 ? block.hoverStyle.backgroundColor
-                : block.style?.backgroundColor || '#ffffff',
+                : block.style?.backgroundColor || 'var(--color-surface, #ffffff)',
           }}
         >
           <div
@@ -376,7 +376,7 @@ export const NavbarBlock = ({ block, isEditing = true }: BlockRendererProps) => 
             backgroundColor:
               isHovered && block.hoverStyle?.backgroundColor
                 ? block.hoverStyle.backgroundColor
-                : block.style?.backgroundColor || '#ffffff',
+                : block.style?.backgroundColor || 'var(--color-surface, #ffffff)',
           }}
         >
           <div className="flex items-center">{logoNode}</div>
@@ -399,14 +399,14 @@ export const NavbarBlock = ({ block, isEditing = true }: BlockRendererProps) => 
             backgroundColor:
               isHovered && block.hoverStyle?.backgroundColor
                 ? block.hoverStyle.backgroundColor
-                : block.style?.backgroundColor || '#ffffff',
+                : block.style?.backgroundColor || 'var(--color-surface, #ffffff)',
           }}
         >
           <div className="flex items-center">{logoNode}</div>
 
           <button
             className="p-2 hover:opacity-80"
-            style={{ color: block.style?.color || 'inherit' }}
+            style={{ color: block.style?.color || 'var(--color-text, inherit)' }}
             onClick={(e) => {
               e.stopPropagation();
               setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -420,7 +420,7 @@ export const NavbarBlock = ({ block, isEditing = true }: BlockRendererProps) => 
             <div
               className="absolute top-full left-0 right-0 shadow-lg z-50 border-t"
               style={{
-                backgroundColor: block.style?.backgroundColor || '#ffffff',
+                backgroundColor: block.style?.backgroundColor || 'var(--color-surface, #ffffff)',
                 borderColor: block.style?.borderColor || '#e5e7eb',
               }}
             >
@@ -441,7 +441,7 @@ export const NavbarBlock = ({ block, isEditing = true }: BlockRendererProps) => 
             backgroundColor:
               isHovered && block.hoverStyle?.backgroundColor
                 ? block.hoverStyle.backgroundColor
-                : block.style?.backgroundColor || '#ffffff',
+                : block.style?.backgroundColor || 'var(--color-surface, #ffffff)',
           }}
         >
           <div className="flex items-center">{logoNode}</div>
@@ -460,7 +460,7 @@ export const NavbarBlock = ({ block, isEditing = true }: BlockRendererProps) => 
           {/* Mobile Toggle */}
           <button
             className="md:hidden p-2 hover:opacity-80"
-            style={{ color: block.style?.color || 'inherit' }}
+            style={{ color: block.style?.color || 'var(--color-text, inherit)' }}
             onClick={(e) => {
               e.stopPropagation();
               setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -474,7 +474,7 @@ export const NavbarBlock = ({ block, isEditing = true }: BlockRendererProps) => 
             <div
               className="absolute top-full left-0 right-0 shadow-lg md:hidden z-50 border-t"
               style={{
-                backgroundColor: block.style?.backgroundColor || '#ffffff',
+                backgroundColor: block.style?.backgroundColor || 'var(--color-surface, #ffffff)',
                 borderColor: block.style?.borderColor || '#e5e7eb',
               }}
             >
