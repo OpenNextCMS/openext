@@ -27,7 +27,7 @@ const defaultChoiceContent: ChoiceContent = {
   checked: false,
   required: false,
   labelStyle: {
-    color: '#111827',
+    color: 'var(--color-text, #111827)',
     fontSize: '14px',
     fontWeight: '500',
     lineHeight: '1.4',
@@ -55,7 +55,7 @@ export const ChoiceInputBlock = ({ block, isEditing = true }: BlockRendererProps
   const blockLabel = isRadio ? 'Radio Button' : 'Check Button';
   const Icon = isRadio ? CircleDot : SquareCheck;
   const labelStyle: React.CSSProperties = {
-    color: '#111827',
+    color: 'var(--color-text, #111827)',
     fontSize: '14px',
     fontWeight: '500',
     lineHeight: '1.4',

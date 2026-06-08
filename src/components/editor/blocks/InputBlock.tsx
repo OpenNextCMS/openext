@@ -28,7 +28,7 @@ const defaultInputContent: InputContent = {
   inputType: 'text',
   required: false,
   labelStyle: {
-    color: '#111827',
+    color: 'var(--color-text, #111827)',
     fontSize: '14px',
     fontWeight: '500',
     lineHeight: '1.4',
@@ -54,7 +54,7 @@ export const InputBlock = ({ block, isEditing = true }: BlockRendererProps) => {
   const inputContent = parseInputContent(block.content);
   const labelStyle: React.CSSProperties = {
     display: 'block',
-    color: '#111827',
+    color: 'var(--color-text, #111827)',
     fontSize: '14px',
     fontWeight: '500',
     lineHeight: '1.4',

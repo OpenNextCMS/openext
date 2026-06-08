@@ -3,13 +3,13 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { Loader2, Save, ArrowLeft, Check, Lock } from 'lucide-react';
+import { Loader2, Save, ArrowLeft, Check, Lock, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
-import { loadTheme, setName, markSaved } from '@/redux/themeBuilderSlice';
-import { mergeThemeConfig } from '@/lib/theme/cssVars.site';
+import { loadTheme, setName, setDraft, markSaved } from '@/redux/themeBuilderSlice';
+import { mergeThemeConfig, DEFAULT_THEME_CONFIG } from '@/lib/theme/cssVars.site';
 import { themeApi } from './api';
 import { ColorsTab } from './ColorsTab';
 import { TypographyTab } from './TypographyTab';
@@ -112,6 +112,12 @@ export function ThemeBuilder({ themeId }: { themeId: string }) {
     }
   };
 
+  const resetToDefaults = () => {
+    if (!confirm('Reset all tokens to the default design values? Save to keep the change.')) return;
+    dispatch(setDraft(mergeThemeConfig(DEFAULT_THEME_CONFIG)));
+    toast.message('Tokens reset to defaults — Save to apply');
+  };
+
   if (loading) {
     return (
       <div className="flex h-96 items-center justify-center">
@@ -147,6 +153,11 @@ export function ThemeBuilder({ themeId }: { themeId: string }) {
               <Lock className="h-3 w-3" /> System theme
             </span>
           ) : null}
+          {!readOnly && dirty ? (
+            <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+              ● Unsaved changes
+            </span>
+          ) : null}
         </div>
         <div className="flex items-center gap-2">
           {!meta.isActive ? (
@@ -158,10 +169,15 @@ export function ThemeBuilder({ themeId }: { themeId: string }) {
           {readOnly ? (
             <Button onClick={duplicate}>Duplicate to edit</Button>
           ) : (
-            <Button onClick={save} disabled={saving || !dirty}>
-              {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-              Save
-            </Button>
+            <>
+              <Button variant="ghost" onClick={resetToDefaults} disabled={saving}>
+                <RotateCcw className="mr-2 h-4 w-4" /> Reset
+              </Button>
+              <Button onClick={save} disabled={saving || !dirty}>
+                {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                Save
+              </Button>
+            </>
           )}
         </div>
       </div>

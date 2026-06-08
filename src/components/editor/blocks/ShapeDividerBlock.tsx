@@ -16,7 +16,7 @@ interface ShapeDividerContent {
 
 const defaultDivider: ShapeDividerContent = {
   shape: 'wave',
-  color: '#ffffff',
+  color: 'var(--color-bg, #ffffff)',
   height: 120,
   flip: false,
 };
@@ -105,7 +105,7 @@ export const ShapeDividerBlock = ({ block, isEditing = true }: BlockRendererProp
         focusable="false"
         style={{ display: 'block', width: '100%', height: '100%' }}
       >
-        <path d={paths[divider.shape]} fill={divider.color} />
+        <path d={paths[divider.shape]} style={{ fill: divider.color }} />
       </svg>
     </div>
   );

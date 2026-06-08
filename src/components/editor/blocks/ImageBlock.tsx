@@ -67,7 +67,7 @@ export const ImageBlock = ({ block, isEditing = true }: BlockRendererProps) => {
         width: '100%',
         margin: 0,
         overflow: 'hidden',
-        borderRadius: '8px',
+        borderRadius: 'var(--radius-md, 8px)',
         ...block.style,
         cursor: isEditing ? 'pointer' : block.events?.onClick === 'none' ? 'default' : 'pointer',
         outline: isHovered && isEditing ? '1px dashed #3b82f6' : 'none',
@@ -108,7 +108,7 @@ export const ImageBlock = ({ block, isEditing = true }: BlockRendererProps) => {
           style={{
             width: '100%',
             height: block.style?.height || '220px',
-            backgroundColor: block.style?.backgroundColor || '#e5e7eb',
+            backgroundColor: block.style?.backgroundColor || 'var(--color-surface, #e5e7eb)',
           }}
         />
       )}
@@ -116,8 +116,8 @@ export const ImageBlock = ({ block, isEditing = true }: BlockRendererProps) => {
         <figcaption
           style={{
             padding: '10px 12px',
-            color: block.style?.color || '#4b5563',
-            backgroundColor: block.style?.backgroundColor || '#ffffff',
+            color: block.style?.color || 'var(--color-muted, #4b5563)',
+            backgroundColor: block.style?.backgroundColor || 'var(--color-surface, #ffffff)',
             fontSize: '14px',
           }}
         >
