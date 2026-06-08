@@ -91,8 +91,8 @@ export const ProgressBarBlock = ({ block, isEditing = true }: BlockRendererProps
             contentEditable={isEditing}
             suppressContentEditableWarning={true}
             onBlur={(e) => handleTextBlur('label', e.currentTarget.textContent || '')}
-            style={{ 
-              color: block.style?.color || '#22d3ee',
+            style={{
+              color: block.style?.color || 'var(--color-primary, #22d3ee)',
               fontSize: block.style?.fontSize,
               fontWeight: block.style?.fontWeight
             }}
@@ -114,16 +114,16 @@ export const ProgressBarBlock = ({ block, isEditing = true }: BlockRendererProps
           </div>
         </div>
         <div 
-          className="w-full bg-gray-700 h-2 rounded-full overflow-hidden"
+          className="w-full h-2 rounded-full overflow-hidden"
           style={{
-            backgroundColor: block.style?.backgroundColor && block.style?.backgroundColor !== 'transparent' ? 'transparent' : undefined
+            backgroundColor: block.style?.backgroundColor && block.style?.backgroundColor !== 'transparent' ? 'transparent' : 'var(--color-surface, #374151)'
           }}
         >
           <div 
             className="h-full rounded-full transition-all duration-1000" 
             style={{ 
               width: `${content.percentage}%`,
-              backgroundColor: content.barColor || '#22d3ee' 
+              backgroundColor: content.barColor || 'var(--color-primary, #22d3ee)'
             }}
           />
         </div>
