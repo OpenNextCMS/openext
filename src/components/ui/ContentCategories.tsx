@@ -61,7 +61,7 @@ export const ContentCategories = ({ block, isEditing = false }: BlockRendererPro
 
   return (
     <section 
-      className="text-gray-600 body-font w-full" 
+      className="text-[color:var(--color-muted,#4b5563)] body-font w-full" 
       style={block.style}
       onClick={handleSelect}
     >
@@ -72,9 +72,9 @@ export const ContentCategories = ({ block, isEditing = false }: BlockRendererPro
             value={content.title || 'Pitchfork Kickstarter Taxidermy'}
             onBlur={(v) => handleUpdate('title', v)}
             isEditing={isEditing}
-            className="sm:text-3xl text-2xl font-medium title-font mb-2 text-gray-900"
+            className="sm:text-3xl text-2xl font-medium title-font mb-2 text-[color:var(--color-text,#111827)]"
             style={{ 
-              color: block.style?.color, 
+              color: block.style?.color || 'var(--color-text, #111827)', 
               fontFamily: block.style?.fontFamily,
               ...content.titleStyle 
             }}
@@ -86,14 +86,14 @@ export const ContentCategories = ({ block, isEditing = false }: BlockRendererPro
             isEditing={isEditing}
             className="leading-relaxed text-base"
             style={{ 
-              color: block.style?.color, 
+              color: block.style?.color || 'var(--color-text, #111827)', 
               fontFamily: block.style?.fontFamily,
               ...content.descriptionStyle 
             }}
           />
           <a 
             href={isEditing ? undefined : content.linkUrl || '#'}
-            className="text-indigo-500 inline-flex items-center mt-4 cursor-pointer" 
+            className="text-[color:var(--color-primary,#6366f1)] inline-flex items-center mt-4 cursor-pointer" 
             style={{ 
               fontFamily: block.style?.fontFamily,
               ...content.linkTextStyle
@@ -117,9 +117,9 @@ export const ContentCategories = ({ block, isEditing = false }: BlockRendererPro
             value={content.categoryHeading || 'CATEGORIES'}
             onBlur={(v) => handleUpdate('categoryHeading', v)}
             isEditing={isEditing}
-            className="title-font font-semibold text-gray-800 tracking-wider text-sm mb-3"
+            className="title-font font-semibold text-[color:var(--color-text,#1f2937)] tracking-wider text-sm mb-3"
             style={{ 
-              color: block.style?.color, 
+              color: block.style?.color || 'var(--color-text, #111827)', 
               fontFamily: block.style?.fontFamily,
               ...content.categoryHeadingStyle 
             }}
@@ -132,9 +132,9 @@ export const ContentCategories = ({ block, isEditing = false }: BlockRendererPro
                   block={block}
                   isEditing={isEditing}
                   path={`links.${index}.buttonStyle`}
-                  className="text-gray-600 hover:text-gray-800 cursor-pointer"
+                  className="text-[color:var(--color-muted,#4b5563)] hover:text-[color:var(--color-text,#1f2937)] cursor-pointer"
                   baseStyle={{
-                    color: block.style?.color,
+                    color: block.style?.color || 'var(--color-text, #111827)',
                     fontFamily: block.style?.fontFamily,
                     ...(content.linkItemStyle as React.CSSProperties)
                   }}

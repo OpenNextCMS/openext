@@ -81,16 +81,18 @@ export const StatsBlock = ({ block, isEditing = true }: BlockRendererProps) => {
       <div
         className="h-full flex flex-col"
       >
-        <div 
-          className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-1 outline-none break-words"
+        <div
+          className="text-2xl sm:text-3xl md:text-4xl font-bold mb-1 outline-none break-words"
+          style={{ color: block.style?.color || 'var(--color-text, #ffffff)' }}
           contentEditable={isEditing}
           suppressContentEditableWarning={true}
           onBlur={(e) => handleTextBlur('value', e.currentTarget.textContent || '')}
         >
           {content.value}
         </div>
-        <div 
-          className="text-xs sm:text-sm text-gray-400 uppercase tracking-wider outline-none break-words"
+        <div
+          className="text-xs sm:text-sm uppercase tracking-wider outline-none break-words"
+          style={{ color: 'var(--color-muted, #9ca3af)' }}
           contentEditable={isEditing}
           suppressContentEditableWarning={true}
           onBlur={(e) => handleTextBlur('label', e.currentTarget.textContent || '')}

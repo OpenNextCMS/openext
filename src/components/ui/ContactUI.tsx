@@ -41,11 +41,11 @@ export const ContactUI = ({ block, isEditing = false }: BlockRendererProps) => {
 
   return (
     <section 
-      className="text-gray-600 body-font relative w-full min-h-[600px]" 
+      className="text-[color:var(--color-muted,#4b5563)] body-font relative w-full min-h-[600px]" 
       style={block.style}
       onClick={handleSelect}
     >
-      <div className="absolute inset-0 bg-gray-300">
+      <div className="absolute inset-0 bg-[var(--color-surface,#d1d5db)]">
         <iframe
           width="100%"
           height="100%"
@@ -63,7 +63,7 @@ export const ContactUI = ({ block, isEditing = false }: BlockRendererProps) => {
           block={block}
           isEditing={isEditing}
           path="cardStyle"
-          className="lg:w-1/3 md:w-1/2 bg-white rounded-lg p-8 flex flex-col md:ml-auto w-full mt-10 md:mt-0 relative z-10 shadow-md"
+          className="lg:w-1/3 md:w-1/2 bg-[var(--color-bg,#ffffff)] rounded-lg p-8 flex flex-col md:ml-auto w-full mt-10 md:mt-0 relative z-10 shadow-md"
           baseStyle={{ fontFamily: block.style?.fontFamily }}
         >
           <InlineEditableText
@@ -71,10 +71,10 @@ export const ContactUI = ({ block, isEditing = false }: BlockRendererProps) => {
             value={content.title || 'Feedback'}
             onBlur={(v) => handleUpdate('title', v)}
             isEditing={isEditing}
-            className="text-gray-900 text-lg mb-1 font-medium title-font"
+            className="text-[color:var(--color-text,#111827)] text-lg mb-1 font-medium title-font"
             style={{ 
               fontFamily: block.style?.fontFamily,
-              color: block.style?.color,
+              color: block.style?.color || 'var(--color-text, #111827)',
               ...content.titleStyle 
             }}
           />
@@ -83,10 +83,10 @@ export const ContactUI = ({ block, isEditing = false }: BlockRendererProps) => {
             value={content.description || 'Post-ironic portland shabby chic echo park, banjo fashion axe'}
             onBlur={(v) => handleUpdate('description', v)}
             isEditing={isEditing}
-            className="leading-relaxed mb-5 text-gray-600"
+            className="leading-relaxed mb-5 text-[color:var(--color-muted,#4b5563)]"
             style={{ 
               fontFamily: block.style?.fontFamily,
-              color: block.style?.color,
+              color: block.style?.color || 'var(--color-text, #111827)',
               ...content.descriptionStyle 
             }}
           />
@@ -96,10 +96,10 @@ export const ContactUI = ({ block, isEditing = false }: BlockRendererProps) => {
               value={content.emailLabel || 'Email'}
               onBlur={(v) => handleUpdate('emailLabel', v)}
               isEditing={isEditing}
-              className="leading-7 text-sm text-gray-600"
+              className="leading-7 text-sm text-[color:var(--color-muted,#4b5563)]"
               style={{ 
                 fontFamily: block.style?.fontFamily,
-                color: block.style?.color,
+                color: block.style?.color || 'var(--color-text, #111827)',
                 ...content.emailLabelStyle 
               }}
             />
@@ -107,7 +107,7 @@ export const ContactUI = ({ block, isEditing = false }: BlockRendererProps) => {
               type="email"
               id="email"
               name="email"
-              className="w-full bg-white rounded border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out"
+              className="w-full bg-[var(--color-bg,#ffffff)] rounded border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-base outline-none text-[color:var(--color-muted,#374151)] py-1 px-3 leading-8 transition-colors duration-200 ease-in-out"
             />
           </div>
           <div className="relative mb-4">
@@ -116,17 +116,17 @@ export const ContactUI = ({ block, isEditing = false }: BlockRendererProps) => {
               value={content.messageLabel || 'Message'}
               onBlur={(v) => handleUpdate('messageLabel', v)}
               isEditing={isEditing}
-              className="leading-7 text-sm text-gray-600"
+              className="leading-7 text-sm text-[color:var(--color-muted,#4b5563)]"
               style={{ 
                 fontFamily: block.style?.fontFamily,
-                color: block.style?.color,
+                color: block.style?.color || 'var(--color-text, #111827)',
                 ...content.messageLabelStyle 
               }}
             />
             <textarea
               id="message"
               name="message"
-              className="w-full bg-white rounded border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 h-32 text-base outline-none text-gray-700 py-1 px-3 resize-none leading-6 transition-colors duration-200 ease-in-out"
+              className="w-full bg-[var(--color-bg,#ffffff)] rounded border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 h-32 text-base outline-none text-[color:var(--color-muted,#374151)] py-1 px-3 resize-none leading-6 transition-colors duration-200 ease-in-out"
             ></textarea>
           </div>
           <EditableElement
@@ -134,7 +134,7 @@ export const ContactUI = ({ block, isEditing = false }: BlockRendererProps) => {
             block={block}
             isEditing={isEditing}
             path="submitButtonStyle"
-            className="text-white bg-indigo-500 border-0 py-2 px-6 focus:outline-none hover:bg-indigo-600 rounded text-lg text-center"
+            className="text-white bg-[var(--color-primary,#6366f1)] border-0 py-2 px-6 focus:outline-none hover:bg-[var(--color-primary,#4f46e5)] rounded text-lg text-center"
             baseStyle={{ fontFamily: block.style?.fontFamily }}
             extraProps={{ type: 'button' }}
           >
@@ -151,10 +151,10 @@ export const ContactUI = ({ block, isEditing = false }: BlockRendererProps) => {
             value={content.footerText || 'Chicharrones blog helvetica normcore iceland tousled brook viral artisan.'}
             onBlur={(v) => handleUpdate('footerText', v)}
             isEditing={isEditing}
-            className="text-xs text-gray-500 mt-3"
+            className="text-xs text-[color:var(--color-muted,#6b7280)] mt-3"
             style={{ 
               fontFamily: block.style?.fontFamily,
-              color: block.style?.color,
+              color: block.style?.color || 'var(--color-text, #111827)',
               ...content.footerStyle
             }}
           />

@@ -45,7 +45,7 @@ export const ContentGallery = ({ block, isEditing = false }: BlockRendererProps)
   ];
 
   return (
-    <section className="text-gray-600 body-font w-full" style={block.style}>
+    <section className="text-[color:var(--color-muted,#4b5563)] body-font w-full" style={block.style}>
       <div className="container px-5 py-24 mx-auto">
         <div className="flex flex-wrap w-full mb-20">
           <div className="lg:w-1/2 w-full mb-6 lg:mb-0">
@@ -54,23 +54,23 @@ export const ContentGallery = ({ block, isEditing = false }: BlockRendererProps)
               value={content.mainTitle || 'Pitchfork Kickstarter Taxidermy'}
               onBlur={(v) => handleUpdate('mainTitle', v)}
               isEditing={isEditing}
-              className="sm:text-3xl text-2xl font-medium title-font mb-2 text-gray-900"
+              className="sm:text-3xl text-2xl font-medium title-font mb-2 text-[color:var(--color-text,#111827)]"
               style={{ 
-                color: block.style?.color, 
+                color: block.style?.color || 'var(--color-text, #111827)', 
                 fontFamily: block.style?.fontFamily,
                 ...content.mainTitleStyle 
               }}
             />
-            <div className="h-1 w-20 bg-indigo-500 rounded"></div>
+            <div className="h-1 w-20 bg-[var(--color-primary,#6366f1)] rounded"></div>
           </div>
           <InlineEditableText
             tagName="p"
             value={content.mainDescription || "Whatever cardigan tote bag tumblr hexagon brooklyn asymmetrical gentrify, subway tile poke farm-to-table. Franzen you probably haven't heard of them man bun deep jianbing selfies heirloom prism food truck ugh squid celiac humblebrag."}
             onBlur={(v) => handleUpdate('mainDescription', v)}
             isEditing={isEditing}
-            className="lg:w-1/2 w-full leading-relaxed text-gray-500"
+            className="lg:w-1/2 w-full leading-relaxed text-[color:var(--color-muted,#6b7280)]"
             style={{ 
-              color: block.style?.color, 
+              color: block.style?.color || 'var(--color-text, #111827)', 
               fontFamily: block.style?.fontFamily,
               ...content.mainDescriptionStyle 
             }}
@@ -83,7 +83,7 @@ export const ContentGallery = ({ block, isEditing = false }: BlockRendererProps)
                 block={block}
                 isEditing={isEditing}
                 path={`items.${index}.cardStyle`}
-                className="bg-gray-100 p-6 rounded-lg"
+                className="bg-[var(--color-surface,#f3f4f6)] p-6 rounded-lg"
               >
                 <EditableElement
                   as="img"
@@ -98,7 +98,7 @@ export const ContentGallery = ({ block, isEditing = false }: BlockRendererProps)
                   value={item.subtitle || 'SUBTITLE'}
                   onBlur={(v) => updateItem(index, 'subtitle', v)}
                   isEditing={isEditing}
-                  className="tracking-widest text-indigo-500 text-xs font-medium title-font mb-1"
+                  className="tracking-widest text-[color:var(--color-primary,#6366f1)] text-xs font-medium title-font mb-1"
                   style={{ 
                     fontFamily: block.style?.fontFamily,
                     ...content.itemSubtitleStyle 
@@ -109,9 +109,9 @@ export const ContentGallery = ({ block, isEditing = false }: BlockRendererProps)
                   value={item.title || 'Item Title'}
                   onBlur={(v) => updateItem(index, 'title', v)}
                   isEditing={isEditing}
-                  className="text-lg text-gray-900 font-medium title-font mb-4"
+                  className="text-lg text-[color:var(--color-text,#111827)] font-medium title-font mb-4"
                   style={{ 
-                    color: block.style?.color, 
+                    color: block.style?.color || 'var(--color-text, #111827)', 
                     fontFamily: block.style?.fontFamily,
                     ...content.itemTitleStyle 
                   }}
@@ -123,7 +123,7 @@ export const ContentGallery = ({ block, isEditing = false }: BlockRendererProps)
                   isEditing={isEditing}
                   className="leading-relaxed text-base"
                   style={{ 
-                    color: block.style?.color, 
+                    color: block.style?.color || 'var(--color-text, #111827)', 
                     fontFamily: block.style?.fontFamily,
                     ...content.itemDescriptionStyle 
                   }}

@@ -51,7 +51,7 @@ export const ContentSplit = ({ block, isEditing = false }: BlockRendererProps) =
   };
 
   return (
-    <section className="text-gray-600 body-font w-full" style={block.style}>
+    <section className="text-[color:var(--color-muted,#4b5563)] body-font w-full" style={block.style}>
       <div className="container px-5 py-24 mx-auto">
         <div className="flex flex-wrap -mx-4 -mb-10 text-center">
           <EditableElement
@@ -73,9 +73,9 @@ export const ContentSplit = ({ block, isEditing = false }: BlockRendererProps) =
               value={left.title || 'Left Title'}
               onBlur={(v) => updateNested('left', 'title', v)}
               isEditing={isEditing}
-              className="title-font text-2xl font-medium text-gray-900 mt-6 mb-3"
+              className="title-font text-2xl font-medium text-[color:var(--color-text,#111827)] mt-6 mb-3"
               style={{ 
-                color: block.style?.color, 
+                color: block.style?.color || 'var(--color-text, #111827)', 
                 fontFamily: block.style?.fontFamily,
                 ...content.leftTitleStyle 
               }}
@@ -87,7 +87,7 @@ export const ContentSplit = ({ block, isEditing = false }: BlockRendererProps) =
               isEditing={isEditing}
               className="leading-relaxed text-base"
               style={{ 
-                color: block.style?.color, 
+                color: block.style?.color || 'var(--color-text, #111827)', 
                 fontFamily: block.style?.fontFamily,
                 ...content.leftDescriptionStyle 
               }}
@@ -97,7 +97,7 @@ export const ContentSplit = ({ block, isEditing = false }: BlockRendererProps) =
               block={block}
               isEditing={isEditing}
               path="leftButtonStyle"
-              className="flex mx-auto mt-6 text-white bg-indigo-500 border-0 py-2 px-5 focus:outline-none hover:bg-indigo-600 rounded text-center w-max"
+              className="flex mx-auto mt-6 text-white bg-[var(--color-primary,#6366f1)] border-0 py-2 px-5 focus:outline-none hover:bg-[var(--color-primary,#4f46e5)] rounded text-center w-max"
               baseStyle={{ fontFamily: block.style?.fontFamily }}
               extraProps={{ href: isEditing ? undefined : left.url || '#' }}
             >
@@ -128,9 +128,9 @@ export const ContentSplit = ({ block, isEditing = false }: BlockRendererProps) =
               value={right.title || 'Right Title'}
               onBlur={(v) => updateNested('right', 'title', v)}
               isEditing={isEditing}
-              className="title-font text-2xl font-medium text-gray-900 mt-6 mb-3"
+              className="title-font text-2xl font-medium text-[color:var(--color-text,#111827)] mt-6 mb-3"
               style={{ 
-                color: block.style?.color, 
+                color: block.style?.color || 'var(--color-text, #111827)', 
                 fontFamily: block.style?.fontFamily,
                 ...content.rightTitleStyle 
               }}
@@ -142,7 +142,7 @@ export const ContentSplit = ({ block, isEditing = false }: BlockRendererProps) =
               isEditing={isEditing}
               className="leading-relaxed text-base"
               style={{ 
-                color: block.style?.color, 
+                color: block.style?.color || 'var(--color-text, #111827)', 
                 fontFamily: block.style?.fontFamily,
                 ...content.rightDescriptionStyle 
               }}
@@ -152,7 +152,7 @@ export const ContentSplit = ({ block, isEditing = false }: BlockRendererProps) =
               block={block}
               isEditing={isEditing}
               path="rightButtonStyle"
-              className="flex mx-auto mt-6 text-white bg-indigo-500 border-0 py-2 px-5 focus:outline-none hover:bg-indigo-600 rounded text-center w-max"
+              className="flex mx-auto mt-6 text-white bg-[var(--color-primary,#6366f1)] border-0 py-2 px-5 focus:outline-none hover:bg-[var(--color-primary,#4f46e5)] rounded text-center w-max"
               baseStyle={{ fontFamily: block.style?.fontFamily }}
               extraProps={{ href: isEditing ? undefined : right.url || '#' }}
             >
