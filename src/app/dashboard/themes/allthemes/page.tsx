@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { toast } from 'sonner';
 import {
   Plus, Pencil, Copy, Trash2, Check, Palette, Loader2, Lock, Search, Eye,
-  Monitor, Tablet, Smartphone, ChevronDown, Sparkles, LayoutGrid, Star,
+  Monitor, Tablet, Smartphone, ChevronDown, Sparkles, LayoutGrid,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -63,7 +63,7 @@ function ThemeCardPreview({ theme }: { theme?: ThemeConfig }) {
   );
 }
 
-function StatCard({ icon: Icon, label, value, tint }: { icon: any; label: string; value: React.ReactNode; tint: string }) {
+function StatCard({ icon: Icon, label, value, tint }: { icon: React.ComponentType<{ className?: string }>; label: string; value: React.ReactNode; tint: string }) {
   return (
     <div className="rounded-xl border bg-card p-4">
       <div className="flex items-center justify-between">
