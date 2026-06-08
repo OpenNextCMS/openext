@@ -44,7 +44,7 @@ export const FeatureSideImage = ({ block, isEditing = false }: BlockRendererProp
   ];
 
   return (
-    <section className="text-gray-600 body-font w-full" style={block.style}>
+    <section className="text-[color:var(--color-muted,#4b5563)] body-font w-full" style={block.style}>
       <div className="container px-5 py-24 mx-auto flex flex-wrap">
         <div className="lg:w-1/2 w-full mb-10 lg:mb-0 rounded-lg overflow-hidden">
           <img alt="feature" className="object-cover object-center h-full w-full" src={content.image || "https://dummyimage.com/460x500"} />
@@ -62,7 +62,7 @@ export const FeatureSideImage = ({ block, isEditing = false }: BlockRendererProp
                 block={block}
                 isEditing={isEditing}
                 path={`features.${index}.iconStyle`}
-                className="w-12 h-12 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 mb-5"
+                className="w-12 h-12 inline-flex items-center justify-center rounded-full bg-[var(--color-surface,#e0e7ff)] text-[color:var(--color-primary,#6366f1)] mb-5"
               >
                 <svg fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" className="w-6 h-6" viewBox="0 0 24 24">
                   <path d={index === 0 ? "M22 12h-4l-3 9L9 3l-3 9H2" : index === 1 ? "M20 4L8.12 15.88M14.47 14.48L20 20M8.12 8.12L12 12" : "M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"}></path>
@@ -76,9 +76,9 @@ export const FeatureSideImage = ({ block, isEditing = false }: BlockRendererProp
                   value={feature.title || 'Feature Title'}
                   onBlur={(v) => updateFeature(index, 'title', v)}
                   isEditing={isEditing}
-                  className="text-gray-900 text-lg title-font font-medium mb-3"
+                  className="text-[color:var(--color-text,#111827)] text-lg title-font font-medium mb-3"
                   style={{ 
-                    color: block.style?.color, 
+                    color: block.style?.color || 'var(--color-text, #111827)', 
                     fontFamily: block.style?.fontFamily,
                     ...content.featureTitleStyle 
                   }}
@@ -90,7 +90,7 @@ export const FeatureSideImage = ({ block, isEditing = false }: BlockRendererProp
                   isEditing={isEditing}
                   className="leading-relaxed text-base"
                   style={{ 
-                    color: block.style?.color, 
+                    color: block.style?.color || 'var(--color-text, #111827)', 
                     fontFamily: block.style?.fontFamily,
                     ...content.featureDescriptionStyle 
                   }}
@@ -100,7 +100,7 @@ export const FeatureSideImage = ({ block, isEditing = false }: BlockRendererProp
                   block={block}
                   isEditing={isEditing}
                   path={`features.${index}.buttonStyle`}
-                  className="mt-3 text-indigo-500 inline-flex items-center cursor-pointer"
+                  className="mt-3 text-[color:var(--color-primary,#6366f1)] inline-flex items-center cursor-pointer"
                   baseStyle={{ fontFamily: block.style?.fontFamily }}
                   extraProps={{ href: isEditing ? undefined : (feature.url || content.linkUrl || '#') }}
                 >

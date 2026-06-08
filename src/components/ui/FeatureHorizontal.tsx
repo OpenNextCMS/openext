@@ -43,7 +43,7 @@ export const FeatureHorizontal = ({ block, isEditing = false }: BlockRendererPro
   ];
 
   return (
-    <section className="text-gray-600 body-font w-full" style={block.style}>
+    <section className="text-[color:var(--color-muted,#4b5563)] body-font w-full" style={block.style}>
       <div className="container px-5 py-24 mx-auto flex flex-wrap">
         <div className="flex flex-wrap -m-4">
           {features.map((feature: BlockContentItem, index: number) => (
@@ -58,7 +58,7 @@ export const FeatureHorizontal = ({ block, isEditing = false }: BlockRendererPro
                   block={block}
                   isEditing={isEditing}
                   path={`features.${index}.iconStyle`}
-                  className="w-16 h-16 sm:mr-8 sm:mb-0 mb-4 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0 overflow-hidden"
+                  className="w-16 h-16 sm:mr-8 sm:mb-0 mb-4 inline-flex items-center justify-center rounded-full bg-[var(--color-surface,#e0e7ff)] text-[color:var(--color-primary,#6366f1)] flex-shrink-0 overflow-hidden"
                 >
                   {feature.image ? (
                     <img src={feature.image} alt={feature.title} className="w-full h-full object-cover" />
@@ -75,9 +75,9 @@ export const FeatureHorizontal = ({ block, isEditing = false }: BlockRendererPro
                     value={feature.title || 'Feature Title'}
                     onBlur={(v) => updateFeature(index, 'title', v)}
                     isEditing={isEditing}
-                    className="text-gray-900 text-lg title-font font-medium mb-3"
+                    className="text-[color:var(--color-text,#111827)] text-lg title-font font-medium mb-3"
                     style={{ 
-                      color: block.style?.color, 
+                      color: block.style?.color || 'var(--color-text, #111827)', 
                       fontFamily: block.style?.fontFamily,
                       ...content.featureTitleStyle 
                     }}
@@ -89,7 +89,7 @@ export const FeatureHorizontal = ({ block, isEditing = false }: BlockRendererPro
                     isEditing={isEditing}
                     className="leading-relaxed text-base"
                     style={{ 
-                      color: block.style?.color, 
+                      color: block.style?.color || 'var(--color-text, #111827)', 
                       fontFamily: block.style?.fontFamily,
                       ...content.featureDescriptionStyle 
                     }}
@@ -99,7 +99,7 @@ export const FeatureHorizontal = ({ block, isEditing = false }: BlockRendererPro
                     block={block}
                     isEditing={isEditing}
                     path={`features.${index}.buttonStyle`}
-                    className="mt-3 text-indigo-500 inline-flex items-center cursor-pointer"
+                    className="mt-3 text-[color:var(--color-primary,#6366f1)] inline-flex items-center cursor-pointer"
                     baseStyle={{ fontFamily: block.style?.fontFamily }}
                     extraProps={{ href: isEditing ? undefined : (feature.url || content.linkUrl || '#') }}
                   >

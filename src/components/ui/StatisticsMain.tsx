@@ -47,7 +47,7 @@ export const StatisticsMain = ({ block, isEditing = false }: BlockRendererProps)
   };
 
   return (
-    <section className="text-gray-600 body-font w-full" style={block.style}>
+    <section className="text-[color:var(--color-muted,#4b5563)] body-font w-full" style={block.style}>
       <div className="container px-5 py-24 mx-auto">
         <div className="flex flex-wrap -m-4 text-center">
           {stats.map((stat: BlockContentItem, index: number) => (
@@ -63,9 +63,9 @@ export const StatisticsMain = ({ block, isEditing = false }: BlockRendererProps)
                 value={stat.value}
                 onBlur={(v) => updateStat(index, 'value', v)}
                 isEditing={isEditing}
-                className="title-font font-medium sm:text-4xl text-3xl text-gray-900"
+                className="title-font font-medium sm:text-4xl text-3xl text-[color:var(--color-text,#111827)]"
                 style={{
-                  color: block.style?.color,
+                  color: block.style?.color || 'var(--color-text, #111827)',
                   fontFamily: block.style?.fontFamily,
                   ...content.valueStyle
                 }}
@@ -77,7 +77,7 @@ export const StatisticsMain = ({ block, isEditing = false }: BlockRendererProps)
                 isEditing={isEditing}
                 className="leading-relaxed"
                 style={{
-                  color: block.style?.color,
+                  color: block.style?.color || 'var(--color-text, #111827)',
                   fontFamily: block.style?.fontFamily,
                   ...content.labelStyle
                 }}

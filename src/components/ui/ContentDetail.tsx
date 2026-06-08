@@ -30,7 +30,7 @@ export const ContentDetail = ({ block, isEditing = false }: BlockRendererProps) 
   };
 
   return (
-    <section className="text-gray-600 body-font w-full" style={block.style}>
+    <section className="text-[color:var(--color-muted,#4b5563)] body-font w-full" style={block.style}>
       <div className="container px-5 py-24 mx-auto flex flex-col">
         <div className="lg:w-4/6 mx-auto">
           <EditableElement
@@ -47,7 +47,7 @@ export const ContentDetail = ({ block, isEditing = false }: BlockRendererProps) 
                 block={block}
                 isEditing={isEditing}
                 path="iconStyle"
-                className="w-20 h-20 rounded-full inline-flex items-center justify-center bg-gray-200 text-gray-400"
+                className="w-20 h-20 rounded-full inline-flex items-center justify-center bg-[var(--color-surface,#e5e7eb)] text-[color:var(--color-muted,#9ca3af)]"
               >
                 {content.authorImage ? (
                   <img src={content.authorImage} alt="author" className="w-full h-full rounded-full object-cover" />
@@ -64,14 +64,14 @@ export const ContentDetail = ({ block, isEditing = false }: BlockRendererProps) 
                   value={content.authorName || 'Phoebe Caulfield'}
                   onBlur={(v) => handleUpdate('authorName', v)}
                   isEditing={isEditing}
-                  className="font-medium title-font mt-4 text-gray-900 text-lg"
+                  className="font-medium title-font mt-4 text-[color:var(--color-text,#111827)] text-lg"
                   style={{ 
-                    color: block.style?.color, 
+                    color: block.style?.color || 'var(--color-text, #111827)', 
                     fontFamily: block.style?.fontFamily,
                     ...content.authorNameStyle 
                   }}
                 />
-                <div className="w-12 h-1 bg-indigo-500 rounded mt-2 mb-4"></div>
+                <div className="w-12 h-1 bg-[var(--color-primary,#6366f1)] rounded mt-2 mb-4"></div>
                 <InlineEditableText
                   tagName="p"
                   value={content.authorBio || 'Raclette knausgaard hella meggs normcore williamsburg enamel pin sartorial venmo tbh hot chicken gentrify portland.'}
@@ -79,7 +79,7 @@ export const ContentDetail = ({ block, isEditing = false }: BlockRendererProps) 
                   isEditing={isEditing}
                   className="text-base"
                   style={{ 
-                    color: block.style?.color, 
+                    color: block.style?.color || 'var(--color-text, #111827)', 
                     fontFamily: block.style?.fontFamily,
                     ...content.authorBioStyle 
                   }}
@@ -94,7 +94,7 @@ export const ContentDetail = ({ block, isEditing = false }: BlockRendererProps) 
                 isEditing={isEditing}
                 className="leading-relaxed text-lg mb-4"
                 style={{ 
-                  color: block.style?.color, 
+                  color: block.style?.color || 'var(--color-text, #111827)', 
                   fontFamily: block.style?.fontFamily,
                   ...content.mainTextStyle 
                 }}
@@ -104,7 +104,7 @@ export const ContentDetail = ({ block, isEditing = false }: BlockRendererProps) 
                 block={block}
                 isEditing={isEditing}
                 path="buttonStyle"
-                className="text-indigo-500 inline-flex items-center cursor-pointer"
+                className="text-[color:var(--color-primary,#6366f1)] inline-flex items-center cursor-pointer"
                 baseStyle={{ fontFamily: block.style?.fontFamily }}
                 extraProps={{ href: isEditing ? undefined : content.linkUrl || '#' }}
               >

@@ -49,7 +49,7 @@ export const StatisticsBoxed = ({ block, isEditing = false }: BlockRendererProps
   };
 
   return (
-    <section className="text-gray-600 body-font w-full" style={block.style}>
+    <section className="text-[color:var(--color-muted,#4b5563)] body-font w-full" style={block.style}>
       <div className="container px-5 py-24 mx-auto">
         <div className="flex flex-col text-center w-full mb-20">
           <InlineEditableText
@@ -57,9 +57,9 @@ export const StatisticsBoxed = ({ block, isEditing = false }: BlockRendererProps
             value={content.mainTitle || 'Master Cleanse Reliac Heirloom'}
             onBlur={(v) => handleUpdate('mainTitle', v)}
             isEditing={isEditing}
-            className="sm:text-3xl text-2xl font-medium title-font mb-4 text-gray-900"
+            className="sm:text-3xl text-2xl font-medium title-font mb-4 text-[color:var(--color-text,#111827)]"
             style={{ 
-              color: block.style?.color, 
+              color: block.style?.color || 'var(--color-text, #111827)', 
               fontFamily: block.style?.fontFamily,
               ...content.mainTitleStyle 
             }}
@@ -71,7 +71,7 @@ export const StatisticsBoxed = ({ block, isEditing = false }: BlockRendererProps
             isEditing={isEditing}
             className="lg:w-2/3 mx-auto leading-relaxed text-base"
             style={{ 
-              color: block.style?.color, 
+              color: block.style?.color || 'var(--color-text, #111827)', 
               fontFamily: block.style?.fontFamily,
               ...content.mainDescriptionStyle 
             }}
@@ -90,7 +90,7 @@ export const StatisticsBoxed = ({ block, isEditing = false }: BlockRendererProps
                   block={block}
                   isEditing={isEditing}
                   path={`stats.${index}.iconStyle`}
-                  className="text-indigo-500 flex justify-center mb-3"
+                  className="text-[color:var(--color-primary,#6366f1)] flex justify-center mb-3"
                 >
                   {renderSelectedIcon(stat.icon, "w-12 h-12")}
                 </EditableElement>
@@ -99,9 +99,9 @@ export const StatisticsBoxed = ({ block, isEditing = false }: BlockRendererProps
                   value={stat.value}
                   onBlur={(v) => updateStat(index, 'value', v)}
                   isEditing={isEditing}
-                  className="title-font font-medium text-3xl text-gray-900"
+                  className="title-font font-medium text-3xl text-[color:var(--color-text,#111827)]"
                   style={{
-                    color: block.style?.color,
+                    color: block.style?.color || 'var(--color-text, #111827)',
                     fontFamily: block.style?.fontFamily,
                     ...content.valueStyle
                   }}
@@ -113,7 +113,7 @@ export const StatisticsBoxed = ({ block, isEditing = false }: BlockRendererProps
                   isEditing={isEditing}
                   className="leading-relaxed"
                   style={{
-                    color: block.style?.color,
+                    color: block.style?.color || 'var(--color-text, #111827)',
                     fontFamily: block.style?.fontFamily,
                     ...content.labelStyle
                   }}

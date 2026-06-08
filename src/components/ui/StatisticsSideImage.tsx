@@ -47,7 +47,7 @@ export const StatisticsSideImage = ({ block, isEditing = false }: BlockRendererP
   };
 
   return (
-    <section className="text-gray-600 body-font w-full" style={block.style}>
+    <section className="text-[color:var(--color-muted,#4b5563)] body-font w-full" style={block.style}>
       <div className="container px-5 py-24 mx-auto flex flex-wrap">
         <div className="flex flex-wrap -mx-4 mt-auto mb-auto lg:w-1/2 sm:w-2/3 content-start sm:pr-10">
           <div className="w-full sm:p-4 px-4 mb-6">
@@ -56,9 +56,9 @@ export const StatisticsSideImage = ({ block, isEditing = false }: BlockRendererP
               value={content.title || 'Moon hashtag pop-up try-hard offal truffaut'}
               onBlur={(v) => handleUpdate('title', v)}
               isEditing={isEditing}
-              className="title-font font-medium text-xl mb-2 text-gray-900"
+              className="title-font font-medium text-xl mb-2 text-[color:var(--color-text,#111827)]"
               style={{ 
-                color: block.style?.color, 
+                color: block.style?.color || 'var(--color-text, #111827)', 
                 fontFamily: block.style?.fontFamily,
                 ...content.titleStyle 
               }}
@@ -70,7 +70,7 @@ export const StatisticsSideImage = ({ block, isEditing = false }: BlockRendererP
               isEditing={isEditing}
               className="leading-relaxed"
               style={{ 
-                color: block.style?.color, 
+                color: block.style?.color || 'var(--color-text, #111827)', 
                 fontFamily: block.style?.fontFamily,
                 ...content.descriptionStyle 
               }}
@@ -89,9 +89,9 @@ export const StatisticsSideImage = ({ block, isEditing = false }: BlockRendererP
                 value={stat.value}
                 onBlur={(v) => updateStat(index, 'value', v)}
                 isEditing={isEditing}
-                className="title-font font-medium text-3xl text-gray-900"
+                className="title-font font-medium text-3xl text-[color:var(--color-text,#111827)]"
                 style={{
-                  color: block.style?.color,
+                  color: block.style?.color || 'var(--color-text, #111827)',
                   fontFamily: block.style?.fontFamily,
                   ...content.valueStyle
                 }}
@@ -103,7 +103,7 @@ export const StatisticsSideImage = ({ block, isEditing = false }: BlockRendererP
                 isEditing={isEditing}
                 className="leading-relaxed"
                 style={{
-                  color: block.style?.color,
+                  color: block.style?.color || 'var(--color-text, #111827)',
                   fontFamily: block.style?.fontFamily,
                   ...content.labelStyle
                 }}

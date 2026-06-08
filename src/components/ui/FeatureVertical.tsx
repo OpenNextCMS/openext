@@ -44,7 +44,7 @@ export const FeatureVertical = ({ block, isEditing = false }: BlockRendererProps
   ];
 
   return (
-    <section className="text-gray-600 body-font w-full" style={block.style}>
+    <section className="text-[color:var(--color-muted,#4b5563)] body-font w-full" style={block.style}>
       <div className="container px-5 py-24 mx-auto">
         <div className="text-center mb-20">
           <InlineEditableText
@@ -52,9 +52,9 @@ export const FeatureVertical = ({ block, isEditing = false }: BlockRendererProps
             value={content.mainTitle || 'Raw Denim Heirloom Man Braid'}
             onBlur={(v) => handleUpdate('mainTitle', v)}
             isEditing={isEditing}
-            className="sm:text-3xl text-2xl font-medium title-font text-gray-900 mb-4"
+            className="sm:text-3xl text-2xl font-medium title-font text-[color:var(--color-text,#111827)] mb-4"
             style={{ 
-              color: block.style?.color, 
+              color: block.style?.color || 'var(--color-text, #111827)', 
               fontFamily: block.style?.fontFamily,
               ...content.mainTitleStyle 
             }}
@@ -64,15 +64,15 @@ export const FeatureVertical = ({ block, isEditing = false }: BlockRendererProps
             value={content.mainDescription || 'Blue bottle crucifix vinyl post-ironic four dollar toast vegan taxidermy. Gastropub indxgo juice poutine, ramps microdosing banh mi pug.'}
             onBlur={(v) => handleUpdate('mainDescription', v)}
             isEditing={isEditing}
-            className="text-base leading-relaxed xl:w-2/4 lg:w-3/4 mx-auto text-gray-500"
+            className="text-base leading-relaxed xl:w-2/4 lg:w-3/4 mx-auto text-[color:var(--color-muted,#6b7280)]"
             style={{ 
-              color: block.style?.color, 
+              color: block.style?.color || 'var(--color-text, #111827)', 
               fontFamily: block.style?.fontFamily,
               ...content.mainDescriptionStyle 
             }}
           />
           <div className="flex mt-6 justify-center">
-            <div className="w-16 h-1 rounded-full bg-indigo-500 inline-flex"></div>
+            <div className="w-16 h-1 rounded-full bg-[var(--color-primary,#6366f1)] inline-flex"></div>
           </div>
         </div>
         <div className="flex flex-wrap sm:-m-4 -mx-4 -mb-10 -mt-4 md:space-y-0 space-y-6">
@@ -88,7 +88,7 @@ export const FeatureVertical = ({ block, isEditing = false }: BlockRendererProps
                 block={block}
                 isEditing={isEditing}
                 path={`features.${index}.iconStyle`}
-                className="w-20 h-20 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 mb-5 flex-shrink-0 overflow-hidden"
+                className="w-20 h-20 inline-flex items-center justify-center rounded-full bg-[var(--color-surface,#e0e7ff)] text-[color:var(--color-primary,#6366f1)] mb-5 flex-shrink-0 overflow-hidden"
               >
                 {feature.image ? (
                   <img src={feature.image} alt={feature.title} className="w-full h-full object-cover" />
@@ -106,9 +106,9 @@ export const FeatureVertical = ({ block, isEditing = false }: BlockRendererProps
                   value={feature.title || 'Feature Title'}
                   onBlur={(v) => updateFeature(index, 'title', v)}
                   isEditing={isEditing}
-                  className="text-gray-900 text-lg title-font font-medium mb-3"
+                  className="text-[color:var(--color-text,#111827)] text-lg title-font font-medium mb-3"
                   style={{ 
-                    color: block.style?.color, 
+                    color: block.style?.color || 'var(--color-text, #111827)', 
                     fontFamily: block.style?.fontFamily,
                     ...content.featureTitleStyle 
                   }}
@@ -120,7 +120,7 @@ export const FeatureVertical = ({ block, isEditing = false }: BlockRendererProps
                   isEditing={isEditing}
                   className="leading-relaxed text-base"
                   style={{ 
-                    color: block.style?.color, 
+                    color: block.style?.color || 'var(--color-text, #111827)', 
                     fontFamily: block.style?.fontFamily,
                     ...content.featureDescriptionStyle 
                   }}
@@ -130,7 +130,7 @@ export const FeatureVertical = ({ block, isEditing = false }: BlockRendererProps
                   block={block}
                   isEditing={isEditing}
                   path={`features.${index}.buttonStyle`}
-                  className="mt-3 text-indigo-500 inline-flex items-center cursor-pointer"
+                  className="mt-3 text-[color:var(--color-primary,#6366f1)] inline-flex items-center cursor-pointer"
                   baseStyle={{ fontFamily: block.style?.fontFamily }}
                   extraProps={{ href: isEditing ? undefined : (feature.url || content.linkUrl || '#') }}
                 >
@@ -150,7 +150,7 @@ export const FeatureVertical = ({ block, isEditing = false }: BlockRendererProps
         </div>
         <a 
           href={isEditing ? undefined : content.buttonUrl || '#'}
-          className="flex mx-auto mt-16 text-white bg-indigo-500 border-0 py-2 px-8 focus:outline-none hover:bg-indigo-600 rounded text-lg text-center w-max" 
+          className="flex mx-auto mt-16 text-white bg-[var(--color-primary,#6366f1)] border-0 py-2 px-8 focus:outline-none hover:bg-[var(--color-primary,#4f46e5)] rounded text-lg text-center w-max" 
           style={{ 
             fontFamily: block.style?.fontFamily,
             ...content.buttonStyle 

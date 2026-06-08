@@ -49,7 +49,7 @@ export const EcommerceGrid = ({ block, isEditing = false }: BlockRendererProps) 
   ];
 
   return (
-    <section className="text-gray-600 body-font w-full" style={block.style}>
+    <section className="text-[color:var(--color-muted,#4b5563)] body-font w-full" style={block.style}>
       <div className="container px-5 py-24 mx-auto">
         <div className="flex flex-wrap -m-4">
           {products.map((product: BlockContentItem, index: number) => (
@@ -75,9 +75,9 @@ export const EcommerceGrid = ({ block, isEditing = false }: BlockRendererProps) 
                   value={product.category || 'CATEGORY'}
                   onBlur={(v) => updateProduct(index, 'category', v)}
                   isEditing={isEditing}
-                  className="text-gray-500 text-xs tracking-widest title-font mb-1"
+                  className="text-[color:var(--color-muted,#6b7280)] text-xs tracking-widest title-font mb-1"
                   style={{ 
-                    color: block.style?.color, 
+                    color: block.style?.color || 'var(--color-text, #111827)', 
                     fontFamily: block.style?.fontFamily,
                     ...content.productCategoryStyle 
                   }}
@@ -87,9 +87,9 @@ export const EcommerceGrid = ({ block, isEditing = false }: BlockRendererProps) 
                   value={product.title || 'Product Title'}
                   onBlur={(v) => updateProduct(index, 'title', v)}
                   isEditing={isEditing}
-                  className="text-gray-900 title-font text-lg font-medium"
+                  className="text-[color:var(--color-text,#111827)] title-font text-lg font-medium"
                   style={{ 
-                    color: block.style?.color, 
+                    color: block.style?.color || 'var(--color-text, #111827)', 
                     fontFamily: block.style?.fontFamily,
                     ...content.productTitleStyle 
                   }}
@@ -101,7 +101,7 @@ export const EcommerceGrid = ({ block, isEditing = false }: BlockRendererProps) 
                   isEditing={isEditing}
                   className="mt-1"
                   style={{ 
-                    color: block.style?.color, 
+                    color: block.style?.color || 'var(--color-text, #111827)', 
                     fontFamily: block.style?.fontFamily,
                     ...content.productPriceStyle 
                   }}
