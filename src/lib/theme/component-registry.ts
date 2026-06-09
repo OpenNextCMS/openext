@@ -5,7 +5,9 @@ import type { VariantFamily, VariantDefinition, VariantFamilyMeta } from '@/type
 import { NavbarBlock } from '@/components/editor/blocks/NavbarBlock';
 import { HeroMain } from '@/components/ui/HeroMain';
 import { HeroCentered } from '@/components/ui/HeroCentered';
+import { HeroSplit } from '@/components/ui/HeroSplit';
 import { FeatureTrio } from '@/components/ui/FeatureTrio';
+import { FeatureBento } from '@/components/ui/FeatureBento';
 import { FeatureVertical } from '@/components/ui/FeatureVertical';
 import { FeatureHorizontal } from '@/components/ui/FeatureHorizontal';
 import { FeatureBoxed } from '@/components/ui/FeatureBoxed';
@@ -45,6 +47,7 @@ const registry: Record<VariantFamily, Record<string, RegistryEntry>> = {
   hero: {
     main: { component: HeroMain, label: 'Main', isDefault: true },
     centered: { component: HeroCentered, label: 'Centered' },
+    split: { component: HeroSplit, label: 'Split' },
   },
   features: {
     trio: { component: FeatureTrio, label: 'Trio', isDefault: true },
@@ -52,6 +55,7 @@ const registry: Record<VariantFamily, Record<string, RegistryEntry>> = {
     horizontal: { component: FeatureHorizontal, label: 'Horizontal' },
     boxed: { component: FeatureBoxed, label: 'Boxed' },
     zigzag: { component: FeatureZigzag, label: 'Zigzag' },
+    bento: { component: FeatureBento, label: 'Bento' },
   },
   cta: {
     default: { component: CTASection, label: 'Banner', isDefault: true },

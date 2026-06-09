@@ -5,6 +5,7 @@ import agency from './agency';
 import corporate from './corporate';
 import ecommerce from './ecommerce';
 import portfolio from './portfolio';
+import neoflow from './neoflow';
 
 /** Shape of an in-code system (default) theme definition. */
 export interface SystemThemeDef {
@@ -15,6 +16,12 @@ export interface SystemThemeDef {
   previewImage: string;
   theme: ThemeConfig;
   componentVariants: ComponentVariants;
+  /**
+   * Forward-compat bag persisted to `Theme.meta`. Holds data the current token
+   * engine does not consume directly (dark palette, display font, full type
+   * scale, animation presets, AI generation hints, etc.).
+   */
+  meta?: Record<string, unknown>;
 }
 
 /**
@@ -27,6 +34,7 @@ export const SYSTEM_THEMES: SystemThemeDef[] = [
   corporate,
   ecommerce,
   portfolio,
+  neoflow,
 ];
 
 export function getSystemTheme(slug: string): SystemThemeDef | undefined {

@@ -10,6 +10,7 @@ const KEYS: { key: keyof ThemeRadius; label: string }[] = [
   { key: 'md', label: 'Medium' },
   { key: 'lg', label: 'Large' },
   { key: 'xl', label: 'Extra Large' },
+  { key: '2xl', label: '2X Large' },
 ];
 
 export function RadiusTab() {

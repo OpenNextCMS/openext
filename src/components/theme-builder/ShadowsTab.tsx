@@ -9,6 +9,7 @@ const KEYS: { key: keyof ThemeShadows; label: string }[] = [
   { key: 'sm', label: 'Small' },
   { key: 'md', label: 'Medium' },
   { key: 'lg', label: 'Large' },
+  { key: 'xl', label: 'Extra Large' },
 ];
 
 export function ShadowsTab() {

@@ -36,6 +36,7 @@ export async function seedSystemThemes(pageDb: Connection): Promise<void> {
           version: '1.0.0',
           theme: def.theme,
           componentVariants: def.componentVariants,
+          meta: def.meta ?? {},
           tenantId,
         },
         // Only set isActive on insert for the default theme; never override an
