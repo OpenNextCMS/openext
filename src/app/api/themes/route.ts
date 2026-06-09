@@ -4,12 +4,18 @@ import { guardTheme } from '@/lib/theme/guard';
 import { ThemeService } from '@/lib/theme/theme-service';
 import { createThemeSchema } from '@/lib/theme/theme-validator';
 
+// Always serve the live theme list — never let the browser cache a stale set
+// (e.g. one missing a newly-seeded theme like NeoFlow).
+export const dynamic = 'force-dynamic';
+
 /** GET /api/themes — list all themes for the tenant (action: view). */
 export async function GET() {
   try {
     await guardTheme('view');
     const themes = await ThemeService.list();
-    return apiOk(themes, { meta: { total: themes.length, hasMore: false } });
+    const res = apiOk(themes, { meta: { total: themes.length, hasMore: false } });
+    res.headers.set('Cache-Control', 'no-store');
+    return res;
   } catch (err) {
     return handleApiError(err);
   }

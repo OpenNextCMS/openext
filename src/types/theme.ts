@@ -24,6 +24,8 @@ export interface ThemeColors {
 }
 
 export interface ThemeTypography {
+  /** Large display/hero face (e.g. Space Grotesk). Falls back to heading font. */
+  displayFont: string;
   headingFont: string;
   bodyFont: string;
   baseFontSize: string; // e.g. "16px"
@@ -43,12 +45,14 @@ export interface ThemeRadius {
   md: string;
   lg: string;
   xl: string;
+  '2xl': string;
 }
 
 export interface ThemeShadows {
   sm: string;
   md: string;
   lg: string;
+  xl: string;
 }
 
 export interface ThemeLayout {
@@ -76,7 +80,13 @@ export type PartialThemeConfig = {
 };
 
 /** Slugs of the in-code system (default) themes. */
-export type SystemThemeId = 'startup' | 'agency' | 'corporate' | 'ecommerce' | 'portfolio';
+export type SystemThemeId =
+  | 'startup'
+  | 'agency'
+  | 'corporate'
+  | 'ecommerce'
+  | 'portfolio'
+  | 'neoflow';
 
 /**
  * The persisted theme shape (lean object form). The Mongoose document type

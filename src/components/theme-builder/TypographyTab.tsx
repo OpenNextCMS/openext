@@ -11,6 +11,12 @@ export function TypographyTab() {
   return (
     <ControlSection title="Typography">
       <TextField
+        label="Display font"
+        value={typography.displayFont}
+        onChange={(v) => dispatch(updateTypography({ key: 'displayFont', value: v }))}
+        placeholder='"Space Grotesk", Inter, system-ui, sans-serif'
+      />
+      <TextField
         label="Heading font"
         value={typography.headingFont}
         onChange={(v) => dispatch(updateTypography({ key: 'headingFont', value: v }))}

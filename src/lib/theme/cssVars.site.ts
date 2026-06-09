@@ -34,6 +34,7 @@ export const DEFAULT_THEME_CONFIG: ThemeConfig = {
     danger: '#dc2626',
   },
   typography: {
+    displayFont: 'Inter, system-ui, sans-serif',
     headingFont: 'Inter, system-ui, sans-serif',
     bodyFont: 'Inter, system-ui, sans-serif',
     baseFontSize: '16px',
@@ -51,11 +52,13 @@ export const DEFAULT_THEME_CONFIG: ThemeConfig = {
     md: '8px',
     lg: '16px',
     xl: '24px',
+    '2xl': '32px',
   },
   shadows: {
     sm: '0 1px 2px rgba(0,0,0,0.05)',
     md: '0 4px 6px -1px rgba(0,0,0,0.1)',
     lg: '0 10px 15px -3px rgba(0,0,0,0.1)',
+    xl: '0 24px 48px -12px rgba(0,0,0,0.18)',
   },
   layout: {
     containerWidth: '1200px',
@@ -97,6 +100,7 @@ export function themeConfigToCssVars(config: ThemeConfig): CSSProperties {
     '--color-warning': colors.warning,
     '--color-danger': colors.danger,
     // Typography
+    '--font-display': typography.displayFont,
     '--font-heading': typography.headingFont,
     '--font-body': typography.bodyFont,
     '--font-size-base': typography.baseFontSize,
@@ -114,10 +118,12 @@ export function themeConfigToCssVars(config: ThemeConfig): CSSProperties {
     '--radius-md': radius.md,
     '--radius-lg': radius.lg,
     '--radius-xl': radius.xl,
+    '--radius-2xl': radius['2xl'],
     // Shadows
     '--shadow-sm': shadows.sm,
     '--shadow-md': shadows.md,
     '--shadow-lg': shadows.lg,
+    '--shadow-xl': shadows.xl,
     // Layout
     '--layout-width': layout.containerWidth,
     '--container-padding': spacing.lg,

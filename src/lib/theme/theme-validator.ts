@@ -36,6 +36,7 @@ export const colorsSchema = z.object({
 });
 
 export const typographySchema = z.object({
+  displayFont: fontStack,
   headingFont: fontStack,
   bodyFont: fontStack,
   baseFontSize: cssSize,
@@ -55,12 +56,14 @@ export const radiusSchema = z.object({
   md: cssSize,
   lg: cssSize,
   xl: cssSize,
+  '2xl': cssSize,
 });
 
 export const shadowsSchema = z.object({
   sm: z.string().trim().min(1),
   md: z.string().trim().min(1),
   lg: z.string().trim().min(1),
+  xl: z.string().trim().min(1),
 });
 
 export const layoutSchema = z.object({
