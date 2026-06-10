@@ -6,6 +6,7 @@ import { AvatarProvider } from '@/context/AvatarContext';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { redirect } from 'next/navigation';
 import { jwtDecode } from 'jwt-decode';
+import { getCurrentUserFull } from '@/lib/api/user';
 
 type DashboardUser = {
   username: string;
@@ -29,6 +30,14 @@ export default async function DashboardLayout({ children }: { children: React.Re
     user = { username: decoded.username, email: decoded.email };
   } catch {
     redirect('/login');
+  }
+
+  // Mandatory first-time onboarding gate: a user who hasn't finished the setup
+  // wizard is sent there before they can reach the dashboard. Only redirect on a
+  // positive "not completed" signal so a transient DB error can't lock anyone out.
+  const fullUser = await getCurrentUserFull();
+  if (fullUser && !fullUser.onboardingCompleted) {
+    redirect('/onboarding');
   }
 
   return (

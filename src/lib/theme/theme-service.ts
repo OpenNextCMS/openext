@@ -161,4 +161,13 @@ export const ThemeService = {
     invalidateActiveThemeCache();
     return toPlain(target.toObject());
   },
+
+  /** Activate a theme by its slug (e.g. a system theme like 'startup' or 'dark'). */
+  async activateBySlug(slug: string): Promise<ITheme & { _id: string }> {
+    const pageDb = await getPageDbConnection();
+    const Theme = getThemeModel(pageDb);
+    const target = await Theme.findOne({ slug }).exec();
+    if (!target) throw new ApiError(`Theme with slug '${slug}' not found`, 404);
+    return this.activate(String(target._id));
+  },
 };
