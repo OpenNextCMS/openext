@@ -27,11 +27,9 @@ import {
   type FooterId,
   type WizardThemeId,
 } from '@/templates/types';
-import { getHeaderTemplate } from '@/templates/headers';
-import { getFooterTemplate } from '@/templates/footers';
 import { getNavLinks } from '@/templates/pages';
 import { SelectableCard } from './components/SelectableCard';
-import { PreviewFrame } from './components/PreviewFrame';
+import { HeaderPreview, FooterPreview } from './components/TemplatePreviews';
 
 interface GenerateResult {
   homepageSlug: string;
@@ -399,11 +397,7 @@ function StepHeader({
             title={opt.label}
             description={opt.description}
           >
-            <PreviewFrame
-              blocks={getHeaderTemplate(opt.id)({ businessName, navLinks })}
-              height={120}
-              scale={0.5}
-            />
+            <HeaderPreview id={opt.id} businessName={businessName} links={navLinks} />
           </SelectableCard>
         ))}
       </div>
@@ -434,11 +428,7 @@ function StepFooter({
             title={opt.label}
             description={opt.description}
           >
-            <PreviewFrame
-              blocks={getFooterTemplate(opt.id)({ businessName, navLinks })}
-              height={170}
-              scale={0.3}
-            />
+            <FooterPreview id={opt.id} businessName={businessName} links={navLinks} />
           </SelectableCard>
         ))}
       </div>
