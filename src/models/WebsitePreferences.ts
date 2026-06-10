@@ -33,7 +33,7 @@ export interface IWebsitePreferences extends Document {
 
 export const WebsitePreferencesSchema = new Schema<IWebsitePreferences>(
   {
-    userId: { type: Schema.Types.ObjectId, required: true, index: true },
+    userId: { type: Schema.Types.ObjectId, required: true },
     businessName: { type: String, default: '' },
     businessCategory: { type: String, default: '' },
     businessDescription: { type: String, default: '' },
