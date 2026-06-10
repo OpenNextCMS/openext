@@ -19,6 +19,7 @@ import { FormSchema } from '@/models/Form';
 import { FormSubmissionSchema } from '@/models/FormSubmission';
 import { FormVersionSchema } from '@/models/FormVersion';
 import { ThemeSchema } from '@/models/Theme';
+import { WebsitePreferencesSchema, IWebsitePreferences } from '@/models/WebsitePreferences';
 import type {
   MenuRedirectMappingDocument,
   MenuRedirectAnalyticsDocument,
@@ -253,17 +254,20 @@ export async function getPageDbConnection() {
         pageDb.model<IThemeDocument>('Theme', ThemeSchema);
       }
 
-      // Auto-seed the in-code system themes on a fresh tenant DB (mirrors the
-      // Roles/Settings auto-seed above). Idempotent + best-effort: a seed
-      // failure must never break page loads.
+      // Website Setup Wizard preferences (per-tenant page DB).
+      if (!pageDb.models.WebsitePreferences) {
+        pageDb.model<IWebsitePreferences>('WebsitePreferences', WebsitePreferencesSchema);
+      }
+
+      // Auto-seed the in-code system themes. `seedSystemThemes` is an idempotent
+      // upsert-by-slug that only sets `isActive` on insert, so running it on
+      // every fresh connection (once per process) safely propagates newly-added
+      // system themes (e.g. Luxury/Dark) to existing tenants without disturbing
+      // an existing active selection. Best-effort: a seed failure must never
+      // break page loads.
       try {
-        const ThemeModel = pageDb.models.Theme as mongoose.Model<IThemeDocument>;
-        const themeCount = await ThemeModel.countDocuments({});
-        if (themeCount === 0) {
-          const { seedSystemThemes } = await import('@/lib/theme/seed');
-          await seedSystemThemes(pageDb);
-          console.log('System themes seeded in page DB.');
-        }
+        const { seedSystemThemes } = await import('@/lib/theme/seed');
+        await seedSystemThemes(pageDb);
       } catch (seedErr) {
         console.warn('⚠️ System theme auto-seed skipped:', seedErr);
       }
@@ -449,6 +453,16 @@ export function getThemeModel(pageDb: mongoose.Connection): mongoose.Model<IThem
   return (
     (pageDb.models.Theme as mongoose.Model<IThemeDocument>) ||
     pageDb.model<IThemeDocument>('Theme', ThemeSchema)
+  );
+}
+
+export function getWebsitePreferencesModel(
+  pageDb: mongoose.Connection
+): mongoose.Model<IWebsitePreferences> {
+  if (!pageDb) throw new Error('Page database connection not initialized');
+  return (
+    (pageDb.models.WebsitePreferences as mongoose.Model<IWebsitePreferences>) ||
+    pageDb.model<IWebsitePreferences>('WebsitePreferences', WebsitePreferencesSchema)
   );
 }
 

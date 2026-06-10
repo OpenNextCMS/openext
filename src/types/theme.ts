@@ -86,7 +86,9 @@ export type SystemThemeId =
   | 'corporate'
   | 'ecommerce'
   | 'portfolio'
-  | 'neoflow';
+  | 'neoflow'
+  | 'luxury'
+  | 'dark';
 
 /**
  * The persisted theme shape (lean object form). The Mongoose document type

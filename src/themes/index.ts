@@ -6,6 +6,8 @@ import corporate from './corporate';
 import ecommerce from './ecommerce';
 import portfolio from './portfolio';
 import neoflow from './neoflow';
+import luxury from './luxury';
+import dark from './dark';
 
 /** Shape of an in-code system (default) theme definition. */
 export interface SystemThemeDef {
@@ -35,6 +37,8 @@ export const SYSTEM_THEMES: SystemThemeDef[] = [
   ecommerce,
   portfolio,
   neoflow,
+  luxury,
+  dark,
 ];
 
 export function getSystemTheme(slug: string): SystemThemeDef | undefined {
