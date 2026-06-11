@@ -319,6 +319,7 @@ const canvasSlice = createSlice({
   initialState,
   reducers: {
     addBlock: (state, action: PayloadAction<Omit<BlockData, 'uniqueId'>>) => {
+      pushCanvasHistory(state);
       const newBlock = {
         ...action.payload,
         style: action.payload.style || {},
@@ -335,6 +336,7 @@ const canvasSlice = createSlice({
       }>
     ) => {
       const { targetBlockId, columnIndex, newBlock } = action.payload;
+      pushCanvasHistory(state);
 
       const updateBlock = (block: BlockData): BlockData => {
         if (block.uniqueId === targetBlockId) {
@@ -438,6 +440,7 @@ const canvasSlice = createSlice({
       const { activeId, targetBlockId, columnIndex } = action.payload;
 
       if (activeId === targetBlockId) return;
+      pushCanvasHistory(state);
 
       const { blocks, removedBlock } = takeBlockFromTree(state.blocks, activeId);
       if (!removedBlock) return;
@@ -455,6 +458,7 @@ const canvasSlice = createSlice({
     ) => {
       const { sourceRowBlockId, sourceColumnIndex, targetRowBlockId, targetColumnIndex } =
         action.payload;
+      pushCanvasHistory(state);
 
       state.blocks = moveColumnBetweenRows(
         state.blocks,
@@ -479,6 +483,7 @@ const canvasSlice = createSlice({
       state.blocks = normalizeBlockTreeIds(action.payload);
     },
     removeBlock: (state, action: PayloadAction<string>) => {
+      pushCanvasHistory(state);
       // First try to remove from top-level blocks
       state.blocks = state.blocks.filter((block) => {
         if (block.uniqueId === action.payload) {
@@ -498,6 +503,7 @@ const canvasSlice = createSlice({
 
       if (activeIndex === -1 || overIndex === -1 || activeIndex === overIndex) return;
 
+      pushCanvasHistory(state);
       const [movedBlock] = state.blocks.splice(activeIndex, 1);
       state.blocks.splice(overIndex, 0, movedBlock);
     },
@@ -506,6 +512,7 @@ const canvasSlice = createSlice({
       action: PayloadAction<{ targetBlockId: string; columnIndex: number }>
     ) => {
       const { targetBlockId, columnIndex } = action.payload;
+      pushCanvasHistory(state);
 
       const updateBlock = (block: BlockData): BlockData => {
         if (block.uniqueId === targetBlockId) {
@@ -543,6 +550,7 @@ const canvasSlice = createSlice({
       action: PayloadAction<{ targetBlockId: string; columnIndex: number }>
     ) => {
       const { targetBlockId, columnIndex } = action.payload;
+      pushCanvasHistory(state);
 
       const updateBlock = (block: BlockData): BlockData => {
         if (block.uniqueId === targetBlockId) {
@@ -607,6 +615,7 @@ const canvasSlice = createSlice({
     },
     updateSelectedBlockStyles: (state, action: PayloadAction<Partial<React.CSSProperties>>) => {
       if (state.selectedBlock) {
+        pushCanvasHistory(state);
         const { selectedPart } = state;
 
         if (selectedPart) {
@@ -674,6 +683,7 @@ const canvasSlice = createSlice({
       action: PayloadAction<Partial<React.CSSProperties>>
     ) => {
       if (state.selectedBlock) {
+        pushCanvasHistory(state);
         state.selectedBlock.hoverStyle = {
           ...(state.selectedBlock.hoverStyle || {}),
           ...action.payload,
@@ -767,11 +777,19 @@ const canvasSlice = createSlice({
         ? findBlockById(state.blocks, next.selectedBlock.uniqueId) || next.selectedBlock
         : null;
     },
+    clearCanvas: (state) => {
+      pushCanvasHistory(state);
+      state.blocks = [];
+      state.selectedBlock = null;
+      state.selectedPart = null;
+      state.selectedLabel = '';
+    },
     updateBlockEvents: (
       state,
       action: PayloadAction<{ id: string; events: BlockData['events'] }>
     ) => {
       const { id, events } = action.payload;
+      pushCanvasHistory(state);
 
       const updateBlock = (block: BlockData): BlockData => {
         if (block.uniqueId === id) {
@@ -796,6 +814,7 @@ const canvasSlice = createSlice({
     },
     updateBlockIcon: (state, action: PayloadAction<{ id: string; icon?: string }>) => {
       const { id, icon } = action.payload;
+      pushCanvasHistory(state);
 
       const updateBlock = (block: BlockData): BlockData => {
         if (block.uniqueId === id) {
@@ -865,6 +884,7 @@ export const {
   updateBlockContent,
   undoCanvas,
   redoCanvas,
+  clearCanvas,
   updateBlockEvents,
   updateBlockIcon,
   setCanvasState,
