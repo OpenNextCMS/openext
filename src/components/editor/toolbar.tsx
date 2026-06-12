@@ -90,10 +90,10 @@ export default function Toolbar({ toggleSidebar, onViewChange }: ToolbarProps) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          slug,
           userId,
           pageID,
           updatedComponents: components,
+          // slug is provided by pageMetadata (editable in the settings panel)
           ...pageMetadata,
         }),
       });
