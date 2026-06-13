@@ -17,6 +17,7 @@ export function buildBlogMetadata(post: SeoBlog): Metadata {
   const allowIndex = seo.index !== false;
 
   return {
+    metadataBase: new URL(siteUrl),
     title,
     description,
     keywords: seo.keywords,

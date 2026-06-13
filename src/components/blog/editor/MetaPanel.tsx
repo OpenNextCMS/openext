@@ -1,5 +1,7 @@
 'use client';
 
+import { useRef, useState } from 'react';
+import toast from 'react-hot-toast';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -21,6 +23,31 @@ function toggleId(list: string[], id: string): string[] {
 }
 
 export default function MetaPanel({ post, options, onField, slugEdited, onSlugEdited }: Props) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+
+  async function handleFeaturedImageUpload(file: File) {
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await fetch('/api/blogs/upload-image', {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await res.json();
+      if (!res.ok || !data?.success) {
+        throw new Error(data?.message || 'Upload failed');
+      }
+      onField('featuredImage', data.filePath);
+      toast.success('Image uploaded');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to upload image');
+    } finally {
+      setUploading(false);
+    }
+  }
+
   return (
     <div className="space-y-5">
       <div className="space-y-1">
@@ -58,12 +85,42 @@ export default function MetaPanel({ post, options, onField, slugEdited, onSlugEd
       </div>
 
       <div className="space-y-1">
-        <Label>Featured image URL</Label>
+        <Label>Featured image</Label>
         <Input
           value={post.featuredImage}
           onChange={(e) => onField('featuredImage', e.target.value)}
-          placeholder="https://…"
+          placeholder="Paste an image URL or upload below"
         />
+        <div className="flex items-center gap-2 pt-1">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/gif,image/avif"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) void handleFeaturedImageUpload(file);
+              e.target.value = '';
+            }}
+          />
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
+            className="rounded-md border border-input bg-background px-3 py-1.5 text-sm font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {uploading ? 'Uploading…' : 'Upload from device'}
+          </button>
+          {post.featuredImage ? (
+            <button
+              type="button"
+              onClick={() => onField('featuredImage', '')}
+              className="text-sm text-muted-foreground hover:text-destructive"
+            >
+              Remove
+            </button>
+          ) : null}
+        </div>
         {post.featuredImage ? (
           <img
             src={post.featuredImage}
