@@ -571,12 +571,12 @@ function SuccessScreen({ result, name }: { result: GenerateResult; name: string 
         </p>
       </div>
       <div className="flex flex-col gap-3 sm:flex-row">
-        <a
+        <Link
           href="/default_home"
           className="inline-flex items-center justify-center gap-2 rounded-lg border border-border px-5 py-2.5 text-sm font-semibold transition-colors hover:bg-muted"
         >
           <ExternalLink className="h-4 w-4" /> View Website
-        </a>
+        </Link>
         <Link
           href="/dashboard"
           className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
