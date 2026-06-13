@@ -11,7 +11,6 @@ import {
   Sparkles,
   ExternalLink,
   LayoutDashboard,
-  PencilRuler,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import {
@@ -287,6 +286,25 @@ function StepBusiness({
   data: WizardData;
   update: <K extends keyof WizardData>(k: K, v: WizardData[K]) => void;
 }) {
+  // A category that isn't one of the presets means the user picked "Other" and
+  // typed their own. Derive it so the custom box reappears when resuming a draft
+  // or navigating back to this step.
+  const isCustomCategory =
+    data.businessCategory !== '' &&
+    !(BUSINESS_CATEGORIES as readonly string[]).includes(data.businessCategory);
+  const [otherSelected, setOtherSelected] = useState(isCustomCategory);
+
+  const handleCategorySelect = (value: string) => {
+    if (value === 'Other') {
+      setOtherSelected(true);
+      // Clear a previously-picked preset so the custom box starts empty.
+      if (!isCustomCategory) update('businessCategory', '');
+    } else {
+      setOtherSelected(false);
+      update('businessCategory', value);
+    }
+  };
+
   return (
     <div>
       <StepHeading title="Tell us about your business" subtitle="We'll personalize your site with these details." />
@@ -300,18 +318,30 @@ function StepBusiness({
           />
         </Field>
         <Field label="Business Category" required>
-          <input
+          <select
             className={inputCls}
-            list="business-categories"
-            placeholder="Search or pick a category…"
-            value={data.businessCategory}
-            onChange={(e) => update('businessCategory', e.target.value)}
-          />
-          <datalist id="business-categories">
+            value={otherSelected ? 'Other' : data.businessCategory}
+            onChange={(e) => handleCategorySelect(e.target.value)}
+          >
+            <option value="" disabled>
+              Select a category…
+            </option>
             {BUSINESS_CATEGORIES.map((c) => (
-              <option key={c} value={c} />
+              <option key={c} value={c}>
+                {c}
+              </option>
             ))}
-          </datalist>
+            <option value="Other">Other</option>
+          </select>
+          {otherSelected && (
+            <input
+              className={`${inputCls} mt-2`}
+              placeholder="Specify your business category"
+              value={data.businessCategory}
+              onChange={(e) => update('businessCategory', e.target.value)}
+              autoFocus
+            />
+          )}
         </Field>
         <Field label="Business Description" required>
           <textarea
@@ -321,14 +351,6 @@ function StepBusiness({
             onChange={(e) => update('businessDescription', e.target.value)}
           />
         </Field>
-        <Field label="Target Audience">
-          <textarea
-            className={`${inputCls} min-h-20 resize-y`}
-            placeholder="Small businesses and growing startups."
-            value={data.targetAudience}
-            onChange={(e) => update('targetAudience', e.target.value)}
-          />
-        </Field>
         <Field label="Location (optional)">
           <input
             className={inputCls}
@@ -336,6 +358,9 @@ function StepBusiness({
             value={data.location}
             onChange={(e) => update('location', e.target.value)}
           />
+          <span className="mt-1 block text-xs text-muted-foreground">
+            Shown in your footer when you choose a footer that displays your address.
+          </span>
         </Field>
       </div>
     </div>
@@ -547,17 +572,11 @@ function SuccessScreen({ result, name }: { result: GenerateResult; name: string 
       </div>
       <div className="flex flex-col gap-3 sm:flex-row">
         <a
-          href={`/${result.homepageSlug}`}
+          href="/default_home"
           className="inline-flex items-center justify-center gap-2 rounded-lg border border-border px-5 py-2.5 text-sm font-semibold transition-colors hover:bg-muted"
         >
           <ExternalLink className="h-4 w-4" /> View Website
         </a>
-        <Link
-          href="/Editor"
-          className="inline-flex items-center justify-center gap-2 rounded-lg border border-border px-5 py-2.5 text-sm font-semibold transition-colors hover:bg-muted"
-        >
-          <PencilRuler className="h-4 w-4" /> Open Editor
-        </Link>
         <Link
           href="/dashboard"
           className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"

@@ -86,7 +86,6 @@ export interface WizardData {
   businessName: string;
   businessCategory: string;
   businessDescription: string;
-  targetAudience: string;
   location: string;
   websiteType: WebsiteType | '';
   headerTemplate: HeaderId | '';
@@ -98,7 +97,6 @@ export const EMPTY_WIZARD_DATA: WizardData = {
   businessName: '',
   businessCategory: '',
   businessDescription: '',
-  targetAudience: '',
   location: '',
   websiteType: '',
   headerTemplate: '',
@@ -153,7 +151,7 @@ export interface FooterOption {
 
 export const FOOTER_OPTIONS: FooterOption[] = [
   { id: 'simple', label: 'Simple Footer', description: 'Brand line and essential links.' },
-  { id: 'corporate', label: 'Corporate Footer', description: 'Multi-column link groups.' },
+  { id: 'corporate', label: 'Corporate Footer', description: 'Multi-column link groups, shows your address.' },
   { id: 'newsletter', label: 'Newsletter Footer', description: 'Email signup with links.' },
   { id: 'ecommerce', label: 'Ecommerce Footer', description: 'Shop, support and policy columns.' },
 ];

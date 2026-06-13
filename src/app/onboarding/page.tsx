@@ -33,7 +33,6 @@ export default async function OnboardingPage() {
         businessName?: string;
         businessCategory?: string;
         businessDescription?: string;
-        targetAudience?: string;
         location?: string;
         websiteType?: string;
         headerTemplate?: string;
@@ -45,7 +44,6 @@ export default async function OnboardingPage() {
           businessName: doc.businessName || '',
           businessCategory: doc.businessCategory || '',
           businessDescription: doc.businessDescription || '',
-          targetAudience: doc.targetAudience || '',
           location: doc.location || '',
           websiteType: (doc.websiteType || '') as WizardData['websiteType'],
           headerTemplate: (doc.headerTemplate || '') as WizardData['headerTemplate'],

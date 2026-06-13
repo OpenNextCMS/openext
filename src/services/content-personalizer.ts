@@ -13,7 +13,7 @@ export interface PersonalizeInput {
   businessName: string;
   businessCategory: string;
   businessDescription: string;
-  targetAudience: string;
+  targetAudience?: string;
   location?: string;
   websiteType: string;
 }

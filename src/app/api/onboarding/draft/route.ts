@@ -15,7 +15,6 @@ const draftSchema = z.object({
   businessName: z.string().optional(),
   businessCategory: z.string().optional(),
   businessDescription: z.string().optional(),
-  targetAudience: z.string().optional(),
   location: z.string().optional(),
   websiteType: z.string().optional(),
   headerTemplate: z.string().optional(),
