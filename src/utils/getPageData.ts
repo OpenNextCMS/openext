@@ -70,6 +70,41 @@ export async function fetchPageWithLayout(slug: string): Promise<PageDataResult 
   }
 }
 
+/**
+ * Fetch the active global header/footer component blocks, independent of any
+ * page document. Used by routes that aren't backed by a `pages` record (e.g.
+ * blog pages) so they can render the same site chrome as regular pages.
+ */
+export async function getGlobalLayoutBlocks(): Promise<{
+  headerBlocks: BlockData[];
+  footerBlocks: BlockData[];
+}> {
+  try {
+    const pageDb = await getPageDbConnection();
+    const PageModel = getPageModel(pageDb);
+
+    const activeLayoutFilter = { isGlobal: true, isPublished: true };
+    const [header, footer] = await Promise.all([
+      PageModel.findOne({ ...activeLayoutFilter, pageType: 'header' })
+        .sort({ updatedAt: -1 })
+        .lean()
+        .exec() as Promise<PageDoc | null>,
+      PageModel.findOne({ ...activeLayoutFilter, pageType: 'footer' })
+        .sort({ updatedAt: -1 })
+        .lean()
+        .exec() as Promise<PageDoc | null>,
+    ]);
+
+    return {
+      headerBlocks: Array.isArray(header?.component) ? header!.component : [],
+      footerBlocks: Array.isArray(footer?.component) ? footer!.component : [],
+    };
+  } catch (err) {
+    console.error('Error fetching global layout blocks:', err);
+    return { headerBlocks: [], footerBlocks: [] };
+  }
+}
+
 export async function getPageDataForSlug(slug: string): Promise<{
   blocks: BlockData[];
   headerBlocks: BlockData[];

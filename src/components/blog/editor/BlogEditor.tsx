@@ -203,7 +203,15 @@ export default function BlogEditor({ id }: { id: string }) {
         }));
         setDirty(false);
         setLastSaved(new Date());
-        if (!opts.silent) toast.success('Saved');
+        if (!opts.silent) {
+          const successMessage =
+            opts.status === 'published'
+              ? 'Blog published successfully'
+              : opts.status === 'scheduled'
+                ? 'Blog scheduled successfully'
+                : 'Blog saved successfully';
+          toast.success(successMessage);
+        }
       } catch (e) {
         if (!opts.silent) toast.error((e as Error).message);
       } finally {

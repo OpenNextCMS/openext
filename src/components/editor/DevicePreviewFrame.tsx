@@ -25,7 +25,31 @@ interface DevicePreviewFrameProps {
  */
 export function DevicePreviewFrame({ width, children }: DevicePreviewFrameProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [body, setBody] = useState<HTMLElement | null>(null);
+  const [scale, setScale] = useState(1);
+  const [containerHeight, setContainerHeight] = useState(0);
+
+  // Keep the iframe at its true device width (so real CSS breakpoints fire) and
+  // scale the whole frame down to fit the available canvas area. This guarantees
+  // the full device viewport is always visible instead of being squeezed when
+  // the surrounding panels are open.
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const updateScale = () => {
+      const availableWidth = container.clientWidth;
+      const availableHeight = container.clientHeight;
+      setScale(Math.min(1, availableWidth / width));
+      setContainerHeight(availableHeight);
+    };
+
+    updateScale();
+    const observer = new ResizeObserver(updateScale);
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, [width]);
 
   useEffect(() => {
     const iframe = iframeRef.current;
@@ -57,16 +81,29 @@ export function DevicePreviewFrame({ width, children }: DevicePreviewFrameProps)
     return () => observer.disconnect();
   }, []);
 
+  // Counter-scale the height so the device still fills the vertical space.
+  const frameHeight = scale > 0 ? containerHeight / scale : containerHeight;
+
   return (
-    <>
+    <div
+      ref={containerRef}
+      className="flex h-full w-full justify-center overflow-hidden"
+    >
       <iframe
         ref={iframeRef}
         title="Responsive device preview"
-        className="mx-auto block h-full bg-white shadow-md transition-all duration-300"
-        style={{ width, border: 0, maxWidth: '100%' }}
+        className="block bg-white shadow-md transition-all duration-300"
+        style={{
+          width,
+          height: frameHeight || '100%',
+          border: 0,
+          flexShrink: 0,
+          transform: `scale(${scale})`,
+          transformOrigin: 'top center',
+        }}
       />
       {body && createPortal(children, body)}
-    </>
+    </div>
   );
 }
 

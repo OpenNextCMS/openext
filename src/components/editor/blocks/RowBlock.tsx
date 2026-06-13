@@ -112,6 +112,7 @@ export const RowBlock = ({ block, isEditing = true }: BlockRendererProps) => {
 
       {/* Main Content Area */}
       <div
+        className="cms-stack-on-mobile"
         style={{
           display: blockStyle.display || 'flex',
           flexDirection: blockStyle.flexDirection || 'row',

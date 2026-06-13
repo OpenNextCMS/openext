@@ -56,6 +56,20 @@ interface BlogPage {
   updatedAt: string;
 }
 
+// Shape of a blog post returned by GET /api/blogs (categories/author populated).
+interface RawBlogPost {
+  _id: string;
+  pageName: string;
+  slug: string;
+  isPublished?: boolean;
+  status?: string;
+  category?: string;
+  categories?: { name?: string }[];
+  authorName?: string;
+  authorId?: { name?: string } | null;
+  updatedAt: string;
+}
+
 export default function AllBlogs() {
   const [blogs, setBlogs] = useState<BlogPage[]>([]);
   const [loading, setLoading] = useState(true);
@@ -66,15 +80,31 @@ export default function AllBlogs() {
     setLoading(true);
     try {
       const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
-      const response = await fetch(`${backendUrl}/api/pages/get-pages`);
-      if (response.ok) {
-        const data = await response.json();
-        const blogPages = (data.pages || []).filter(
-          (p: { pageType?: string }) => p.pageType === 'blog'
-        );
-        setBlogs(blogPages);
+      const response = await fetch(`${backendUrl}/api/blogs?limit=100`, {
+        credentials: 'include',
+      });
+      const result = await response.json();
+      if (response.ok && Array.isArray(result.data)) {
+        const mapped: BlogPage[] = (result.data as RawBlogPost[]).map((b) => ({
+          _id: b._id,
+          pageName: b.pageName,
+          slug: b.slug,
+          pageType: 'blog',
+          isPublished: Boolean(b.isPublished ?? b.status === 'published'),
+          category:
+            b.category ||
+            (Array.isArray(b.categories)
+              ? b.categories
+                  .map((c) => c?.name)
+                  .filter(Boolean)
+                  .join(', ')
+              : ''),
+          authorName: b.authorName || b.authorId?.name || '',
+          updatedAt: b.updatedAt,
+        }));
+        setBlogs(mapped);
       } else {
-        toast.error('Failed to fetch blogs');
+        toast.error(result.error?.message || 'Failed to fetch blogs');
       }
     } catch (err) {
       console.error('Error fetching blogs:', err);
@@ -91,19 +121,19 @@ export default function AllBlogs() {
   const handleTogglePublish = async (id: string, currentStatus: boolean) => {
     try {
       const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
-      const response = await fetch(`${backendUrl}/api/pages/update-page`, {
-        method: 'POST',
+      const response = await fetch(`${backendUrl}/api/blogs/${id}`, {
+        method: 'PUT',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          pageId: id, 
-          isPublished: !currentStatus,
-          publishDate: !currentStatus ? new Date() : null
-        }),
+        body: JSON.stringify({ status: !currentStatus ? 'published' : 'draft' }),
       });
 
       if (response.ok) {
         toast.success(`Blog ${!currentStatus ? 'published' : 'moved to drafts'}`);
         fetchBlogs();
+      } else {
+        const result = await response.json().catch(() => null);
+        toast.error(result?.error?.message || 'Failed to update status');
       }
     } catch {
       toast.error('Failed to update status');
@@ -115,15 +145,17 @@ export default function AllBlogs() {
     
     try {
       const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
-      const response = await fetch(`${backendUrl}/api/pages/delete-page?id=${id}`, {
+      const response = await fetch(`${backendUrl}/api/blogs/${id}`, {
         method: 'DELETE',
+        credentials: 'include',
       });
 
       if (response.ok) {
         toast.success('Blog post deleted successfully');
         fetchBlogs();
       } else {
-        toast.error('Failed to delete post');
+        const result = await response.json().catch(() => null);
+        toast.error(result?.error?.message || 'Failed to delete post');
       }
     } catch {
       toast.error('An error occurred during deletion');

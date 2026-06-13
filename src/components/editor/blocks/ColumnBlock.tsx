@@ -126,6 +126,7 @@ export const ColumnBlock = ({ block, isEditing = false }: Props) => {
         }}
       >
         <div
+          className="cms-stack-on-mobile"
           style={{
             display: layoutDisplay,
             flexDirection: layoutFlexDirection,
@@ -211,7 +212,7 @@ export const ColumnBlock = ({ block, isEditing = false }: Props) => {
 
       {/* Main Content */}
       <div
-        className="relative"
+        className="relative cms-stack-on-mobile"
         style={{
           display: layoutDisplay,
           flexDirection: layoutFlexDirection,

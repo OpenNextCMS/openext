@@ -121,11 +121,22 @@ export const NavbarBlock = ({ block, isEditing = true }: BlockRendererProps) => 
     }
 
     if (isPreview) {
-      // In preview mode, navigate by updating the pagename query param
-      const targetPage = rawHref.startsWith('/') ? rawHref.slice(1) : rawHref;
-      const params = new URLSearchParams(searchParams.toString());
-      params.set('pagename', targetPage);
-      router.push(`/preview?${params.toString()}`);
+      const isAnchor = href.startsWith('#');
+      const isExternal = /^https?:\/\//i.test(href);
+      const internalPath = href.startsWith('/') ? href.slice(1) : href;
+      // The preview renderer can only resolve a single top-level page by name
+      // (it splits on '/'). Multi-segment routes like /blog/{slug}, external
+      // links, and anchors must navigate to the real URL instead.
+      const isSinglePage = !isAnchor && !isExternal && !internalPath.includes('/');
+      if (isSinglePage) {
+        const params = new URLSearchParams(searchParams.toString());
+        params.set('pagename', internalPath);
+        router.push(`/preview?${params.toString()}`);
+      } else if (isAnchor) {
+        window.location.hash = href;
+      } else {
+        window.location.href = href;
+      }
     } else {
       window.location.href = href;
     }
