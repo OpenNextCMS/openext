@@ -19,6 +19,9 @@ import { themeApi } from '@/components/theme-builder/api';
 import { mergeThemeConfig } from '@/lib/theme/cssVars.site';
 import { PreviewCanvas } from '@/components/theme-preview/PreviewCanvas';
 import type { ThemeDTO, ThemeConfig } from '@/types/theme';
+import {
+  THEME_OPTIONS, WIZARD_THEME_TO_SLUG, type ThemeOption, type WizardThemeId,
+} from '@/templates/types';
 
 /* ──────────────────────────────────────────────────────────────────────────
  * Polished Theme Gallery — wired to the REAL Theme model + APIs.
@@ -77,6 +80,62 @@ function StatCard({ icon: Icon, label, value, tint }: { icon: React.ComponentTyp
   );
 }
 
+/** A swatch-driven card for one of the 8 design styles offered during onboarding. */
+function OnboardingThemeCard({
+  option, selected, busy, onActivate,
+}: {
+  option: ThemeOption;
+  selected: boolean;
+  busy: boolean;
+  onActivate: (option: ThemeOption) => void;
+}) {
+  const c = option.colors;
+  return (
+    <div
+      className={`flex flex-col overflow-hidden rounded-xl border bg-card transition-shadow ${
+        selected ? 'border-primary ring-2 ring-primary' : 'hover:shadow-sm'
+      }`}
+    >
+      <div className="flex h-28 flex-col justify-between p-3" style={{ background: c.background }}>
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-bold" style={{ color: c.text, fontFamily: option.fontFamily }}>
+            {option.label}
+          </span>
+          {selected && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-medium text-green-700">
+              <Check className="h-3 w-3" /> Selected
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          <span
+            className="px-2.5 py-1 text-[10px] font-semibold text-white"
+            style={{ background: c.primary, borderRadius: option.radius }}
+          >
+            Button
+          </span>
+          <span className="h-5 w-5 rounded-full border border-black/10" style={{ background: c.secondary }} />
+          <span className="h-5 w-5 rounded-full border border-black/10" style={{ background: c.text }} />
+        </div>
+      </div>
+      <div className="flex items-center justify-between gap-2 p-3">
+        <div className="flex gap-1">
+          {[c.primary, c.secondary, c.background, c.text].map((col, i) => (
+            <span key={i} className="h-4 w-4 rounded border" style={{ backgroundColor: col }} />
+          ))}
+        </div>
+        {selected ? (
+          <span className="text-xs font-medium text-muted-foreground">Active design</span>
+        ) : (
+          <Button size="sm" variant="outline" disabled={busy} onClick={() => onActivate(option)}>
+            {busy ? <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" /> : null} Use this
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 type SortKey = 'updated' | 'name' | 'status';
 const DEVICE_WIDTH: Record<string, string> = { desktop: 'w-full', tablet: 'w-[768px] max-w-full', mobile: 'w-[390px] max-w-full' };
 
@@ -92,6 +151,10 @@ export default function AllThemesPage() {
   const [previewId, setPreviewId] = useState<string | null>(null);
   const [device, setDevice] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
 
+  // The design style picked during onboarding (one of the 8 wizard themes).
+  const [onboardingTheme, setOnboardingTheme] = useState<WizardThemeId | ''>('');
+  const [onboardingBusy, setOnboardingBusy] = useState<WizardThemeId | null>(null);
+
   const load = useCallback(async () => {
     setLoading(true);
     try {
@@ -103,7 +166,41 @@ export default function AllThemesPage() {
     }
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  const loadOnboardingTheme = useCallback(async () => {
+    try {
+      const res = await fetch('/api/onboarding/preferences', { credentials: 'include' });
+      const json = await res.json().catch(() => null);
+      if (res.ok && json?.data?.theme) setOnboardingTheme(json.data.theme as WizardThemeId);
+    } catch {
+      // Non-critical — the onboarding section just won't show a selection.
+    }
+  }, []);
+
+  useEffect(() => { load(); loadOnboardingTheme(); }, [load, loadOnboardingTheme]);
+
+  // Activate the system theme behind an onboarding design style and remember the pick.
+  const activateOnboardingTheme = async (option: ThemeOption) => {
+    const slug = WIZARD_THEME_TO_SLUG[option.id];
+    const target = themes.find((t) => t.slug === slug);
+    if (!target) { toast.error(`Theme "${option.label}" is not available yet.`); return; }
+    setOnboardingBusy(option.id);
+    try {
+      await themeApi.activate(target._id);
+      await fetch('/api/onboarding/preferences', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ theme: option.id }),
+      }).catch(() => null);
+      setOnboardingTheme(option.id);
+      toast.success(`"${option.label}" applied — your live site now uses it`);
+      await load();
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setOnboardingBusy(null);
+    }
+  };
 
   const activate = async (id: string) => {
     setBusyId(id);
@@ -196,6 +293,30 @@ export default function AllThemesPage() {
           </div>
         </div>
       )}
+
+      {/* Onboarding / starter design styles */}
+      <div className="space-y-3">
+        <div>
+          <h2 className="flex items-center gap-2 text-lg font-semibold">
+            <Sparkles className="h-5 w-5" /> Starter Designs
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            The design styles from your setup wizard. The one you picked is highlighted —
+            choose another any time to re-skin your site.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {THEME_OPTIONS.map((opt) => (
+            <OnboardingThemeCard
+              key={opt.id}
+              option={opt}
+              selected={onboardingTheme === opt.id}
+              busy={onboardingBusy === opt.id}
+              onActivate={activateOnboardingTheme}
+            />
+          ))}
+        </div>
+      </div>
 
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-3">
