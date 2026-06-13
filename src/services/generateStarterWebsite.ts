@@ -32,14 +32,13 @@ import {
   getNavLinks,
   slugify,
 } from '@/templates/pages';
-import { WIZARD_THEME_TO_SLUG } from '@/templates/types';
+import { WIZARD_THEME_TO_SLUG, HEADER_OPTIONS, FOOTER_OPTIONS } from '@/templates/types';
 
 export interface GenerateInput {
   userId: string;
   businessName: string;
   businessCategory: string;
   businessDescription: string;
-  targetAudience?: string;
   location?: string;
   websiteType: string;
   headerTemplate: string;
@@ -54,8 +53,8 @@ export interface GenerateResult {
   alreadyGenerated: boolean;
 }
 
-const HEADER_SLUG = 'site-header';
-const FOOTER_SLUG = 'site-footer';
+const HEADER_SLUG_PREFIX = 'site-header';
+const FOOTER_SLUG_PREFIX = 'site-footer';
 const HOMEPAGE_SLUG = 'home';
 
 /** Create a page, retrying with a numeric slug suffix on a duplicate-key clash. */
@@ -69,6 +68,7 @@ async function createPage(
     pageType?: 'page' | 'header' | 'footer';
     isHome?: boolean;
     isGlobal?: boolean;
+    isPublished?: boolean;
     description?: string;
   }
 ): Promise<PageDocument> {
@@ -80,7 +80,7 @@ async function createPage(
         pageName: fields.pageName,
         slug,
         pageType: fields.pageType ?? 'page',
-        isPublished: true,
+        isPublished: fields.isPublished ?? true,
         isHome: fields.isHome ?? false,
         isGlobal: fields.isGlobal ?? false,
         description: fields.description ?? '',
@@ -97,6 +97,51 @@ async function createPage(
     }
   }
   throw new Error(`Could not generate a unique slug for "${base}"`);
+}
+
+/**
+ * Mirror every header/footer option shown in the onboarding wizard into the
+ * dashboard Headers/Footers tabs. Each option becomes a reusable page-part
+ * (`<prefix>-<id>`), created only if it isn't already present. The option the
+ * user selected is the single active (global) + published part; the rest are
+ * saved as drafts so they're available to switch to later.
+ */
+async function createLayoutParts(
+  PageModel: Model<PageDocument>,
+  userId: string,
+  opts: {
+    pageType: 'header' | 'footer';
+    slugPrefix: string;
+    selectedId: string;
+    options: { id: string; label: string; blocks: BlockData[] }[];
+  }
+): Promise<void> {
+  const { pageType, slugPrefix, selectedId, options } = opts;
+
+  // Snapshot existing slugs so re-runs / pre-existing parts aren't duplicated.
+  const existing = await PageModel.find({ pageType }).select('slug').lean();
+  const existingSlugs = new Set(existing.map((p) => p.slug));
+
+  for (const opt of options) {
+    const slug = `${slugPrefix}-${opt.id}`;
+    if (existingSlugs.has(slug)) continue;
+    const isSelected = opt.id === selectedId;
+    await createPage(PageModel, userId, {
+      pageName: opt.label,
+      slug,
+      component: opt.blocks,
+      pageType,
+      isGlobal: isSelected,
+      isPublished: isSelected,
+    });
+  }
+
+  // Make the selected option the single active (global) part of its type.
+  await PageModel.updateMany({ pageType }, { $set: { isGlobal: false } });
+  await PageModel.updateOne(
+    { pageType, slug: `${slugPrefix}-${selectedId}` },
+    { $set: { isGlobal: true, isPublished: true } }
+  );
 }
 
 async function markUserOnboarded(userId: string): Promise<void> {
@@ -136,7 +181,6 @@ export async function generateStarterWebsite(
     businessName,
     businessCategory: input.businessCategory,
     businessDescription: input.businessDescription,
-    targetAudience: input.targetAudience || '',
     location: input.location,
     websiteType: input.websiteType,
   });
@@ -145,8 +189,6 @@ export async function generateStarterWebsite(
 
   // ---- Build header + footer (shared, global layout parts). ----
   const navLinks = getNavLinks(input.websiteType);
-  const headerBlocks = getHeaderTemplate(input.headerTemplate)({ businessName, navLinks });
-  const footerBlocks = getFooterTemplate(input.footerTemplate)({ businessName, navLinks });
 
   // ---- Build homepage blocks. ----
   const homepageTypes = getHomepageTemplate(input.websiteType);
@@ -155,32 +197,41 @@ export async function generateStarterWebsite(
   const createdPages: { name: string; slug: string }[] = [];
 
   // Homepage.
+  // NOTE: the generated home page is intentionally NOT marked as the site home
+  // (isHome:false). The seeded `default_home` page remains the site home unless
+  // the user manually promotes this page in the editor/pages settings.
   const homepage = await createPage(PageModel, input.userId, {
     pageName: 'Home',
     slug: HOMEPAGE_SLUG,
     component: homepageBlocks,
-    isHome: true,
+    isHome: false,
     description: content.heroSubtitle,
   });
   const homepageSlug = homepage.slug;
   createdPages.push({ name: 'Home', slug: homepageSlug });
 
-  // Header (global layout part).
-  await createPage(PageModel, input.userId, {
-    pageName: `${businessName} Header`,
-    slug: HEADER_SLUG,
-    component: headerBlocks,
+  // Headers — every wizard option mirrored into the Headers tab; selected = active.
+  await createLayoutParts(PageModel, input.userId, {
     pageType: 'header',
-    isGlobal: true,
+    slugPrefix: HEADER_SLUG_PREFIX,
+    selectedId: input.headerTemplate,
+    options: HEADER_OPTIONS.map((o) => ({
+      id: o.id,
+      label: o.label,
+      blocks: getHeaderTemplate(o.id)({ businessName, navLinks }),
+    })),
   });
 
-  // Footer (global layout part).
-  await createPage(PageModel, input.userId, {
-    pageName: `${businessName} Footer`,
-    slug: FOOTER_SLUG,
-    component: footerBlocks,
+  // Footers — every wizard option mirrored into the Footers tab; selected = active.
+  await createLayoutParts(PageModel, input.userId, {
     pageType: 'footer',
-    isGlobal: true,
+    slugPrefix: FOOTER_SLUG_PREFIX,
+    selectedId: input.footerTemplate,
+    options: FOOTER_OPTIONS.map((o) => ({
+      id: o.id,
+      label: o.label,
+      blocks: getFooterTemplate(o.id)({ businessName, navLinks, location: input.location }),
+    })),
   });
 
   // Supporting pages.
@@ -212,7 +263,6 @@ export async function generateStarterWebsite(
         businessName,
         businessCategory: input.businessCategory,
         businessDescription: input.businessDescription,
-        targetAudience: input.targetAudience || '',
         location: input.location || '',
         websiteType: input.websiteType,
         headerTemplate: input.headerTemplate,

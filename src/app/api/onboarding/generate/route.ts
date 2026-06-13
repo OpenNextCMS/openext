@@ -8,7 +8,6 @@ const generateSchema = z.object({
   businessName: z.string().trim().min(1, 'Business name is required'),
   businessCategory: z.string().trim().min(1, 'Business category is required'),
   businessDescription: z.string().trim().min(1, 'Business description is required'),
-  targetAudience: z.string().trim().optional().default(''),
   location: z.string().trim().optional().default(''),
   websiteType: z.string().trim().min(1, 'Website type is required'),
   headerTemplate: z.string().trim().min(1, 'Header is required'),

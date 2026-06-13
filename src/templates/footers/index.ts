@@ -22,19 +22,24 @@ export const FOOTER_TEMPLATES: Record<FooterId, (ctx: HeaderFooterContext) => Bl
     }),
   ],
 
-  corporate: ({ businessName, navLinks }) => [
-    makeBlock('feature-list', {
-      mainTitle: businessName,
-      mainDescription: 'Building lasting value for our clients and partners.',
-      buttonText: 'Contact Us',
-      categories: [
-        { title: 'Company', links: ['About', 'Careers', 'News', 'Contact'] },
-        { title: 'Services', links: navLinks.map((l) => l.label) },
-        { title: 'Resources', links: ['Blog', 'Guides', 'Support', 'FAQ'] },
-        { title: 'Legal', links: ['Privacy', 'Terms', 'Cookies'] },
-      ],
-    }),
-  ],
+  corporate: ({ businessName, navLinks, location }) => {
+    const address = (location || '').trim();
+    return [
+      makeBlock('feature-list', {
+        mainTitle: businessName,
+        mainDescription: 'Building lasting value for our clients and partners.',
+        buttonText: 'Contact Us',
+        categories: [
+          { title: 'Company', links: ['About', 'Careers', 'News', 'Contact'] },
+          { title: 'Services', links: navLinks.map((l) => l.label) },
+          { title: 'Resources', links: ['Blog', 'Guides', 'Support', 'FAQ'] },
+          { title: 'Legal', links: ['Privacy', 'Terms', 'Cookies'] },
+          // Only render the address column when a location was provided.
+          ...(address ? [{ title: 'Visit Us', links: [address] }] : []),
+        ],
+      }),
+    ];
+  },
 
   newsletter: ({ businessName, navLinks }) => [
     makeBlock('content-categories', {

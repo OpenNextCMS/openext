@@ -5,6 +5,8 @@ import { makeBlock } from '../blockUtils';
 export interface HeaderFooterContext {
   businessName: string;
   navLinks: { label: string; href: string }[];
+  /** Business address collected in the setup wizard; rendered by footers that show an address. */
+  location?: string;
 }
 
 /**
