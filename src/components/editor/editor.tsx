@@ -7,7 +7,7 @@ import RightSidebar from './right-sidebar';
 import Blocks from './blocks';
 import Canvas from './canvas';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Maximize2, Minimize2 } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import Toolbar from './toolbar';
 import StatusBar from './status-bar';
@@ -133,6 +133,8 @@ const hasInvalidOrDuplicateBlockIds = (blocks: Block[], seen = new Set<string>()
 export default function Editor() {
   const [showLeftSidebar, setShowLeftSidebar] = useState(true);
   const [showRightSidebar, setShowRightSidebar] = useState(true);
+  const [leftSidebarExpanded, setLeftSidebarExpanded] = useState(false);
+  const [rightSidebarExpanded, setRightSidebarExpanded] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [showButton, setShowButton] = useState(true);
   const dispatch = useAppDispatch();
@@ -411,7 +413,7 @@ export default function Editor() {
               <Button
                 variant="outline"
                 size="icon"
-                className={`absolute ${showLeftSidebar ? 'left-64 rounded-r-full' : 'left-2 rounded-full'} top-3.5 z-10 h-8 w-8 border shadow-md transition-all duration-300 dark:border-border dark:bg-background`}
+                className={`absolute ${showLeftSidebar ? (leftSidebarExpanded ? 'left-96 rounded-r-full' : 'left-64 rounded-r-full') : 'left-2 rounded-full'} top-3.5 z-10 h-8 w-8 border shadow-md transition-all duration-300 dark:border-border dark:bg-background`}
                 onClick={() => {
                   setShowLeftSidebar(!showLeftSidebar);
                   setIsOpen(false);
@@ -423,11 +425,26 @@ export default function Editor() {
                   <ChevronRight className="h-4 w-4" />
                 )}
               </Button>
+              {showLeftSidebar && (
+                <Button
+                  variant="outline"
+                  size="icon"
+                  title={leftSidebarExpanded ? 'Collapse panel width' : 'Expand panel width'}
+                  className={`absolute ${leftSidebarExpanded ? 'left-96' : 'left-64'} top-14 z-10 h-8 w-8 -translate-x-1/2 rounded-full border shadow-md transition-all duration-300 dark:border-border dark:bg-background`}
+                  onClick={() => setLeftSidebarExpanded((prev) => !prev)}
+                >
+                  {leftSidebarExpanded ? (
+                    <Minimize2 className="h-4 w-4" />
+                  ) : (
+                    <Maximize2 className="h-4 w-4" />
+                  )}
+                </Button>
+              )}
             </div>
           )}
 
           <div
-            className={`transition-all duration-300 ${showLeftSidebar ? 'w-64 border-r border-border' : 'w-0'}`}
+            className={`transition-all duration-300 ${showLeftSidebar ? (leftSidebarExpanded ? 'w-96 border-r border-border' : 'w-64 border-r border-border') : 'w-0'}`}
           >
             <div className={`h-full ${!showLeftSidebar ? 'invisible' : ''}`}>
               <Suspense fallback={<div>Loading Sidebar...</div>}>
@@ -444,7 +461,7 @@ export default function Editor() {
           </div>
 
           <div
-            className={`transition-all duration-300 ${showRightSidebar ? 'w-64 border-l border-border' : 'w-0'}`}
+            className={`transition-all duration-300 ${showRightSidebar ? (rightSidebarExpanded ? 'w-96 border-l border-border' : 'w-64 border-l border-border') : 'w-0'}`}
           >
             <div className={`h-full ${!showRightSidebar ? 'invisible' : ''}`}>
               <RightSidebar />
@@ -455,7 +472,7 @@ export default function Editor() {
             <Button
               variant="outline"
               size="icon"
-              className={`absolute ${showRightSidebar ? 'right-64 rounded-l-full' : 'right-2 rounded-full'} top-2.5 z-10 h-8 w-8 border shadow-md transition-all duration-300 dark:border-border dark:bg-background`}
+              className={`absolute ${showRightSidebar ? (rightSidebarExpanded ? 'right-96 rounded-l-full' : 'right-64 rounded-l-full') : 'right-2 rounded-full'} top-2.5 z-10 h-8 w-8 border shadow-md transition-all duration-300 dark:border-border dark:bg-background`}
               onClick={() => setShowRightSidebar(!showRightSidebar)}
             >
               {showRightSidebar ? (
@@ -464,6 +481,21 @@ export default function Editor() {
                 <ChevronLeft className="h-4 w-4" />
               )}
             </Button>
+            {showRightSidebar && (
+              <Button
+                variant="outline"
+                size="icon"
+                title={rightSidebarExpanded ? 'Collapse panel width' : 'Expand panel width'}
+                className={`absolute ${rightSidebarExpanded ? 'right-96' : 'right-64'} top-12 z-10 h-8 w-8 translate-x-1/2 rounded-full border shadow-md transition-all duration-300 dark:border-border dark:bg-background`}
+                onClick={() => setRightSidebarExpanded((prev) => !prev)}
+              >
+                {rightSidebarExpanded ? (
+                  <Minimize2 className="h-4 w-4" />
+                ) : (
+                  <Maximize2 className="h-4 w-4" />
+                )}
+              </Button>
+            )}
           </div>
         </div>
         <StatusBar />

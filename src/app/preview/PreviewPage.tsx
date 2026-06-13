@@ -120,7 +120,7 @@ export default function PreviewPage() {
   if (sidebarHeader) {
     return (
       <PageClientWrapper>
-        <div className="flex min-h-screen">
+        <div className="flex min-h-screen rendered-page">
           <aside className="w-64 flex-shrink-0 sticky top-0 self-start h-screen overflow-y-auto">
             {headerBlocks.map((block) => renderFromJson(block))}
           </aside>
@@ -141,7 +141,7 @@ export default function PreviewPage() {
 
   return (
     <PageClientWrapper>
-      <div>
+      <div className="rendered-page">
         {headerBlocks.map((block) => renderFromJson(block))}
         {blocks.length > 0 ? (
           blocks.map((block) => renderFromJson(block))
