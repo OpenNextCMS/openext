@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
 import { store, persistor } from '@/redux/store';
@@ -27,6 +27,31 @@ export default function AddBlog() {
   const [featuredImage, setFeaturedImage] = useState('');
   const [isPublished, setIsPublished] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const featuredImageInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFeaturedImageUpload = async (file: File) => {
+    setUploadingImage(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await fetch(`${backendUrl}/api/blogs/upload-image`, {
+        method: 'POST',
+        body: formData,
+        credentials: 'include',
+      });
+      const data = await res.json();
+      if (!res.ok || !data?.success) {
+        throw new Error(data?.message || 'Upload failed');
+      }
+      setFeaturedImage(data.filePath);
+    } catch (error) {
+      console.error('Featured image upload error:', error);
+      alert(error instanceof Error ? error.message : 'Failed to upload image');
+    } finally {
+      setUploadingImage(false);
+    }
+  };
 
   // Load categories created in the Categories option (no hard-coded list).
   useEffect(() => {
@@ -206,15 +231,61 @@ export default function AddBlog() {
 
             <div className="space-y-2">
               <Label htmlFor="featuredImage" className="flex items-center gap-1">
-                <ImageIcon className="h-3 w-3" /> Featured Image URL
+                <ImageIcon className="h-3 w-3" /> Featured Image
               </Label>
               <Input
                 id="featuredImage"
                 type="text"
                 value={featuredImage}
                 onChange={(e) => setFeaturedImage(e.target.value)}
-                placeholder="https://images.unsplash.com/..."
+                placeholder="Paste an image URL or upload from your device"
               />
+              <div className="flex items-center gap-2">
+                <input
+                  ref={featuredImageInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/gif,image/avif"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) void handleFeaturedImageUpload(file);
+                    e.target.value = '';
+                  }}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={uploadingImage}
+                  onClick={() => featuredImageInputRef.current?.click()}
+                >
+                  {uploadingImage ? (
+                    <>
+                      <Loader2 className="mr-2 h-3 w-3 animate-spin" /> Uploading…
+                    </>
+                  ) : (
+                    'Upload from device'
+                  )}
+                </Button>
+                {featuredImage ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setFeaturedImage('')}
+                  >
+                    Remove
+                  </Button>
+                ) : null}
+              </div>
+              {featuredImage ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={featuredImage}
+                  alt="Featured preview"
+                  className="mt-2 h-32 w-full rounded-lg object-cover"
+                />
+              ) : null}
             </div>
 
             <Button type="submit" className="w-full mt-2" disabled={!pageName || !slug || isSubmitting} onClick={handleProceed}>
