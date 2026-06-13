@@ -105,6 +105,36 @@ button {
   }
 }
 
+/* ------------------------------------------------------------------ *
+ * Responsive safety net for rendered CMS page content.
+ *
+ * Applied wherever page blocks render (editor canvas, the device-preview
+ * iframe, the public site and previews) via the `.rendered-page` class.
+ * Keeps blocks fluid and prevents horizontal overflow on small screens
+ * WITHOUT overriding explicit Tailwind utilities: the descendant rules use
+ * `:where()` so they carry zero specificity and any real utility wins.
+ * ------------------------------------------------------------------ */
+.rendered-page {
+  max-width: 100%;
+}
+:where(.rendered-page) {
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+:where(.rendered-page) :where(img, video, canvas) {
+  max-width: 100%;
+  height: auto;
+}
+:where(.rendered-page) :where(table) {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+}
+:where(.rendered-page) :where(pre) {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;

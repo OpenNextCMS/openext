@@ -146,7 +146,7 @@ export default function LeftSidebar() {
   };
 
   return (
-    <div className="flex h-full flex-col bg-white dark:bg-black border-r w-full max-w-[300px]">
+    <div className="flex h-full flex-col bg-white dark:bg-black border-r w-full">
       <Toaster position="top-right" richColors theme="dark" />
       {openPage ? (
         <div className="flex flex-col h-full">

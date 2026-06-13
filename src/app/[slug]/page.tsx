@@ -37,7 +37,7 @@ export default async function Page({ params }: PageProps) {
     return (
       <PageClientWrapper>
         <SiteThemeProvider>
-          <div className="flex min-h-screen">
+          <div className="flex min-h-screen rendered-page">
             <aside className="w-64 flex-shrink-0 sticky top-0 self-start h-screen overflow-y-auto">
               {pageData.headerBlocks.map((block) => renderFromJson(block as BlockData))}
             </aside>
@@ -58,9 +58,11 @@ export default async function Page({ params }: PageProps) {
   return (
     <PageClientWrapper>
       <SiteThemeProvider>
-        {pageData.headerBlocks.map((block) => renderFromJson(block as BlockData))}
+        <div className="rendered-page">
+          {pageData.headerBlocks.map((block) => renderFromJson(block as BlockData))}
+        </div>
 
-        <div className="min-h-screen">
+        <div className="min-h-screen rendered-page">
           <main>
             <div>
               {pageData.blocks.map((block) => renderFromJson(block as BlockData))}

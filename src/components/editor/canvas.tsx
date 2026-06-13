@@ -3,6 +3,7 @@ import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import RenderBlock from './renderblock';
+import { DevicePreviewFrame } from './DevicePreviewFrame';
 import { GripVertical, LayoutGrid, PlusSquare, MousePointerClick, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { Block, BlockData } from '@/types/index';
@@ -82,6 +83,11 @@ export default function Canvas({ canvasBlocks, viewMode }: CanvasProps) {
   const headerBlocks = useAppSelector((state) => state.canvas.headerBlocks);
   const footerBlocks = useAppSelector((state) => state.canvas.footerBlocks);
 
+  // Tablet/mobile are shown in a true device-width iframe (see below) so real
+  // CSS breakpoints fire; desktop stays the fully editable drag-and-drop canvas.
+  const isPreview = viewMode !== 'desktop';
+  const deviceWidth = viewMode === 'mobile' ? 480 : 768;
+
   const handleZoomIn = () => {
     if (zoom < 200) setZoom(zoom + 10);
   };
@@ -136,8 +142,33 @@ export default function Canvas({ canvasBlocks, viewMode }: CanvasProps) {
             </div>
           </div>
         </div>
+        {isPreview ? (
+          <div className="mx-auto h-[calc(100vh-220px)] w-full">
+            <DevicePreviewFrame width={deviceWidth}>
+              <div className="rendered-page">
+                {headerBlocks.map((block, index) => (
+                  <RenderBlock
+                    key={`prev-h-${index}`}
+                    block={block as unknown as Block}
+                    isEditing={false}
+                  />
+                ))}
+                {canvasBlocks.map((block, index) => (
+                  <RenderBlock key={`prev-b-${index}`} block={block} isEditing={false} />
+                ))}
+                {footerBlocks.map((block, index) => (
+                  <RenderBlock
+                    key={`prev-f-${index}`}
+                    block={block as unknown as Block}
+                    isEditing={false}
+                  />
+                ))}
+              </div>
+            </DevicePreviewFrame>
+          </div>
+        ) : (
         <div
-          className={`bg-background dark:bg-background w-full h-auto shadow-md p-4 rounded-lg border ${getWidthClass()} transition-all mx-auto ${
+          className={`bg-background dark:bg-background w-full h-auto shadow-md p-4 rounded-lg border ${getWidthClass()} transition-all mx-auto rendered-page ${
             isOver ? 'border-primary border-dashed border-2' : 'border-border'
           } `}
           style={{ transform: `scale(${zoom / 100})`, transformOrigin: 'top left' }}
@@ -232,6 +263,7 @@ export default function Canvas({ canvasBlocks, viewMode }: CanvasProps) {
             </>
           )}
         </div>
+        )}
       </div>
     </div>
   );

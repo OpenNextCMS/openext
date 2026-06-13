@@ -863,9 +863,15 @@ export default function PluginManagementPage() {
               </p>
             </div>
             <div className="mt-6 md:mt-0">
-              <Button size="lg" className="group">
-                Developer Portal
-                <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover:translate-x-1" />
+              <Button size="lg" className="group" asChild>
+                <a
+                  href="https://github.com/OpenNextCMS/openext"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Developer Portal
+                  <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover:translate-x-1" />
+                </a>
               </Button>
             </div>
           </CardContent>
