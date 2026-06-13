@@ -1,4 +1,5 @@
 import type React from 'react';
+import { Toaster as SonnerToaster } from 'sonner';
 import Sidebar from '@/components/Sidebar';
 import Navbar from '@/components/Navbar';
 import { cookies } from 'next/headers';
@@ -43,6 +44,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   return (
     <ThemeProvider>
       <AvatarProvider>
+        <SonnerToaster position="top-right" richColors closeButton />
         <div className="flex min-h-screen bg-background text-foreground">
           <Sidebar />
 

@@ -12,6 +12,19 @@ import type { HeaderMenuLink } from '@/types/menu-redirect';
 
 type LinkPath = number[];
 
+type LinkTarget = {
+  type: 'page' | 'blog';
+  label: string;
+  slug: string;
+  targetId?: string;
+};
+
+/** Build the runtime href for a chosen link target. */
+function hrefForTarget(target: LinkTarget): string {
+  if (target.type === 'blog') return `/blog/${target.slug}`;
+  return target.slug === 'home' ? '/' : `/${target.slug}`;
+}
+
 const emptyLink = (label = 'New Link', href = '#'): HeaderMenuLink => ({
   label,
   href,
@@ -74,7 +87,7 @@ function LinkEditorRow({
   path,
   siblingCount,
   canEdit,
-  pages,
+  linkTargets,
   onUpdate,
   onRemove,
   onAddChild,
@@ -84,7 +97,7 @@ function LinkEditorRow({
   path: LinkPath;
   siblingCount: number;
   canEdit: boolean;
-  pages: Array<{ label: string; slug?: string; targetId?: string }>;
+  linkTargets: LinkTarget[];
   onUpdate: (path: LinkPath, values: Partial<HeaderMenuLink>) => void;
   onRemove: (path: LinkPath) => void;
   onAddChild: (path: LinkPath) => void;
@@ -94,6 +107,8 @@ function LinkEditorRow({
   const index = path[path.length - 1];
   const canMoveUp = index > 0;
   const canMoveDown = index < siblingCount - 1;
+  const pageTargets = linkTargets.filter((t) => t.type === 'page');
+  const blogTargets = linkTargets.filter((t) => t.type === 'blog');
 
   return (
     <div className={`space-y-2 rounded-md border bg-background p-2 ${isChild ? 'ml-4' : ''}`}>
@@ -167,24 +182,38 @@ function LinkEditorRow({
         value=""
         disabled={!canEdit}
         onChange={(e) => {
-          const slug = e.target.value;
-          if (!slug) return;
-          const page = pages.find((item) => item.slug === slug);
-          const href = slug === 'home' ? '/' : `/${slug}`;
+          const key = e.target.value;
+          if (!key) return;
+          const target = linkTargets.find((item) => `${item.type}:${item.slug}` === key);
+          if (!target) return;
+          const href = hrefForTarget(target);
           onUpdate(path, {
-            label: page?.label || link.label,
+            label: target.label || link.label,
             href,
             onClick: 'redirect',
             onClickValue: href,
           });
         }}
       >
-        <option value="">{pages.length === 0 ? 'No pages found' : 'Link to page...'}</option>
-        {pages.map((page) => (
-          <option key={page.targetId || page.slug} value={page.slug}>
-            {page.label} ({page.slug === 'home' ? '/' : `/${page.slug}`})
-          </option>
-        ))}
+        <option value="">{linkTargets.length === 0 ? 'No targets found' : 'Link to page or blog...'}</option>
+        {pageTargets.length > 0 ? (
+          <optgroup label="Pages">
+            {pageTargets.map((target) => (
+              <option key={`page:${target.targetId || target.slug}`} value={`page:${target.slug}`}>
+                {target.label} ({target.slug === 'home' ? '/' : `/${target.slug}`})
+              </option>
+            ))}
+          </optgroup>
+        ) : null}
+        {blogTargets.length > 0 ? (
+          <optgroup label="Blogs">
+            {blogTargets.map((target) => (
+              <option key={`blog:${target.targetId || target.slug}`} value={`blog:${target.slug}`}>
+                {target.label} (/blog/{target.slug})
+              </option>
+            ))}
+          </optgroup>
+        ) : null}
       </select>
 
       {!isChild ? (
@@ -209,7 +238,7 @@ function LinkEditorRow({
               path={[...path, index]}
               siblingCount={link.children?.length || 0}
               canEdit={canEdit}
-              pages={pages}
+              linkTargets={linkTargets}
               onUpdate={onUpdate}
               onRemove={onRemove}
               onAddChild={onAddChild}
@@ -232,13 +261,25 @@ export default function MenuLinksEditor({ canEdit }: { canEdit: boolean }) {
   const lastSavedSnapshotRef = useRef('');
   const latestSnapshotRef = useRef('');
 
-  const pages = useMemo(
-    () =>
-      contentLists.pages
-        .filter((item) => item.slug)
-        .map((item) => ({ label: item.label, slug: item.slug, targetId: item.targetId })),
-    [contentLists.pages]
-  );
+  const linkTargets = useMemo<LinkTarget[]>(() => {
+    const pages = contentLists.pages
+      .filter((item) => item.slug)
+      .map<LinkTarget>((item) => ({
+        type: 'page',
+        label: item.label,
+        slug: item.slug as string,
+        targetId: item.targetId,
+      }));
+    const blogs = contentLists.blogs
+      .filter((item) => item.slug)
+      .map<LinkTarget>((item) => ({
+        type: 'blog',
+        label: item.label,
+        slug: item.slug as string,
+        targetId: item.targetId,
+      }));
+    return [...pages, ...blogs];
+  }, [contentLists.pages, contentLists.blogs]);
 
   useEffect(() => {
     if (!activeHeaderId) {
@@ -385,7 +426,7 @@ export default function MenuLinksEditor({ canEdit }: { canEdit: boolean }) {
               path={[index]}
               siblingCount={links.length}
               canEdit={canEdit}
-              pages={pages}
+              linkTargets={linkTargets}
               onUpdate={updateLink}
               onRemove={removeLink}
               onAddChild={addChild}

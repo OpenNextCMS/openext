@@ -26,6 +26,8 @@ import {
   History,
   FileInput,
   PlusSquare,
+  Tag,
+  Tags,
   type LucideIcon,
 } from 'lucide-react';
 import { usePlugins } from '@/context/PluginContext';
@@ -57,6 +59,9 @@ const navItems: NavSection[] = [
     icon: Codesandbox,
     links: [
       { label: 'All Blogs', icon: List, path: '/dashboard/blogs/allblogs' },
+      { label: 'Add New Blog', icon: PlusCircle, path: '/dashboard/blogs/new' },
+      { label: 'Categories', icon: Tag, path: '/dashboard/blogs/categories' },
+      { label: 'Tags', icon: Tags, path: '/dashboard/blogs/tags' },
     ],
   },
   {

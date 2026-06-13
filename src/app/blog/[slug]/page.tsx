@@ -10,6 +10,10 @@ import { BlockRenderer } from '@/components/blog/blocks/renderers';
 import BlogThemeProvider from '@/components/blog/design/BlogThemeProvider';
 import AnalyticsBeacon from '@/components/blog/analytics/AnalyticsBeacon';
 import CommentsSection from '@/components/blog/public/CommentsSection';
+import renderFromJson from '@/components/ReusableComponents/RenderFromJson';
+import SiteThemeProvider from '@/providers/SiteThemeProvider';
+import { getGlobalLayoutBlocks } from '@/utils/getPageData';
+import type { BlockData } from '@/types/index';
 
 // SSR with periodic revalidation.
 export const revalidate = 60;
@@ -36,6 +40,8 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
     redirect(`/blog/${post.slug}`);
   }
 
+  const { headerBlocks, footerBlocks } = await getGlobalLayoutBlocks();
+
   const siteUrl = getSiteUrl();
   const author = post.authorId && typeof post.authorId === 'object' ? post.authorId : null;
   const publishedAt = post.publishedAt || post.publishDate;
@@ -49,11 +55,20 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
   ];
 
   return (
-    <BlogThemeProvider>
-      <JsonLd data={jsonLd} />
-      <AnalyticsBeacon blogId={String(post._id)} />
+    <>
+      {headerBlocks.length > 0 ? (
+        <SiteThemeProvider>
+          <div className="rendered-page">
+            {headerBlocks.map((block) => renderFromJson(block as BlockData))}
+          </div>
+        </SiteThemeProvider>
+      ) : null}
 
-      <article className="mx-auto px-4 py-12" style={{ maxWidth: 'var(--layout-width, 768px)' }}>
+      <BlogThemeProvider>
+        <JsonLd data={jsonLd} />
+        <AnalyticsBeacon blogId={String(post._id)} />
+
+        <article className="mx-auto px-4 py-12" style={{ maxWidth: 'var(--layout-width, 768px)' }}>
         <div className="mx-auto max-w-3xl">
           <Link href="/blog" className="text-sm text-muted-foreground hover:text-primary">
             ← Back to blog
@@ -108,7 +123,16 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
           <CommentsSection blogId={String(post._id)} />
         </div>
-      </article>
-    </BlogThemeProvider>
+        </article>
+      </BlogThemeProvider>
+
+      {footerBlocks.length > 0 ? (
+        <SiteThemeProvider>
+          <div className="rendered-page">
+            {footerBlocks.map((block) => renderFromJson(block as BlockData))}
+          </div>
+        </SiteThemeProvider>
+      ) : null}
+    </>
   );
 }

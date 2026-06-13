@@ -63,7 +63,10 @@ export default function LeftPanel({ canEdit }: { canEdit: boolean }) {
           <button
             key={t.key}
             type="button"
-            onClick={() => dispatch(setSearchQuery('')) || setTab(t.key)}
+            onClick={() => {
+              dispatch(setSearchQuery(''));
+              setTab(t.key);
+            }}
             className={`rounded-md px-2.5 py-1 text-xs font-medium ${
               tab === t.key ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'
             }`}

@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { DndContext, DragEndEvent } from '@dnd-kit/core';
 import LeftSidebar from './left-sidebar';
 import RightSidebar from './right-sidebar';
 import Blocks from './blocks';
 import Canvas from './canvas';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, Maximize2, Minimize2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import Toolbar from './toolbar';
 import StatusBar from './status-bar';
@@ -26,8 +26,18 @@ import {
   type BlockData as CanvasBlockData,
 } from '@/redux/canvasSlice';
 import { BlockDragData, Block } from '@/types/index';
-import { safeStorageGet } from '@/utils/safeStorage';
+import { safeStorageGet, safeStorageSet } from '@/utils/safeStorage';
 import { pluginRegistry } from '@/lib/pluginRegistry';
+
+// Resizable sidebar constraints (in pixels)
+const SIDEBAR_MIN_WIDTH = 200;
+const SIDEBAR_MAX_WIDTH = 600;
+const DEFAULT_SIDEBAR_WIDTH = 256;
+const LEFT_SIDEBAR_WIDTH_KEY = 'editor:left-sidebar-width';
+const RIGHT_SIDEBAR_WIDTH_KEY = 'editor:right-sidebar-width';
+
+const clampSidebarWidth = (width: number) =>
+  Math.min(SIDEBAR_MAX_WIDTH, Math.max(SIDEBAR_MIN_WIDTH, width));
 
 type EditableBlockType = Block['type'];
 
@@ -133,8 +143,9 @@ const hasInvalidOrDuplicateBlockIds = (blocks: Block[], seen = new Set<string>()
 export default function Editor() {
   const [showLeftSidebar, setShowLeftSidebar] = useState(true);
   const [showRightSidebar, setShowRightSidebar] = useState(true);
-  const [leftSidebarExpanded, setLeftSidebarExpanded] = useState(false);
-  const [rightSidebarExpanded, setRightSidebarExpanded] = useState(false);
+  const [leftSidebarWidth, setLeftSidebarWidth] = useState(DEFAULT_SIDEBAR_WIDTH);
+  const [rightSidebarWidth, setRightSidebarWidth] = useState(DEFAULT_SIDEBAR_WIDTH);
+  const [resizingSide, setResizingSide] = useState<'left' | 'right' | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [showButton, setShowButton] = useState(true);
   const dispatch = useAppDispatch();
@@ -212,6 +223,66 @@ export default function Editor() {
       document.body.style.overflow = '';
     };
   }, []);
+
+  // Restore previously saved sidebar widths
+  useEffect(() => {
+    const storedLeft = Number(safeStorageGet(LEFT_SIDEBAR_WIDTH_KEY));
+    if (Number.isFinite(storedLeft) && storedLeft > 0) {
+      setLeftSidebarWidth(clampSidebarWidth(storedLeft));
+    }
+
+    const storedRight = Number(safeStorageGet(RIGHT_SIDEBAR_WIDTH_KEY));
+    if (Number.isFinite(storedRight) && storedRight > 0) {
+      setRightSidebarWidth(clampSidebarWidth(storedRight));
+    }
+  }, []);
+
+  const startResizing = useCallback(
+    (side: 'left' | 'right') => (event: React.MouseEvent) => {
+      event.preventDefault();
+      setResizingSide(side);
+    },
+    []
+  );
+
+  // Handle drag-to-resize for whichever sidebar is currently active
+  useEffect(() => {
+    if (!resizingSide) return;
+
+    const handleMouseMove = (event: MouseEvent) => {
+      if (resizingSide === 'left') {
+        setLeftSidebarWidth(clampSidebarWidth(event.clientX));
+      } else {
+        setRightSidebarWidth(clampSidebarWidth(window.innerWidth - event.clientX));
+      }
+    };
+
+    const stopResizing = () => setResizingSide(null);
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', stopResizing);
+
+    const previousUserSelect = document.body.style.userSelect;
+    const previousCursor = document.body.style.cursor;
+    document.body.style.userSelect = 'none';
+    document.body.style.cursor = 'col-resize';
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', stopResizing);
+      document.body.style.userSelect = previousUserSelect;
+      document.body.style.cursor = previousCursor;
+    };
+  }, [resizingSide]);
+
+  // Persist widths after a resize finishes
+  useEffect(() => {
+    safeStorageSet(LEFT_SIDEBAR_WIDTH_KEY, String(leftSidebarWidth));
+  }, [leftSidebarWidth]);
+
+  useEffect(() => {
+    safeStorageSet(RIGHT_SIDEBAR_WIDTH_KEY, String(rightSidebarWidth));
+  }, [rightSidebarWidth]);
 
   useEffect(() => {
     if (canvasBlocks.length === 0 || !hasInvalidOrDuplicateBlockIds(canvasBlocks as Block[])) {
@@ -413,7 +484,8 @@ export default function Editor() {
               <Button
                 variant="outline"
                 size="icon"
-                className={`absolute ${showLeftSidebar ? (leftSidebarExpanded ? 'left-96 rounded-r-full' : 'left-64 rounded-r-full') : 'left-2 rounded-full'} top-3.5 z-10 h-8 w-8 border shadow-md transition-all duration-300 dark:border-border dark:bg-background`}
+                style={{ left: showLeftSidebar ? leftSidebarWidth : 8 }}
+                className={`absolute ${showLeftSidebar ? 'rounded-r-full' : 'rounded-full'} top-3.5 z-10 h-8 w-8 border shadow-md ${resizingSide ? '' : 'transition-all duration-300'} dark:border-border dark:bg-background`}
                 onClick={() => {
                   setShowLeftSidebar(!showLeftSidebar);
                   setIsOpen(false);
@@ -425,32 +497,27 @@ export default function Editor() {
                   <ChevronRight className="h-4 w-4" />
                 )}
               </Button>
-              {showLeftSidebar && (
-                <Button
-                  variant="outline"
-                  size="icon"
-                  title={leftSidebarExpanded ? 'Collapse panel width' : 'Expand panel width'}
-                  className={`absolute ${leftSidebarExpanded ? 'left-96' : 'left-64'} top-14 z-10 h-8 w-8 -translate-x-1/2 rounded-full border shadow-md transition-all duration-300 dark:border-border dark:bg-background`}
-                  onClick={() => setLeftSidebarExpanded((prev) => !prev)}
-                >
-                  {leftSidebarExpanded ? (
-                    <Minimize2 className="h-4 w-4" />
-                  ) : (
-                    <Maximize2 className="h-4 w-4" />
-                  )}
-                </Button>
-              )}
             </div>
           )}
 
           <div
-            className={`transition-all duration-300 ${showLeftSidebar ? (leftSidebarExpanded ? 'w-96 border-r border-border' : 'w-64 border-r border-border') : 'w-0'}`}
+            style={{ width: showLeftSidebar ? leftSidebarWidth : 0 }}
+            className={`relative flex-shrink-0 ${showLeftSidebar ? 'border-r border-border' : ''} ${resizingSide ? '' : 'transition-all duration-300'}`}
           >
             <div className={`h-full ${!showLeftSidebar ? 'invisible' : ''}`}>
               <Suspense fallback={<div>Loading Sidebar...</div>}>
                 <LeftSidebar />
               </Suspense>
             </div>
+            {showLeftSidebar && (
+              <div
+                role="separator"
+                aria-orientation="vertical"
+                title="Drag to resize"
+                onMouseDown={startResizing('left')}
+                className={`absolute right-0 top-0 z-20 h-full w-1.5 -mr-0.5 cursor-col-resize transition-colors hover:bg-primary/40 ${resizingSide === 'left' ? 'bg-primary/60' : 'bg-transparent'}`}
+              />
+            )}
           </div>
 
           {isOpen && <Blocks toggleSidebar={toggleSidebar} />}
@@ -461,8 +528,18 @@ export default function Editor() {
           </div>
 
           <div
-            className={`transition-all duration-300 ${showRightSidebar ? (rightSidebarExpanded ? 'w-96 border-l border-border' : 'w-64 border-l border-border') : 'w-0'}`}
+            style={{ width: showRightSidebar ? rightSidebarWidth : 0 }}
+            className={`relative flex-shrink-0 ${showRightSidebar ? 'border-l border-border' : ''} ${resizingSide ? '' : 'transition-all duration-300'}`}
           >
+            {showRightSidebar && (
+              <div
+                role="separator"
+                aria-orientation="vertical"
+                title="Drag to resize"
+                onMouseDown={startResizing('right')}
+                className={`absolute left-0 top-0 z-20 h-full w-1.5 -ml-0.5 cursor-col-resize transition-colors hover:bg-primary/40 ${resizingSide === 'right' ? 'bg-primary/60' : 'bg-transparent'}`}
+              />
+            )}
             <div className={`h-full ${!showRightSidebar ? 'invisible' : ''}`}>
               <RightSidebar />
             </div>
@@ -472,7 +549,8 @@ export default function Editor() {
             <Button
               variant="outline"
               size="icon"
-              className={`absolute ${showRightSidebar ? (rightSidebarExpanded ? 'right-96 rounded-l-full' : 'right-64 rounded-l-full') : 'right-2 rounded-full'} top-2.5 z-10 h-8 w-8 border shadow-md transition-all duration-300 dark:border-border dark:bg-background`}
+              style={{ right: showRightSidebar ? rightSidebarWidth : 8 }}
+              className={`absolute ${showRightSidebar ? 'rounded-l-full' : 'rounded-full'} top-2.5 z-10 h-8 w-8 border shadow-md ${resizingSide ? '' : 'transition-all duration-300'} dark:border-border dark:bg-background`}
               onClick={() => setShowRightSidebar(!showRightSidebar)}
             >
               {showRightSidebar ? (
@@ -481,21 +559,6 @@ export default function Editor() {
                 <ChevronLeft className="h-4 w-4" />
               )}
             </Button>
-            {showRightSidebar && (
-              <Button
-                variant="outline"
-                size="icon"
-                title={rightSidebarExpanded ? 'Collapse panel width' : 'Expand panel width'}
-                className={`absolute ${rightSidebarExpanded ? 'right-96' : 'right-64'} top-12 z-10 h-8 w-8 translate-x-1/2 rounded-full border shadow-md transition-all duration-300 dark:border-border dark:bg-background`}
-                onClick={() => setRightSidebarExpanded((prev) => !prev)}
-              >
-                {rightSidebarExpanded ? (
-                  <Minimize2 className="h-4 w-4" />
-                ) : (
-                  <Maximize2 className="h-4 w-4" />
-                )}
-              </Button>
-            )}
           </div>
         </div>
         <StatusBar />

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
 import { store, persistor } from '@/redux/store';
@@ -9,16 +9,58 @@ import { FileText, Loader2, PlusCircle, Image as ImageIcon, User, Tag } from 'lu
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
+interface Category {
+  _id: string;
+  name: string;
+}
+
 export default function AddBlog() {
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
   const [pageName, setPageName] = useState('');
   const [slug, setSlug] = useState('');
-  const [category, setCategory] = useState('General');
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [categoryId, setCategoryId] = useState('');
   const [authorName, setAuthorName] = useState('');
   const [featuredImage, setFeaturedImage] = useState('');
   const [isPublished, setIsPublished] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Load categories created in the Categories option (no hard-coded list).
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await fetch(`${backendUrl}/api/categories`, { credentials: 'include' });
+        const result = await res.json();
+        if (Array.isArray(result.data)) setCategories(result.data);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+      }
+    };
+    fetchCategories();
+  }, [backendUrl]);
+
+  // Default the author to the current user's profile display name (falls back
+  // to the email's local part). The author remains editable.
+  useEffect(() => {
+    const fetchAuthor = async () => {
+      try {
+        const res = await fetch(`${backendUrl}/api/dashboard/profile`, { credentials: 'include' });
+        const result = await res.json();
+        if (result.success && result.data) {
+          const displayName = (result.data.displayName || '').trim();
+          const email = (result.data.email || '').trim();
+          const fallback = email.includes('@') ? email.split('@')[0] : '';
+          setAuthorName((prev) => prev || displayName || fallback);
+        }
+      } catch (error) {
+        console.error('Error fetching author from profile:', error);
+      }
+    };
+    fetchAuthor();
+  }, [backendUrl]);
 
   const handlePageNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -34,7 +76,7 @@ export default function AddBlog() {
     if (!pageName || !slug) return;
     setIsSubmitting(true);
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
+      const selectedCategory = categories.find((c) => c._id === categoryId);
 
       // Step 1: Create the blog post
       const response = await fetch(`${backendUrl}/api/blogs`, {
@@ -43,11 +85,12 @@ export default function AddBlog() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ 
-            pageName, 
-            slug, 
+        body: JSON.stringify({
+            pageName,
+            slug,
             status: isPublished ? 'published' : 'draft',
-            category,
+            category: selectedCategory?.name,
+            categories: categoryId ? [categoryId] : [],
             authorName,
             featuredImage,
         }),
@@ -110,20 +153,27 @@ export default function AddBlog() {
                 <Label htmlFor="category" className="flex items-center gap-1">
                   <Tag className="h-3 w-3" /> Category
                 </Label>
-                <Select value={category} onValueChange={setCategory}>
-                  <SelectTrigger id="category">
-                    <SelectValue placeholder="Select Category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Technology">Technology</SelectItem>
-                    <SelectItem value="Design">Design</SelectItem>
-                    <SelectItem value="Business">Business</SelectItem>
-                    <SelectItem value="Marketing">Marketing</SelectItem>
-                    <SelectItem value="Tutorials">Tutorials</SelectItem>
-                    <SelectItem value="Case Studies">Case Studies</SelectItem>
-                    <SelectItem value="General">General</SelectItem>
-                  </SelectContent>
-                </Select>
+                {categories.length > 0 ? (
+                  <Select value={categoryId} onValueChange={setCategoryId}>
+                    <SelectTrigger id="category">
+                      <SelectValue placeholder="Select Category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map((c) => (
+                        <SelectItem key={c._id} value={c._id}>
+                          {c.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    No categories yet.{' '}
+                    <Link href="/dashboard/blogs/categories" className="text-primary underline">
+                      Add a category
+                    </Link>
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="authorName" className="flex items-center gap-1">

@@ -86,7 +86,9 @@ export default function Canvas({ canvasBlocks, viewMode }: CanvasProps) {
   // Tablet/mobile are shown in a true device-width iframe (see below) so real
   // CSS breakpoints fire; desktop stays the fully editable drag-and-drop canvas.
   const isPreview = viewMode !== 'desktop';
-  const deviceWidth = viewMode === 'mobile' ? 480 : 768;
+  // True device viewport widths so the iframe fires accurate CSS breakpoints:
+  // a portrait phone (~390px) and a standard tablet (768px).
+  const deviceWidth = viewMode === 'mobile' ? 390 : 768;
 
   const handleZoomIn = () => {
     if (zoom < 200) setZoom(zoom + 10);
