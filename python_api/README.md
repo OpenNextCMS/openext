@@ -13,7 +13,9 @@ Run:
 
 ```bash
 pip install -r python_api/requirements.txt
-cp python_api/api_keys.txt.example python_api/api_keys.txt  # then add keys locally (never commit)
+# Set keys in .env.local or your shell — never commit them:
+# GROQ_API_KEY=gsk_...
+# OPENROUTER_API_KEY=sk-or-...
 uvicorn python_api.generate_page_json_api:app --host 0.0.0.0 --port 8000 --reload
 ```
 

@@ -12,8 +12,8 @@ from fastapi.responses import JSONResponse
 
 from api_manager import ApiKeyManager
 
-# Initialize API Key Manager
-key_manager = ApiKeyManager("api_keys.txt")
+# Initialize API Key Manager (keys from GROQ_API_KEY / OPENROUTER_API_KEY env vars)
+key_manager = ApiKeyManager()
 
 GROQ_CHAT_COMPLETIONS_URL = "https://api.groq.com/openai/v1/chat/completions"
 OPENROUTER_CHAT_COMPLETIONS_URL = "https://openrouter.ai/api/v1/chat/completions"
