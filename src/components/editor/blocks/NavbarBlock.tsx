@@ -140,6 +140,133 @@ export const NavbarBlock = ({ block, isEditing = true }: BlockRendererProps) => 
     } else {
       window.location.href = href;
     }
+
+    if (isPreview) {
+      const isAnchor = href.startsWith('#');
+      const isExternal = /^https?:\/\//i.test(href);
+      const internalPath = href.startsWith('/') ? href.slice(1) : href;
+      // The preview renderer can only resolve a single top-level page by name
+      // (it splits on '/'). Multi-segment routes like /blog/{slug}, external
+      // links, and anchors must navigate to the real URL instead.
+      const isSinglePage = !isAnchor && !isExternal && !internalPath.includes('/');
+      if (isSinglePage) {
+        const params = new URLSearchParams(searchParams.toString());
+        params.set('pagename', internalPath);
+        router.push(`/preview?${params.toString()}`);
+      } else if (isAnchor) {
+        window.location.hash = href;
+      } else {
+        window.location.href = href;
+      }
+    } else {
+      window.location.href = href;
+    }
+  };
+
+  // Centralized link renderer so merged hrefs/attrs apply across every layout.
+  const renderNavLink = (
+    link: NavbarLink,
+    index: number,
+    className: string,
+    parentId?: string
+  ) => {
+    const directive = !isEditing ? mergedMenu.getFor(link.label, index, parentId) : null;
+    const effectiveHref = directive?.href || link.href;
+    const disabled = directive ? !directive.enabled : false;
+    const target = directive?.openInNewTab ? '_blank' : undefined;
+    const rel =
+      [target ? 'noopener' : '', directive?.nofollow ? 'nofollow' : ''].filter(Boolean).join(' ') ||
+      undefined;
+    const dataAttrs = directive?.dataAttributes
+      ? Object.fromEntries(
+          Object.entries(directive.dataAttributes).map(([k, v]) => [
+            k.startsWith('data-') ? k : `data-${k}`,
+            v,
+          ])
+        )
+      : {};
+    return (
+      <a
+        href={isEditing || disabled ? undefined : effectiveHref}
+        target={target}
+        rel={rel}
+        onClick={(e) => handleNavClick(e, link, directive)}
+        className={`${className} ${directive?.customClass ?? ''}`}
+        style={{ color: block.style?.color || 'var(--color-text, inherit)', ...(disabled ? { opacity: 0.5, cursor: 'not-allowed' } : {}) }}
+        {...dataAttrs}
+      >
+        {link.label}
+      </a>
+    );
+  };
+
+  const renderNavItem = (
+    link: NavbarLink,
+    index: number,
+    className: string,
+    parentId?: string
+  ) => {
+    const itemId = menuItemIdFor(link.label, index, parentId);
+    const pathKey = parentId ? `${parentId}>${itemId}` : itemId;
+    const children = Array.isArray(link.children) ? link.children : [];
+    if (children.length === 0) {
+      return (
+        <span key={itemId}>
+          {renderNavLink(link, index, className, parentId)}
+        </span>
+      );
+    }
+
+    return (
+      <div
+        key={itemId}
+        className="relative flex items-center"
+        onMouseEnter={() => setOpenMenuPath(pathKey)}
+        onMouseLeave={() => setOpenMenuPath((current) => (current?.startsWith(pathKey) ? null : current))}
+      >
+        <div className="flex items-center gap-1">
+          {renderNavLink(link, index, className, parentId)}
+          <ChevronDown className="h-3.5 w-3.5 opacity-70" />
+        </div>
+        {openMenuPath?.startsWith(pathKey) ? (
+          <div
+            className="absolute left-0 top-full z-50 min-w-40 rounded-md border bg-background p-1 shadow-lg"
+            style={{ color: block.style?.color || 'var(--color-text, inherit)' }}
+          >
+            {children.map((child, childIndex) =>
+              renderNavItem(
+                child,
+                childIndex,
+                'block rounded px-3 py-2 text-sm font-medium hover:bg-muted hover:opacity-80 transition-opacity cursor-pointer',
+                pathKey
+              )
+            )}
+          </div>
+        ) : null}
+      </div>
+    );
+  };
+
+  const renderNavStackItem = (
+    link: NavbarLink,
+    index: number,
+    className: string,
+    parentId?: string
+  ) => {
+    const itemId = menuItemIdFor(link.label, index, parentId);
+    const children = Array.isArray(link.children) ? link.children : [];
+    return (
+      <div key={itemId} className="flex flex-col gap-2">
+        {renderNavLink(link, index, className, parentId)}
+        {children.length > 0 ? (
+          <div className="ml-4 flex flex-col gap-2 border-l pl-3">
+            {children.map((child, childIndex) =>
+              renderNavStackItem(child, childIndex, className, itemId)
+            )}
+          </div>
+        ) : null}
+      </div>
+    );
   };
 
   // Centralized link renderer so merged hrefs/attrs apply across every layout.
