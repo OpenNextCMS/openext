@@ -1,17 +1,10 @@
 import { NextResponse } from 'next/server';
-import { getDynamicEnv } from '@/utils/dynamicEnv';
+import { clearTokenCookieOptions } from '@/lib/api/token-cookie';
 
-export async function GET() {
+export async function GET(request: Request) {
   const response = NextResponse.json({ message: 'Logged out' });
 
-  // Correctly clear the token by setting an expired date
-  response.cookies.set('token', '', {
-    path: '/', // Ensure it's the same path used when setting the cookie
-    httpOnly: true,
-    secure: getDynamicEnv().NODE_ENV === 'production', // Only secure in production
-    sameSite: 'strict',
-    expires: new Date(0), // Immediately expire the cookie
-  });
+  response.cookies.set('token', '', clearTokenCookieOptions(request));
 
   return response;
 }

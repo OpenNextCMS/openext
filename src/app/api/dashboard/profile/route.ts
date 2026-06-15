@@ -6,6 +6,7 @@ import { getUserDbConnection, getUserModel } from '@/utils/db';
 import { cookies } from 'next/headers';
 import { getDynamicEnv } from '@/utils/dynamicEnv';
 import { signJwt } from '@/utils/jwt';
+import { tokenCookieOptions } from '@/lib/api/token-cookie';
 
 export async function GET() {
   try {
@@ -118,12 +119,7 @@ export async function POST(req: NextRequest) {
       message: 'Profile updated successfully',
     });
 
-    response.cookies.set('token', newToken, {
-      httpOnly: true,
-      secure: getDynamicEnv().NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 86400,
-    });
+    response.cookies.set('token', newToken, tokenCookieOptions(req));
 
     return response;
   } catch (error: unknown) {

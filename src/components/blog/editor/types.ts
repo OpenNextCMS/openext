@@ -14,6 +14,7 @@ export interface EditorPost {
   seo: BlogSeo;
   status: BlogStatus;
   scheduledAt?: string | null;
+  commentsEnabled: boolean;
 }
 
 export interface Option {
@@ -40,5 +41,6 @@ export function emptyPost(): EditorPost {
     seo: { index: true },
     status: 'draft',
     scheduledAt: null,
+    commentsEnabled: true,
   };
 }

@@ -95,6 +95,7 @@ export default function BlogEditor({ id }: { id: string }) {
           seo: b.seo ?? { index: true },
           status: b.status ?? 'draft',
           scheduledAt: b.scheduledAt ?? null,
+          commentsEnabled: b.commentsEnabled !== false,
         });
       })
       .catch(() => toast.error('Failed to load post'))
@@ -173,6 +174,7 @@ export default function BlogEditor({ id }: { id: string }) {
           tags: snap.post.tags,
           contentBlocks: snap.post.contentBlocks,
           seo: snap.post.seo,
+          commentsEnabled: snap.post.commentsEnabled,
           ...(opts.status ? { status: opts.status } : {}),
           ...(opts.scheduledAt !== undefined ? { scheduledAt: opts.scheduledAt } : {}),
         };

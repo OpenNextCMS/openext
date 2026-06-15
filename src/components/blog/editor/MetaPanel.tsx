@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import type { EditorPost, EditorOptions } from './types';
 
 interface Props {
@@ -184,6 +185,20 @@ export default function MetaPanel({ post, options, onField, slugEdited, onSlugEd
             ))
           )}
         </div>
+      </div>
+
+      <div className="flex items-center justify-between rounded-md border p-3">
+        <div className="space-y-0.5">
+          <Label htmlFor="comments-enabled">Comment section</Label>
+          <p className="text-xs text-muted-foreground">
+            Allow readers to leave comments on this post.
+          </p>
+        </div>
+        <Switch
+          id="comments-enabled"
+          checked={post.commentsEnabled}
+          onCheckedChange={(checked) => onField('commentsEnabled', checked)}
+        />
       </div>
     </div>
   );

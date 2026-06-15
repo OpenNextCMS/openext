@@ -51,6 +51,7 @@ const BlogPostSchema = new Schema<IBlogPostDocument>(
     readingTime: { type: Number, default: 0 },
     views: { type: Number, default: 0 },
     slugHistory: { type: [String], default: [] },
+    commentsEnabled: { type: Boolean, default: true },
   },
   { timestamps: true }
 );
