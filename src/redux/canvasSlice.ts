@@ -593,6 +593,20 @@ const canvasSlice = createSlice({
     },
     setSelectedPart: (state, action: PayloadAction<string | null>) => {
       state.selectedPart = action.payload;
+<<<<<<< HEAD
+    },
+    // Select a block AND a sub-element part in one dispatch (used by click-to-
+    // select on the canvas). setSelectedBlock alone clears selectedPart, so the
+    // two must be set together.
+    selectElement: (
+      state,
+      action: PayloadAction<{ block: BlockData; part: string | null }>
+    ) => {
+      state.selectedBlock = action.payload.block;
+      state.selectedPart = action.payload.part;
+      state.selectedLabel = action.payload.block.label || state.selectedLabel;
+=======
+>>>>>>> khadija
     },
     // Select a block AND a sub-element part in one dispatch (used by click-to-
     // select on the canvas). setSelectedBlock alone clears selectedPart, so the
@@ -671,6 +685,7 @@ const canvasSlice = createSlice({
               };
             }
 
+>>>>>>> khadija
             return block;
           };
 
