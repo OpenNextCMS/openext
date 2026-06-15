@@ -1,10 +1,7 @@
 ﻿import React from 'react';
 
 import { InlineEditableText } from '@/components/editor/InlineEditableText';
-<<<<<<< HEAD
 import { EditableElement } from '@/components/editor/EditableElement';
-=======
->>>>>>> khadija
 import type { BlockRendererProps } from '@/types/index';
 import { useAppDispatch } from '@/redux/hooks';
 import { updateBlockContent } from '@/redux/canvasSlice';
@@ -33,7 +30,6 @@ export const EcommerceInfo = ({ block, isEditing = false }: BlockRendererProps) 
   };
 
   return (
-<<<<<<< HEAD
     <section className="text-[color:var(--color-muted,#4b5563)] body-font overflow-hidden w-full" style={block.style}>
       <div className="container px-5 py-24 mx-auto">
         <div className="lg:w-4/5 mx-auto flex flex-wrap">
@@ -43,26 +39,14 @@ export const EcommerceInfo = ({ block, isEditing = false }: BlockRendererProps) 
             path="cardStyle"
             className="lg:w-1/2 w-full lg:pr-10 lg:py-6 mb-6 lg:mb-0"
           >
-=======
-    <section className="text-gray-600 body-font overflow-hidden w-full" style={block.style}>
-      <div className="container px-5 py-24 mx-auto">
-        <div className="lg:w-4/5 mx-auto flex flex-wrap">
-          <div className="lg:w-1/2 w-full lg:pr-10 lg:py-6 mb-6 lg:mb-0">
->>>>>>> khadija
             <InlineEditableText
               tagName="h2"
               value={content.brand || 'BRAND NAME'}
               onBlur={(v) => handleUpdate('brand', v)}
               isEditing={isEditing}
-<<<<<<< HEAD
               className="text-sm title-font text-[color:var(--color-muted,#6b7280)] tracking-widest uppercase"
               style={{ 
                 color: block.style?.color || 'var(--color-text, #111827)', 
-=======
-              className="text-sm title-font text-gray-500 tracking-widest uppercase"
-              style={{ 
-                color: block.style?.color, 
->>>>>>> khadija
                 fontFamily: block.style?.fontFamily,
                 ...content.brandStyle 
               }}
@@ -72,29 +56,17 @@ export const EcommerceInfo = ({ block, isEditing = false }: BlockRendererProps) 
               value={content.title || 'Product Title'}
               onBlur={(v) => handleUpdate('title', v)}
               isEditing={isEditing}
-<<<<<<< HEAD
               className="text-[color:var(--color-text,#111827)] text-3xl title-font font-medium mb-4"
               style={{ 
                 color: block.style?.color || 'var(--color-text, #111827)', 
-=======
-              className="text-gray-900 text-3xl title-font font-medium mb-4"
-              style={{ 
-                color: block.style?.color, 
->>>>>>> khadija
                 fontFamily: block.style?.fontFamily,
                 ...content.titleStyle 
               }}
             />
             <div className="flex mb-4">
-<<<<<<< HEAD
               <a className="flex-grow text-[color:var(--color-primary,#6366f1)] border-b-2 border-indigo-500 py-2 text-lg px-1 cursor-pointer" style={{ fontFamily: block.style?.fontFamily }}>Description</a>
               <a className="flex-grow border-b-2 border-gray-300 py-2 text-lg px-1 cursor-pointer" style={{ color: block.style?.color || 'var(--color-text, #111827)', fontFamily: block.style?.fontFamily }}>Reviews</a>
               <a className="flex-grow border-b-2 border-gray-300 py-2 text-lg px-1 cursor-pointer" style={{ color: block.style?.color || 'var(--color-text, #111827)', fontFamily: block.style?.fontFamily }}>Details</a>
-=======
-              <a className="flex-grow text-indigo-500 border-b-2 border-indigo-500 py-2 text-lg px-1 cursor-pointer" style={{ fontFamily: block.style?.fontFamily }}>Description</a>
-              <a className="flex-grow border-b-2 border-gray-300 py-2 text-lg px-1 cursor-pointer" style={{ color: block.style?.color, fontFamily: block.style?.fontFamily }}>Reviews</a>
-              <a className="flex-grow border-b-2 border-gray-300 py-2 text-lg px-1 cursor-pointer" style={{ color: block.style?.color, fontFamily: block.style?.fontFamily }}>Details</a>
->>>>>>> khadija
             </div>
             <InlineEditableText
               tagName="p"
@@ -103,17 +75,12 @@ export const EcommerceInfo = ({ block, isEditing = false }: BlockRendererProps) 
               isEditing={isEditing}
               className="leading-relaxed mb-4"
               style={{ 
-<<<<<<< HEAD
                 color: block.style?.color || 'var(--color-text, #111827)', 
-=======
-                color: block.style?.color, 
->>>>>>> khadija
                 fontFamily: block.style?.fontFamily,
                 ...content.descriptionStyle 
               }}
             />
             <div className="flex border-t border-gray-200 py-2">
-<<<<<<< HEAD
               <span className="text-[color:var(--color-muted,#6b7280)]" style={{ color: block.style?.color || 'var(--color-text, #111827)', fontFamily: block.style?.fontFamily }}>Color</span>
               <span className="ml-auto text-[color:var(--color-text,#111827)]" style={{ color: block.style?.color || 'var(--color-text, #111827)', fontFamily: block.style?.fontFamily }}>{content.color || 'Blue'}</span>
             </div>
@@ -124,18 +91,6 @@ export const EcommerceInfo = ({ block, isEditing = false }: BlockRendererProps) 
             <div className="flex border-t border-b mb-6 border-gray-200 py-2">
               <span className="text-[color:var(--color-muted,#6b7280)]" style={{ color: block.style?.color || 'var(--color-text, #111827)', fontFamily: block.style?.fontFamily }}>Quantity</span>
               <span className="ml-auto text-[color:var(--color-text,#111827)]" style={{ color: block.style?.color || 'var(--color-text, #111827)', fontFamily: block.style?.fontFamily }}>{content.quantity || '4'}</span>
-=======
-              <span className="text-gray-500" style={{ color: block.style?.color, fontFamily: block.style?.fontFamily }}>Color</span>
-              <span className="ml-auto text-gray-900" style={{ color: block.style?.color, fontFamily: block.style?.fontFamily }}>{content.color || 'Blue'}</span>
-            </div>
-            <div className="flex border-t border-gray-200 py-2">
-              <span className="text-gray-500" style={{ color: block.style?.color, fontFamily: block.style?.fontFamily }}>Size</span>
-              <span className="ml-auto text-gray-900" style={{ color: block.style?.color, fontFamily: block.style?.fontFamily }}>{content.size || 'Medium'}</span>
-            </div>
-            <div className="flex border-t border-b mb-6 border-gray-200 py-2">
-              <span className="text-gray-500" style={{ color: block.style?.color, fontFamily: block.style?.fontFamily }}>Quantity</span>
-              <span className="ml-auto text-gray-900" style={{ color: block.style?.color, fontFamily: block.style?.fontFamily }}>{content.quantity || '4'}</span>
->>>>>>> khadija
             </div>
             <div className="flex">
               <InlineEditableText
@@ -143,20 +98,13 @@ export const EcommerceInfo = ({ block, isEditing = false }: BlockRendererProps) 
                 value={content.price || '$0.00'}
                 onBlur={(v) => handleUpdate('price', v)}
                 isEditing={isEditing}
-<<<<<<< HEAD
                 className="title-font font-medium text-2xl text-[color:var(--color-text,#111827)]"
                 style={{ 
                   color: block.style?.color || 'var(--color-text, #111827)', 
-=======
-                className="title-font font-medium text-2xl text-gray-900"
-                style={{ 
-                  color: block.style?.color, 
->>>>>>> khadija
                   fontFamily: block.style?.fontFamily,
                   ...content.priceStyle 
                 }}
               />
-<<<<<<< HEAD
               <EditableElement
                 as="button"
                 block={block}
@@ -164,14 +112,6 @@ export const EcommerceInfo = ({ block, isEditing = false }: BlockRendererProps) 
                 path="buttonStyle"
                 className="flex ml-auto text-white bg-[var(--color-primary,#6366f1)] border-0 py-2 px-6 focus:outline-none hover:bg-[var(--color-primary,#4f46e5)] rounded"
                 baseStyle={{ fontFamily: block.style?.fontFamily }}
-=======
-              <button 
-                className="flex ml-auto text-white bg-indigo-500 border-0 py-2 px-6 focus:outline-none hover:bg-indigo-600 rounded" 
-                style={{ 
-                  fontFamily: block.style?.fontFamily,
-                  ...content.buttonStyle 
-                }}
->>>>>>> khadija
               >
                 <InlineEditableText
                   value={content.buttonText || 'Button'}
@@ -179,19 +119,13 @@ export const EcommerceInfo = ({ block, isEditing = false }: BlockRendererProps) 
                   isEditing={isEditing}
                   tagName="span"
                 />
-<<<<<<< HEAD
               </EditableElement>
               <button className="rounded-full w-10 h-10 bg-[var(--color-surface,#e5e7eb)] p-0 border-0 inline-flex items-center justify-center text-[color:var(--color-muted,#6b7280)] ml-4">
-=======
-              </button>
-              <button className="rounded-full w-10 h-10 bg-gray-200 p-0 border-0 inline-flex items-center justify-center text-gray-500 ml-4">
->>>>>>> khadija
                 <svg fill="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" className="w-5 h-5" viewBox="0 0 24 24">
                   <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"></path>
                 </svg>
               </button>
             </div>
-<<<<<<< HEAD
           </EditableElement>
           <EditableElement
             as="img"
@@ -201,10 +135,6 @@ export const EcommerceInfo = ({ block, isEditing = false }: BlockRendererProps) 
             className="lg:w-1/2 w-full lg:h-auto h-64 object-cover object-center rounded"
             extraProps={{ alt: "ecommerce", src: content.image || "https://dummyimage.com/400x400" }}
           />
-=======
-          </div>
-          <img alt="ecommerce" className="lg:w-1/2 w-full lg:h-auto h-64 object-cover object-center rounded" src={content.image || "https://dummyimage.com/400x400"} />
->>>>>>> khadija
         </div>
       </div>
     </section>

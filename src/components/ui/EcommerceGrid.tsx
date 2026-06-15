@@ -1,10 +1,7 @@
 ﻿import React from 'react';
 
 import { InlineEditableText } from '@/components/editor/InlineEditableText';
-<<<<<<< HEAD
 import { EditableElement } from '@/components/editor/EditableElement';
-=======
->>>>>>> khadija
 import type { BlockRendererProps } from '@/types/index';
 import type { BlockContentItem } from '@/types/blockContent';
 import { useAppDispatch } from '@/redux/hooks';
@@ -52,7 +49,6 @@ export const EcommerceGrid = ({ block, isEditing = false }: BlockRendererProps) 
   ];
 
   return (
-<<<<<<< HEAD
     <section className="text-[color:var(--color-muted,#4b5563)] body-font w-full" style={block.style}>
       <div className="container px-5 py-24 mx-auto">
         <div className="flex flex-wrap -m-4">
@@ -73,31 +69,15 @@ export const EcommerceGrid = ({ block, isEditing = false }: BlockRendererProps) 
               >
                 <img alt="ecommerce" className="object-cover object-center w-full h-full block" src={product.image} />
               </EditableElement>
-=======
-    <section className="text-gray-600 body-font w-full" style={block.style}>
-      <div className="container px-5 py-24 mx-auto">
-        <div className="flex flex-wrap -m-4">
-          {products.map((product: BlockContentItem, index: number) => (
-            <div key={index} className="lg:w-1/4 md:w-1/2 p-4 w-full">
-              <a className="block relative h-48 rounded overflow-hidden">
-                <img alt="ecommerce" className="object-cover object-center w-full h-full block" src={product.image} />
-              </a>
->>>>>>> khadija
               <div className="mt-4">
                 <InlineEditableText
                   tagName="h3"
                   value={product.category || 'CATEGORY'}
                   onBlur={(v) => updateProduct(index, 'category', v)}
                   isEditing={isEditing}
-<<<<<<< HEAD
                   className="text-[color:var(--color-muted,#6b7280)] text-xs tracking-widest title-font mb-1"
                   style={{ 
                     color: block.style?.color || 'var(--color-text, #111827)', 
-=======
-                  className="text-gray-500 text-xs tracking-widest title-font mb-1"
-                  style={{ 
-                    color: block.style?.color, 
->>>>>>> khadija
                     fontFamily: block.style?.fontFamily,
                     ...content.productCategoryStyle 
                   }}
@@ -107,15 +87,9 @@ export const EcommerceGrid = ({ block, isEditing = false }: BlockRendererProps) 
                   value={product.title || 'Product Title'}
                   onBlur={(v) => updateProduct(index, 'title', v)}
                   isEditing={isEditing}
-<<<<<<< HEAD
                   className="text-[color:var(--color-text,#111827)] title-font text-lg font-medium"
                   style={{ 
                     color: block.style?.color || 'var(--color-text, #111827)', 
-=======
-                  className="text-gray-900 title-font text-lg font-medium"
-                  style={{ 
-                    color: block.style?.color, 
->>>>>>> khadija
                     fontFamily: block.style?.fontFamily,
                     ...content.productTitleStyle 
                   }}
@@ -127,21 +101,13 @@ export const EcommerceGrid = ({ block, isEditing = false }: BlockRendererProps) 
                   isEditing={isEditing}
                   className="mt-1"
                   style={{ 
-<<<<<<< HEAD
                     color: block.style?.color || 'var(--color-text, #111827)', 
-=======
-                    color: block.style?.color, 
->>>>>>> khadija
                     fontFamily: block.style?.fontFamily,
                     ...content.productPriceStyle 
                   }}
                 />
               </div>
-<<<<<<< HEAD
             </EditableElement>
-=======
-            </div>
->>>>>>> khadija
           ))}
         </div>
       </div>

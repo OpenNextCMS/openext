@@ -3,10 +3,7 @@ import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import RenderBlock from './renderblock';
-<<<<<<< HEAD
 import { DevicePreviewFrame } from './DevicePreviewFrame';
-=======
->>>>>>> khadija
 import { GripVertical, LayoutGrid, PlusSquare, MousePointerClick, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { Block, BlockData } from '@/types/index';

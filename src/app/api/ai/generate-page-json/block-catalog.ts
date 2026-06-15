@@ -466,8 +466,4 @@ export const aiEditorBlockPromptCatalog = JSON.stringify(
   2
 );
 
-<<<<<<< HEAD
 // Hello Saurav
-=======
-// Hello Saurav
->>>>>>> khadija

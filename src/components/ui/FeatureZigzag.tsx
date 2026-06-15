@@ -1,10 +1,7 @@
 ﻿import React from 'react';
 
 import { InlineEditableText } from '@/components/editor/InlineEditableText';
-<<<<<<< HEAD
 import { EditableElement } from '@/components/editor/EditableElement';
-=======
->>>>>>> khadija
 import type { BlockRendererProps } from '@/types/index';
 import type { BlockContentItem } from '@/types/blockContent';
 import { useAppDispatch } from '@/redux/hooks';
@@ -47,25 +44,17 @@ export const FeatureZigzag = ({ block, isEditing = false }: BlockRendererProps) 
   ];
 
   return (
-<<<<<<< HEAD
     <section className="text-[color:var(--color-muted,#4b5563)] body-font w-full" style={block.style}>
-=======
-    <section className="text-gray-600 body-font w-full" style={block.style}>
->>>>>>> khadija
       <div className="container px-5 py-24 mx-auto">
         {features.map((feature: BlockContentItem, index: number) => {
           const isEven = index % 2 === 1;
           const icon = (
-<<<<<<< HEAD
             <EditableElement
               block={block}
               isEditing={isEditing}
               path={`features.${index}.iconStyle`}
               className={`sm:w-32 sm:h-32 h-20 w-20 inline-flex items-center justify-center rounded-full bg-[var(--color-surface,#e0e7ff)] text-[color:var(--color-primary,#6366f1)] flex-shrink-0 overflow-hidden ${isEven ? 'sm:ml-10 sm:order-none order-first' : 'sm:mr-10'}`}
             >
-=======
-            <div className={`sm:w-32 sm:h-32 h-20 w-20 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0 overflow-hidden ${isEven ? 'sm:ml-10 sm:order-none order-first' : 'sm:mr-10'}`}>
->>>>>>> khadija
               {feature.image ? (
                 <img src={feature.image} alt={feature.title} className="w-full h-full object-cover" />
               ) : (
@@ -75,11 +64,7 @@ export const FeatureZigzag = ({ block, isEditing = false }: BlockRendererProps) 
                   {index === 2 && <circle cx="12" cy="7" r="4"></circle>}
                 </svg>
               )}
-<<<<<<< HEAD
             </EditableElement>
-=======
-            </div>
->>>>>>> khadija
           );
 
           const textContent = (
@@ -89,15 +74,9 @@ export const FeatureZigzag = ({ block, isEditing = false }: BlockRendererProps) 
                 value={feature.title || 'Feature Title'}
                 onBlur={(v) => updateFeature(index, 'title', v)}
                 isEditing={isEditing}
-<<<<<<< HEAD
                 className="text-[color:var(--color-text,#111827)] text-lg title-font font-medium mb-2"
                 style={{ 
                   color: block.style?.color || 'var(--color-text, #111827)', 
-=======
-                className="text-gray-900 text-lg title-font font-medium mb-2"
-                style={{ 
-                  color: block.style?.color, 
->>>>>>> khadija
                   fontFamily: block.style?.fontFamily,
                   ...content.featureTitleStyle 
                 }}
@@ -109,16 +88,11 @@ export const FeatureZigzag = ({ block, isEditing = false }: BlockRendererProps) 
                 isEditing={isEditing}
                 className="leading-relaxed text-base"
                 style={{ 
-<<<<<<< HEAD
                   color: block.style?.color || 'var(--color-text, #111827)', 
-=======
-                  color: block.style?.color, 
->>>>>>> khadija
                   fontFamily: block.style?.fontFamily,
                   ...content.featureDescriptionStyle 
                 }}
               />
-<<<<<<< HEAD
               <EditableElement
                 as="a"
                 block={block}
@@ -127,13 +101,6 @@ export const FeatureZigzag = ({ block, isEditing = false }: BlockRendererProps) 
                 className="mt-3 text-[color:var(--color-primary,#6366f1)] inline-flex items-center cursor-pointer"
                 baseStyle={{ fontFamily: block.style?.fontFamily }}
                 extraProps={{ href: isEditing ? undefined : (feature.url || content.linkUrl || '#') }}
-=======
-              <a 
-                href={isEditing ? undefined : (feature.url || content.linkUrl || '#')}
-                className="mt-3 text-indigo-500 inline-flex items-center cursor-pointer" 
-                style={{ fontFamily: block.style?.fontFamily }}
-                onClick={(e) => isEditing && e.preventDefault()}
->>>>>>> khadija
               >
                 <InlineEditableText
                   tagName="span"
@@ -144,16 +111,11 @@ export const FeatureZigzag = ({ block, isEditing = false }: BlockRendererProps) 
                 <svg fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" className="w-4 h-4 ml-2" viewBox="0 0 24 24">
                   <path d="M5 12h14M12 5l7 7-7 7"></path>
                 </svg>
-<<<<<<< HEAD
               </EditableElement>
-=======
-              </a>
->>>>>>> khadija
             </div>
           );
 
           return (
-<<<<<<< HEAD
             <EditableElement
               key={index}
               block={block}
@@ -161,9 +123,6 @@ export const FeatureZigzag = ({ block, isEditing = false }: BlockRendererProps) 
               path={`features.${index}.cardStyle`}
               className={`flex items-center lg:w-3/5 mx-auto sm:flex-row flex-col ${index !== features.length - 1 ? 'border-b pb-10 mb-10 border-gray-200' : ''}`}
             >
-=======
-            <div key={index} className={`flex items-center lg:w-3/5 mx-auto sm:flex-row flex-col ${index !== features.length - 1 ? 'border-b pb-10 mb-10 border-gray-200' : ''}`}>
->>>>>>> khadija
               {!isEven ? (
                 <>
                   {icon}
@@ -175,11 +134,7 @@ export const FeatureZigzag = ({ block, isEditing = false }: BlockRendererProps) 
                   {icon}
                 </>
               )}
-<<<<<<< HEAD
             </EditableElement>
-=======
-            </div>
->>>>>>> khadija
           );
         })}
         <InlineEditableText
@@ -187,11 +142,7 @@ export const FeatureZigzag = ({ block, isEditing = false }: BlockRendererProps) 
           value={content.buttonText || 'Button'}
           onBlur={(v) => handleUpdate('buttonText', v)}
           isEditing={isEditing}
-<<<<<<< HEAD
           className="flex mx-auto mt-20 text-white bg-[var(--color-primary,#6366f1)] border-0 py-2 px-8 focus:outline-none hover:bg-[var(--color-primary,#4f46e5)] rounded text-lg text-center"
-=======
-          className="flex mx-auto mt-20 text-white bg-indigo-500 border-0 py-2 px-8 focus:outline-none hover:bg-indigo-600 rounded text-lg text-center"
->>>>>>> khadija
           style={{ 
             fontFamily: block.style?.fontFamily,
             ...content.buttonStyle 

@@ -43,10 +43,6 @@ import { NavbarProperties } from './NavbarProperties';
 import { TextBlockProperties } from './standard/TextBlockProperties';
 import { ImageBlockProperties } from './standard/ImageBlockProperties';
 import { CardBlockProperties } from './standard/CardBlockProperties';
-<<<<<<< HEAD
-=======
-import { BlogFeedProperties } from './BlogFeedProperties';
->>>>>>> khadija
 
 function applyColorsRecursively(
   blocks: BlockData[],
@@ -161,7 +157,6 @@ export default function ElementProperties() {
   const isInputBlock = selectedBlock?.type === 'input';
   const isChoiceBlock = selectedBlock?.type === 'radio' || selectedBlock?.type === 'checkbox';
   const isImageBlock = selectedBlock?.type === 'image';
-  const isBlogFeedBlock = selectedBlock?.type === 'blog-feed';
   const isCardBlock = selectedBlock?.type === 'card';
   const isNavbarBlock = selectedBlock?.type === 'nav-bar';
   const isShapeDividerBlock = selectedBlock?.type === 'shape-divider';
@@ -909,10 +904,6 @@ export default function ElementProperties() {
             <NavbarProperties
               selectedBlock={selectedBlock}
               navbarContent={navbarContent}
-<<<<<<< HEAD
-=======
-              availablePages={availablePages}
->>>>>>> khadija
               handleJsonContentChange={handleJsonContentChange}
               handleImageUpload={handleImageUpload}
               isUploadingImage={isUploadingImage}
@@ -1062,16 +1053,12 @@ export default function ElementProperties() {
                 );
               }
 
-<<<<<<< HEAD
               if (
                 selectedBlock!.type === 'slider' ||
                 String(selectedBlock!.type) === 'casarole' ||
                 pluginName.includes('slider') ||
                 pluginName.includes('casarole')
               ) {
-=======
-              if (pluginName.includes('slider') || pluginName.includes('casarole')) {
->>>>>>> khadija
                 return (
                   <SliderPluginProperties
                     content={content}
