@@ -121,7 +121,9 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
             <BlockRenderer blocks={post.contentBlocks} />
           </div>
 
-          <CommentsSection blogId={String(post._id)} />
+          {post.commentsEnabled !== false ? (
+            <CommentsSection blogId={String(post._id)} />
+          ) : null}
         </div>
         </article>
       </BlogThemeProvider>

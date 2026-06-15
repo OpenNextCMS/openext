@@ -18,6 +18,7 @@ export const createBlogSchema = z.object({
   seo: blogSeoSchema.optional(),
   status: blogStatusEnum.optional(),
   scheduledAt: z.coerce.date().optional(),
+  commentsEnabled: z.boolean().optional(),
 });
 
 export const updateBlogSchema = createBlogSchema.partial();

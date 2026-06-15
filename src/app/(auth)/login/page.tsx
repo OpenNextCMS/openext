@@ -112,7 +112,8 @@ export default function LoginPage() {
       }
 
       handleSuccess(true, null, 'Login Successful');
-      router.push('/dashboard'); // Redirect to root URL
+      router.refresh();
+      router.replace('/dashboard');
     } catch (err) {
       handleError(err, err instanceof Error ? err.message : t.login.generalError);
     } finally {

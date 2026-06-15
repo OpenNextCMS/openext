@@ -1,9 +1,9 @@
 import { NextRequest } from 'next/server';
 import type { FilterQuery } from 'mongoose';
-import { getPageDbConnection, getCommentModel } from '@/utils/db';
+import { getPageDbConnection, getCommentModel, getBlogPostModel } from '@/utils/db';
 import type { ICommentDocument } from '@/types/index';
 import { getAuthUser } from '@/lib/api/auth';
-import { apiOk, handleApiError } from '@/lib/api/response';
+import { apiOk, apiError, handleApiError } from '@/lib/api/response';
 import { parsePagination } from '@/lib/api/pagination';
 import { createCommentSchema } from '@/lib/validation/comment';
 
@@ -58,7 +58,16 @@ export async function POST(req: NextRequest) {
   try {
     const body = createCommentSchema.parse(await req.json());
     const pageDb = await getPageDbConnection();
+    const BlogPost = getBlogPostModel(pageDb);
     const Comment = getCommentModel(pageDb);
+
+    const blog = await BlogPost.findById(body.blogId).select('commentsEnabled').lean().exec();
+    if (!blog) {
+      return apiError('Blog post not found', 404);
+    }
+    if ((blog as { commentsEnabled?: boolean }).commentsEnabled === false) {
+      return apiError('Comments are disabled for this post', 403);
+    }
 
     const created = await Comment.create({ ...body, status: 'pending' });
     return apiOk(

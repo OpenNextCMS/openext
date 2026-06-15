@@ -285,6 +285,8 @@ export interface IBlogPostDocument extends Document {
   views?: number;
   /** Previous slugs, for SEO-friendly redirects (Phase 6). */
   slugHistory?: string[];
+  /** When false, the public comment section is hidden for this post. */
+  commentsEnabled?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
 }

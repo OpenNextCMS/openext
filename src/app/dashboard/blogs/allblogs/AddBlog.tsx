@@ -279,7 +279,6 @@ export default function AddBlog() {
                 ) : null}
               </div>
               {featuredImage ? (
-                // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={featuredImage}
                   alt="Featured preview"
