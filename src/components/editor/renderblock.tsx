@@ -48,10 +48,7 @@ import { BlogFeed } from '@/components/ui/BlogFeed';
 import { EcommerceGrid } from '@/components/ui/EcommerceGrid';
 import { EcommerceDetail } from '@/components/ui/EcommerceDetail';
 import { EcommerceInfo } from '@/components/ui/EcommerceInfo';
-<<<<<<< HEAD
 import { FormBlock } from '@/components/form-builder/blocks/FormBlock';
-=======
->>>>>>> khadija
 
 const blockComponents: Record<string, React.ComponentType<BlockRendererProps>> = {
   column: ColumnBlock,
@@ -67,10 +64,7 @@ const blockComponents: Record<string, React.ComponentType<BlockRendererProps>> =
   stats: StatsBlock,
   progress: ProgressBarBlock,
   countdown: CountdownBlock,
-<<<<<<< HEAD
   'form-block': FormBlock,
-=======
->>>>>>> khadija
 };
 
 const genericUiBlocks: Record<string, { component: React.ComponentType<BlockRendererProps>; label: string }> = {

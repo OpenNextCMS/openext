@@ -24,19 +24,11 @@ export async function GET() {
 
     if (token) {
       try {
-<<<<<<< HEAD
         const decodedToken = jwtDecode<{ email?: string }>(token);
         if (decodedToken && decodedToken.email) {
           isAuthenticated = true;
         }
       } catch {
-=======
-        const decodedToken: any = jwtDecode(token);
-        if (decodedToken && decodedToken.email) {
-          isAuthenticated = true;
-        }
-      } catch (e) {
->>>>>>> khadija
         console.warn('Invalid token found, treating as unauthenticated');
       }
     }

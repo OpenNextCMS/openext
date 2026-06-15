@@ -10,14 +10,10 @@ type BlockWithReactNodeIcon = Omit<Block, 'icon'> & {
 const commonBlockStyle = {
   padding: '16px',
   border: '1px solid rgb(229, 231, 235)',
-<<<<<<< HEAD
   // Token-bound default: follows the active theme's radius, falls back to the
   // original 8px when no theme is active. An explicit value set in the Style
   // sidebar still overrides this.
   borderRadius: 'var(--radius-md, 8px)',
-=======
-  borderRadius: '8px',
->>>>>>> khadija
   boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
   transition: 'all 0.2s ease-in-out',
 };
@@ -86,10 +82,7 @@ export const layoutBlocks: BlockWithReactNodeIcon[] = [
     content: JSON.stringify({
       logo: 'Brand',
       logoType: 'text',
-<<<<<<< HEAD
       logoSource: 'custom',
-=======
->>>>>>> khadija
       logoImage: '',
       links: [
         { label: 'Home', href: '#', onClick: 'none', onClickValue: '' },
@@ -102,13 +95,9 @@ export const layoutBlocks: BlockWithReactNodeIcon[] = [
     description: 'Navigation bar with logo and links',
     style: {
       width: '100%',
-<<<<<<< HEAD
       // Token-bound default so the header adopts the active theme's surface
       // colour; falls back to white when no theme is active.
       backgroundColor: 'var(--color-surface, #ffffff)',
-=======
-      backgroundColor: '#ffffff',
->>>>>>> khadija
     },
   },
 ];

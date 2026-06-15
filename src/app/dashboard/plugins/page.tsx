@@ -115,17 +115,10 @@ const marketplacePlugins = [
   },
   {
     id: '7',
-<<<<<<< HEAD
     name: 'Slider',
     version: '2.0.0',
     description: 'Create banners, cards, products, and content sliders.',
     author: 'OpenNext',
-=======
-    name: 'Casarole Slider',
-    version: '1.0.0',
-    description: 'A beautiful and responsive carousel slider for your content',
-    author: 'SliderPro',
->>>>>>> khadija
     downloads: '1.2k',
     rating: 4.8,
     icon: '🎠',

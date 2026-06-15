@@ -63,12 +63,7 @@ export default function Typography() {
       if (selectedPart) {
         try {
           const content = JSON.parse(selectedBlock.content);
-<<<<<<< HEAD
           style = getStyleAtPath(content, selectedPart);
-=======
-          const partStyleKey = selectedPart.endsWith('Style') ? selectedPart : `${selectedPart}Style`;
-          style = content[partStyleKey] || {};
->>>>>>> khadija
         } catch {
           style = {};
         }
@@ -89,12 +84,7 @@ export default function Typography() {
     
     // Sync font color
     const rawColor = style.color ? String(style.color) : '#000000';
-<<<<<<< HEAD
     setTextColor(toPickerHex(rawColor));
-=======
-    const hex = rawColor.includes('rgb') ? rgbToHex(rawColor) : rawColor;
-    setTextColor(hex);
->>>>>>> khadija
   }, [selectedBlock, selectedPart]);
 
   // Generic handler to update style

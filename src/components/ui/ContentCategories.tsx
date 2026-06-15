@@ -2,10 +2,7 @@
 import { useAppDispatch } from '@/redux/hooks';
 import { updateBlockContent, setSelectedBlock, setSelectedLabel } from '@/redux/canvasSlice';
 import { InlineEditableText } from '@/components/editor/InlineEditableText';
-<<<<<<< HEAD
 import { EditableElement } from '@/components/editor/EditableElement';
-=======
->>>>>>> khadija
 import type { BlockRendererProps, BlockData } from '@/types/index';
 import type { BlockContentItem } from '@/types/blockContent';
 
@@ -39,7 +36,6 @@ export const ContentCategories = ({ block, isEditing = false }: BlockRendererPro
     dispatch(setSelectedLabel('Content Categories'));
   };
 
-<<<<<<< HEAD
   const rawLinks = React.useMemo(
     () =>
       content.links || [
@@ -48,12 +44,6 @@ export const ContentCategories = ({ block, isEditing = false }: BlockRendererPro
       ],
     [content.links]
   );
-=======
-  const rawLinks = content.links || [
-    'First Link', 'Second Link', 'Third Link', 'Fourth Link',
-    'Fifth Link', 'Sixth Link', 'Seventh Link', 'Eighth Link'
-  ];
->>>>>>> khadija
 
   // Convert string links to objects for consistent handling
   const links = React.useMemo(() => {
@@ -71,11 +61,7 @@ export const ContentCategories = ({ block, isEditing = false }: BlockRendererPro
 
   return (
     <section 
-<<<<<<< HEAD
       className="text-[color:var(--color-muted,#4b5563)] body-font w-full" 
-=======
-      className="text-gray-600 body-font w-full" 
->>>>>>> khadija
       style={block.style}
       onClick={handleSelect}
     >
@@ -86,15 +72,9 @@ export const ContentCategories = ({ block, isEditing = false }: BlockRendererPro
             value={content.title || 'Pitchfork Kickstarter Taxidermy'}
             onBlur={(v) => handleUpdate('title', v)}
             isEditing={isEditing}
-<<<<<<< HEAD
             className="sm:text-3xl text-2xl font-medium title-font mb-2 text-[color:var(--color-text,#111827)]"
             style={{ 
               color: block.style?.color || 'var(--color-text, #111827)', 
-=======
-            className="sm:text-3xl text-2xl font-medium title-font mb-2 text-gray-900"
-            style={{ 
-              color: block.style?.color, 
->>>>>>> khadija
               fontFamily: block.style?.fontFamily,
               ...content.titleStyle 
             }}
@@ -106,22 +86,14 @@ export const ContentCategories = ({ block, isEditing = false }: BlockRendererPro
             isEditing={isEditing}
             className="leading-relaxed text-base"
             style={{ 
-<<<<<<< HEAD
               color: block.style?.color || 'var(--color-text, #111827)', 
-=======
-              color: block.style?.color, 
->>>>>>> khadija
               fontFamily: block.style?.fontFamily,
               ...content.descriptionStyle 
             }}
           />
           <a 
             href={isEditing ? undefined : content.linkUrl || '#'}
-<<<<<<< HEAD
             className="text-[color:var(--color-primary,#6366f1)] inline-flex items-center mt-4 cursor-pointer" 
-=======
-            className="text-indigo-500 inline-flex items-center mt-4 cursor-pointer" 
->>>>>>> khadija
             style={{ 
               fontFamily: block.style?.fontFamily,
               ...content.linkTextStyle
@@ -145,15 +117,9 @@ export const ContentCategories = ({ block, isEditing = false }: BlockRendererPro
             value={content.categoryHeading || 'CATEGORIES'}
             onBlur={(v) => handleUpdate('categoryHeading', v)}
             isEditing={isEditing}
-<<<<<<< HEAD
             className="title-font font-semibold text-[color:var(--color-text,#1f2937)] tracking-wider text-sm mb-3"
             style={{ 
               color: block.style?.color || 'var(--color-text, #111827)', 
-=======
-            className="title-font font-semibold text-gray-800 tracking-wider text-sm mb-3"
-            style={{ 
-              color: block.style?.color, 
->>>>>>> khadija
               fontFamily: block.style?.fontFamily,
               ...content.categoryHeadingStyle 
             }}
@@ -161,7 +127,6 @@ export const ContentCategories = ({ block, isEditing = false }: BlockRendererPro
           <nav className="flex flex-wrap list-none -mb-1">
             {links.map((link: BlockContentItem, index: number) => (
               <li key={index} className="lg:w-1/3 mb-1 w-1/2">
-<<<<<<< HEAD
                 <EditableElement
                   as="a"
                   block={block}
@@ -174,17 +139,6 @@ export const ContentCategories = ({ block, isEditing = false }: BlockRendererPro
                     ...(content.linkItemStyle as React.CSSProperties)
                   }}
                   extraProps={{ href: isEditing ? undefined : (link.url as string | undefined) }}
-=======
-                <a
-                  href={isEditing ? undefined : (link.url as string | undefined)}
-                  className="text-gray-600 hover:text-gray-800 cursor-pointer"
-                  style={{
-                    color: block.style?.color,
-                    fontFamily: block.style?.fontFamily,
-                    ...(content.linkItemStyle as React.CSSProperties)
-                  }}
-                  onClick={(e) => isEditing && e.preventDefault()}
->>>>>>> khadija
                 >
                   <InlineEditableText
                     tagName="span"
@@ -192,11 +146,7 @@ export const ContentCategories = ({ block, isEditing = false }: BlockRendererPro
                     onBlur={(v) => updateLink(index, 'text', v)}
                     isEditing={isEditing}
                   />
-<<<<<<< HEAD
                 </EditableElement>
-=======
-                </a>
->>>>>>> khadija
               </li>
             ))}
           </nav>

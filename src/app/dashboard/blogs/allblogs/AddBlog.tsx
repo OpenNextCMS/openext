@@ -1,10 +1,6 @@
 'use client';
 
-<<<<<<< HEAD
 import { useEffect, useRef, useState } from 'react';
-=======
-import { useState } from 'react';
->>>>>>> khadija
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
 import { store, persistor } from '@/redux/store';
@@ -13,7 +9,6 @@ import { FileText, Loader2, PlusCircle, Image as ImageIcon, User, Tag } from 'lu
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-<<<<<<< HEAD
 import Link from 'next/link';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -28,19 +23,10 @@ export default function AddBlog() {
   const [slug, setSlug] = useState('');
   const [categories, setCategories] = useState<Category[]>([]);
   const [categoryId, setCategoryId] = useState('');
-=======
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-
-export default function AddBlog() {
-  const [pageName, setPageName] = useState('');
-  const [slug, setSlug] = useState('');
-  const [category, setCategory] = useState('General');
->>>>>>> khadija
   const [authorName, setAuthorName] = useState('');
   const [featuredImage, setFeaturedImage] = useState('');
   const [isPublished, setIsPublished] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-<<<<<<< HEAD
   const [uploadingImage, setUploadingImage] = useState(false);
   const featuredImageInputRef = useRef<HTMLInputElement>(null);
 
@@ -100,8 +86,6 @@ export default function AddBlog() {
     };
     fetchAuthor();
   }, [backendUrl]);
-=======
->>>>>>> khadija
 
   const handlePageNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -117,23 +101,15 @@ export default function AddBlog() {
     if (!pageName || !slug) return;
     setIsSubmitting(true);
     try {
-<<<<<<< HEAD
       const selectedCategory = categories.find((c) => c._id === categoryId);
 
       // Step 1: Create the blog post
       const response = await fetch(`${backendUrl}/api/blogs`, {
-=======
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
-
-      // Step 1: Create the blog post
-      const response = await fetch(`${backendUrl}/api/pages/add-page`, {
->>>>>>> khadija
         method: 'POST',
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },
-<<<<<<< HEAD
         body: JSON.stringify({
             pageName,
             slug,
@@ -142,50 +118,16 @@ export default function AddBlog() {
             categories: categoryId ? [categoryId] : [],
             authorName,
             featuredImage,
-=======
-        body: JSON.stringify({ 
-            pageName, 
-            slug, 
-            isPublished, 
-            pageType: 'blog',
-            category,
-            authorName,
-            featuredImage,
-            publishDate: isPublished ? new Date() : null
->>>>>>> khadija
         }),
       });
 
       const result = await response.json();
 
-<<<<<<< HEAD
       if (response.ok && result.data) {
         // Open the new block-based blog editor for the freshly created post.
         window.location.assign(`/dashboard/blogs/${result.data._id}/edit`);
       } else {
         console.error('Blog post creation failed:', result.message || 'Unknown error');
-=======
-      if (response.ok && result.success) {
-        // Step 2: Get pages and userId
-        const getResponse = await fetch(`${backendUrl}/api/pages/get-pages`, {
-          method: 'GET',
-          credentials: 'include',
-        });
-
-        const getData = await getResponse.json();
-
-        if (getResponse.ok && getData.userId) {
-          const userId = getData.userId;
-          // Step 3: Redirect with page info
-          window.open(
-            `/Editor?pagename=${encodeURIComponent(slug)}&userId=${userId}&pageId=${result.data._id}`
-          );
-        } else {
-          console.error('Failed to fetch user/pages:', getData.message || getData.error);
-        }
-      } else {
-        console.error('Blog post creation failed:', result.message);
->>>>>>> khadija
       }
     } catch (error) {
       console.error('An error occurred:', error);
@@ -236,7 +178,6 @@ export default function AddBlog() {
                 <Label htmlFor="category" className="flex items-center gap-1">
                   <Tag className="h-3 w-3" /> Category
                 </Label>
-<<<<<<< HEAD
                 {categories.length > 0 ? (
                   <Select value={categoryId} onValueChange={setCategoryId}>
                     <SelectTrigger id="category">
@@ -258,22 +199,6 @@ export default function AddBlog() {
                     </Link>
                   </p>
                 )}
-=======
-                <Select value={category} onValueChange={setCategory}>
-                  <SelectTrigger id="category">
-                    <SelectValue placeholder="Select Category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Technology">Technology</SelectItem>
-                    <SelectItem value="Design">Design</SelectItem>
-                    <SelectItem value="Business">Business</SelectItem>
-                    <SelectItem value="Marketing">Marketing</SelectItem>
-                    <SelectItem value="Tutorials">Tutorials</SelectItem>
-                    <SelectItem value="Case Studies">Case Studies</SelectItem>
-                    <SelectItem value="General">General</SelectItem>
-                  </SelectContent>
-                </Select>
->>>>>>> khadija
               </div>
               <div className="space-y-2">
                 <Label htmlFor="authorName" className="flex items-center gap-1">
@@ -306,18 +231,13 @@ export default function AddBlog() {
 
             <div className="space-y-2">
               <Label htmlFor="featuredImage" className="flex items-center gap-1">
-<<<<<<< HEAD
                 <ImageIcon className="h-3 w-3" /> Featured Image
-=======
-                <ImageIcon className="h-3 w-3" /> Featured Image URL
->>>>>>> khadija
               </Label>
               <Input
                 id="featuredImage"
                 type="text"
                 value={featuredImage}
                 onChange={(e) => setFeaturedImage(e.target.value)}
-<<<<<<< HEAD
                 placeholder="Paste an image URL or upload from your device"
               />
               <div className="flex items-center gap-2">
@@ -365,10 +285,6 @@ export default function AddBlog() {
                   className="mt-2 h-32 w-full rounded-lg object-cover"
                 />
               ) : null}
-=======
-                placeholder="https://images.unsplash.com/..."
-              />
->>>>>>> khadija
             </div>
 
             <Button type="submit" className="w-full mt-2" disabled={!pageName || !slug || isSubmitting} onClick={handleProceed}>

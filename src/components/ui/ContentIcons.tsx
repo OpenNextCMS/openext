@@ -1,10 +1,7 @@
 ﻿import React from 'react';
 
 import { InlineEditableText } from '@/components/editor/InlineEditableText';
-<<<<<<< HEAD
 import { EditableElement } from '@/components/editor/EditableElement';
-=======
->>>>>>> khadija
 import type { BlockRendererProps } from '@/types/index';
 import type { BlockContentItem } from '@/types/blockContent';
 import { useAppDispatch } from '@/redux/hooks';
@@ -50,11 +47,7 @@ export const ContentIcons = ({ block, isEditing = false }: BlockRendererProps) =
   ];
 
   return (
-<<<<<<< HEAD
     <section className="text-[color:var(--color-muted,#4b5563)] body-font w-full" style={block.style}>
-=======
-    <section className="text-gray-600 body-font w-full" style={block.style}>
->>>>>>> khadija
       <div className="container px-5 py-24 mx-auto">
         <div className="flex flex-wrap w-full mb-20 flex-col items-center text-center">
           <InlineEditableText
@@ -62,15 +55,9 @@ export const ContentIcons = ({ block, isEditing = false }: BlockRendererProps) =
             value={content.title || 'Pitchfork Kickstarter Taxidermy'}
             onBlur={(v) => handleUpdate('title', v)}
             isEditing={isEditing}
-<<<<<<< HEAD
             className="sm:text-3xl text-2xl font-medium title-font mb-2 text-[color:var(--color-text,#111827)]"
             style={{ 
               color: block.style?.color || 'var(--color-text, #111827)', 
-=======
-            className="sm:text-3xl text-2xl font-medium title-font mb-2 text-gray-900"
-            style={{ 
-              color: block.style?.color, 
->>>>>>> khadija
               fontFamily: block.style?.fontFamily,
               ...content.titleStyle 
             }}
@@ -80,15 +67,9 @@ export const ContentIcons = ({ block, isEditing = false }: BlockRendererProps) =
             value={content.description || 'Whatever cardigan tote bag tumblr hexagon brooklyn asymmetrical gentrify, subway tile poke farm-to-table.'}
             onBlur={(v) => handleUpdate('description', v)}
             isEditing={isEditing}
-<<<<<<< HEAD
             className="lg:w-1/2 w-full leading-relaxed text-[color:var(--color-muted,#6b7280)]"
             style={{ 
               color: block.style?.color || 'var(--color-text, #111827)', 
-=======
-            className="lg:w-1/2 w-full leading-relaxed text-gray-500"
-            style={{ 
-              color: block.style?.color, 
->>>>>>> khadija
               fontFamily: block.style?.fontFamily,
               ...content.descriptionStyle 
             }}
@@ -97,7 +78,6 @@ export const ContentIcons = ({ block, isEditing = false }: BlockRendererProps) =
         <div className="flex flex-wrap -m-4">
           {features.map((feature: BlockContentItem, index: number) => (
             <div key={index} className="xl:w-1/3 md:w-1/2 p-4">
-<<<<<<< HEAD
               <EditableElement
                 as="a"
                 block={block}
@@ -112,14 +92,6 @@ export const ContentIcons = ({ block, isEditing = false }: BlockRendererProps) =
                   path={`features.${index}.iconStyle`}
                   className="w-10 h-10 inline-flex items-center justify-center rounded-full bg-[var(--color-surface,#e0e7ff)] text-[color:var(--color-primary,#6366f1)] mb-4 overflow-hidden"
                 >
-=======
-              <a 
-                href={isEditing ? undefined : (feature.url || content.linkUrl || '#')}
-                className={`block border border-gray-200 p-6 rounded-lg transition-shadow duration-300 ${!isEditing ? 'hover:shadow-lg cursor-pointer' : ''}`}
-                onClick={(e) => isEditing && e.preventDefault()}
-              >
-                <div className="w-10 h-10 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 mb-4 overflow-hidden">
->>>>>>> khadija
                    {feature.image ? (
                      <img src={feature.image} alt={feature.title} className="w-full h-full object-cover" />
                    ) : (
@@ -127,25 +99,15 @@ export const ContentIcons = ({ block, isEditing = false }: BlockRendererProps) =
                       <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
                     </svg>
                    )}
-<<<<<<< HEAD
                 </EditableElement>
-=======
-                </div>
->>>>>>> khadija
                 <InlineEditableText
                   tagName="h2"
                   value={feature.title || 'Feature Title'}
                   onBlur={(v) => updateFeature(index, 'title', v)}
                   isEditing={isEditing}
-<<<<<<< HEAD
                   className="text-lg text-[color:var(--color-text,#111827)] font-medium title-font mb-2"
                   style={{ 
                     color: block.style?.color || 'var(--color-text, #111827)', 
-=======
-                  className="text-lg text-gray-900 font-medium title-font mb-2"
-                  style={{ 
-                    color: block.style?.color, 
->>>>>>> khadija
                     fontFamily: block.style?.fontFamily,
                     ...content.featureTitleStyle 
                   }}
@@ -157,30 +119,18 @@ export const ContentIcons = ({ block, isEditing = false }: BlockRendererProps) =
                   isEditing={isEditing}
                   className="leading-relaxed text-base"
                   style={{ 
-<<<<<<< HEAD
                     color: block.style?.color || 'var(--color-text, #111827)', 
-=======
-                    color: block.style?.color, 
->>>>>>> khadija
                     fontFamily: block.style?.fontFamily,
                     ...content.featureDescriptionStyle 
                   }}
                 />
-<<<<<<< HEAD
               </EditableElement>
-=======
-              </a>
->>>>>>> khadija
             </div>
           ))}
         </div>
         <a 
           href={isEditing ? undefined : content.buttonUrl || '#'}
-<<<<<<< HEAD
           className="flex mx-auto mt-16 text-white bg-[var(--color-primary,#6366f1)] border-0 py-2 px-8 focus:outline-none hover:bg-[var(--color-primary,#4f46e5)] rounded text-lg text-center w-max" 
-=======
-          className="flex mx-auto mt-16 text-white bg-indigo-500 border-0 py-2 px-8 focus:outline-none hover:bg-indigo-600 rounded text-lg text-center w-max" 
->>>>>>> khadija
           style={{ 
             fontFamily: block.style?.fontFamily,
             ...content.buttonStyle 

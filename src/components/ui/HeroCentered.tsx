@@ -36,11 +36,7 @@ export const HeroCentered = ({ block, isEditing = false }: BlockRendererProps) =
 
   return (
     <section 
-<<<<<<< HEAD
       className="text-[color:var(--color-muted,#4b5563)] body-font w-full" 
-=======
-      className="text-gray-600 body-font w-full" 
->>>>>>> khadija
       style={block.style}
       onClick={handleSelect}
     >
@@ -49,15 +45,9 @@ export const HeroCentered = ({ block, isEditing = false }: BlockRendererProps) =
         <div className="text-center lg:w-2/3 w-full">
           <InlineEditableText
             tagName="h1"
-<<<<<<< HEAD
             className="title-font sm:text-4xl text-3xl mb-4 font-medium text-[color:var(--color-text,#111827)] whitespace-pre-line"
             style={{ 
               color: block.style?.color || 'var(--color-text, #111827)', 
-=======
-            className="title-font sm:text-4xl text-3xl mb-4 font-medium text-gray-900 whitespace-pre-line"
-            style={{ 
-              color: block.style?.color, 
->>>>>>> khadija
               fontFamily: block.style?.fontFamily,
               ...content.titleStyle 
             }}
@@ -69,11 +59,7 @@ export const HeroCentered = ({ block, isEditing = false }: BlockRendererProps) =
             tagName="p"
             className="mb-8 leading-relaxed"
             style={{ 
-<<<<<<< HEAD
               color: block.style?.color || 'var(--color-text, #111827)', 
-=======
-              color: block.style?.color, 
->>>>>>> khadija
               fontFamily: block.style?.fontFamily,
               ...content.descriptionStyle 
             }}
@@ -83,11 +69,7 @@ export const HeroCentered = ({ block, isEditing = false }: BlockRendererProps) =
           />
           <div className="flex justify-center">
             <button 
-<<<<<<< HEAD
               className="inline-flex text-white bg-[var(--color-primary,#6366f1)] border-0 py-2 px-6 focus:outline-none hover:bg-[var(--color-primary,#4f46e5)] rounded text-lg" 
-=======
-              className="inline-flex text-white bg-indigo-500 border-0 py-2 px-6 focus:outline-none hover:bg-indigo-600 rounded text-lg" 
->>>>>>> khadija
               style={{ 
                 fontFamily: block.style?.fontFamily,
                 ...content.primaryButtonStyle 
@@ -101,11 +83,7 @@ export const HeroCentered = ({ block, isEditing = false }: BlockRendererProps) =
               />
             </button>
             <button 
-<<<<<<< HEAD
               className="ml-4 inline-flex text-[color:var(--color-muted,#374151)] bg-[var(--color-surface,#f3f4f6)] border-0 py-2 px-6 focus:outline-none hover:bg-[var(--color-surface,#e5e7eb)] rounded text-lg" 
-=======
-              className="ml-4 inline-flex text-gray-700 bg-gray-100 border-0 py-2 px-6 focus:outline-none hover:bg-gray-200 rounded text-lg" 
->>>>>>> khadija
               style={{ 
                 fontFamily: block.style?.fontFamily,
                 ...content.secondaryButtonStyle 

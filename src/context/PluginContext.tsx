@@ -4,10 +4,7 @@ import React, { createContext, useContext, useEffect, useState, ReactNode } from
 import { pluginRegistry } from '@/lib/pluginRegistry';
 import * as Library from '@/components/plugins/PluginComponents';
 import { ContactUI } from '@/components/ui/ContactUI';
-<<<<<<< HEAD
 import { sliderDefaultContentString } from '@/components/plugins/sliderSchema';
-=======
->>>>>>> khadija
 
 interface PluginRecord {
   pluginId: string;
@@ -49,7 +46,6 @@ export const PluginProvider = ({ children }: { children: ReactNode }) => {
           // Map by type (for marketplace installs) or by name (for existing ones)
           const pluginType = (plugin.type || '').toLowerCase();
           const pluginName = plugin.name.toLowerCase();
-<<<<<<< HEAD
           const isSliderPlugin =
             pluginType === 'slider' ||
             pluginName.includes('slider') ||
@@ -72,8 +68,6 @@ export const PluginProvider = ({ children }: { children: ReactNode }) => {
             pluginType === 'form' ||
             (pluginName.includes('form') && pluginName.includes('builder'));
           if (isFormBuilder) continue;
-=======
->>>>>>> khadija
 
           if (
             pluginType === 'chart' ||
@@ -89,15 +83,7 @@ export const PluginProvider = ({ children }: { children: ReactNode }) => {
             Component = Library.MenuPlugin as unknown as React.ComponentType<Record<string, unknown>>;
           } else if (pluginType === 'contact' || pluginName.includes('contact')) {
             Component = ContactUI as unknown as unknown as React.ComponentType<Record<string, unknown>>;
-<<<<<<< HEAD
           } else if (isSliderPlugin) {
-=======
-          } else if (
-            pluginType === 'slider' ||
-            pluginName.includes('slider') ||
-            pluginName.includes('casarole')
-          ) {
->>>>>>> khadija
             Component = Library.SliderPlugin as unknown as React.ComponentType<Record<string, unknown>>;
           } else if (pluginName.includes('video') || pluginName.includes('content editor')) {
             Component = Library.VideoPlugin as unknown as React.ComponentType<Record<string, unknown>>;
@@ -107,25 +93,17 @@ export const PluginProvider = ({ children }: { children: ReactNode }) => {
 
           pluginRegistry.register({
             id: plugin.pluginId,
-<<<<<<< HEAD
             name: isSliderPlugin ? 'Slider' : plugin.name,
-=======
-            name: plugin.name,
->>>>>>> khadija
             type: 'block',
             component: (props) => <Component {...props} plugin={plugin} />,
             metadata: {
               icon: plugin.icon,
-<<<<<<< HEAD
               description: isSliderPlugin
                 ? 'Create banners, cards, products, and content sliders.'
                 : plugin.description,
               defaultContent: isSliderPlugin ? sliderDefaultContentString : undefined,
               defaultStyle: isSliderPlugin ? { width: '100%' } : undefined,
               category: isSliderPlugin ? 'Interactive Components' : 'Plugin Blocks',
-=======
-              description: plugin.description,
->>>>>>> khadija
             },
           });
         }

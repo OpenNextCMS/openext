@@ -1,10 +1,7 @@
 ﻿import React from 'react';
 
 import { InlineEditableText } from '@/components/editor/InlineEditableText';
-<<<<<<< HEAD
 import { EditableElement } from '@/components/editor/EditableElement';
-=======
->>>>>>> khadija
 import type { BlockRendererProps } from '@/types/index';
 import { useAppDispatch } from '@/redux/hooks';
 import { updateBlockContent } from '@/redux/canvasSlice';
@@ -33,7 +30,6 @@ export const ContentDetail = ({ block, isEditing = false }: BlockRendererProps) 
   };
 
   return (
-<<<<<<< HEAD
     <section className="text-[color:var(--color-muted,#4b5563)] body-font w-full" style={block.style}>
       <div className="container px-5 py-24 mx-auto flex flex-col">
         <div className="lg:w-4/6 mx-auto">
@@ -53,17 +49,6 @@ export const ContentDetail = ({ block, isEditing = false }: BlockRendererProps) 
                 path="iconStyle"
                 className="w-20 h-20 rounded-full inline-flex items-center justify-center bg-[var(--color-surface,#e5e7eb)] text-[color:var(--color-muted,#9ca3af)]"
               >
-=======
-    <section className="text-gray-600 body-font w-full" style={block.style}>
-      <div className="container px-5 py-24 mx-auto flex flex-col">
-        <div className="lg:w-4/6 mx-auto">
-          <div className="rounded-lg h-64 overflow-hidden">
-            <img alt="content" className="object-cover object-center h-full w-full" src={content.heroImage || "https://dummyimage.com/1200x500"} />
-          </div>
-          <div className="flex flex-col sm:flex-row mt-10">
-            <div className="sm:w-1/3 text-center sm:pr-8 sm:py-8">
-              <div className="w-20 h-20 rounded-full inline-flex items-center justify-center bg-gray-200 text-gray-400">
->>>>>>> khadija
                 {content.authorImage ? (
                   <img src={content.authorImage} alt="author" className="w-full h-full rounded-full object-cover" />
                 ) : (
@@ -72,35 +57,21 @@ export const ContentDetail = ({ block, isEditing = false }: BlockRendererProps) 
                     <circle cx="12" cy="7" r="4"></circle>
                   </svg>
                 )}
-<<<<<<< HEAD
               </EditableElement>
-=======
-              </div>
->>>>>>> khadija
               <div className="flex flex-col items-center text-center justify-center">
                 <InlineEditableText
                   tagName="h2"
                   value={content.authorName || 'Phoebe Caulfield'}
                   onBlur={(v) => handleUpdate('authorName', v)}
                   isEditing={isEditing}
-<<<<<<< HEAD
                   className="font-medium title-font mt-4 text-[color:var(--color-text,#111827)] text-lg"
                   style={{ 
                     color: block.style?.color || 'var(--color-text, #111827)', 
-=======
-                  className="font-medium title-font mt-4 text-gray-900 text-lg"
-                  style={{ 
-                    color: block.style?.color, 
->>>>>>> khadija
                     fontFamily: block.style?.fontFamily,
                     ...content.authorNameStyle 
                   }}
                 />
-<<<<<<< HEAD
                 <div className="w-12 h-1 bg-[var(--color-primary,#6366f1)] rounded mt-2 mb-4"></div>
-=======
-                <div className="w-12 h-1 bg-indigo-500 rounded mt-2 mb-4"></div>
->>>>>>> khadija
                 <InlineEditableText
                   tagName="p"
                   value={content.authorBio || 'Raclette knausgaard hella meggs normcore williamsburg enamel pin sartorial venmo tbh hot chicken gentrify portland.'}
@@ -108,11 +79,7 @@ export const ContentDetail = ({ block, isEditing = false }: BlockRendererProps) 
                   isEditing={isEditing}
                   className="text-base"
                   style={{ 
-<<<<<<< HEAD
                     color: block.style?.color || 'var(--color-text, #111827)', 
-=======
-                    color: block.style?.color, 
->>>>>>> khadija
                     fontFamily: block.style?.fontFamily,
                     ...content.authorBioStyle 
                   }}
@@ -127,16 +94,11 @@ export const ContentDetail = ({ block, isEditing = false }: BlockRendererProps) 
                 isEditing={isEditing}
                 className="leading-relaxed text-lg mb-4"
                 style={{ 
-<<<<<<< HEAD
                   color: block.style?.color || 'var(--color-text, #111827)', 
-=======
-                  color: block.style?.color, 
->>>>>>> khadija
                   fontFamily: block.style?.fontFamily,
                   ...content.mainTextStyle 
                 }}
               />
-<<<<<<< HEAD
               <EditableElement
                 as="a"
                 block={block}
@@ -145,13 +107,6 @@ export const ContentDetail = ({ block, isEditing = false }: BlockRendererProps) 
                 className="text-[color:var(--color-primary,#6366f1)] inline-flex items-center cursor-pointer"
                 baseStyle={{ fontFamily: block.style?.fontFamily }}
                 extraProps={{ href: isEditing ? undefined : content.linkUrl || '#' }}
-=======
-              <a 
-                href={isEditing ? undefined : content.linkUrl || '#'}
-                className="text-indigo-500 inline-flex items-center cursor-pointer" 
-                style={{ fontFamily: block.style?.fontFamily }}
-                onClick={(e) => isEditing && e.preventDefault()}
->>>>>>> khadija
               >
                 <InlineEditableText
                   tagName="span"
@@ -162,11 +117,7 @@ export const ContentDetail = ({ block, isEditing = false }: BlockRendererProps) 
                 <svg fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" className="w-4 h-4 ml-2" viewBox="0 0 24 24">
                   <path d="M5 12h14M12 5l7 7-7 7"></path>
                 </svg>
-<<<<<<< HEAD
               </EditableElement>
-=======
-              </a>
->>>>>>> khadija
             </div>
           </div>
         </div>
