@@ -35,6 +35,7 @@ export async function POST(req: NextRequest) {
     // 2. Get the Page model tied to this DB
     const PageModel = getPageModel(pageDb);
 
+<<<<<<< HEAD
     // 3. Create a new Page. The slug has a unique index, so if it already
     //    exists we append a numeric suffix (slug-2, slug-3, ...) and retry.
     //    The retry loop also covers races where two requests pick the same slug.
@@ -72,13 +73,27 @@ export async function POST(req: NextRequest) {
 
     if (!newPage) {
       return NextResponse.json(
+=======
+    // 3. Create a new Page
+    const newPage = new PageModel({
+      ...body,
+      createdBy: userId,
+      modifications: [
+>>>>>>> khadija
         {
           success: false,
           message: `Could not generate a unique slug for "${baseSlug}" after ${MAX_ATTEMPTS} attempts.`,
         },
+<<<<<<< HEAD
         { status: 409 }
       );
     }
+=======
+      ],
+    });
+    
+    await newPage.save();
+>>>>>>> khadija
 
     return NextResponse.json({ success: true, data: newPage, userId }, { status: 201 });
   } catch (error) {

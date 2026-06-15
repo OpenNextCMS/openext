@@ -1,5 +1,6 @@
 'use client';
 
+<<<<<<< HEAD
 import React, { useState, useEffect, useMemo } from 'react';
 import {
   Search,
@@ -10,6 +11,19 @@ import {
   ChevronRight,
   Filter,
   ArrowRight,
+=======
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { 
+  Search, 
+  Clock, 
+  User, 
+  Calendar, 
+  Share2, 
+  ChevronRight, 
+  Filter,
+  ArrowRight,
+  MoreHorizontal,
+>>>>>>> khadija
   Mail,
   Twitter,
   Facebook,
@@ -23,6 +37,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
+<<<<<<< HEAD
 import { toast } from 'sonner';
 
 interface BlogFeedProps {
@@ -53,6 +68,16 @@ type CardSettings = {
   borderRadius: string;
 };
 
+=======
+import { Page } from '@/types/index';
+import { toast } from 'sonner';
+
+interface BlogFeedProps {
+  block: any;
+  isEditing?: boolean;
+}
+
+>>>>>>> khadija
 const CATEGORIES = [
   'All',
   'Technology',
@@ -64,7 +89,11 @@ const CATEGORIES = [
 ];
 
 export function BlogFeed({ block, isEditing = false }: BlogFeedProps) {
+<<<<<<< HEAD
   const [posts, setPosts] = useState<FeedPost[]>([]);
+=======
+  const [posts, setPosts] = useState<Page[]>([]);
+>>>>>>> khadija
   const [loading, setLoading] = useState(!isEditing);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
@@ -75,7 +104,11 @@ export function BlogFeed({ block, isEditing = false }: BlogFeedProps) {
   const content = React.useMemo(() => {
     try {
       return typeof block.content === 'string' ? JSON.parse(block.content) : block.content || {};
+<<<<<<< HEAD
     } catch {
+=======
+    } catch (e) {
+>>>>>>> khadija
       return {};
     }
   }, [block.content]);
@@ -100,7 +133,11 @@ export function BlogFeed({ block, isEditing = false }: BlogFeedProps) {
 
   useEffect(() => {
     if (isEditing) {
+<<<<<<< HEAD
       const mockPosts = Array(8).fill(0).map((_, i) => ({
+=======
+      const mockPosts: any[] = Array(8).fill(0).map((_, i) => ({
+>>>>>>> khadija
         _id: `mock-${i}`,
         pageName: [
           'The Future of Minimalist Web Design in 2026',
@@ -138,10 +175,14 @@ export function BlogFeed({ block, isEditing = false }: BlogFeedProps) {
 
         if (response.ok) {
           const data = await response.json();
+<<<<<<< HEAD
           const blogPosts = (data.pages || []).filter(
             (p: FeedPost & { pageType?: string; isPublished?: boolean }) =>
               p.pageType === 'blog' && p.isPublished
           );
+=======
+          const blogPosts = (data.pages || []).filter((p: any) => p.pageType === 'blog' && p.isPublished);
+>>>>>>> khadija
           setPosts(blogPosts);
           setVisibleCount(postsPerPage);
         }
@@ -157,9 +198,15 @@ export function BlogFeed({ block, isEditing = false }: BlogFeedProps) {
 
   const filteredPosts = useMemo(() => {
     return posts.filter(post => {
+<<<<<<< HEAD
       const matchesSearch = post.pageName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            post.description?.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesCategory = activeCategory === 'All' || post.category === activeCategory;
+=======
+      const matchesSearch = post.pageName.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                           post.description?.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCategory = activeCategory === 'All' || (post as any).category === activeCategory;
+>>>>>>> khadija
       return matchesSearch && matchesCategory;
     });
   }, [posts, searchTerm, activeCategory]);
@@ -282,7 +329,11 @@ export function BlogFeed({ block, isEditing = false }: BlogFeedProps) {
               <div className="space-y-2">
                 <h3 className="text-2xl font-bold tracking-tight">No articles match your criteria</h3>
                 <p className="text-muted-foreground max-w-md mx-auto text-lg">
+<<<<<<< HEAD
                   Try adjusting your filters or search terms to find what you&apos;re looking for.
+=======
+                  Try adjusting your filters or search terms to find what you're looking for.
+>>>>>>> khadija
                 </p>
               </div>
               <Button 
@@ -364,7 +415,11 @@ export function BlogFeed({ block, isEditing = false }: BlogFeedProps) {
         {paginationType === 'infinite-scroll' && hasMore && (
           <div className="flex flex-col items-center gap-6">
             <div className="text-sm text-muted-foreground font-medium">
+<<<<<<< HEAD
               You&apos;ve viewed <span className="text-foreground">{visibleCount}</span> of <span className="text-foreground">{filteredPosts.length}</span> articles
+=======
+              You've viewed <span className="text-foreground">{visibleCount}</span> of <span className="text-foreground">{filteredPosts.length}</span> articles
+>>>>>>> khadija
             </div>
             <div className="w-full max-w-xs h-1 bg-muted rounded-full overflow-hidden">
               <motion.div 
@@ -389,7 +444,11 @@ export function BlogFeed({ block, isEditing = false }: BlogFeedProps) {
   );
 }
 
+<<<<<<< HEAD
 function BlogCard({ post, layout, settings }: { post: FeedPost; layout: string; settings: CardSettings }) {
+=======
+function BlogCard({ post, layout, settings }: { post: any, layout: string, settings: any }) {
+>>>>>>> khadija
   const isEditorial = layout === 'editorial';
   const isSideBySide = layout === 'side-by-side';
   const isMinimal = layout === 'minimal';
@@ -401,7 +460,11 @@ function BlogCard({ post, layout, settings }: { post: FeedPost; layout: string; 
     return minutes > 1 ? `${minutes} min read` : '1 min read';
   }, [post.description, post.pageName]);
 
+<<<<<<< HEAD
   const CardWrapper = ({ children, className }: { children: React.ReactNode; className?: string }) => (
+=======
+  const CardWrapper = ({ children, className }: any) => (
+>>>>>>> khadija
     <div className={cn(
       "group bg-card transition-all duration-700 hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)] overflow-hidden h-full flex flex-col",
       settings.borderRadius,
@@ -428,7 +491,11 @@ function BlogCard({ post, layout, settings }: { post: FeedPost; layout: string; 
               {settings.showDate && (
                 <span className="flex items-center gap-1.5">
                   <Calendar className="h-3 w-3" />
+<<<<<<< HEAD
                   {new Date(post.publishDate || post.updatedAt || '').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+=======
+                  {new Date(post.publishDate || post.updatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+>>>>>>> khadija
                 </span>
               )}
             </div>
@@ -490,7 +557,11 @@ function BlogCard({ post, layout, settings }: { post: FeedPost; layout: string; 
           {settings.showDate && (
             <span className="flex items-center gap-2">
               <Calendar className="h-3.5 w-3.5" />
+<<<<<<< HEAD
               {new Date(post.publishDate || post.updatedAt || '').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+=======
+              {new Date(post.publishDate || post.updatedAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+>>>>>>> khadija
             </span>
           )}
           {settings.showReadingTime && (

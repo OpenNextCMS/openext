@@ -17,6 +17,7 @@ import {
   type AiEditorBlock,
 } from './block-catalog';
 import { enrichComponentsWithImages, inferIndustryTags } from './fetch-images';
+<<<<<<< HEAD
 import {
   AI_STRUCTURE_PROMPT_V2,
   AI_IMAGE_PRIMITIVE_PROMPT_V2,
@@ -24,6 +25,8 @@ import {
   normalizeV2Document,
   extractPrimitiveComponents,
 } from './v2';
+=======
+>>>>>>> khadija
 
 export const runtime = 'nodejs';
 
@@ -672,7 +675,10 @@ type PageTheme = {
   fontFamily?: string;
   buttonStyle?: string;
   borderRadius?: string;
+<<<<<<< HEAD
   typographyScale?: string;
+=======
+>>>>>>> khadija
 };
 
 type SemanticBlock = {
@@ -748,6 +754,7 @@ const pickArray = (rec: Record<string, unknown>, ...keys: string[]): unknown[] =
   return [];
 };
 
+<<<<<<< HEAD
 /** First positive integer among the given keys (e.g. a model-provided column count). */
 const pickNumber = (rec: Record<string, unknown>, ...keys: string[]): number | undefined => {
   for (const k of keys) {
@@ -761,6 +768,8 @@ const pickNumber = (rec: Record<string, unknown>, ...keys: string[]): number | u
 const clampCols = (n: number | undefined, fallback: 1 | 2 | 3): 1 | 2 | 3 =>
   n === 1 || n === 2 || n === 3 ? n : n && n >= 3 ? 3 : fallback;
 
+=======
+>>>>>>> khadija
 const themeAccent = (theme?: PageTheme) => safeString(theme?.primaryColor, '#3b82f6');
 const themeSurface = (theme?: PageTheme) => safeString(theme?.backgroundColor, '#ffffff');
 const themeText = (theme?: PageTheme) =>
@@ -771,6 +780,7 @@ const themeRadius = (theme?: PageTheme) => safeString(theme?.borderRadius, '10px
 const themeFont = (theme?: PageTheme) =>
   safeString(theme?.fontFamily, 'Inter, system-ui, sans-serif');
 
+<<<<<<< HEAD
 /** Heading/body size multiplier from the model's typography scale. */
 const TYPE_SCALE: Record<string, number> = {
   tight: 0.85,
@@ -781,6 +791,8 @@ const TYPE_SCALE: Record<string, number> = {
 const themeScale = (theme?: PageTheme) => TYPE_SCALE[safeString(theme?.typographyScale)] ?? 1;
 const scalePx = (base: number, theme?: PageTheme) => `${Math.round(base * themeScale(theme))}px`;
 
+=======
+>>>>>>> khadija
 const newId = () => crypto.randomUUID();
 
 const textBlock = (
@@ -973,7 +985,11 @@ const heroPadding = '112px 64px';
 const headingStyle = (theme?: PageTheme): CSSProperties => ({
   color: themeText(theme),
   fontFamily: themeFont(theme),
+<<<<<<< HEAD
   fontSize: scalePx(40, theme),
+=======
+  fontSize: '40px',
+>>>>>>> khadija
   fontWeight: 700,
   lineHeight: '1.15',
   letterSpacing: '-0.02em',
@@ -983,7 +999,11 @@ const headingStyle = (theme?: PageTheme): CSSProperties => ({
 const bodyTextStyle = (theme?: PageTheme): CSSProperties => ({
   color: themeMuted(theme),
   fontFamily: themeFont(theme),
+<<<<<<< HEAD
   fontSize: scalePx(17, theme),
+=======
+  fontSize: '17px',
+>>>>>>> khadija
   lineHeight: '1.6',
   margin: '0 0 8px 0',
 });
@@ -1051,7 +1071,10 @@ const translateNavbar = (block: SemanticBlock, theme?: PageTheme): BlockData => 
     content: JSON.stringify({
       logo: pickString(content, 'logo', 'brand', 'logoText', 'siteName') || 'Brand',
       logoType: 'text',
+<<<<<<< HEAD
       logoSource: 'custom',
+=======
+>>>>>>> khadija
       logoImage: '',
       layout: 'horizontal',
       links: finalLinks,
@@ -1157,10 +1180,14 @@ const translateCardGrid = (
   const { items, heading, subtitle, eyebrow } = cardListFromContent(block);
   const images = isRecord(block.images) ? block.images : {};
   const description = block.type || 'Card grid';
+<<<<<<< HEAD
   const cols = clampCols(
     pickNumber(isRecord(block.content) ? block.content : {}, 'columns'),
     (items.length === 2 ? 2 : items.length === 1 ? 1 : defaultCols) as 1 | 2 | 3
   );
+=======
+  const cols = (items.length === 2 ? 2 : items.length === 1 ? 1 : defaultCols) as 1 | 2 | 3;
+>>>>>>> khadija
 
   const cards: BlockData[] = items.map((item, idx) => {
     const itemImage =
@@ -1208,10 +1235,14 @@ const translateCardGrid = (
 
 const translateFeatureGrid = (block: SemanticBlock, theme?: PageTheme): BlockData => {
   const { items, heading, subtitle, eyebrow } = cardListFromContent(block);
+<<<<<<< HEAD
   const cols: 1 | 2 | 3 = clampCols(
     pickNumber(isRecord(block.content) ? block.content : {}, 'columns'),
     items.length === 2 ? 2 : items.length === 1 ? 1 : 3
   );
+=======
+  const cols: 1 | 2 | 3 = items.length === 2 ? 2 : items.length === 1 ? 1 : 3;
+>>>>>>> khadija
 
   const featureBlocks: BlockData[] = items.map((item) => {
     const cell: BlockData[] = [];
@@ -1529,10 +1560,14 @@ const translateGalleryOrPortfolio = (block: SemanticBlock, theme?: PageTheme): B
   const subtitle = pickString(content, 'subtitle', 'description');
   const eyebrow = pickString(content, 'eyebrow', 'tag');
 
+<<<<<<< HEAD
   const cols: 1 | 2 | 3 = clampCols(
     pickNumber(isRecord(block.content) ? block.content : {}, 'columns'),
     tiles.length >= 3 ? 3 : tiles.length === 2 ? 2 : 1
   );
+=======
+  const cols: 1 | 2 | 3 = tiles.length >= 3 ? 3 : tiles.length === 2 ? 2 : 1;
+>>>>>>> khadija
   const gridChildren: BlockData[][] = Array.from({ length: cols }, () => []);
   tiles.forEach((t, i) => gridChildren[i % cols].push(t));
 
@@ -1915,7 +1950,11 @@ const translateCustomBlock = (block: SemanticBlock, theme?: PageTheme): BlockDat
   );
 };
 
+<<<<<<< HEAD
 const dispatchSemanticBlock = (block: SemanticBlock, theme?: PageTheme): BlockData | null => {
+=======
+const translateSemanticBlock = (block: SemanticBlock, theme?: PageTheme): BlockData | null => {
+>>>>>>> khadija
   const type = safeString(block.type).toLowerCase();
   switch (type) {
     case 'navbar':
@@ -1978,6 +2017,7 @@ const dispatchSemanticBlock = (block: SemanticBlock, theme?: PageTheme): BlockDa
   }
 };
 
+<<<<<<< HEAD
 /**
  * Translate a semantic block, then merge the model's per-section `styles`
  * (background, text colour, padding, alignment, radius, font size…) onto the
@@ -1992,13 +2032,19 @@ const translateSemanticBlock = (block: SemanticBlock, theme?: PageTheme): BlockD
   return result;
 };
 
+=======
+>>>>>>> khadija
 const buildComponentsFromPage = (
   data: unknown,
   pageType: PageContext
 ): BlockData[] => {
+<<<<<<< HEAD
   // v2 documents ({ meta, theme, blocks:[{type,data}] }) are rewritten into the
   // legacy semantic shape here; legacy/site-mode input passes through untouched.
   const plan = parsePagePlan(normalizeV2Document(data));
+=======
+  const plan = parsePagePlan(data);
+>>>>>>> khadija
   const theme = plan.page.theme;
   const sorted = [...plan.page.blocks].sort(
     (a, b) => (typeof a.order === 'number' ? a.order : 0) - (typeof b.order === 'number' ? b.order : 0)
@@ -2418,20 +2464,32 @@ const buildAnalysisContent = ({
 }): GroqContentPart[] => [
   {
     type: 'text',
+<<<<<<< HEAD
     text: `${AI_STRUCTURE_PROMPT_V2}
+=======
+    text: `${AI_WEBSITE_BUILDER_PROMPT}
+>>>>>>> khadija
 
 ${focusInstruction}
 
 ${
   hasImage
+<<<<<<< HEAD
     ? 'A reference image has been attached. Reconstruct it (Mode 2): preserve section order, column counts, hero type, and nav/CTA placement. Map what you see to the v2 block types — do not output low-level primitive blocks.'
+=======
+    ? 'A reference image has been attached. Use it as the visual reference for layout, color palette, and section order. Map what you see to the predefined block types listed above — do not output low-level primitive blocks.'
+>>>>>>> khadija
     : ''
 }
 
 USER BRIEF: ${prompt || 'Generate a complete homepage for the described business.'}
 ${requestedLayoutInstruction ? `\nLayout note: ${requestedLayoutInstruction}` : ''}
 
+<<<<<<< HEAD
 Return ONLY one JSON object with top-level keys "meta", "theme", and "blocks". No markdown, no commentary.`,
+=======
+Return ONLY the JSON object described in JSON OUTPUT STRUCTURE above. The top-level key MUST be "page".`,
+>>>>>>> khadija
   },
 ];
 
@@ -2445,8 +2503,67 @@ const buildReviewContent = ({
   requestedLayoutInstruction: string;
   focusInstruction: string;
   visibleAnalysis: unknown;
+<<<<<<< HEAD
 }): GroqContentPart[] =>
   buildV2ReviewContent({ prompt, requestedLayoutInstruction, focusInstruction, visibleAnalysis });
+=======
+}): GroqContentPart[] => [
+  {
+    type: 'text',
+    text: `You are the second-model quality reviewer for an AI Website Builder.
+
+Your job: take the page JSON the first model produced and return a REPAIRED, production-ready version that follows the predefined-block library exactly.
+
+${focusInstruction}
+
+ALLOWED PREDEFINED BLOCK TYPES:
+navbar, hero, heroSplit, heroCentered, services, features, featureGrid, about, stats, cta, testimonials, team, pricing, portfolio, faq, blog, contact, footer, gallery, process, trustedBy, newsletter, dashboardPreview
+
+Anything else MUST use type:"custom" with a descriptive customType.
+
+CURRENT PAGE JSON:
+${JSON.stringify(visibleAnalysis, null, 2)}
+
+USER BRIEF: ${prompt || 'Generate a complete homepage.'}
+${requestedLayoutInstruction ? `Layout note: ${requestedLayoutInstruction}` : ''}
+
+REVIEW CHECKLIST — apply ALL of these:
+1. Block ordering: navbar first, footer last, hero before any content section, CTA never before hero, testimonials never before hero.
+2. Block types: every block.type must be one of the predefined list above, or "custom" with a customType.
+3. Content quality: NO lorem ipsum, NO "Your headline here", NO placeholder filler. Rewrite generic copy into specific, niche-appropriate copy.
+4. Headings <= 10 words. Subheadings <= 30 words. Feature descriptions <= 20 words.
+5. Images: every block that needs an image (hero, about, services items, testimonials avatars, gallery, portfolio, dashboardPreview) has a real Unsplash/Pexels/Pixabay URL in the images object or item.image field.
+6. Theme: page.theme must have valid hex codes for primaryColor, secondaryColor, backgroundColor, textColor; a fontFamily CSS stack; a buttonStyle; and a borderRadius.
+7. Realistic data: testimonials have name+role+company+feedback; pricing has price+period+features+buttonText; stats have value+label; FAQ items have question+answer.
+8. Coherence: same brand name across navbar, footer, and copy. Consistent tone for the inferred industry.
+9. Block.order is set sequentially starting at 1.
+10. No duplicate sections of the same type unless intentional (only one navbar, only one footer).
+
+RETURN ONLY this JSON shape (no markdown, no fences):
+{
+  "qualityScore": 0,
+  "qualityNotes": ["short repair note"],
+  "page": {
+    "title": "",
+    "description": "",
+    "theme": {
+      "primaryColor": "",
+      "secondaryColor": "",
+      "backgroundColor": "",
+      "textColor": "",
+      "fontFamily": "",
+      "buttonStyle": "",
+      "borderRadius": ""
+    },
+    "blocks": []
+  }
+}
+
+Set qualityScore from 0 to 100 after repairs. Use below 80 only if the JSON is structurally broken or cannot be repaired into a professional page.
+Keep strings short: qualityNotes entries max 120 characters; page.title max 80 characters.`,
+  },
+];
+>>>>>>> khadija
 
 const detectSiteMode = (prompt: string): boolean => {
   if (!prompt) return false;
@@ -2686,7 +2803,10 @@ const buildSiteHeaderBlocks = (brand: string, links: NavLink[]): BlockData[] => 
       content: JSON.stringify({
         logo: brand || 'Brand',
         logoType: 'text',
+<<<<<<< HEAD
         logoSource: 'custom',
+=======
+>>>>>>> khadija
         logoImage: '',
         layout: 'horizontal',
         links: finalLinks,
@@ -2752,6 +2872,7 @@ const buildSitePromptContent = ({
   {
     type: 'text',
     text: `${AI_WEBSITE_BUILDER_PROMPT}
+<<<<<<< HEAD
 
 ==================================================
 SITE-MODE OVERRIDE
@@ -3101,9 +3222,14 @@ const generatePrimitiveComponentsFromImage = async ({
 }): Promise<{ components: unknown[]; payload: Record<string, unknown> | null }> => {
   const apiKey = getOpenRouterApiKey(config);
   const text = `${AI_IMAGE_PRIMITIVE_PROMPT_V2}
+=======
+>>>>>>> khadija
 
-${focusInstruction}
+==================================================
+SITE-MODE OVERRIDE
+==================================================
 
+<<<<<<< HEAD
 ${prompt ? `USER NOTE: ${prompt}` : ''}`;
   const content: GroqContentPart[] = [
     { type: 'text', text },
@@ -3129,6 +3255,334 @@ ${prompt ? `USER NOTE: ${prompt}` : ''}`;
   throw new Error(`Image reconstruction failed: ${lastError}`);
 };
 
+=======
+You are generating an ENTIRE WEBSITE — not a single page.
+
+Output MUST contain:
+- one shared theme used by every page
+- one header (with a navbar block) reused across all pages
+- one footer reused across all pages
+- N body pages, where N is appropriate to the business (typically 4-7)
+
+How to pick N and which pages:
+- If the user said "X pages" or named specific pages, use exactly that.
+- Otherwise pick the right pages for the industry:
+  * IT services / agency: Home, About, Services, Process, Portfolio, Contact
+  * SaaS: Home, Features, Pricing, Docs, Changelog, Contact
+  * Portfolio: Home, About, Work, Contact
+  * Restaurant: Home, Menu, About, Reservations, Contact
+  * E-commerce: Home, Shop, Categories, About, Contact
+  * Default: Home, About, Services, Contact
+
+The HEADER navigation links MUST point to the slugs of pages you actually create (e.g. href:"/about", href:"/services"). The first page MUST be Home (slug:"home", isHome:true).
+
+Each page should use a DIFFERENT mix of semantic blocks — do NOT repeat the same hero on every page:
+- Home: heroSplit or heroCentered, trustedBy, services, features, stats, testimonials, cta
+- About: hero (simpler), about, stats, team, cta
+- Services: hero, services, process, faq, cta
+- Pricing: hero, pricing, faq, cta
+- Portfolio/Work: hero, portfolio, testimonials, cta
+- Contact: hero (short), contact
+
+==================================================
+SITE OUTPUT STRUCTURE
+==================================================
+
+Return ONLY this JSON shape (top-level key "site"):
+
+{
+  "site": {
+    "brand": "Acme Cloud",
+    "title": "Acme Cloud — Smart IT Solutions",
+    "description": "One-line meta description.",
+    "theme": {
+      "primaryColor": "#2563EB",
+      "secondaryColor": "#0F172A",
+      "backgroundColor": "#FFFFFF",
+      "textColor": "#0F172A",
+      "fontFamily": "Inter, system-ui, sans-serif",
+      "buttonStyle": "filled",
+      "borderRadius": "10px"
+    },
+    "header": {
+      "blocks": [
+        {
+          "id": "site-nav",
+          "type": "navbar",
+          "order": 1,
+          "content": {
+            "logo": "Acme Cloud",
+            "links": [
+              {"label":"Home","href":"/home"},
+              {"label":"About","href":"/about"},
+              {"label":"Services","href":"/services"},
+              {"label":"Contact","href":"/contact"}
+            ],
+            "cta": {"label":"Get a quote","href":"/contact"}
+          }
+        }
+      ]
+    },
+    "footer": {
+      "blocks": [
+        {
+          "id": "site-footer",
+          "type": "footer",
+          "order": 1,
+          "content": {
+            "brand": "Acme Cloud",
+            "copyright": "© 2026 Acme Cloud. All rights reserved.",
+            "columns": [
+              {"title":"Product","links":[{"label":"Features","href":"/services"},{"label":"Pricing","href":"/pricing"}]},
+              {"title":"Company","links":[{"label":"About","href":"/about"},{"label":"Contact","href":"/contact"}]}
+            ]
+          }
+        }
+      ]
+    },
+    "pages": [
+      {
+        "slug": "home",
+        "title": "Home",
+        "pageName": "Home",
+        "isHome": true,
+        "blocks": [ /* semantic blocks for the home page */ ]
+      },
+      {
+        "slug": "about",
+        "title": "About",
+        "pageName": "About Us",
+        "isHome": false,
+        "blocks": [ /* semantic blocks for the about page */ ]
+      }
+    ]
+  }
+}
+
+Site-mode rules:
+- Slugs are kebab-case, no leading slash (just "about", not "/about").
+- Header/footer blocks live in site.header.blocks and site.footer.blocks — NOT in any page.blocks.
+- Page blocks reuse the predefined block list. Use custom blocks only when necessary.
+- Same brand name and theme are consistent across every page.
+- Navbar links use the slugs of pages you actually generated.
+- No lorem ipsum. Realistic content tailored to the industry.
+
+${hasImage ? 'A reference image has been attached — use it as the visual reference for theme and home page layout. Other pages should follow the same visual style.' : ''}
+
+USER BRIEF: ${prompt || 'Generate a complete multi-page website for the described business.'}
+
+Return ONLY the JSON object with top-level key "site". No markdown, no explanations.`,
+  },
+];
+
+const buildSiteReviewContent = ({
+  prompt,
+  visibleSite,
+}: {
+  prompt: string;
+  visibleSite: unknown;
+}): GroqContentPart[] => [
+  {
+    type: 'text',
+    text: `You are the quality reviewer for an AI Website Builder in SITE mode.
+
+Validate and repair a multi-page site JSON. Return a corrected version with a qualityScore from 0 to 100.
+
+ALLOWED PREDEFINED BLOCK TYPES:
+navbar, hero, heroSplit, heroCentered, services, features, featureGrid, about, stats, cta, testimonials, team, pricing, portfolio, faq, blog, contact, footer, gallery, process, trustedBy, newsletter, dashboardPreview
+
+Anything else MUST use type:"custom" with a descriptive customType.
+
+CURRENT SITE JSON:
+${JSON.stringify(visibleSite, null, 2)}
+
+USER BRIEF: ${prompt || 'Generate a complete website.'}
+
+REVIEW CHECKLIST:
+1. site.header.blocks contains exactly one navbar block; no body content.
+2. site.footer.blocks contains exactly one footer block.
+3. site.pages has at least 2 pages. Exactly one page has isHome:true and slug:"home".
+4. Every page.slug is unique, kebab-case, no leading slash.
+5. Header navbar links point only to slugs that appear in site.pages.
+6. Each page has its own appropriate hero. Vary the hero variant per page.
+7. No lorem ipsum, no "Your headline here" placeholders. Rewrite generic copy.
+8. site.theme has valid 6-digit hex codes for primaryColor/secondaryColor/backgroundColor/textColor and a real CSS fontFamily stack.
+9. Brand name is consistent across header logo, footer brand, and content references.
+10. Every page.block.type is in the allowed list or is "custom" with a customType.
+11. Pages contain realistic content; testimonials have name+role+company+feedback; pricing has price+features+buttonText.
+
+RETURN ONLY this JSON (no markdown):
+{
+  "qualityScore": 0,
+  "qualityNotes": ["short repair note"],
+  "site": { /* repaired site object matching the input structure */ }
+}
+
+qualityScore below 80 only if the site is structurally unrecoverable.`,
+  },
+];
+
+const reviewAnalysisWithSecondModel = async ({
+  prompt,
+  requestedLayoutInstruction,
+  focusInstruction,
+  visibleAnalysis,
+  config,
+}: {
+  prompt: string;
+  requestedLayoutInstruction: string;
+  focusInstruction: string;
+  visibleAnalysis: unknown;
+  config: AiRuntimeConfig;
+}) => {
+  const reviewers: AnalysisProvider[] = ['openrouter'];
+  const errors: string[] = [];
+
+  for (const provider of reviewers) {
+    const apiKey = provider === 'openrouter' ? getOpenRouterApiKey(config) : '';
+    if (!apiKey) continue;
+
+    try {
+      const content = buildReviewContent({
+        prompt,
+        requestedLayoutInstruction,
+        focusInstruction,
+        visibleAnalysis,
+      });
+
+      let reviewPayload: Record<string, unknown> | null = null;
+      let lastReviewError: string | null = null;
+
+      for (let attempt = 0; attempt < 2; attempt++) {
+        const maxTokens = attempt === 0 ? 8192 : 16384;
+        if (attempt > 0) {
+          console.warn('[AI] Review parse failed or empty sections; retrying with higher max_completion_tokens');
+        }
+
+        reviewPayload = await callOpenRouterJson(apiKey, {
+          model: config.openrouterReviewModel,
+          messages: [{ role: 'user', content }],
+          max_completion_tokens: maxTokens,
+        });
+
+        try {
+          const reviewedAnalysis = parseModelJson(getOpenRouterMessageContent(reviewPayload));
+          const reviewedBlocks = getPageBlocks(parsePagePlan(reviewedAnalysis));
+
+          if (reviewedBlocks.length > 0) {
+            return { reviewedAnalysis, reviewPayload, reviewerProvider: provider };
+          }
+          lastReviewError = `${provider} review returned no sections`;
+        } catch (parseErr) {
+          lastReviewError = parseErr instanceof Error ? parseErr.message : String(parseErr);
+        }
+      }
+
+      errors.push(lastReviewError || `${provider} review failed`);
+    } catch (err) {
+      errors.push(`${provider} review failed: ${err instanceof Error ? err.message : err}`);
+    }
+  }
+
+  throw new Error(`All review attempts failed: ${errors.join(' | ')}`);
+};
+
+const runAnalysisProvider = async ({
+  provider,
+  apiKey,
+  content,
+  config,
+}: {
+  provider: AnalysisProvider;
+  apiKey: string;
+  content: GroqContentPart[];
+  config: AiRuntimeConfig;
+}) => {
+  if (provider === 'openrouter') {
+    const model = config.openrouterModel;
+    const payload = await callOpenRouterJson(apiKey, {
+      model,
+      messages: [{ role: 'user', content }],
+      max_completion_tokens: 8192,
+    });
+    return {
+      payload,
+      model,
+      analysis: parseModelJson(getOpenRouterMessageContent(payload)),
+    };
+  }
+
+  throw new Error(`Unsupported AI provider: ${provider}`);
+};
+
+const generateReviewedAnalysisWithFallback = async ({
+  content,
+  prompt,
+  requestedLayoutInstruction,
+  focusInstruction,
+  config,
+}: {
+  content: GroqContentPart[];
+  prompt: string;
+  requestedLayoutInstruction: string;
+  focusInstruction: string;
+  config: AiRuntimeConfig;
+}) => {
+  const providers: AnalysisProvider[] = ['openrouter'];
+  const errors: string[] = [];
+
+  for (const provider of providers) {
+    const apiKey = provider === 'openrouter' ? getOpenRouterApiKey(config) : '';
+    if (!apiKey) continue;
+
+    try {
+        console.log(`[AI] Attempting ${provider}...`);
+        const analysisAttempt = await runAnalysisProvider({
+          provider,
+          apiKey,
+          content,
+          config,
+        });
+
+        const { reviewedAnalysis, reviewPayload, reviewerProvider } =
+          await reviewAnalysisWithSecondModel({
+            prompt,
+            requestedLayoutInstruction,
+            focusInstruction,
+            visibleAnalysis: analysisAttempt.analysis,
+            config,
+          });
+
+        const qualityScore = getPageQualityScore(reviewedAnalysis);
+
+        if (qualityScore >= config.minQualityScore) {
+          return {
+            provider,
+            model: analysisAttempt.model,
+            payload: analysisAttempt.payload,
+            reviewedAnalysis,
+            reviewPayload,
+            qualityScore,
+            reviewerProvider: reviewerProvider,
+          };
+        }
+
+        errors.push(`${provider} quality score ${qualityScore} too low`);
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
+      errors.push(`${provider} failed: ${msg}`);
+
+      if (msg.toLowerCase().includes('429')) {
+        console.warn(`[AI] Rate limit hit. Sleeping for 10s...`);
+        await new Promise((resolve) => setTimeout(resolve, 10000));
+      }
+    }
+  }
+
+  throw new Error(`No provider produced professional output. ${errors.join(' | ')}`);
+};
+
+>>>>>>> khadija
 export async function POST(request: NextRequest) {
   const cookieStore = await cookies();
   const token = cookieStore.get('token')?.value;
@@ -3433,6 +3887,7 @@ export async function POST(request: NextRequest) {
           };
         }
       }
+<<<<<<< HEAD
 
       if (!home || !createdPages.some((p) => p.pageType === 'page')) {
         return NextResponse.json(
@@ -3523,10 +3978,17 @@ export async function POST(request: NextRequest) {
             qualityScore,
             qualityNotes: getPageQualityNotes(visibleAnalysis),
           },
+=======
+
+      if (!home || !createdPages.some((p) => p.pageType === 'page')) {
+        return NextResponse.json(
+          { message: 'Site was generated but no body pages could be saved.' },
+>>>>>>> khadija
           { status: 422 }
         );
       }
 
+<<<<<<< HEAD
       const components = buildComponentsFromPage(visibleAnalysis, pageType)
         .map((block) => sanitizeBlock(block, 0, { count: 0 }))
         .filter((block): block is BlockData => Boolean(block))
@@ -3545,10 +4007,86 @@ export async function POST(request: NextRequest) {
     if (layoutAdjustedComponents.length === 0) {
       return NextResponse.json(
         { message: 'AI returned JSON, but no valid builder components were found.' },
+=======
+      return NextResponse.json({
+        mode: 'site',
+        userId,
+        brand,
+        pages: createdPages,
+        home: {
+          _id: home._id,
+          slug: home.slug,
+          pageName: home.pageName,
+          url: `/${home.slug}`,
+          components: home.components,
+        },
+        qualityScore: siteQualityScore,
+        qualityNotes: siteQualityNotes,
+        usage: {
+          generation: sitePayload?.usage,
+          review: siteReviewPayload?.usage,
+        },
+      });
+    }
+
+    const analysisContentParts = buildAnalysisContent({
+      prompt,
+      requestedLayoutInstruction,
+      focusInstruction,
+      hasImage,
+    });
+
+    const analysisContent = hasImage
+      ? [...analysisContentParts, { type: 'image_url' as const, image_url: { url: imageDataUrl } }]
+      : analysisContentParts;
+    const analysisResult = await generateReviewedAnalysisWithFallback({
+      content: analysisContent,
+      prompt,
+      requestedLayoutInstruction,
+      focusInstruction,
+      config: aiConfig,
+    });
+    const visibleAnalysis = analysisResult.reviewedAnalysis;
+    const reviewPayload = analysisResult.reviewPayload;
+    const qualityScore = getPageQualityScore(visibleAnalysis);
+
+    if (qualityScore < aiConfig.minQualityScore) {
+      return NextResponse.json(
+        {
+          message:
+            'The AI result did not pass the quality check. Try a clearer prompt or a higher-resolution image.',
+          qualityScore,
+          qualityNotes: getPageQualityNotes(visibleAnalysis),
+        },
+>>>>>>> khadija
         { status: 422 }
       );
     }
 
+<<<<<<< HEAD
+=======
+    const components = buildComponentsFromPage(visibleAnalysis, pageType)
+      .map((block) => sanitizeBlock(block, 0, { count: 0 }))
+      .filter((block): block is BlockData => Boolean(block))
+      .map(enforceColumnCounts)
+      .map(flattenSingleChildColumns)
+      .map(ensureFlexOnMultiColumnContainers)
+      .map(repairIntroMetricsTimerSection)
+      .map((block) => repairDarkSectionContrast(block));
+
+    const layoutAdjustedComponents = applyRequestedLayout(
+      components.map(applyEditorBlockDefaults),
+      requestedLayout
+    ).map(applyEditorBlockDefaults);
+
+    if (layoutAdjustedComponents.length === 0) {
+      return NextResponse.json(
+        { message: 'AI returned JSON, but no valid builder components were found.' },
+        { status: 422 }
+      );
+    }
+
+>>>>>>> khadija
     let enrichedComponents = layoutAdjustedComponents;
     const singlePageIndustryTags = inferIndustryTags(prompt);
     try {
@@ -3630,6 +4168,7 @@ export async function POST(request: NextRequest) {
       analysis: visibleAnalysis,
       requestedLayout,
       pageType,
+<<<<<<< HEAD
       provider: analysisProvider,
       model: analysisModel,
       reviewModel: aiConfig.openrouterReviewModel,
@@ -3638,6 +4177,16 @@ export async function POST(request: NextRequest) {
       qualityNotes: getPageQualityNotes(visibleAnalysis),
       usage: {
         analysis: analysisUsage,
+=======
+      provider: analysisResult.provider,
+      model: analysisResult.model,
+      reviewModel: aiConfig.openrouterReviewModel,
+      reviewProvider: (analysisResult as { reviewerProvider?: string }).reviewerProvider || 'openrouter',
+      qualityScore,
+      qualityNotes: getPageQualityNotes(visibleAnalysis),
+      usage: {
+        analysis: analysisResult.payload?.usage,
+>>>>>>> khadija
         review: reviewPayload?.usage,
       },
     });

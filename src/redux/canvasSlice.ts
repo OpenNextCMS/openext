@@ -63,9 +63,13 @@ export interface BlockData {
     | 'feature-boxed'
     | 'feature-zigzag'
     | 'feature-checklist'
+<<<<<<< HEAD
     | 'feature-list'
     | 'blog-feed'
     | 'form-block';
+=======
+    | 'feature-list';
+>>>>>>> khadija
   children?: BlockData[][];
   style?: React.CSSProperties;
   hoverStyle?: React.CSSProperties;
@@ -593,6 +597,7 @@ const canvasSlice = createSlice({
     },
     setSelectedPart: (state, action: PayloadAction<string | null>) => {
       state.selectedPart = action.payload;
+<<<<<<< HEAD
     },
     // Select a block AND a sub-element part in one dispatch (used by click-to-
     // select on the canvas). setSelectedBlock alone clears selectedPart, so the
@@ -604,6 +609,8 @@ const canvasSlice = createSlice({
       state.selectedBlock = action.payload.block;
       state.selectedPart = action.payload.part;
       state.selectedLabel = action.payload.block.label || state.selectedLabel;
+=======
+>>>>>>> khadija
     },
     setSelectedValue: (state, action: PayloadAction<number>) => {
       state.selectedValue = action.payload;
@@ -615,6 +622,7 @@ const canvasSlice = createSlice({
     },
     updateSelectedBlockStyles: (state, action: PayloadAction<Partial<React.CSSProperties>>) => {
       if (state.selectedBlock) {
+<<<<<<< HEAD
         pushCanvasHistory(state);
         const { selectedPart } = state;
 
@@ -671,6 +679,64 @@ const canvasSlice = createSlice({
               };
             }
 
+=======
+        const { selectedPart } = state;
+
+        if (selectedPart) {
+          // Update a specific part inside the content JSON
+          try {
+            const contentObj = JSON.parse(state.selectedBlock.content);
+            const partStyleKey = selectedPart.endsWith('Style') ? selectedPart : `${selectedPart}Style`;
+            contentObj[partStyleKey] = {
+              ...(contentObj[partStyleKey] || {}),
+              ...action.payload,
+            };
+            const newContent = JSON.stringify(contentObj);
+            state.selectedBlock.content = newContent;
+
+            // Sync with main blocks tree
+            const updateInTree = (block: BlockData): BlockData => {
+              if (block.uniqueId === state.selectedBlock!.uniqueId) {
+                return { ...block, content: newContent };
+              }
+              if (block.children) {
+                return {
+                  ...block,
+                  children: block.children.map((col) => col.map(updateInTree)),
+                };
+              }
+              return block;
+            };
+            state.blocks = state.blocks.map(updateInTree);
+          } catch (e) {
+            console.error('Failed to update part style:', e);
+          }
+        } else {
+          // Standard block style update
+          state.selectedBlock.style = {
+            ...state.selectedBlock.style,
+            ...action.payload,
+          };
+
+          const updateBlock = (block: BlockData): BlockData => {
+            if (block.uniqueId === state.selectedBlock!.uniqueId) {
+              return {
+                ...block,
+                style: {
+                  ...block.style,
+                  ...action.payload,
+                },
+              };
+            }
+
+            if (block.children) {
+              return {
+                ...block,
+                children: block.children.map((col) => col.map((child) => updateBlock(child))),
+              };
+            }
+
+>>>>>>> khadija
             return block;
           };
 
@@ -845,8 +911,11 @@ const canvasSlice = createSlice({
         blocks: normalizeBlockTreeIds(action.payload.blocks, usedIds),
         headerBlocks: normalizeBlockTreeIds(action.payload.headerBlocks, usedIds),
         footerBlocks: normalizeBlockTreeIds(action.payload.footerBlocks, usedIds),
+<<<<<<< HEAD
         historyPast: [],
         historyFuture: [],
+=======
+>>>>>>> khadija
         selectedBlock: null,
       };
     },
@@ -876,7 +945,10 @@ export const {
   setSelectedLabel,
   setSelectedBlock,
   setSelectedPart,
+<<<<<<< HEAD
   selectElement,
+=======
+>>>>>>> khadija
   setSelectedValue,
   clearSelectedLabel,
   updateSelectedBlockStyles,

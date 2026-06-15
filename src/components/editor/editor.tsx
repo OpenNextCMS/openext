@@ -26,6 +26,7 @@ import {
   type BlockData as CanvasBlockData,
 } from '@/redux/canvasSlice';
 import { BlockDragData, Block } from '@/types/index';
+<<<<<<< HEAD
 import { safeStorageGet, safeStorageSet } from '@/utils/safeStorage';
 import { pluginRegistry } from '@/lib/pluginRegistry';
 
@@ -38,6 +39,10 @@ const RIGHT_SIDEBAR_WIDTH_KEY = 'editor:right-sidebar-width';
 
 const clampSidebarWidth = (width: number) =>
   Math.min(SIDEBAR_MAX_WIDTH, Math.max(SIDEBAR_MIN_WIDTH, width));
+=======
+import { safeStorageGet } from '@/utils/safeStorage';
+import { pluginRegistry } from '@/lib/pluginRegistry';
+>>>>>>> khadija
 
 type EditableBlockType = Block['type'];
 
@@ -111,8 +116,11 @@ const editableBlockTypes: EditableBlockType[] = [
   'ecommerce-grid',
   'ecommerce-detail',
   'ecommerce-info',
+<<<<<<< HEAD
   'blog-feed',
   'form-block',
+=======
+>>>>>>> khadija
 ];
 
 const getEditableBlockType = (type?: string): EditableBlockType => {
@@ -224,6 +232,7 @@ export default function Editor() {
     };
   }, []);
 
+<<<<<<< HEAD
   // Restore previously saved sidebar widths
   useEffect(() => {
     const storedLeft = Number(safeStorageGet(LEFT_SIDEBAR_WIDTH_KEY));
@@ -284,6 +293,8 @@ export default function Editor() {
     safeStorageSet(RIGHT_SIDEBAR_WIDTH_KEY, String(rightSidebarWidth));
   }, [rightSidebarWidth]);
 
+=======
+>>>>>>> khadija
   useEffect(() => {
     if (canvasBlocks.length === 0 || !hasInvalidOrDuplicateBlockIds(canvasBlocks as Block[])) {
       return;

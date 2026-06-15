@@ -1,0 +1,10 @@
+# Copy this file to api_keys.txt (gitignored) and add one API key per line.
+# Never commit api_keys.txt.
+#
+# Groq keys (optional fallback):
+# gsk_your_groq_key_here
+#
+# Or set environment variables instead:
+# GROQ_API_KEY=...
+# KIMI_API_KEY=...
+# GEMINI_API_KEY=...

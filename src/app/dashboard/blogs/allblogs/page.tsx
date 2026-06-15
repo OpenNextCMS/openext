@@ -3,6 +3,12 @@
 import { useState, useEffect } from 'react';
 import type React from 'react';
 import {
+<<<<<<< HEAD
+=======
+  Loader2,
+  FileText,
+  Files,
+>>>>>>> khadija
   Search,
   RefreshCw,
   CheckCircle,
@@ -29,7 +35,11 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+<<<<<<< HEAD
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+=======
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+>>>>>>> khadija
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -56,6 +66,7 @@ interface BlogPage {
   updatedAt: string;
 }
 
+<<<<<<< HEAD
 // Shape of a blog post returned by GET /api/blogs (categories/author populated).
 interface RawBlogPost {
   _id: string;
@@ -70,16 +81,23 @@ interface RawBlogPost {
   updatedAt: string;
 }
 
+=======
+>>>>>>> khadija
 export default function AllBlogs() {
   const [blogs, setBlogs] = useState<BlogPage[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+<<<<<<< HEAD
+=======
+  const [userId, setUserId] = useState<string | null>(null);
+>>>>>>> khadija
   const [activeTab, setActiveTab] = useState('all');
 
   const fetchBlogs = async () => {
     setLoading(true);
     try {
       const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
+<<<<<<< HEAD
       const response = await fetch(`${backendUrl}/api/blogs?limit=100`, {
         credentials: 'include',
       });
@@ -105,6 +123,16 @@ export default function AllBlogs() {
         setBlogs(mapped);
       } else {
         toast.error(result.error?.message || 'Failed to fetch blogs');
+=======
+      const response = await fetch(`${backendUrl}/api/pages/get-pages`);
+      if (response.ok) {
+        const data = await response.json();
+        const blogPages = (data.pages || []).filter((p: any) => p.pageType === 'blog');
+        setBlogs(blogPages);
+        setUserId(data.userId);
+      } else {
+        toast.error('Failed to fetch blogs');
+>>>>>>> khadija
       }
     } catch (err) {
       console.error('Error fetching blogs:', err);
@@ -121,21 +149,37 @@ export default function AllBlogs() {
   const handleTogglePublish = async (id: string, currentStatus: boolean) => {
     try {
       const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
+<<<<<<< HEAD
       const response = await fetch(`${backendUrl}/api/blogs/${id}`, {
         method: 'PUT',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: !currentStatus ? 'published' : 'draft' }),
+=======
+      const response = await fetch(`${backendUrl}/api/pages/update-page`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          pageId: id, 
+          isPublished: !currentStatus,
+          publishDate: !currentStatus ? new Date() : null
+        }),
+>>>>>>> khadija
       });
 
       if (response.ok) {
         toast.success(`Blog ${!currentStatus ? 'published' : 'moved to drafts'}`);
         fetchBlogs();
+<<<<<<< HEAD
       } else {
         const result = await response.json().catch(() => null);
         toast.error(result?.error?.message || 'Failed to update status');
       }
     } catch {
+=======
+      }
+    } catch (err) {
+>>>>>>> khadija
       toast.error('Failed to update status');
     }
   };
@@ -145,19 +189,30 @@ export default function AllBlogs() {
     
     try {
       const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
+<<<<<<< HEAD
       const response = await fetch(`${backendUrl}/api/blogs/${id}`, {
         method: 'DELETE',
         credentials: 'include',
+=======
+      const response = await fetch(`${backendUrl}/api/pages/delete-page?id=${id}`, {
+        method: 'DELETE',
+>>>>>>> khadija
       });
 
       if (response.ok) {
         toast.success('Blog post deleted successfully');
         fetchBlogs();
       } else {
+<<<<<<< HEAD
         const result = await response.json().catch(() => null);
         toast.error(result?.error?.message || 'Failed to delete post');
       }
     } catch {
+=======
+        toast.error('Failed to delete post');
+      }
+    } catch (err) {
+>>>>>>> khadija
       toast.error('An error occurred during deletion');
     }
   };
@@ -176,7 +231,11 @@ export default function AllBlogs() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
           <h1 className="text-3xl font-bold tracking-tight">Editorial Hub</h1>
+<<<<<<< HEAD
           <p className="text-muted-foreground">Manage your publication&apos;s content and premium blog posts.</p>
+=======
+          <p className="text-muted-foreground">Manage your publication's content and premium blog posts.</p>
+>>>>>>> khadija
         </div>
         <div className="flex items-center gap-3">
           <Button variant="outline" size="sm" onClick={fetchBlogs}>
@@ -212,25 +271,46 @@ export default function AllBlogs() {
         </div>
 
         <TabsContent value="all" className="mt-0">
+<<<<<<< HEAD
           <BlogTable
             blogs={filteredBlogs}
             loading={loading}
+=======
+          <BlogTable 
+            blogs={filteredBlogs} 
+            loading={loading} 
+            userId={userId} 
+>>>>>>> khadija
             onTogglePublish={handleTogglePublish}
             onPostDelete={handlePostDelete}
           />
         </TabsContent>
         <TabsContent value="published" className="mt-0">
+<<<<<<< HEAD
           <BlogTable
             blogs={filteredBlogs}
             loading={loading}
+=======
+          <BlogTable 
+            blogs={filteredBlogs} 
+            loading={loading} 
+            userId={userId} 
+>>>>>>> khadija
             onTogglePublish={handleTogglePublish}
             onPostDelete={handlePostDelete}
           />
         </TabsContent>
         <TabsContent value="drafts" className="mt-0">
+<<<<<<< HEAD
           <BlogTable
             blogs={filteredBlogs}
             loading={loading}
+=======
+          <BlogTable 
+            blogs={filteredBlogs} 
+            loading={loading} 
+            userId={userId} 
+>>>>>>> khadija
             onTogglePublish={handleTogglePublish}
             onPostDelete={handlePostDelete}
           />
@@ -281,6 +361,7 @@ export default function AllBlogs() {
   );
 }
 
+<<<<<<< HEAD
 function BlogTable({
   blogs,
   loading,
@@ -292,6 +373,9 @@ function BlogTable({
   onTogglePublish: (id: string, currentStatus: boolean) => void;
   onPostDelete: (id: string) => void;
 }) {
+=======
+function BlogTable({ blogs, loading, userId, onTogglePublish, onPostDelete }: any) {
+>>>>>>> khadija
   if (loading && blogs.length === 0) {
     return (
       <div className="space-y-4">
@@ -366,7 +450,11 @@ function BlogTable({
               <TableCell className="text-right">
                 <div className="flex items-center justify-end gap-2">
                   <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" asChild>
+<<<<<<< HEAD
                     <a href={`/blog/${blog.slug}`} target="_blank" rel="noopener noreferrer">
+=======
+                    <a href={`/${blog.slug}`} target="_blank" rel="noopener noreferrer">
+>>>>>>> khadija
                       <ExternalLink className="h-4 w-4" />
                     </a>
                   </Button>
@@ -380,7 +468,11 @@ function BlogTable({
                     <DropdownMenuContent align="end" className="w-48 rounded-xl p-2 shadow-xl border-border/50">
                       <DropdownMenuLabel className="text-[10px] font-bold uppercase text-muted-foreground px-2 py-1.5">Editorial Actions</DropdownMenuLabel>
                       <DropdownMenuItem className="rounded-lg gap-2 cursor-pointer py-2.5" asChild>
+<<<<<<< HEAD
                         <Link href={`/dashboard/blogs/${blog._id}/edit`}>
+=======
+                        <Link href={`/Editor?pagename=${encodeURIComponent(blog.slug)}&userId=${userId}&pageId=${blog._id}`}>
+>>>>>>> khadija
                           <Edit className="h-4 w-4 text-blue-500" /> Edit Content
                         </Link>
                       </DropdownMenuItem>

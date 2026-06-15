@@ -91,7 +91,12 @@ const Background = () => {
       if (selectedPart) {
         try {
           const content = JSON.parse(selectedBlock.content);
+<<<<<<< HEAD
           style = getStyleAtPath(content, selectedPart);
+=======
+          const partStyleKey = selectedPart.endsWith('Style') ? selectedPart : `${selectedPart}Style`;
+          style = content[partStyleKey] || {};
+>>>>>>> khadija
         } catch {
           style = {};
         }
@@ -102,6 +107,9 @@ const Background = () => {
 
     if (style.backgroundColor && style.backgroundColor !== 'transparent') {
       setBackgroundColor(toPickerHex(style.backgroundColor));
+      setBgOption('color');
+    } else {
+      setBackgroundColor('#ffffff');
       setBgOption('color');
     } else {
       setBackgroundColor('#ffffff');
