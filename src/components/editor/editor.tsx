@@ -28,7 +28,6 @@ import {
 import { BlockDragData, Block } from '@/types/index';
 import { safeStorageGet, safeStorageSet } from '@/utils/safeStorage';
 import { pluginRegistry } from '@/lib/pluginRegistry';
->>>>>>> khadija
 
 // Resizable sidebar constraints (in pixels)
 const SIDEBAR_MIN_WIDTH = 200;

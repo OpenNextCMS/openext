@@ -2752,7 +2752,6 @@ const buildSitePromptContent = ({
   {
     type: 'text',
     text: `${AI_WEBSITE_BUILDER_PROMPT}
-<<<<<<< HEAD
 
 ==================================================
 SITE-MODE OVERRIDE
@@ -3434,7 +3433,6 @@ export async function POST(request: NextRequest) {
           };
         }
       }
-<<<<<<< HEAD
 
       if (!home || !createdPages.some((p) => p.pageType === 'page')) {
         return NextResponse.json(
@@ -3551,7 +3549,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
->>>>>>> khadija
     let enrichedComponents = layoutAdjustedComponents;
     const singlePageIndustryTags = inferIndustryTags(prompt);
     try {
