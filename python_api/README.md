@@ -13,6 +13,7 @@ Run:
 
 ```bash
 pip install -r python_api/requirements.txt
+cp python_api/api_keys.txt.example python_api/api_keys.txt  # then add keys locally (never commit)
 uvicorn python_api.generate_page_json_api:app --host 0.0.0.0 --port 8000 --reload
 ```
 
