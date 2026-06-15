@@ -1,7 +1,10 @@
 ﻿import React from 'react';
 
 import { InlineEditableText } from '@/components/editor/InlineEditableText';
+<<<<<<< HEAD
 import { EditableElement } from '@/components/editor/EditableElement';
+=======
+>>>>>>> khadija
 import type { BlockRendererProps } from '@/types/index';
 import type { BlockContentItem } from '@/types/blockContent';
 import { useAppDispatch } from '@/redux/hooks';
@@ -45,7 +48,11 @@ export const ContentGallery = ({ block, isEditing = false }: BlockRendererProps)
   ];
 
   return (
+<<<<<<< HEAD
     <section className="text-[color:var(--color-muted,#4b5563)] body-font w-full" style={block.style}>
+=======
+    <section className="text-gray-600 body-font w-full" style={block.style}>
+>>>>>>> khadija
       <div className="container px-5 py-24 mx-auto">
         <div className="flex flex-wrap w-full mb-20">
           <div className="lg:w-1/2 w-full mb-6 lg:mb-0">
@@ -54,23 +61,39 @@ export const ContentGallery = ({ block, isEditing = false }: BlockRendererProps)
               value={content.mainTitle || 'Pitchfork Kickstarter Taxidermy'}
               onBlur={(v) => handleUpdate('mainTitle', v)}
               isEditing={isEditing}
+<<<<<<< HEAD
               className="sm:text-3xl text-2xl font-medium title-font mb-2 text-[color:var(--color-text,#111827)]"
               style={{ 
                 color: block.style?.color || 'var(--color-text, #111827)', 
+=======
+              className="sm:text-3xl text-2xl font-medium title-font mb-2 text-gray-900"
+              style={{ 
+                color: block.style?.color, 
+>>>>>>> khadija
                 fontFamily: block.style?.fontFamily,
                 ...content.mainTitleStyle 
               }}
             />
+<<<<<<< HEAD
             <div className="h-1 w-20 bg-[var(--color-primary,#6366f1)] rounded"></div>
+=======
+            <div className="h-1 w-20 bg-indigo-500 rounded"></div>
+>>>>>>> khadija
           </div>
           <InlineEditableText
             tagName="p"
             value={content.mainDescription || "Whatever cardigan tote bag tumblr hexagon brooklyn asymmetrical gentrify, subway tile poke farm-to-table. Franzen you probably haven't heard of them man bun deep jianbing selfies heirloom prism food truck ugh squid celiac humblebrag."}
             onBlur={(v) => handleUpdate('mainDescription', v)}
             isEditing={isEditing}
+<<<<<<< HEAD
             className="lg:w-1/2 w-full leading-relaxed text-[color:var(--color-muted,#6b7280)]"
             style={{ 
               color: block.style?.color || 'var(--color-text, #111827)', 
+=======
+            className="lg:w-1/2 w-full leading-relaxed text-gray-500"
+            style={{ 
+              color: block.style?.color, 
+>>>>>>> khadija
               fontFamily: block.style?.fontFamily,
               ...content.mainDescriptionStyle 
             }}
@@ -79,6 +102,7 @@ export const ContentGallery = ({ block, isEditing = false }: BlockRendererProps)
         <div className="flex flex-wrap -m-4">
           {items.map((item: BlockContentItem, index: number) => (
             <div key={index} className="xl:w-1/4 md:w-1/2 p-4">
+<<<<<<< HEAD
               <EditableElement
                 block={block}
                 isEditing={isEditing}
@@ -93,12 +117,20 @@ export const ContentGallery = ({ block, isEditing = false }: BlockRendererProps)
                   className="h-40 rounded w-full object-cover object-center mb-6"
                   extraProps={{ src: item.image, alt: "content" }}
                 />
+=======
+              <div className="bg-gray-100 p-6 rounded-lg">
+                <img className="h-40 rounded w-full object-cover object-center mb-6" src={item.image} alt="content" />
+>>>>>>> khadija
                 <InlineEditableText
                   tagName="h3"
                   value={item.subtitle || 'SUBTITLE'}
                   onBlur={(v) => updateItem(index, 'subtitle', v)}
                   isEditing={isEditing}
+<<<<<<< HEAD
                   className="tracking-widest text-[color:var(--color-primary,#6366f1)] text-xs font-medium title-font mb-1"
+=======
+                  className="tracking-widest text-indigo-500 text-xs font-medium title-font mb-1"
+>>>>>>> khadija
                   style={{ 
                     fontFamily: block.style?.fontFamily,
                     ...content.itemSubtitleStyle 
@@ -109,9 +141,15 @@ export const ContentGallery = ({ block, isEditing = false }: BlockRendererProps)
                   value={item.title || 'Item Title'}
                   onBlur={(v) => updateItem(index, 'title', v)}
                   isEditing={isEditing}
+<<<<<<< HEAD
                   className="text-lg text-[color:var(--color-text,#111827)] font-medium title-font mb-4"
                   style={{ 
                     color: block.style?.color || 'var(--color-text, #111827)', 
+=======
+                  className="text-lg text-gray-900 font-medium title-font mb-4"
+                  style={{ 
+                    color: block.style?.color, 
+>>>>>>> khadija
                     fontFamily: block.style?.fontFamily,
                     ...content.itemTitleStyle 
                   }}
@@ -123,12 +161,20 @@ export const ContentGallery = ({ block, isEditing = false }: BlockRendererProps)
                   isEditing={isEditing}
                   className="leading-relaxed text-base"
                   style={{ 
+<<<<<<< HEAD
                     color: block.style?.color || 'var(--color-text, #111827)', 
+=======
+                    color: block.style?.color, 
+>>>>>>> khadija
                     fontFamily: block.style?.fontFamily,
                     ...content.itemDescriptionStyle 
                   }}
                 />
+<<<<<<< HEAD
               </EditableElement>
+=======
+              </div>
+>>>>>>> khadija
             </div>
           ))}
         </div>

@@ -50,7 +50,10 @@ interface Block {
     | 'content-detail'
     | 'content-split'
     | 'content-trio'
+<<<<<<< HEAD
     | 'blog-feed'
+=======
+>>>>>>> khadija
     | 'feature-trio'
     | 'feature-vertical'
     | 'feature-side-image'
@@ -62,8 +65,12 @@ interface Block {
     | 'ecommerce-grid'
     | 'ecommerce-detail'
     | 'ecommerce-info'
+<<<<<<< HEAD
     | 'ecommerce-info-alt'
     | 'form-block';
+=======
+    | 'ecommerce-info-alt';
+>>>>>>> khadija
     uniqueId: string;
   content?: string;
   icon?: React.ReactNode | string;

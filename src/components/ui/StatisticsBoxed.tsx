@@ -4,7 +4,10 @@ import React from 'react';
 import { useAppDispatch } from '@/redux/hooks';
 import { updateBlockContent } from '@/redux/canvasSlice';
 import { InlineEditableText } from '@/components/editor/InlineEditableText';
+<<<<<<< HEAD
 import { EditableElement } from '@/components/editor/EditableElement';
+=======
+>>>>>>> khadija
 import type { BlockRendererProps } from '@/types/index';
 import type { BlockContentItem } from '@/types/blockContent';
 
@@ -49,7 +52,11 @@ export const StatisticsBoxed = ({ block, isEditing = false }: BlockRendererProps
   };
 
   return (
+<<<<<<< HEAD
     <section className="text-[color:var(--color-muted,#4b5563)] body-font w-full" style={block.style}>
+=======
+    <section className="text-gray-600 body-font w-full" style={block.style}>
+>>>>>>> khadija
       <div className="container px-5 py-24 mx-auto">
         <div className="flex flex-col text-center w-full mb-20">
           <InlineEditableText
@@ -57,9 +64,15 @@ export const StatisticsBoxed = ({ block, isEditing = false }: BlockRendererProps
             value={content.mainTitle || 'Master Cleanse Reliac Heirloom'}
             onBlur={(v) => handleUpdate('mainTitle', v)}
             isEditing={isEditing}
+<<<<<<< HEAD
             className="sm:text-3xl text-2xl font-medium title-font mb-4 text-[color:var(--color-text,#111827)]"
             style={{ 
               color: block.style?.color || 'var(--color-text, #111827)', 
+=======
+            className="sm:text-3xl text-2xl font-medium title-font mb-4 text-gray-900"
+            style={{ 
+              color: block.style?.color, 
+>>>>>>> khadija
               fontFamily: block.style?.fontFamily,
               ...content.mainTitleStyle 
             }}
@@ -71,7 +84,11 @@ export const StatisticsBoxed = ({ block, isEditing = false }: BlockRendererProps
             isEditing={isEditing}
             className="lg:w-2/3 mx-auto leading-relaxed text-base"
             style={{ 
+<<<<<<< HEAD
               color: block.style?.color || 'var(--color-text, #111827)', 
+=======
+              color: block.style?.color, 
+>>>>>>> khadija
               fontFamily: block.style?.fontFamily,
               ...content.mainDescriptionStyle 
             }}
@@ -80,6 +97,7 @@ export const StatisticsBoxed = ({ block, isEditing = false }: BlockRendererProps
         <div className="flex flex-wrap -m-4 text-center">
           {stats.map((stat: BlockContentItem, index: number) => (
             <div key={index} className="p-4 md:w-1/4 sm:w-1/2 w-full">
+<<<<<<< HEAD
               <EditableElement
                 block={block}
                 isEditing={isEditing}
@@ -94,16 +112,30 @@ export const StatisticsBoxed = ({ block, isEditing = false }: BlockRendererProps
                 >
                   {renderSelectedIcon(stat.icon, "w-12 h-12")}
                 </EditableElement>
+=======
+              <div className="border-2 border-gray-200 px-4 py-6 rounded-lg">
+                <div className="text-indigo-500 flex justify-center mb-3">
+                  {renderSelectedIcon(stat.icon, "w-12 h-12")}
+                </div>
+>>>>>>> khadija
                 <InlineEditableText
                   tagName="h2"
                   value={stat.value}
                   onBlur={(v) => updateStat(index, 'value', v)}
                   isEditing={isEditing}
+<<<<<<< HEAD
                   className="title-font font-medium text-3xl text-[color:var(--color-text,#111827)]"
                   style={{
                     color: block.style?.color || 'var(--color-text, #111827)',
                     fontFamily: block.style?.fontFamily,
                     ...content.valueStyle
+=======
+                  className="title-font font-medium text-3xl text-gray-900"
+                  style={{ 
+                    color: block.style?.color, 
+                    fontFamily: block.style?.fontFamily,
+                    ...content.valueStyle 
+>>>>>>> khadija
                   }}
                 />
                 <InlineEditableText
@@ -112,6 +144,7 @@ export const StatisticsBoxed = ({ block, isEditing = false }: BlockRendererProps
                   onBlur={(v) => updateStat(index, 'label', v)}
                   isEditing={isEditing}
                   className="leading-relaxed"
+<<<<<<< HEAD
                   style={{
                     color: block.style?.color || 'var(--color-text, #111827)',
                     fontFamily: block.style?.fontFamily,
@@ -119,6 +152,15 @@ export const StatisticsBoxed = ({ block, isEditing = false }: BlockRendererProps
                   }}
                 />
               </EditableElement>
+=======
+                  style={{ 
+                    color: block.style?.color, 
+                    fontFamily: block.style?.fontFamily,
+                    ...content.labelStyle 
+                  }}
+                />
+              </div>
+>>>>>>> khadija
             </div>
           ))}
         </div>

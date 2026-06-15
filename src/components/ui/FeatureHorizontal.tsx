@@ -1,7 +1,10 @@
 ﻿import React from 'react';
 
 import { InlineEditableText } from '@/components/editor/InlineEditableText';
+<<<<<<< HEAD
 import { EditableElement } from '@/components/editor/EditableElement';
+=======
+>>>>>>> khadija
 import type { BlockRendererProps } from '@/types/index';
 import type { BlockContentItem } from '@/types/blockContent';
 import { useAppDispatch } from '@/redux/hooks';
@@ -43,11 +46,16 @@ export const FeatureHorizontal = ({ block, isEditing = false }: BlockRendererPro
   ];
 
   return (
+<<<<<<< HEAD
     <section className="text-[color:var(--color-muted,#4b5563)] body-font w-full" style={block.style}>
+=======
+    <section className="text-gray-600 body-font w-full" style={block.style}>
+>>>>>>> khadija
       <div className="container px-5 py-24 mx-auto flex flex-wrap">
         <div className="flex flex-wrap -m-4">
           {features.map((feature: BlockContentItem, index: number) => (
             <div key={index} className="p-4 lg:w-1/2 md:w-full">
+<<<<<<< HEAD
               <EditableElement
                 block={block}
                 isEditing={isEditing}
@@ -60,6 +68,10 @@ export const FeatureHorizontal = ({ block, isEditing = false }: BlockRendererPro
                   path={`features.${index}.iconStyle`}
                   className="w-16 h-16 sm:mr-8 sm:mb-0 mb-4 inline-flex items-center justify-center rounded-full bg-[var(--color-surface,#e0e7ff)] text-[color:var(--color-primary,#6366f1)] flex-shrink-0 overflow-hidden"
                 >
+=======
+              <div className="flex border-2 rounded-lg border-gray-200 border-opacity-50 p-8 sm:flex-row flex-col">
+                <div className="w-16 h-16 sm:mr-8 sm:mb-0 mb-4 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 flex-shrink-0 overflow-hidden">
+>>>>>>> khadija
                   {feature.image ? (
                     <img src={feature.image} alt={feature.title} className="w-full h-full object-cover" />
                   ) : (
@@ -68,16 +80,26 @@ export const FeatureHorizontal = ({ block, isEditing = false }: BlockRendererPro
                       {index === 1 && <circle cx="12" cy="7" r="4"></circle>}
                     </svg>
                   )}
+<<<<<<< HEAD
                 </EditableElement>
+=======
+                </div>
+>>>>>>> khadija
                 <div className="flex-grow">
                   <InlineEditableText
                     tagName="h2"
                     value={feature.title || 'Feature Title'}
                     onBlur={(v) => updateFeature(index, 'title', v)}
                     isEditing={isEditing}
+<<<<<<< HEAD
                     className="text-[color:var(--color-text,#111827)] text-lg title-font font-medium mb-3"
                     style={{ 
                       color: block.style?.color || 'var(--color-text, #111827)', 
+=======
+                    className="text-gray-900 text-lg title-font font-medium mb-3"
+                    style={{ 
+                      color: block.style?.color, 
+>>>>>>> khadija
                       fontFamily: block.style?.fontFamily,
                       ...content.featureTitleStyle 
                     }}
@@ -89,11 +111,16 @@ export const FeatureHorizontal = ({ block, isEditing = false }: BlockRendererPro
                     isEditing={isEditing}
                     className="leading-relaxed text-base"
                     style={{ 
+<<<<<<< HEAD
                       color: block.style?.color || 'var(--color-text, #111827)', 
+=======
+                      color: block.style?.color, 
+>>>>>>> khadija
                       fontFamily: block.style?.fontFamily,
                       ...content.featureDescriptionStyle 
                     }}
                   />
+<<<<<<< HEAD
                   <EditableElement
                     as="a"
                     block={block}
@@ -102,6 +129,13 @@ export const FeatureHorizontal = ({ block, isEditing = false }: BlockRendererPro
                     className="mt-3 text-[color:var(--color-primary,#6366f1)] inline-flex items-center cursor-pointer"
                     baseStyle={{ fontFamily: block.style?.fontFamily }}
                     extraProps={{ href: isEditing ? undefined : (feature.url || content.linkUrl || '#') }}
+=======
+                  <a 
+                    href={isEditing ? undefined : (feature.url || content.linkUrl || '#')}
+                    className="mt-3 text-indigo-500 inline-flex items-center cursor-pointer" 
+                    style={{ fontFamily: block.style?.fontFamily }}
+                    onClick={(e) => isEditing && e.preventDefault()}
+>>>>>>> khadija
                   >
                     <InlineEditableText
                       tagName="span"
@@ -112,9 +146,15 @@ export const FeatureHorizontal = ({ block, isEditing = false }: BlockRendererPro
                     <svg fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" className="w-4 h-4 ml-2" viewBox="0 0 24 24">
                       <path d="M5 12h14M12 5l7 7-7 7"></path>
                     </svg>
+<<<<<<< HEAD
                   </EditableElement>
                 </div>
               </EditableElement>
+=======
+                  </a>
+                </div>
+              </div>
+>>>>>>> khadija
             </div>
           ))}
         </div>

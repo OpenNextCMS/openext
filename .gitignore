@@ -1,5 +1,6 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
+python_api/api_keys.txt
+python_api/__pycache__/
 # dependencies
 /node_modules
 /.pnp

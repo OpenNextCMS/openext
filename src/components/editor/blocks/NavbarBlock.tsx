@@ -9,12 +9,17 @@ import {
   setSelectedBlock,
   updateBlockContent,
 } from '@/redux/canvasSlice';
+<<<<<<< HEAD
 import { useEffect, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { resolveRedirectUrl, useBlockEvents } from '@/hooks/useBlockEvents';
 import { useMergedMenu, type MenuDirective } from '@/components/menu-redirect/useMergedMenu';
 import { trackMenuClick } from '@/lib/menu-redirect/track-client';
 import { menuItemIdFor } from '@/lib/menu-redirect/menu-item-id';
+=======
+import { useState } from 'react';
+import { resolveRedirectUrl, useBlockEvents, triggerBlockEvent } from '@/hooks/useBlockEvents';
+>>>>>>> khadija
 
 type NavbarLayout = 'horizontal' | 'vertical' | 'hamburger' | 'two-line';
 
@@ -98,6 +103,7 @@ export const NavbarBlock = ({ block, isEditing = true }: BlockRendererProps) => 
     dispatch(updateBlockContent({ id: block.uniqueId ?? '', content: updatedContent }));
   };
 
+<<<<<<< HEAD
   const handleNavClick = (
     e: React.MouseEvent,
     link: NonNullable<NavbarContent['links']>[number],
@@ -118,6 +124,22 @@ export const NavbarBlock = ({ block, isEditing = true }: BlockRendererProps) => 
     if (directive?.openInNewTab) {
       window.open(href, '_blank', 'noopener');
       return;
+=======
+  const handleLinkClick = (e: React.MouseEvent, link: NonNullable<NavbarContent['links']>[number]) => {
+    if (isEditing) return;
+
+    if (link.onClick && link.onClick !== 'none') {
+      e.preventDefault();
+      e.stopPropagation();
+      triggerBlockEvent({ onClick: link.onClick, onClickValue: link.onClickValue || link.href });
+      return;
+    }
+
+    if (link.href) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.location.href = resolveRedirectUrl(link.href);
+>>>>>>> khadija
     }
 
     if (isPreview) {

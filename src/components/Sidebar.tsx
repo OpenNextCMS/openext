@@ -20,6 +20,7 @@ import {
   ArrowUpToLine,
   ArrowDownToLine,
   BrainCircuit,
+<<<<<<< HEAD
   Route,
   LayoutTemplate,
   BarChart3,
@@ -29,6 +30,8 @@ import {
   Tag,
   Tags,
   type LucideIcon,
+=======
+>>>>>>> khadija
 } from 'lucide-react';
 import { usePlugins } from '@/context/PluginContext';
 

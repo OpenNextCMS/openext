@@ -30,7 +30,7 @@ const PageSchema = new Schema<PageDocument>(
     createdBy: { type: Schema.Types.ObjectId, ref: 'User' },
     pageType: {
       type: String,
-      enum: ['page', 'header', 'footer'],
+      enum: ['page', 'header', 'footer', 'blog'],
       default: 'page',
     },
     isPublished: { type: Boolean, default: false },
@@ -38,7 +38,15 @@ const PageSchema = new Schema<PageDocument>(
     isGlobal: { type: Boolean, default: false },
     preHeading: { type: String },
     description: { type: String },
+<<<<<<< HEAD
     slug: { type: String },
+=======
+    category: { type: String },
+    authorName: { type: String },
+    featuredImage: { type: String },
+    publishDate: { type: Date },
+    slug: { type: String, unique: true },
+>>>>>>> khadija
     seoName: { type: String },
     seoMeta: { type: String },
     component: { type: [Schema.Types.Mixed] },

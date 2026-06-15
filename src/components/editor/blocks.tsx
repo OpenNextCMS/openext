@@ -3,7 +3,11 @@ import React, { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+<<<<<<< HEAD
 import { X, Search, Grip, Package, GalleryHorizontal } from 'lucide-react';
+=======
+import { X, Search, Grip, Package } from 'lucide-react';
+>>>>>>> khadija
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import DraggableBlock from './draggableblock';
@@ -11,7 +15,10 @@ import { blockCategories } from '@/components/editor/data/blockCategories';
 import type { Block } from '@/types/index';
 import { pluginRegistry } from '@/lib/pluginRegistry';
 import { usePlugins } from '@/context/PluginContext';
+<<<<<<< HEAD
 import { sliderDefaultContentString } from '@/components/plugins/sliderSchema';
+=======
+>>>>>>> khadija
 
 interface BlockProps {
   toggleSidebar: () => void;
@@ -21,6 +28,7 @@ export default function Blocks({ toggleSidebar }: BlockProps) {
   const [searchTerm, setSearchTerm] = useState('');
   usePlugins(); // Triggers re-render when plugins finish loading
 
+<<<<<<< HEAD
   const pluginBlocks: Block[] = pluginRegistry.getExtensionsByType('block').map((ext) => {
     const isSlider =
       ext.id.toLowerCase().includes('slider') ||
@@ -45,6 +53,15 @@ export default function Blocks({ toggleSidebar }: BlockProps) {
       style: (ext.metadata?.defaultStyle as React.CSSProperties | undefined) || {},
     };
   });
+=======
+  const pluginBlocks: Block[] = pluginRegistry.getExtensionsByType('block').map((ext) => ({
+    id: ext.id,
+    type: ext.id as Block['type'],
+    label: ext.name,
+    icon: (ext.metadata?.icon as React.ReactNode) || <Grip className="h-4 w-4" />,
+    description: (ext.metadata?.description as string) || 'Plugin provided block',
+  }));
+>>>>>>> khadija
 
   const getFilteredBlocks = (blocks: Block[]): Block[] => {
     return blocks.filter(
@@ -201,7 +218,11 @@ export default function Blocks({ toggleSidebar }: BlockProps) {
                 {filteredPluginBlocks.length > 0 && (
                   <div className="mt-6">
                     <h4 className="text-sm font-medium mb-2 text-muted-foreground">
+<<<<<<< HEAD
                       Interactive Components
+=======
+                      Plugin Blocks
+>>>>>>> khadija
                     </h4>
                     <div className="space-y-2">
                       {filteredPluginBlocks.map((block) => (
@@ -236,7 +257,10 @@ export default function Blocks({ toggleSidebar }: BlockProps) {
                 <TabsTrigger value="testimonial" className="px-2 py-1 text-[10px]">Testimonial</TabsTrigger>
                 <TabsTrigger value="ecommerce" className="px-2 py-1 text-[10px]">Ecom</TabsTrigger>
                 <TabsTrigger value="hero" className="px-2 py-1 text-[10px]">Hero</TabsTrigger>
+<<<<<<< HEAD
                 <TabsTrigger value="plugins" className="px-2 py-1 text-[10px]">Interactive</TabsTrigger>
+=======
+>>>>>>> khadija
               </TabsList>
             </div>
 
@@ -306,9 +330,13 @@ export default function Blocks({ toggleSidebar }: BlockProps) {
 
               {pluginBlocks.length > 0 && (
                 <div>
+<<<<<<< HEAD
                   <h4 className="text-sm font-medium mb-2 text-muted-foreground">
                     Interactive Components
                   </h4>
+=======
+                  <h4 className="text-sm font-medium mb-2 text-muted-foreground">Plugin Blocks</h4>
+>>>>>>> khadija
                   <div className="space-y-2">
                     {pluginBlocks.map((block) => (
                       <BlockItem key={block.id} block={block} />

@@ -2,4 +2,7 @@ fastapi>=0.115.0
 httpx>=0.27.0
 python-multipart>=0.0.9
 uvicorn[standard]>=0.30.0
+<<<<<<< HEAD
 codex resume 019e86de-7d31-7bb3-bcd1-9adedd75706f
+=======
+>>>>>>> khadija

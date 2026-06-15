@@ -73,7 +73,12 @@ export default function Spacing({ spacingOpen, setSpacingOpen }: SpacingProps) {
       if (selectedPart) {
         try {
           const content = JSON.parse(selectedBlock.content);
+<<<<<<< HEAD
           style = getStyleAtPath(content, selectedPart);
+=======
+          const partStyleKey = selectedPart.endsWith('Style') ? selectedPart : `${selectedPart}Style`;
+          style = content[partStyleKey] || {};
+>>>>>>> khadija
         } catch {
           style = {};
         }

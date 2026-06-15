@@ -178,8 +178,12 @@ export interface Block {
     | 'feature-zigzag'
     | 'feature-checklist'
     | 'feature-list'
+<<<<<<< HEAD
     | 'blog-feed'
     | 'form-block';
+=======
+    | 'blog-feed';
+>>>>>>> khadija
   children?: ColumnChild[]; // Updated type for children
   content?: string;
   icon?: ReactNode | string;
@@ -240,7 +244,7 @@ export interface IModification {
 export interface PageDocument extends Document {
   pageName: string;
   createdBy: Types.ObjectId;
-  pageType: 'page' | 'header' | 'footer';
+  pageType: 'page' | 'header' | 'footer' | 'blog';
   isPublished: boolean;
   isHome: boolean;
   isGlobal: boolean;
@@ -256,6 +260,7 @@ export interface PageDocument extends Document {
   updatedAt?: Date;
 }
 
+<<<<<<< HEAD
 export interface IBlogPostDocument extends Document {
   pageName: string; // Title of the blog post
   createdBy: Types.ObjectId;
@@ -463,6 +468,8 @@ export interface IAnalyticsEventDocument extends IAnalyticsEvent, Document {
   createdAt: Date;
 }
 
+=======
+>>>>>>> khadija
 export interface IPlugin {
   pluginId: string;
   name: string;
@@ -559,8 +566,12 @@ export interface BlockData {
     | 'feature-zigzag'
     | 'feature-checklist'
     | 'feature-list'
+<<<<<<< HEAD
     | 'blog-feed'
     | 'form-block';
+=======
+    | 'blog-feed';
+>>>>>>> khadija
   children?: BlockData[][];
   style?: React.CSSProperties;
   hoverStyle?: React.CSSProperties;
@@ -585,10 +596,19 @@ export interface Page {
   id?: string;
   _id?: string; // Add MongoDB _id
   pageName: string;
+<<<<<<< HEAD
   pageType: 'page' | 'header' | 'footer';
+=======
+  pageType: 'page' | 'header' | 'footer' | 'blog';
+>>>>>>> khadija
   preHeading: string;
   description: string;
+  category?: string;
+  authorName?: string;
+  featuredImage?: string;
+  publishDate?: string;
   seoName: string;
+
   seoMeta: string;
   slug?: string;
   isHome?: boolean;

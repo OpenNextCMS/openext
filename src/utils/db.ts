@@ -5,6 +5,7 @@ import { PageSchema } from '@/models/Page';
 import { BlogPostSchema } from '@/models/BlogPost';
 import { roleSchema } from '@/models/Role';
 import { PluginSchema } from '@/models/Plugin';
+<<<<<<< HEAD
 import { CategorySchema } from '@/models/Category';
 import { TagSchema } from '@/models/Tag';
 import { AuthorSchema } from '@/models/Author';
@@ -45,6 +46,9 @@ import type {
   ILayoutDocument,
   IBlogThemeSettingsDocument,
 } from '@/types/index';
+=======
+import type { PageDocument, ISettingsDocument, ITheme, IPluginDocument } from '@/types/index';
+>>>>>>> khadija
 import { getDynamicEnv } from '@/utils/dynamicEnv';
 import { withDbName } from '@/utils/mongoUri';
 
@@ -199,6 +203,7 @@ export async function getPageDbConnection() {
         pageDb.model<PageDocument>('Page', PageSchema);
       }
 
+<<<<<<< HEAD
       if (!pageDb.models.BlogPost) {
         pageDb.model<IBlogPostDocument>('BlogPost', BlogPostSchema);
       }
@@ -272,6 +277,8 @@ export async function getPageDbConnection() {
         console.warn('⚠️ System theme auto-seed skipped:', seedErr);
       }
 
+=======
+>>>>>>> khadija
       pageDb.on('error', (error) => {
         console.error('❌ MongoDB page database connection error:', error);
         pageDb = null;

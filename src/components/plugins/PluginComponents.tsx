@@ -2,7 +2,10 @@
 import { Menu, X } from 'lucide-react';
 import { resolveRedirectUrl, triggerBlockEvent } from '@/hooks/useBlockEvents';
 import type { BlockRendererProps } from '@/types/index';
+<<<<<<< HEAD
 export { SliderPlugin } from './SliderPlugin';
+=======
+>>>>>>> khadija
 
 interface PluginBlockProps {
   block: BlockRendererProps['block'] & { data?: Record<string, unknown> };
@@ -129,6 +132,142 @@ export const FormPlugin: React.FC<PluginBlockProps> = () => (
   </div>
 );
 
+<<<<<<< HEAD
+=======
+// 6. Carousel Slider Component (for Casarole Slider)
+export const SliderPlugin = ({ block }: PluginBlockProps) => {
+  const [currentIndex, setCurrentIndex] = React.useState(0);
+
+  // Parse content if it exists
+  const content = React.useMemo(() => {
+    try {
+      return typeof block.content === 'string' && block.content.startsWith('{')
+        ? JSON.parse(block.content)
+        : block.data || {};
+    } catch {
+      return block.data || {};
+    }
+  }, [block.content, block.data]);
+
+  const slides = content.slides || [
+    { title: 'Premium Slider', desc: 'Swipe to explore our collection', image: '' },
+    { title: 'Second Slide', desc: 'Explore more features here', image: '' },
+    { title: 'Third Slide', desc: 'Ready for final content', image: '' },
+  ];
+
+  const slidesToShow = Math.max(1, content.slidesToShow || 1);
+  const accentColor = content.accentColor || '#eab308';
+  const showArrows = content.showArrows !== false;
+  const showDots = content.showDots !== false;
+
+  const next = () => setCurrentIndex((prev) => (prev + 1) % slides.length);
+  const prev = () => setCurrentIndex((prev) => (prev - 1 + slides.length) % slides.length);
+
+  // Calculate visible slides
+  const visibleSlides = [];
+  for (let i = 0; i < slidesToShow; i++) {
+    const index = (currentIndex + i) % slides.length;
+    visibleSlides.push({ ...slides[index], index });
+  }
+
+  return (
+    <div
+      className="p-6 border border-slate-700 rounded-2xl shadow-2xl relative overflow-hidden group min-h-[400px] flex flex-col"
+      style={{
+        backgroundColor: (block.style?.backgroundColor as string) || '#0f172a',
+        ...block.style,
+      }}
+    >
+      <div
+        className="absolute inset-0 opacity-20 transition-opacity group-hover:opacity-30"
+        style={{ background: `linear-gradient(to right, ${accentColor}44, #3b82f644)` }}
+      />
+      <div className="relative z-10 flex-1 flex flex-col">
+        <div className="flex justify-between items-center mb-6">
+          <h3 className="font-bold text-white flex items-center gap-2 text-lg">
+            <span style={{ color: accentColor }}>🎠</span> {block.label || 'Casarole Slider'}
+          </h3>
+          {showDots && (
+            <div className="flex gap-1">
+              {slides.map((_: unknown, i: number) => (
+                <div
+                  key={i}
+                  className="w-2 h-2 rounded-full transition-all duration-300"
+                  style={{
+                    backgroundColor: i === currentIndex ? accentColor : 'rgba(255,255,255,0.2)',
+                    transform: i === currentIndex ? 'scale(1.2)' : 'scale(1)',
+                  }}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div
+          className={`grid gap-4 flex-1`}
+          style={{ gridTemplateColumns: `repeat(${slidesToShow}, minmax(0, 1fr))` }}
+        >
+          {visibleSlides.map((slide, idx) => (
+            <div
+              key={`${slide.index}-${idx}`}
+              className="relative rounded-xl bg-white/5 border border-white/10 overflow-hidden backdrop-blur-sm flex flex-col animate-in fade-in zoom-in duration-500"
+            >
+              {slide.image ? (
+                <div className="h-40 w-full relative">
+                  <img src={slide.image} alt={slide.title} className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent" />
+                </div>
+              ) : (
+                <div className="h-32 w-full bg-white/5 flex items-center justify-center">
+                  <span className="text-white/20 text-4xl">🖼️</span>
+                </div>
+              )}
+              <div className="p-4 text-center flex-1 flex flex-col justify-center">
+                <div className="text-xl font-black text-white tracking-tighter uppercase italic leading-tight mb-2">
+                  {slide.title}
+                </div>
+                <p className="text-slate-400 text-xs line-clamp-2">{slide.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-6 flex justify-between items-center">
+          {showArrows ? (
+            <button
+              onClick={prev}
+              className="p-2 bg-white/10 hover:bg-white/20 rounded-full transition-colors text-white"
+            >
+              ←
+            </button>
+          ) : (
+            <div />
+          )}
+
+          <button
+            className="px-6 py-2 font-bold rounded-full text-sm hover:scale-105 active:scale-95 transition-all"
+            style={{ backgroundColor: accentColor, color: '#0f172a' }}
+          >
+            VIEW DETAILS
+          </button>
+
+          {showArrows ? (
+            <button
+              onClick={next}
+              className="p-2 bg-white/10 hover:bg-white/20 rounded-full transition-colors text-white"
+            >
+              →
+            </button>
+          ) : (
+            <div />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+>>>>>>> khadija
 type MenuPluginLink = {
   label: string;
   href: string;
