@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import renderFromJson from '@/components/ReusableComponents/RenderFromJson';
 import { safeStorageGet } from '@/utils/safeStorage';
-import { hasVerticalHeader } from '@/utils/headerLayout';
+import SiteChromeLayout from '@/components/layout/SiteChromeLayout';
 
 import PageClientWrapper from '@/components/PageClientWrapper';
 
@@ -43,8 +43,21 @@ export default function PreviewPage() {
     const loadData = async () => {
       setLoading(true);
       try {
+        const applyLayoutBlocks = (header: unknown, footer: unknown) => {
+          setHeaderBlocks(
+            Array.isArray((header as { component?: BlockData[] })?.component)
+              ? (header as { component: BlockData[] }).component
+              : []
+          );
+          setFooterBlocks(
+            Array.isArray((footer as { component?: BlockData[] })?.component)
+              ? (footer as { component: BlockData[] }).component
+              : []
+          );
+        };
+
         const loadLayoutBlocks = async () => {
-          if (!pagename || pageType !== 'page') return;
+          if (!pagename) return;
 
           const layoutRes = await fetch(
             `${backendUrl}/api/pages/get-page?name=${encodeURIComponent(pagename)}&key=allowMe`,
@@ -57,12 +70,7 @@ export default function PreviewPage() {
           if (!layoutRes.ok) return;
 
           const layoutData = await layoutRes.json();
-          setHeaderBlocks(
-            Array.isArray(layoutData?.header?.component) ? layoutData.header.component : []
-          );
-          setFooterBlocks(
-            Array.isArray(layoutData?.footer?.component) ? layoutData.footer.component : []
-          );
+          applyLayoutBlocks(layoutData?.header, layoutData?.footer);
         };
 
         const draftBlocks = loadDraftData();
@@ -98,10 +106,7 @@ export default function PreviewPage() {
         }
 
         setBlocks(page.component);
-        if (pageType === 'page') {
-          setHeaderBlocks(Array.isArray(header?.component) ? header.component : []);
-          setFooterBlocks(Array.isArray(footer?.component) ? footer.component : []);
-        }
+        applyLayoutBlocks(header, footer);
       } catch (err) {
         console.error('Failed to load preview data:', err);
         setBlocks([]);
@@ -115,41 +120,18 @@ export default function PreviewPage() {
 
   if (loading) return <div className="p-6">Loading preview...</div>;
 
-  const sidebarHeader = hasVerticalHeader(headerBlocks);
-
-  if (sidebarHeader) {
-    return (
-      <PageClientWrapper>
-        <div className="flex min-h-screen rendered-page">
-          <aside className="w-64 flex-shrink-0 sticky top-0 self-start h-screen overflow-y-auto">
-            {headerBlocks.map((block) => renderFromJson(block))}
-          </aside>
-          <div className="flex-1 flex flex-col min-h-screen">
-            <main className="flex-1">
-              {blocks.length > 0 ? (
-                blocks.map((block) => renderFromJson(block))
-              ) : (
-                <div className="p-6 text-center text-muted-foreground">No blocks to preview</div>
-              )}
-            </main>
-            {footerBlocks.map((block) => renderFromJson(block))}
-          </div>
-        </div>
-      </PageClientWrapper>
+  const pageContent =
+    blocks.length > 0 ? (
+      blocks.map((block) => renderFromJson(block))
+    ) : (
+      <div className="p-6 text-center text-muted-foreground">No blocks to preview</div>
     );
-  }
 
   return (
     <PageClientWrapper>
-      <div className="rendered-page">
-        {headerBlocks.map((block) => renderFromJson(block))}
-        {blocks.length > 0 ? (
-          blocks.map((block) => renderFromJson(block))
-        ) : (
-          <div className="p-6 text-center text-muted-foreground">No blocks to preview</div>
-        )}
-        {footerBlocks.map((block) => renderFromJson(block))}
-      </div>
+      <SiteChromeLayout headerBlocks={headerBlocks} footerBlocks={footerBlocks}>
+        {pageContent}
+      </SiteChromeLayout>
     </PageClientWrapper>
   );
 }
