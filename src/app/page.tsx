@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import ThemeLoader from '@/components/ThemeLoader';
 
-const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
+const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
 
 export default function Home() {
   const [themeName, setThemeName] = useState<string | null>(null);

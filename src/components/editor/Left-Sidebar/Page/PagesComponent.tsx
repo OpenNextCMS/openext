@@ -1,7 +1,15 @@
 'use client';
 
 import { useState } from 'react';
-import { ChevronDown, ChevronRight, FileText, Home, MoreVertical, Plus, Settings } from 'lucide-react';
+import {
+  ChevronDown,
+  ChevronRight,
+  FileText,
+  Home,
+  MoreVertical,
+  Plus,
+  Settings,
+} from 'lucide-react';
 import { toast } from 'sonner';
 import type { Page } from '@/types/index';
 
@@ -42,7 +50,7 @@ export default function PagesComponent({
       const pageName = newPageName.trim();
 
       try {
-        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
+        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
 
         // Step 1: Create the page via API
         const response = await fetch(`${backendUrl}/api/pages/add-page`, {
@@ -66,6 +74,7 @@ export default function PagesComponent({
         const newPage: Page = {
           id: `page-${Date.now()}`,
           pageName,
+          pageType: 'page',
           preHeading: '',
           description: '',
           seoName: '',
@@ -157,7 +166,7 @@ export default function PagesComponent({
                 </span>
               </div>
               <div className="flex items-center gap-1">
-                {page.isHome === true && (<Home height={16} width={16} />)}
+                {page.isHome === true && <Home height={16} width={16} />}
                 <button
                   className="p-1 hover:bg-gray-200 dark:hover:bg-black rounded transition"
                   title="Page settings"

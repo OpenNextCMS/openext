@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { jwtDecode } from 'jwt-decode';
-import { AuthService } from '@/modules/auth/authService';
 import { getUserDbConnection } from '@/utils/db';
 import { IUser } from '@/models/User';
 
@@ -19,6 +18,9 @@ export async function GET(req: NextRequest) {
 
     const decodedToken = jwtDecode<DecodedToken>(token);
     const email = decodedToken.email;
+    if (!email) {
+      return NextResponse.json({ message: 'Invalid token' }, { status: 401 });
+    }
 
     const userDb = await getUserDbConnection();
     if (!userDb) {
@@ -26,14 +28,14 @@ export async function GET(req: NextRequest) {
     }
 
     const UserModel = userDb.model<IUser>('User');
-    const response = await AuthService.getUserByEmail(email, UserModel);
+    const userData = await UserModel.findOne({ email });
 
-    if (response?.success) {
+    if (userData) {
       const user = {
-        _id: (response.user as IUser)._id!.toString(),
-        username: response.user.username,
-        email: response.user.email,
-        phoneNumber: response.user.phoneNumber,
+        _id: userData._id!.toString(),
+        username: userData.username,
+        email: userData.email,
+        phoneNumber: userData.phoneNumber,
       };
       return NextResponse.json({ user }, { status: 200 });
     } else {

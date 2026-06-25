@@ -6,13 +6,16 @@ import { TooltipProvider } from '@radix-ui/react-tooltip'
 import { ChevronDown } from 'lucide-react'
 import React, { useState } from 'react'
 import { cn } from '@/lib/utils';
+import { BlockData } from '@/redux/canvasSlice';
+import RenderFromJson from '@/components/ReusableComponents/RenderFromJson';
 
 
 interface BoxProps {
-    content: string
+    content: string;
+    blocks?: BlockData[];
 }
 
-const Box = ({ content }: BoxProps) => {
+const Box = ({ content, blocks = [] }: BoxProps) => {
     const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
 
@@ -20,11 +23,11 @@ const Box = ({ content }: BoxProps) => {
         <div>
             <div className='bg-background dark:bg-background w-full h-auto shadow-md p-4 rounded-lg border transition-all my-2 mx-auto' style={{ transform: `scale(${100 / 100})`, transformOrigin: 'top left' }}>
                 <TooltipProvider delayDuration={0}>
-                    <Collapsible                      >
+                    <Collapsible open={openDropdown === content} onOpenChange={(open) => setOpenDropdown(open ? content : null)}>
                         <Tooltip>
                             <TooltipTrigger asChild>
                                 <CollapsibleTrigger asChild>
-                                    <Button className={'w-full justify-start'} variant={'ghost'} onClick={() => setOpenDropdown(content)}>
+                                    <Button className={'w-full justify-start'} variant={'ghost'} onClick={() => setOpenDropdown(openDropdown === content ? null : content)}>
                                         <>
                                             <span className="flex-1 text-left">{content}</span>
                                             <ChevronDown
@@ -40,7 +43,15 @@ const Box = ({ content }: BoxProps) => {
                         </Tooltip>
 
                         <CollapsibleContent className="pl-9 pr-2 py-1 space-y-1">
-                            <span className='w-full'> No {content} Fixed</span>
+                            {blocks && blocks.length > 0 ? (
+                                <div className="w-full">
+                                    {blocks.map((block) => (
+                                        <RenderFromJson key={block.uniqueId} {...block} />
+                                    ))}
+                                </div>
+                            ) : (
+                                <span className='w-full'> No {content} Fixed</span>
+                            )}
                         </CollapsibleContent>
                     </Collapsible>
                 </TooltipProvider>

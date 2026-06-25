@@ -6,6 +6,17 @@ import Image from 'next/image';
 import { useDropzone } from 'react-dropzone';
 import { User } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { safeStorageSet } from '@/utils/safeStorage';
+
+const getAvatarSrc = (avatarUrl: string | null) => {
+  if (!avatarUrl || avatarUrl === 'null' || avatarUrl === 'undefined') {
+    return null;
+  }
+
+  return avatarUrl.startsWith('/') || avatarUrl.startsWith('http')
+    ? avatarUrl
+    : `/${avatarUrl}`;
+};
 
 export function ProfileUploader({
   avatarUrl,
@@ -13,7 +24,7 @@ export function ProfileUploader({
   userId,
 }: {
   avatarUrl: string | null;
-  onUpload: (url: string) => void;
+  onUpload: (url: string | null) => void;
   userId: string; // Add userId as a prop
 }) {
   const [isUploading, setIsUploading] = useState(false);
@@ -34,7 +45,7 @@ export function ProfileUploader({
           });
           const data = await response.json();
           onUpload(data.filePath);
-          localStorage.setItem('avatarUrl', data.filePath);
+          safeStorageSet('avatarUrl', data.filePath);
           toast.success('Profile image uploaded successfully!');
         } catch (error) {
           console.error('Upload failed:', error);
@@ -55,16 +66,14 @@ export function ProfileUploader({
     maxFiles: 1,
   });
 
+  const avatarSrc = getAvatarSrc(avatarUrl);
+
   return (
     <div className="flex items-center gap-6">
       <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
-        {avatarUrl !== null && avatarUrl !== '' ? (
+        {avatarSrc ? (
           <Image
-            src={
-              avatarUrl.startsWith('/') || avatarUrl.startsWith('http')
-                ? avatarUrl
-                : `/${avatarUrl}`
-            }
+            src={avatarSrc}
             alt="Profile"
             className="w-full h-full object-cover"
             width={96}

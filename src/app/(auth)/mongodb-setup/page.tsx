@@ -6,9 +6,10 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { handleError } from '@/utils/errorHandler';
 import { handleSuccess } from '@/utils/successHandler';
-import { Eye, EyeOff, Server, Home } from 'lucide-react';
+import { Eye, EyeOff, Server, Home, Link as LinkIcon } from 'lucide-react';
 import { translations } from '../../../../public/locales/translations';
 import Cookies from 'js-cookie';
+import { safeStorageGet, safeStorageSet } from '@/utils/safeStorage';
 
 export default function MongoDBSetup() {
   const [username, setUsername] = useState('');
@@ -18,11 +19,13 @@ export default function MongoDBSetup() {
   const [mongoDB, setMongoDB] = useState('compass');
   const [authMech, setAuthMech] = useState('');
   const [authSource, setAuthSource] = useState('');
+  const [uri, setUri] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [t, setT] = useState(translations.en);
   const router = useRouter();
   const [mongoAcc, setMongoAcc] = useState(true);
+  const [useUri, setUseUri] = useState(false);
   const [toggle, setToggle] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
 
@@ -42,14 +45,16 @@ export default function MongoDBSetup() {
     setT(translations[langFromCookie as keyof typeof translations] as typeof translations.en);
 
     // Load MongoDB credentials from localStorage if they exist
-    const savedUsername = localStorage.getItem('MONGODB_USERNAME');
-    const savedPassword = localStorage.getItem('MONGODB_PASSWORD');
-    const savedHost = localStorage.getItem('MONGODB_HOST');
-    const savedCluster = localStorage.getItem('MONGODB_CLUSTER');
-    const savedMongoDB = localStorage.getItem('MONGODB');
-    const savedAuthMech = localStorage.getItem('MONGODB_AUTH_MECH');
-    const savedAuthSource = localStorage.getItem('MONGODB_AUTH_SOURCE');
-    const savedMongoAcc = localStorage.getItem('MONGO_ACC');
+    const savedUsername = safeStorageGet('MONGODB_USERNAME');
+    const savedPassword = safeStorageGet('MONGODB_PASSWORD');
+    const savedHost = safeStorageGet('MONGODB_HOST');
+    const savedCluster = safeStorageGet('MONGODB_CLUSTER');
+    const savedMongoDB = safeStorageGet('MONGODB');
+    const savedAuthMech = safeStorageGet('MONGODB_AUTH_MECH');
+    const savedAuthSource = safeStorageGet('MONGODB_AUTH_SOURCE');
+    const savedMongoAcc = safeStorageGet('MONGO_ACC');
+    const savedUri = safeStorageGet('MONGODB_URI');
+    const savedUseUri = safeStorageGet('USE_URI');
 
     if (savedUsername) {
       setUsername(savedUsername);
@@ -82,6 +87,13 @@ export default function MongoDBSetup() {
     if (savedMongoAcc) {
       setMongoAcc(savedMongoAcc === 'true');
     }
+    if (savedUri) {
+      setUri(savedUri);
+    }
+    if (savedUseUri === 'true') {
+      setUseUri(true);
+      setMongoDB('uri');
+    }
 
     // Trigger animation after component mounts
     setTimeout(() => {
@@ -93,13 +105,15 @@ export default function MongoDBSetup() {
     e.preventDefault();
     setIsLoading(true);
 
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
 
     try {
       // Construct payload based on connection type
-      const payload = mongoAcc
-        ? { username, password, host, mongoDB, authMech, authSource } // For Compass
-        : { username, password, host, cluster, mongoDB }; // For Atlas
+      const payload = useUri
+        ? { mongoDB: 'uri', uri } // For pasted URI
+        : mongoAcc
+          ? { username, password, host, mongoDB, authMech, authSource } // For Compass
+          : { username, password, host, cluster, mongoDB }; // For Atlas
 
       const response = await fetch(`${backendUrl}/api/auth/verify-mongodb`, {
         method: 'POST',
@@ -118,19 +132,35 @@ export default function MongoDBSetup() {
       });
 
       if (data.success) {
-        localStorage.setItem('MONGODB_USERNAME', username);
-        localStorage.setItem('MONGODB_PASSWORD', password);
-        localStorage.setItem('MONGODB_HOST', host);
-        localStorage.setItem('MONGODB_CLUSTER', cluster);
-        localStorage.setItem('MONGODB', mongoDB);
-        localStorage.setItem('MONGODB_AUTH_MECH', authMech);
-        localStorage.setItem('MONGODB_AUTH_SOURCE', authSource);
-        handleSuccess(
-          true,
-          null,
-          'MongoDB connection successful. Redirecting to database setup...'
-        );
-        router.push('/mongodb-setup/database-setup');
+        if (useUri) {
+          safeStorageSet('MONGODB', 'uri');
+          safeStorageSet('MONGODB_URI', uri);
+          safeStorageSet('USE_URI', 'true');
+          safeStorageSet('USER_DB_NAME', 'users');
+          safeStorageSet('PAGE_DB_NAME', 'pages');
+
+          handleSuccess(
+            true,
+            null,
+            'MongoDB connection successful. Create the first admin user...'
+          );
+          router.push('/admin');
+        } else {
+          safeStorageSet('MONGODB_USERNAME', username);
+          safeStorageSet('MONGODB_PASSWORD', password);
+          safeStorageSet('MONGODB_HOST', host);
+          safeStorageSet('MONGODB_CLUSTER', cluster);
+          safeStorageSet('MONGODB', mongoDB);
+          safeStorageSet('MONGODB_AUTH_MECH', authMech);
+          safeStorageSet('MONGODB_AUTH_SOURCE', authSource);
+          safeStorageSet('USE_URI', 'false');
+          handleSuccess(
+            true,
+            null,
+            'MongoDB connection successful. Redirecting to database setup...'
+          );
+          router.push('/mongodb-setup/database-setup');
+        }
       } else {
         throw new Error(data.message || t.mongodbSetup.generalError);
       }
@@ -199,13 +229,15 @@ export default function MongoDBSetup() {
         >
           <button
             onClick={() => {
+              setUseUri(false);
               setMongoAcc(true);
               setMongoDB('compass');
-              localStorage.setItem('MONGO_ACC', 'true');
-              localStorage.setItem('MONGODB', 'compass');
+              safeStorageSet('USE_URI', 'false');
+              safeStorageSet('MONGO_ACC', 'true');
+              safeStorageSet('MONGODB', 'compass');
             }}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 ${
-              mongoAcc
+              !useUri && mongoAcc
                 ? 'bg-black text-white shadow-md'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
@@ -215,13 +247,15 @@ export default function MongoDBSetup() {
           </button>
           <button
             onClick={() => {
+              setUseUri(false);
               setMongoAcc(false);
               setMongoDB('atlas');
-              localStorage.setItem('MONGO_ACC', 'false');
-              localStorage.setItem('MONGODB', 'atlas');
+              safeStorageSet('USE_URI', 'false');
+              safeStorageSet('MONGO_ACC', 'false');
+              safeStorageSet('MONGODB', 'atlas');
             }}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 ${
-              !mongoAcc
+              !useUri && !mongoAcc
                 ? 'bg-black text-white shadow-md'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
@@ -229,12 +263,87 @@ export default function MongoDBSetup() {
             <Server size={18} />
             <span className="text-sm">MongoDB Atlas</span>
           </button>
+          <button
+            onClick={() => {
+              setUseUri(true);
+              setMongoDB('uri');
+              safeStorageSet('USE_URI', 'true');
+              safeStorageSet('MONGODB', 'uri');
+            }}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 ${
+              useUri
+                ? 'bg-black text-white shadow-md'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            <LinkIcon size={18} />
+            <span className="text-sm">Paste URI</span>
+          </button>
         </div>
         {/* Content based on connection type */}
         <div
           className={`transition-all duration-500 ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-4'}`}
         >
-          {mongoAcc ? (
+          {useUri ? (
+            <div
+              className={`mt-4 p-6 bg-gray-100 rounded-md transition-all duration-500 delay-300 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+            >
+              <h3 className="text-lg font-semibold mb-2">Paste full connection URI</h3>
+              <p className="text-xs text-gray-600 mb-4">
+                Useful when SRV DNS lookups fail (VPN/firewall). In Atlas → Connect → Drivers →
+                select <strong>Node.js 2.2.12 or later</strong> to get a standard <code>mongodb://</code>{' '}
+                URI that lists each shard explicitly. The database name in the path will be
+                replaced automatically per connection.
+              </p>
+              <form onSubmit={handleSubmit}>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Connection URI
+                </label>
+                <textarea
+                  name="uri"
+                  required
+                  rows={4}
+                  value={uri}
+                  onChange={(e) => setUri(e.target.value)}
+                  placeholder="mongodb://user:pass@host1:27017,host2:27017,host3:27017/?ssl=true&replicaSet=...&authSource=admin"
+                  className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500 text-sm font-mono transition-all duration-300"
+                />
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full flex justify-center py-3 px-4 rounded-lg shadow-sm text-sm font-medium text-white bg-black border border-black hover:text-black hover:bg-transparent transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.01] active:scale-[0.99] mt-4"
+                >
+                  {isLoading ? (
+                    <div className="flex items-center">
+                      <svg
+                        className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                      {t.mongodbSetup.verifying}
+                    </div>
+                  ) : (
+                    t.mongodbSetup.submitButton
+                  )}
+                </button>
+              </form>
+            </div>
+          ) : mongoAcc ? (
             <div
               className={`mt-4 p-6 bg-gray-100 rounded-md transition-all duration-500 delay-300 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
             >

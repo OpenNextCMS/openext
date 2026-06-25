@@ -12,6 +12,12 @@ export interface ISettings extends mongoose.Document {
   timeFormat: string;
   themes: { name: string; isActive: boolean }[];
   config: { key: string; value: string | number }[];
+  aiConfig?: {
+    openrouterApiKey?: string;
+    openrouterModel?: string;
+    openrouterReviewModel?: string;
+    aiMinQualityScore?: number;
+  };
 }
 
 const settingsSchema = new mongoose.Schema(
@@ -36,6 +42,12 @@ const settingsSchema = new mongoose.Schema(
         value: { type: mongoose.Schema.Types.Mixed, required: true, default: '5mb' },
       },
     ],
+    aiConfig: {
+      openrouterApiKey: String,
+      openrouterModel: { type: String, default: 'google/gemini-2.0-flash-001' },
+      openrouterReviewModel: { type: String, default: 'google/gemini-2.0-flash-001' },
+      aiMinQualityScore: { type: Number, default: 80 },
+    },
   },
   { timestamps: true }
 );
