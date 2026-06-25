@@ -1,3 +1,9 @@
+/**
+ * @deprecated Legacy ZIP-upload theme installer. Superseded by the
+ * configuration-driven Theme Builder (`/dashboard/themes`, `/api/themes`).
+ * Left dormant for backward-compat; do not extend. Slated for removal once the
+ * new builder is fully verified.
+ */
 import { NextResponse } from 'next/server';
 import { getUserDbConnection, getSettingsModel } from '@/utils/db';
 

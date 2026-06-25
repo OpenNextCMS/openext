@@ -14,4 +14,6 @@ const MasterDbSchema: Schema = new Schema({
   pageDbUri: { type: String, required: true },
 });
 
-export const MasterDb = mongoose.model<IMasterDb>('MasterDb', MasterDbSchema);
+export const MasterDb =
+  mongoose.models.MasterDb ||
+  mongoose.model<IMasterDb>('MasterDb', MasterDbSchema);

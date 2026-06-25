@@ -8,13 +8,42 @@ import SelectComp from '@/components/ReusableComponents/SelectComp';
 import InputSelect from '@/components/ReusableComponents/SizeInput';
 import { Label } from '@/components/ui/label';
 import { useAppSelector, useAppDispatch } from '@/redux/hooks';
-import { updateSelectedBlockStyles } from '@/redux/canvasSlice'; // 👈 Update this path to your actual action
+import { updateSelectedBlockStyles } from '@/redux/canvasSlice';
+import { getStyleAtPath } from '@/lib/editor/stylePath';
+import { Input } from '@/components/ui/input';
+
+// ✅ RGB to HEX utility for syncing color pickers
+function rgbToHex(rgb: string) {
+  const result = rgb.match(/\d+/g);
+  if (!result) return '#000000';
+  return (
+    '#' +
+    result
+      .slice(0, 3)
+      .map((num) => parseInt(num).toString(16).padStart(2, '0'))
+      .join('')
+  );
+}
+
+// A theme-bound value looks like `var(--color-text, #111827)`. Native color
+// inputs can't render that, so show the literal fallback in the swatch while
+// the stored value stays token-bound until the user picks an explicit colour.
+function toPickerHex(raw: string) {
+  const value = String(raw || '');
+  if (value.startsWith('var(')) {
+    const fallback = value.match(/,\s*([^)]+)\)/)?.[1]?.trim();
+    if (fallback) return fallback.includes('rgb') ? rgbToHex(fallback) : fallback;
+    return '#000000';
+  }
+  return value.includes('rgb') ? rgbToHex(value) : value;
+}
 
 export default function Typography() {
   const dispatch = useAppDispatch();
   const [fontOpen, setFontOpen] = useState(false);
 
   const selectedBlock = useAppSelector((state) => state.canvas.selectedBlock);
+  const selectedPart = useAppSelector((state) => state.canvas.selectedPart);
   const [fontFamily, setFontFamily] = useState('Arial');
   const [fontSize, setFontSize] = useState('16');
   const [lineHeight, setLineHeight] = useState('1.5');
@@ -24,10 +53,25 @@ export default function Typography() {
   const [textAlign, setTextAlign] = useState('left');
   const [textTransform, setTextTransform] = useState('none');
   const [textDecoration, setTextDecoration] = useState('none');
+  const [textColor, setTextColor] = useState('#000000');
 
-  // Update local state when block changes
+  // Update local state when block or part changes
   useEffect(() => {
-    const style = selectedBlock?.style || {};
+    let style: React.CSSProperties = {};
+    
+    if (selectedBlock) {
+      if (selectedPart) {
+        try {
+          const content = JSON.parse(selectedBlock.content);
+          style = getStyleAtPath(content, selectedPart);
+        } catch {
+          style = {};
+        }
+      } else {
+        style = selectedBlock.style || {};
+      }
+    }
+
     setFontFamily(String(style.fontFamily || 'Arial').replace(/['"]/g, ''));
     setFontSize(String(style.fontSize || '16').replace(/[^0-9.]/g, ''));
     setLineHeight(String(style.lineHeight || '1.5').replace(/[^0-9.]/g, ''));
@@ -37,7 +81,11 @@ export default function Typography() {
     setTextAlign(String(style.textAlign || 'left'));
     setTextTransform(String(style.textTransform || 'none'));
     setTextDecoration(String(style.textDecoration || 'none'));
-  }, [selectedBlock]);
+    
+    // Sync font color
+    const rawColor = style.color ? String(style.color) : '#000000';
+    setTextColor(toPickerHex(rawColor));
+  }, [selectedBlock, selectedPart]);
 
   // Generic handler to update style
   const handleStyleChange = (property: string, value: string) => {
@@ -63,6 +111,23 @@ export default function Typography() {
 
       <CollapsibleContent>
         <div className="px-3 pb-3 space-y-3">
+          {/* Font Color */}
+          <div className="space-y-1.5">
+            <Label className="text-xs">Font Color</Label>
+            <div className="flex gap-2">
+              <Input
+                className="h-8 text-xs flex-1"
+                type="color"
+                value={textColor}
+                onChange={(e) => {
+                  const newColor = e.target.value;
+                  setTextColor(newColor);
+                  handleStyleChange('color', newColor);
+                }}
+              />
+            </div>
+          </div>
+
           <SelectComp
             label="Font Family"
             value={fontFamily}
@@ -103,8 +168,13 @@ export default function Typography() {
                 setLineHeight(val);
                 handleStyleChange('lineHeight', val);
               }}
-              unitValue="px"
+              onUnitChange={(unit) => {
+                // For line height, we often use unitless values or specific units
+                handleStyleChange('lineHeight', `${lineHeight}${unit === 'none' ? '' : unit}`);
+              }}
+              unitValue="none"
               options={[
+                { label: 'none', value: 'none' },
                 { label: 'px', value: 'px' },
                 { label: 'rem', value: 'rem' },
                 { label: '%', value: '%' },

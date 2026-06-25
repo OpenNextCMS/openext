@@ -9,6 +9,15 @@ const compat = new FlatCompat({
   baseDirectory: __dirname,
 });
 
-const eslintConfig = [...compat.extends('next/core-web-vitals', 'next/typescript')];
+const eslintConfig = [
+  ...compat.extends('next/core-web-vitals', 'next/typescript'),
+  {
+    rules: {
+      // CMS renders user-supplied images of arbitrary dimensions; next/image's
+      // required width/height don't fit, so plain <img> is intentional here.
+      '@next/next/no-img-element': 'off',
+    },
+  },
+];
 
 export default eslintConfig;

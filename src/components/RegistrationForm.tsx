@@ -10,6 +10,7 @@ import { Eye, EyeOff } from 'lucide-react';
 import { translations } from '../../public/locales/translations';
 import Cookies from 'js-cookie';
 import defaultData from '@/app/themes/openNextDefault/public/data/default.json';
+import { safeStorageClear, safeStorageGet } from '@/utils/safeStorage';
 
 
 const NewRegisterForm = () => {
@@ -24,7 +25,7 @@ const NewRegisterForm = () => {
     setT(translations[langFromCookie as keyof typeof translations] as typeof translations.en);
     setT(translations[langFromCookie as keyof typeof translations] as typeof translations.en);
 
-    const mongoDB = localStorage.getItem('MONGODB');
+    const mongoDB = safeStorageGet('MONGODB');
     let missingCredentials = false;
 
     if (mongoDB === 'atlas') {
@@ -35,7 +36,7 @@ const NewRegisterForm = () => {
         'MONGODB_CLUSTER',
         'MONGODB',
       ];
-      missingCredentials = atlasCredentials.some((key) => !localStorage.getItem(key));
+      missingCredentials = atlasCredentials.some((key) => !safeStorageGet(key));
     } else if (mongoDB === 'compass') {
       const compassCredentials = [
         'MONGODB_USERNAME',
@@ -45,11 +46,14 @@ const NewRegisterForm = () => {
         'MONGODB_AUTH_SOURCE',
         'MONGODB',
       ];
-      missingCredentials = compassCredentials.some((key) => !localStorage.getItem(key));
+      missingCredentials = compassCredentials.some((key) => !safeStorageGet(key));
+    } else if (mongoDB === 'uri') {
+      const uriCredentials = ['MONGODB_URI', 'MONGODB'];
+      missingCredentials = uriCredentials.some((key) => !safeStorageGet(key));
     }
 
     const dbInfo = ['USER_DB_NAME', 'PAGE_DB_NAME'];
-    const missingDbInfo = dbInfo.some((key) => !localStorage.getItem(key));
+    const missingDbInfo = dbInfo.some((key) => !safeStorageGet(key));
 
     if (missingCredentials || missingDbInfo) {
       router.push('/mongodb-setup');
@@ -75,32 +79,37 @@ const NewRegisterForm = () => {
       registerSchema.parse(data);
 
       const mongodbCredentials = (() => {
-        const mongoDB = localStorage.getItem('MONGODB');
+        const mongoDB = safeStorageGet('MONGODB');
         if (mongoDB === 'atlas') {
           return {
-            username: localStorage.getItem('MONGODB_USERNAME'),
-            password: localStorage.getItem('MONGODB_PASSWORD'),
-            host: localStorage.getItem('MONGODB_HOST'),
-            cluster: localStorage.getItem('MONGODB_CLUSTER'),
-            mongoDB: localStorage.getItem('MONGODB'),
+            username: safeStorageGet('MONGODB_USERNAME'),
+            password: safeStorageGet('MONGODB_PASSWORD'),
+            host: safeStorageGet('MONGODB_HOST'),
+            cluster: safeStorageGet('MONGODB_CLUSTER'),
+            mongoDB: safeStorageGet('MONGODB'),
           };
         } else if (mongoDB === 'compass') {
           return {
-            username: localStorage.getItem('MONGODB_USERNAME'),
-            password: localStorage.getItem('MONGODB_PASSWORD'),
-            host: localStorage.getItem('MONGODB_HOST'),
-            authMech: localStorage.getItem('MONGODB_AUTH_MECH'),
-            authSource: localStorage.getItem('MONGODB_AUTH_SOURCE'),
-            mongoDB: localStorage.getItem('MONGODB'),
+            username: safeStorageGet('MONGODB_USERNAME'),
+            password: safeStorageGet('MONGODB_PASSWORD'),
+            host: safeStorageGet('MONGODB_HOST'),
+            authMech: safeStorageGet('MONGODB_AUTH_MECH'),
+            authSource: safeStorageGet('MONGODB_AUTH_SOURCE'),
+            mongoDB: safeStorageGet('MONGODB'),
+          };
+        } else if (mongoDB === 'uri') {
+          return {
+            uri: safeStorageGet('MONGODB_URI'),
+            mongoDB: safeStorageGet('MONGODB'),
           };
         }
         return {};
       })();
 
-      const userDbName = localStorage.getItem('USER_DB_NAME');
-      const pageDbName = localStorage.getItem('PAGE_DB_NAME');
+      const userDbName = safeStorageGet('USER_DB_NAME');
+      const pageDbName = safeStorageGet('PAGE_DB_NAME');
 
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000'; // Use external backend URL if it exists
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || ''; // Use external backend URL if it exists
 
       const setupResponse = await fetch(`${backendUrl}/api/auth/setup-databases`, {
         method: 'POST',
@@ -130,7 +139,7 @@ const NewRegisterForm = () => {
             if (!result.success) throw new Error(result.message || 'Registration failed');
 
             handleSuccess(true, null, 'Registration successful.');
-            localStorage.clear();
+            safeStorageClear();
             router.push('/login');
           })
           .catch((error) => {

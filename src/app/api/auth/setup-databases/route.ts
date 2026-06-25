@@ -3,6 +3,7 @@ import { NextRequest } from 'next/server';
 import mongoose from 'mongoose';
 import { handleError } from '@/utils/errorHandler';
 import { handleSuccess } from '@/utils/successHandler';
+import { withDbName, isValidMongoUri } from '@/utils/mongoUri';
 
 export async function POST(req: NextRequest) {
   const { userDbName, pageDbName, mongodbCredentials } = await req.json();
@@ -11,43 +12,50 @@ export async function POST(req: NextRequest) {
     return handleError(null, 'All fields are required');
   }
 
-  const { username, password, host, cluster, authMech, mongoDB, authSource } = mongodbCredentials;
+  const { username, password, host, cluster, authMech, mongoDB, authSource, uri } =
+    mongodbCredentials;
 
-  let baseUrl;
-  let connectionOptions = {};
+  let masterUri: string;
+  let userUri: string;
+  let pageUri: string;
+  let connectionOptions: Record<string, unknown> = {};
 
-  if (mongoDB === 'atlas') {
-    baseUrl = `mongodb+srv://${username}:${password}@${cluster}.${host}.mongodb.net`;
+  if (mongoDB === 'uri') {
+    if (!uri || !isValidMongoUri(uri)) {
+      return handleError(null, 'A valid MongoDB connection URI is required');
+    }
+    masterUri = withDbName(uri, 'master');
+    userUri = withDbName(uri, userDbName);
+    pageUri = withDbName(uri, pageDbName);
+  } else if (mongoDB === 'atlas') {
+    const baseUrl = `mongodb+srv://${username}:${password}@${cluster}.${host}.mongodb.net`;
     connectionOptions = {
       retryWrites: true,
       w: 'majority',
       appName: cluster,
     };
+    masterUri = `${baseUrl}/master?`;
+    userUri = `${baseUrl}/${userDbName}?`;
+    pageUri = `${baseUrl}/${pageDbName}?`;
   } else if (mongoDB === 'compass') {
-    baseUrl = `mongodb://${username}:${password}@${host}`;
+    const baseUrl = `mongodb://${username}:${password}@${host}`;
     connectionOptions = {
       authSource: authSource,
       authMechanism: authMech,
     };
+    masterUri = `${baseUrl}/master?`;
+    userUri = `${baseUrl}/${userDbName}?`;
+    pageUri = `${baseUrl}/${pageDbName}?`;
   } else {
     return handleError(null, 'Invalid MongoDB type');
   }
 
   try {
-    const masterConnection = await mongoose.createConnection(
-      `${baseUrl}/master?`,
-      connectionOptions
-    );
+    const masterConnection = await mongoose.createConnection(masterUri, connectionOptions);
 
-    const userConnection = await mongoose.createConnection(
-      `${baseUrl}/${userDbName}?`,
-      connectionOptions
-    );
+    const userConnection = await mongoose.createConnection(userUri, connectionOptions);
 
-    const pageConnection = await mongoose.createConnection(
-      `${baseUrl}/${pageDbName}?`,
-      connectionOptions
-    );
+    const pageConnection = await mongoose.createConnection(pageUri, connectionOptions);
 
     await Promise.all([
       masterConnection.createCollection('masterdbs'),

@@ -88,7 +88,7 @@ export default function ProfilePage() {
     setT(translations[langFromCookie as keyof typeof translations] as typeof translations.en);
   }, []);
 
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -111,6 +111,14 @@ export default function ProfilePage() {
               setValue(key as keyof z.infer<typeof formSchema>, result.data[key] || '');
             }
           });
+
+          // Default the display name to the email's local part (before "@")
+          // when the user hasn't set one yet. It stays fully editable.
+          const existingDisplayName = (result.data.displayName || '').trim();
+          const email = (result.data.email || '').trim();
+          if (!existingDisplayName && email.includes('@')) {
+            setValue('displayName', email.split('@')[0]);
+          }
         } else {
           toast.error('Failed to fetch profile data: ' + result.message);
         }
