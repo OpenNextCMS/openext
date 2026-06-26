@@ -9,6 +9,7 @@ import Page from '@/models/Page'; // NEW import
 import path from 'path';
 import fs from 'fs/promises';
 import crypto from 'crypto';
+import { withDbName, isValidMongoUri } from '@/utils/mongoUri';
 
 export async function POST(req: NextRequest) {
   let userDbConnection: mongoose.Connection | null = null;
@@ -20,10 +21,25 @@ export async function POST(req: NextRequest) {
     const validatedData = registerSchema.parse(body);
 
     const { userDbName, pageDbName, mongodbCredentials, defaultData } = body; // UPDATED
-    const { username, password, host, cluster, authMech, mongoDB, authSource } = mongodbCredentials;
+    const { username, password, host, cluster, authMech, mongoDB, authSource, uri } =
+      mongodbCredentials;
 
     let masterDbUri, userDbUri, pageDbUri;
-    if (mongoDB === 'atlas') {
+    if (mongoDB === 'uri') {
+      if (!uri || !isValidMongoUri(uri)) {
+        return new Response(
+          JSON.stringify({
+            success: false,
+            message: 'A valid MongoDB connection URI is required',
+            registration: 'failed',
+          }),
+          { status: 400 }
+        );
+      }
+      masterDbUri = withDbName(uri, 'master');
+      userDbUri = withDbName(uri, userDbName);
+      pageDbUri = withDbName(uri, pageDbName);
+    } else if (mongoDB === 'atlas') {
       masterDbUri = `mongodb+srv://${username}:${password}@${cluster}.${host}.mongodb.net/master?retryWrites=true&w=majority&appName=${cluster}`;
       userDbUri = `mongodb+srv://${username}:${password}@${cluster}.${host}.mongodb.net/${userDbName}?retryWrites=true&w=majority&appName=${cluster}`;
       pageDbUri = `mongodb+srv://${username}:${password}@${cluster}.${host}.mongodb.net/${pageDbName}?retryWrites=true&w=majority&appName=${cluster}`;
@@ -113,7 +129,22 @@ export async function POST(req: NextRequest) {
     const jwtSecret = crypto.randomBytes(32).toString('hex');
 
     let envContent;
-    if (mongoDB === 'atlas') {
+    if (mongoDB === 'uri') {
+      envContent = `
+      # NEXT CMS UNCOMMENT BELOW FOR EXTERNAL BACKEND USE (External APIs only)
+      # NEXT_PUBLIC_BACKEND_URL=http://localhost:5000
+      JWT_SECRET=${jwtSecret}
+      MONGODB_URI=${uri}
+      MONGODB=${mongoDB}
+      USER_DB_NAME=${userDbName}
+      PAGE_DB_NAME=${pageDbName}
+      isRegistration=true
+      dbConnection=true
+      NEXT_PUBLIC_needsRestart=false
+      DEFAULT_HOME_SLUG=default_home
+      WEB_ACCESS_KEY=allowMe
+      `;
+    } else if (mongoDB === 'atlas') {
       envContent = `
       # NEXT CMS UNCOMMENT BELOW FOR EXTERNAL BACKEND USE (External APIs only)
       # NEXT_PUBLIC_BACKEND_URL=http://localhost:5000

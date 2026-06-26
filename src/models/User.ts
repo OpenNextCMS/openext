@@ -17,6 +17,8 @@ export interface IUser extends mongoose.Document {
   active: boolean;
   timestamps: Date; // Add this line
   profilePicturePath?: string;
+  /** True once the user has completed the first-time Website Setup Wizard. */
+  onboardingCompleted?: boolean;
 }
 
 const userSchema = new mongoose.Schema(
@@ -35,6 +37,8 @@ const userSchema = new mongoose.Schema(
     bio: { type: String },
     active: { type: Boolean, default: true }, // Add this line
     profilePicturePath: { type: String, select: true }, // Ensure this field is included
+    // Gate flag for the mandatory first-time Website Setup Wizard.
+    onboardingCompleted: { type: Boolean, default: false },
   },
   {
     timestamps: true,

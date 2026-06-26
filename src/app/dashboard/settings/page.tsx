@@ -41,6 +41,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { useTheme } from '@/context/ThemeContext';
 
 const formSchema = z.object({
   siteTitle: z.string().min(1, 'Site title is required'),
@@ -88,7 +89,7 @@ export default function SettingsPage() {
     },
   });
   const siteIcon = watch('siteIcon');
-  const enableDarkMode = watch('enableDarkMode');
+  const { theme, setTheme } = useTheme();
 
   const [t, setT] = useState(translations.en);
   const [themes, setThemes] = useState<{ name: string; isActive: boolean }[]>([]);
@@ -108,16 +109,16 @@ export default function SettingsPage() {
     setT(translations[langFromCookie as keyof typeof translations] as typeof translations.en);
   }, []);
 
+  // Keep the "Enable Dark Mode" switch in sync with the active theme, which is
+  // owned by ThemeContext (toggled from the navbar, persisted in localStorage).
+  // The switch must never drive the `dark` class directly: its default value is
+  // `false`, so doing so would strip dark mode on every navigation to settings.
   useEffect(() => {
-    if (enableDarkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [enableDarkMode]);
+    setValue('enableDarkMode', theme === 'dark');
+  }, [theme, setValue]);
 
   useEffect(() => {
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
     const fetchSettingsData = async () => {
       try {
         setIsLoading(true);
@@ -133,7 +134,8 @@ export default function SettingsPage() {
           setValue('timeZone', result.data.settings.timeZone || 'UTC');
           setValue('dateFormat', result.data.settings.dateFormat || 'MMMM D, YYYY');
           setValue('timeFormat', result.data.settings.timeFormat || 'h:mm a');
-          setValue('enableDarkMode', result.data.settings.enableDarkMode || false);
+          // Dark mode is driven by ThemeContext/localStorage, not the stored
+          // server setting — leave the switch in sync with the active theme.
 
           const settingsThemes = result.data.settings.themes || [];
           interface Theme {
@@ -176,7 +178,7 @@ export default function SettingsPage() {
   }, [setValue]);
 
   const handleSiteIconChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
     const file = e.target.files?.[0];
     if (!file) return;
     const formData = new FormData();
@@ -214,7 +216,7 @@ export default function SettingsPage() {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
 
     try {
       // Map imgSize to the correct structure for MongoDB
@@ -465,7 +467,10 @@ export default function SettingsPage() {
                       render={({ field }) => (
                         <Switch
                           checked={field.value}
-                          onCheckedChange={field.onChange}
+                          onCheckedChange={(checked) => {
+                            field.onChange(checked);
+                            setTheme(checked ? 'dark' : 'light');
+                          }}
                           id="dark-mode"
                         />
                       )}

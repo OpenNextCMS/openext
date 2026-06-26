@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { IUser } from '@/models/User';
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
 import { jwtDecode } from 'jwt-decode';
 import { getUserDbConnection, getUserModel } from '@/utils/db';
-import { AuthService } from '@/modules/auth/authService';
 import { cookies } from 'next/headers';
 import { getDynamicEnv } from '@/utils/dynamicEnv';
+import { signJwt } from '@/utils/jwt';
+import { tokenCookieOptions } from '@/lib/api/token-cookie';
 
 export async function GET() {
   try {
@@ -33,11 +33,11 @@ export async function GET() {
       );
     }
     const UserModel = userDb.model<IUser>('User');
-    const response = await AuthService.getUserByEmail(email, UserModel);
-    if (!response?.success) {
+    const user = await UserModel.findOne({ email }).select('+profilePicturePath');
+    if (!user) {
       return NextResponse.json({ success: false, message: 'User not found' }, { status: 404 });
     }
-    return NextResponse.json({ success: true, data: response.user });
+    return NextResponse.json({ success: true, data: user });
   } catch {
     return NextResponse.json({ success: false, message: 'Server error' }, { status: 500 });
   }
@@ -103,15 +103,14 @@ export async function POST(req: NextRequest) {
 
     // NEW: Generate a refreshed token with updated email
     const jwtSecret = getDynamicEnv().JWT_SECRET || 'your_jwt_secret';
-    const newToken = jwt.sign(
+    const newToken = signJwt(
       {
         userId: originalUser._id,
         email: originalUser.email,
         username: originalUser.username,
         role: originalUser.role,
       },
-      jwtSecret,
-      { expiresIn: '24h' }
+      jwtSecret
     );
 
     const response = NextResponse.json({
@@ -120,12 +119,7 @@ export async function POST(req: NextRequest) {
       message: 'Profile updated successfully',
     });
 
-    response.cookies.set('token', newToken, {
-      httpOnly: true,
-      secure: getDynamicEnv().NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 86400,
-    });
+    response.cookies.set('token', newToken, tokenCookieOptions(req));
 
     return response;
   } catch (error: unknown) {

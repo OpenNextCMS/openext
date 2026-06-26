@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { translations } from '../../../../../public/locales/translations';
 import Cookies from 'js-cookie';
+import { safeStorageGet, safeStorageSet } from '@/utils/safeStorage';
 
 export default function DatabaseSetup() {
   const [userDbName, setUserDbName] = useState('users');
@@ -18,8 +19,8 @@ export default function DatabaseSetup() {
     setT(translations[langFromCookie as keyof typeof translations] as typeof translations.en);
 
     // Load database names from localStorage if they exist
-    const savedUserDbName = localStorage.getItem('USER_DB_NAME');
-    const savedPageDbName = localStorage.getItem('PAGE_DB_NAME');
+    const savedUserDbName = safeStorageGet('USER_DB_NAME');
+    const savedPageDbName = safeStorageGet('PAGE_DB_NAME');
 
     if (savedUserDbName) setUserDbName(savedUserDbName);
     if (savedPageDbName) setPageDbName(savedPageDbName);
@@ -29,8 +30,8 @@ export default function DatabaseSetup() {
     e.preventDefault();
     setIsLoading(true);
 
-    localStorage.setItem('USER_DB_NAME', userDbName);
-    localStorage.setItem('PAGE_DB_NAME', pageDbName);
+    safeStorageSet('USER_DB_NAME', userDbName);
+    safeStorageSet('PAGE_DB_NAME', pageDbName);
 
     toast.success('Database setup successful. Redirecting to admin...');
     router.push('/admin');

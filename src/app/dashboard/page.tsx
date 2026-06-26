@@ -71,7 +71,7 @@ export default function DashboardPage() {
     }
   }, []);
 
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
 
   const clearAllCookies = useCallback(async () => {
     try {
@@ -91,8 +91,8 @@ export default function DashboardPage() {
       try {
         setLoading(true);
         const apiUrl =
-          backendUrl === 'http://localhost:3000' ? '/api/verify-connection' : '/api/api-sync';
-        const response = await fetch(`http://localhost:3000${apiUrl}`);
+          backendUrl === '' ? '/api/verify-connection' : '/api/api-sync';
+        const response = await fetch(apiUrl);
 
         if (!response.ok) {
           const errorText = await response.text();

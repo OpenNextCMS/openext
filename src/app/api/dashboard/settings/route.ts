@@ -6,49 +6,38 @@ import { jwtDecode } from 'jwt-decode';
 
 export async function GET() {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('token')?.value;
-
-    if (!token) {
-      console.error('❌ No token found in cookies');
-      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
-    }
-
-    interface DecodedToken {
-      email: string;
-      // Add other properties if needed
-    }
-
-    const decodedToken: DecodedToken = jwtDecode(token);
-    const email = decodedToken.email;
-
-    if (!email) {
-      console.error('❌ Token is missing email:', decodedToken);
-      return NextResponse.json({ success: false, message: 'Invalid token' }, { status: 401 });
-    }
-
     const userDb = await getUserDbConnection();
     if (!userDb) {
-      console.error('❌ Failed to connect to database');
       return NextResponse.json(
         { success: false, message: 'Database connection error' },
         { status: 500 }
       );
     }
 
-    const UserModel = userDb.model('User');
-    const user = await UserModel.findOne({ email }).exec();
-
-    if (!user) {
-      console.error('❌ User not found in database:', email);
-      return NextResponse.json({ success: false, message: 'User not found' }, { status: 404 });
-    }
-
     const SettingsModel = getSettingsModel();
-    // Removed userId filter, now retrieve the settings document without filtering
     const settings = await SettingsModel.findOne({}).exec();
 
-    return NextResponse.json({ success: true, data: { settings } });
+    // Check if user is authenticated (optional for GET)
+    const cookieStore = await cookies();
+    const token = cookieStore.get('token')?.value;
+    let isAuthenticated = false;
+
+    if (token) {
+      try {
+        const decodedToken = jwtDecode<{ email?: string }>(token);
+        if (decodedToken && decodedToken.email) {
+          isAuthenticated = true;
+        }
+      } catch {
+        console.warn('Invalid token found, treating as unauthenticated');
+      }
+    }
+
+    return NextResponse.json({ 
+      success: true, 
+      data: { settings },
+      authenticated: isAuthenticated
+    });
   } catch (error) {
     console.error('❌ Server error in /api/dashboard/settings:', error);
     return NextResponse.json({ success: false, message: 'Server error' }, { status: 500 });

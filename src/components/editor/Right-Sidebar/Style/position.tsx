@@ -1,22 +1,23 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { CSSProperties, useState, useEffect } from 'react';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import SelectComp from '@/components/ReusableComponents/SelectComp';
-import { useAppSelector } from '@/redux/hooks';
+import { useAppSelector, useAppDispatch } from '@/redux/hooks';
+import { updateSelectedBlockStyles } from '@/redux/canvasSlice';
 
 type PositionProps = {
   positionOpen: boolean;
   setPositionOpen: (open: boolean) => void;
-  marginChanges: (value: string, position: 'top' | 'right' | 'bottom' | 'left' | 'all') => void;
 };
 
-export default function Position({ positionOpen, setPositionOpen, marginChanges }: PositionProps) {
+export default function Position({ positionOpen, setPositionOpen }: PositionProps) {
   const selectedBlock = useAppSelector((state) => state.canvas.selectedBlock);
+  const dispatch = useAppDispatch();
 
   const [positionType, setPositionType] = useState('static');
   const [offsets, setOffsets] = useState({
@@ -42,6 +43,22 @@ export default function Position({ positionOpen, setPositionOpen, marginChanges 
     }
   }, [selectedBlock]);
 
+  const handlePositionChange = (val: string) => {
+    setPositionType(val);
+    dispatch(updateSelectedBlockStyles({ position: val as CSSProperties['position'] }));
+  };
+
+  const handleOffsetChange = (key: 'top' | 'right' | 'bottom' | 'left', val: string) => {
+    setOffsets((prev) => ({ ...prev, [key]: val }));
+    const numericVal = val === '' ? undefined : val.endsWith('%') || val.endsWith('vh') || val.endsWith('vw') ? val : `${val}px`;
+    dispatch(updateSelectedBlockStyles({ [key]: numericVal }));
+  };
+
+  const handleZIndexChange = (val: string) => {
+    setZIndex(val);
+    dispatch(updateSelectedBlockStyles({ zIndex: val === '' ? undefined : Number(val) }));
+  };
+
   return (
     <Collapsible open={positionOpen} onOpenChange={setPositionOpen} className="rounded-lg border">
       <div className="flex items-center justify-between p-2">
@@ -64,9 +81,8 @@ export default function Position({ positionOpen, setPositionOpen, marginChanges 
           {/* Position Select */}
           <SelectComp
             label="Position"
-            defaultValue={positionType}
             value={positionType}
-            onValueChange={(val: string) => setPositionType(val)}
+            onValueChange={handlePositionChange}
             options={[
               { label: 'Static', value: 'static' },
               { label: 'Relative', value: 'relative' },
@@ -78,46 +94,42 @@ export default function Position({ positionOpen, setPositionOpen, marginChanges 
 
           {/* Offsets */}
           <div className="grid grid-cols-2 gap-2">
-            <Input
-              placeholder="Top"
-              className="h-7 text-xs"
-              value={offsets.top}
-              onChange={(e) => {
-                const val = e.target.value;
-                setOffsets((prev) => ({ ...prev, top: val }));
-                marginChanges(val, 'top');
-              }}
-            />
-            <Input
-              placeholder="Right"
-              className="h-7 text-xs"
-              value={offsets.right}
-              onChange={(e) => {
-                const val = e.target.value;
-                setOffsets((prev) => ({ ...prev, right: val }));
-                marginChanges(val, 'right');
-              }}
-            />
-            <Input
-              placeholder="Bottom"
-              className="h-7 text-xs"
-              value={offsets.bottom}
-              onChange={(e) => {
-                const val = e.target.value;
-                setOffsets((prev) => ({ ...prev, bottom: val }));
-                marginChanges(val, 'bottom');
-              }}
-            />
-            <Input
-              placeholder="Left"
-              className="h-7 text-xs"
-              value={offsets.left}
-              onChange={(e) => {
-                const val = e.target.value;
-                setOffsets((prev) => ({ ...prev, left: val }));
-                marginChanges(val, 'left');
-              }}
-            />
+            <div className="space-y-1">
+               <Label className="text-[10px] uppercase text-muted-foreground">Top</Label>
+               <Input
+                placeholder="0"
+                className="h-7 text-xs"
+                value={offsets.top}
+                onChange={(e) => handleOffsetChange('top', e.target.value)}
+              />
+            </div>
+            <div className="space-y-1">
+               <Label className="text-[10px] uppercase text-muted-foreground">Right</Label>
+                <Input
+                  placeholder="0"
+                  className="h-7 text-xs"
+                  value={offsets.right}
+                  onChange={(e) => handleOffsetChange('right', e.target.value)}
+                />
+            </div>
+            <div className="space-y-1">
+               <Label className="text-[10px] uppercase text-muted-foreground">Bottom</Label>
+                <Input
+                  placeholder="0"
+                  className="h-7 text-xs"
+                  value={offsets.bottom}
+                  onChange={(e) => handleOffsetChange('bottom', e.target.value)}
+                />
+            </div>
+            <div className="space-y-1">
+               <Label className="text-[10px] uppercase text-muted-foreground">Left</Label>
+                <Input
+                  placeholder="0"
+                  className="h-7 text-xs"
+                  value={offsets.left}
+                  onChange={(e) => handleOffsetChange('left', e.target.value)}
+                />
+            </div>
           </div>
 
           {/* Z-Index */}
@@ -127,7 +139,7 @@ export default function Position({ positionOpen, setPositionOpen, marginChanges 
               className="h-8 text-xs"
               type="number"
               value={zIndex}
-              onChange={(e) => setZIndex(e.target.value)}
+              onChange={(e) => handleZIndexChange(e.target.value)}
             />
           </div>
         </div>

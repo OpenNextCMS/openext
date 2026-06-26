@@ -31,7 +31,7 @@ export default function AddPage() {
     if (!pageName || !slug) return;
     setIsSubmitting(true);
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
 
       // Step 1: Create the page
       const response = await fetch(`${backendUrl}/api/pages/add-page`, {
