@@ -4,7 +4,17 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
 
   images: {
-    domains: ['localhost'], // Allow images from localhost
+    domains: ['localhost'],
+    remotePatterns: [
+      {
+        protocol: 'http',
+        hostname: '**',
+      },
+      {
+        protocol: 'https',
+        hostname: '**',
+      },
+    ],
   },
 
   async rewrites() {

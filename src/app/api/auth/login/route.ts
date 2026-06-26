@@ -2,7 +2,7 @@
 import { NextResponse } from 'next/server';
 import { AuthService } from '@/modules/auth/authService';
 import { getUserDbConnection, getUserModel } from '@/utils/db';
-import { getDynamicEnv } from '@/utils/dynamicEnv';
+import { tokenCookieOptions } from '@/lib/api/token-cookie';
 
 export async function POST(request: Request) {
   try {
@@ -28,12 +28,7 @@ export async function POST(request: Request) {
 
     const response = NextResponse.json({ success: true }, { status: 200 });
 
-    response.cookies.set('token', result.token || '', {
-      httpOnly: true,
-      secure: getDynamicEnv().NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 86400,
-    });
+    response.cookies.set('token', result.token || '', tokenCookieOptions(request));
     return response;
   } catch (error) {
     console.error('Login error:', error);

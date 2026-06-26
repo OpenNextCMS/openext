@@ -1,7 +1,8 @@
 'use client';
 
-import { useRouter, usePathname } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
+import Link from 'next/link';
+import { useEffect, useMemo, useState } from 'react';
 import {
   LayoutDashboard,
   FileText,
@@ -18,7 +19,25 @@ import {
   Paintbrush,
   ArrowUpToLine,
   ArrowDownToLine,
+  BrainCircuit,
+  Route,
+  LayoutTemplate,
+  BarChart3,
+  History,
+  FileInput,
+  PlusSquare,
+  Tag,
+  Tags,
+  type LucideIcon,
 } from 'lucide-react';
+import { usePlugins } from '@/context/PluginContext';
+
+type NavSection = {
+  label: string;
+  icon: LucideIcon;
+  path?: string;
+  links: { label: string; icon: LucideIcon; path: string }[];
+};
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -28,7 +47,7 @@ import img from '../../public/img/openNext.png';
 import dimg from '../../public/img/openNextWhite.png';
 import { useTheme } from '@/context/ThemeContext';
 
-const navItems = [
+const navItems: NavSection[] = [
   {
     label: 'Dashboard',
     icon: LayoutDashboard,
@@ -40,6 +59,9 @@ const navItems = [
     icon: Codesandbox,
     links: [
       { label: 'All Blogs', icon: List, path: '/dashboard/blogs/allblogs' },
+      { label: 'Add New Blog', icon: PlusCircle, path: '/dashboard/blogs/new' },
+      { label: 'Categories', icon: Tag, path: '/dashboard/blogs/categories' },
+      { label: 'Tags', icon: Tags, path: '/dashboard/blogs/tags' },
     ],
   },
   {
@@ -56,13 +78,19 @@ const navItems = [
     icon: Palette,
     links: [
       { label: 'All Themes', icon: Paintbrush, path: '/dashboard/themes/allthemes' },
-      { label: 'Add Themes', icon: PlusCircle, path: '/dashboard/themes/addtheme' },
+      { label: 'Create Theme', icon: PlusCircle, path: '/dashboard/themes/new' },
     ],
   },
   {
     label: 'Plugins',
     icon: Wrench,
     path: '/dashboard/plugins',
+    links: [],
+  },
+  {
+    label: 'AI Settings',
+    icon: BrainCircuit,
+    path: '/dashboard/ai-settings',
     links: [],
   },
   {
@@ -73,15 +101,69 @@ const navItems = [
   },
 ];
 
+// Nav entry for the Menu Redirect *system* plugin. Only shown in the sidebar
+// when the plugin is active (see PluginContext.activePlugins). It is NOT an
+// add-blocks block — it is accessed entirely from the dashboard.
+const menuRedirectNav: NavSection = {
+  label: 'Menu Redirect',
+  icon: Route,
+  links: [
+    { label: 'Mappings', icon: List, path: '/dashboard/plugins/menu-redirect' },
+    { label: 'Visual Editor', icon: LayoutTemplate, path: '/dashboard/plugins/menu-redirect/editor' },
+    { label: 'Analytics', icon: BarChart3, path: '/dashboard/plugins/menu-redirect/analytics' },
+    { label: 'History', icon: History, path: '/dashboard/plugins/menu-redirect/history' },
+  ],
+};
+
+/** True when the active marketplace plugins include the Menu Redirect system. */
+function hasMenuRedirect(plugins: { pluginId: string; name: string }[]): boolean {
+  return plugins.some((p) => {
+    const name = (p.name || '').toLowerCase();
+    return p.pluginId === 'menu-redirect' || (name.includes('menu') && name.includes('redirect'));
+  });
+}
+
+// Nav entry for the Form Builder plugin. Only shown in the sidebar when the
+// plugin is installed AND enabled (PluginContext.activePlugins is already
+// filtered to isActive). Accessed entirely from the dashboard.
+const formBuilderNav: NavSection = {
+  label: 'Form Builder',
+  icon: FileInput,
+  links: [
+    { label: 'All Forms', icon: List, path: '/dashboard/plugins/form-builder' },
+    { label: 'New Form', icon: PlusSquare, path: '/dashboard/plugins/form-builder/new' },
+  ],
+};
+
+/** True when the active marketplace plugins include the Form Builder. */
+function hasFormBuilder(plugins: { pluginId: string; name: string; type?: string }[]): boolean {
+  return plugins.some((p) => {
+    const name = (p.name || '').toLowerCase();
+    return (
+      p.pluginId === 'form-builder' ||
+      (name.includes('form') && name.includes('builder')) ||
+      p.type === 'form'
+    );
+  });
+}
+
 export default function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const router = useRouter();
   const pathname = usePathname();
 
   const { theme } = useTheme();
+  const { activePlugins } = usePlugins();
+
+  // Append plugin system navs only while their plugin is active (installed + enabled).
+  const sections = useMemo(() => {
+    let s = navItems;
+    if (hasMenuRedirect(activePlugins)) s = [...s, menuRedirectNav];
+    if (hasFormBuilder(activePlugins)) s = [...s, formBuilderNav];
+    return s;
+  }, [activePlugins]);
 
   useEffect(() => {
     // Check if we're on mobile and set initial state
@@ -96,7 +178,7 @@ export default function Sidebar() {
     window.addEventListener('resize', checkMobile);
 
     // Initialize open dropdown based on current path
-    const currentSection = navItems.find(
+    const currentSection = sections.find(
       (item) => item.links.some((link) => pathname === link.path) || pathname === item.path
     );
     if (currentSection) {
@@ -104,7 +186,7 @@ export default function Sidebar() {
     }
 
     return () => window.removeEventListener('resize', checkMobile);
-  }, [pathname]);
+  }, [pathname, sections]);
 
   const toggleDropdown = (label: string) => {
     setOpenDropdown(openDropdown === label ? null : label);
@@ -112,7 +194,7 @@ export default function Sidebar() {
 
   const isActive = (path: string) => pathname === path;
   const isSectionActive = (label: string) => {
-    const section = navItems.find((item) => item.label === label);
+    const section = sections.find((item) => item.label === label);
     return section?.path === pathname || section?.links.some((link) => link.path === pathname);
   };
 
@@ -153,14 +235,14 @@ export default function Sidebar() {
           {/* Header */}
           <div className="p-4 flex items-center justify-between border-b">
             {!isCollapsed && (
-              <div onClick={() => router.push('/dashboard')}>
+              <Link href="/dashboard" prefetch>
                 <Image
                   src={theme === 'dark' ? dimg : img}
                   alt="Theme Image"
                   width={150}
                   className="mx-5"
                 />
-              </div>
+              </Link>
             )}
             {!isMobile && (
               <Button
@@ -178,7 +260,7 @@ export default function Sidebar() {
           <nav className="flex-1 overflow-y-auto py-4 px-3">
             <div className="space-y-1">
               <TooltipProvider delayDuration={0}>
-                {navItems.map((item) => (
+                {sections.map((item) => (
                   <div key={item.label} className="mb-1">
                     {item.links.length > 0 ? (
                       <Collapsible
@@ -234,15 +316,17 @@ export default function Sidebar() {
                                 'w-full justify-start h-9',
                                 isActive(link.path) && 'font-medium'
                               )}
-                              onClick={() => router.push(link.path)}
+                              asChild
                             >
-                              <link.icon
-                                className={cn(
-                                  'h-4 w-4 mr-2',
-                                  isActive(link.path) ? 'text-primary' : 'text-muted-foreground'
-                                )}
-                              />
-                              <span>{link.label}</span>
+                              <Link href={link.path} prefetch>
+                                <link.icon
+                                  className={cn(
+                                    'h-4 w-4 mr-2',
+                                    isActive(link.path) ? 'text-primary' : 'text-muted-foreground'
+                                  )}
+                                />
+                                <span>{link.label}</span>
+                              </Link>
                             </Button>
                           ))}
                         </CollapsibleContent>
@@ -257,16 +341,18 @@ export default function Sidebar() {
                               isCollapsed ? 'px-2' : 'px-3',
                               isActive(item.path!) && 'font-medium'
                             )}
-                            onClick={() => router.push(item.path!)}
+                            asChild
                           >
-                            <item.icon
-                              className={cn(
-                                'h-5 w-5',
-                                isCollapsed ? 'mx-auto' : 'mr-2',
-                                isActive(item.path!) ? 'text-primary' : 'text-muted-foreground'
-                              )}
-                            />
-                            {!isCollapsed && <span>{item.label}</span>}
+                            <Link href={item.path!} prefetch>
+                              <item.icon
+                                className={cn(
+                                  'h-5 w-5',
+                                  isCollapsed ? 'mx-auto' : 'mr-2',
+                                  isActive(item.path!) ? 'text-primary' : 'text-muted-foreground'
+                                )}
+                              />
+                              {!isCollapsed && <span>{item.label}</span>}
+                            </Link>
                           </Button>
                         </TooltipTrigger>
                         {isCollapsed && <TooltipContent side="right">{item.label}</TooltipContent>}
@@ -285,16 +371,20 @@ export default function Sidebar() {
                         isCollapsed ? 'px-2' : 'px-3',
                         isActive('/dashboard/settings') && 'font-medium'
                       )}
-                      onClick={() => router.push('/dashboard/settings')}
+                      asChild
                     >
-                      <Settings
-                        className={cn(
-                          'h-5 w-5',
-                          isCollapsed ? 'mx-auto' : 'mr-2',
-                          isActive('/dashboard/settings') ? 'text-primary' : 'text-muted-foreground'
-                        )}
-                      />
-                      {!isCollapsed && <span>Settings</span>}
+                      <Link href="/dashboard/settings" prefetch>
+                        <Settings
+                          className={cn(
+                            'h-5 w-5',
+                            isCollapsed ? 'mx-auto' : 'mr-2',
+                            isActive('/dashboard/settings')
+                              ? 'text-primary'
+                              : 'text-muted-foreground'
+                          )}
+                        />
+                        {!isCollapsed && <span>Settings</span>}
+                      </Link>
                     </Button>
                   </TooltipTrigger>
                   {isCollapsed && <TooltipContent side="right">Settings</TooltipContent>}

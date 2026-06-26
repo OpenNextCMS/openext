@@ -23,15 +23,22 @@ const ModificationSchema = new Schema<IModification>({
   modifiedBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   modifiedAt: { type: Date, default: Date.now },
 });
+
 const PageSchema = new Schema<PageDocument>(
   {
     pageName: { type: String, required: true, trim: true },
     createdBy: { type: Schema.Types.ObjectId, ref: 'User' },
+    pageType: {
+      type: String,
+      enum: ['page', 'header', 'footer'],
+      default: 'page',
+    },
     isPublished: { type: Boolean, default: false },
     isHome: { type: Boolean, default: false },
+    isGlobal: { type: Boolean, default: false },
     preHeading: { type: String },
     description: { type: String },
-    slug: { type: String, unique: true },
+    slug: { type: String },
     seoName: { type: String },
     seoMeta: { type: String },
     component: { type: [Schema.Types.Mixed] },
@@ -41,7 +48,9 @@ const PageSchema = new Schema<PageDocument>(
 );
 
 // Create indexes for better query performance
+PageSchema.index({ slug: 1 }, { unique: true });
 PageSchema.index({ pageName: 1, createdBy: 1 });
+PageSchema.index({ pageType: 1, isGlobal: 1 });
 
 const PageModel = models.Page || model<PageDocument>('Page', PageSchema);
 

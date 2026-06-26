@@ -1,9 +1,5 @@
-import ComingSoon from "@/components/ReusableComponents/ComingSoon";
+import PagePartManager from '../PagePartManager';
 
 export default function Headers() {
-    return (
-        <div className="flex items-center justify-center h-screen">
-            <ComingSoon />
-        </div>
-    )
+  return <PagePartManager pageType="header" />;
 }

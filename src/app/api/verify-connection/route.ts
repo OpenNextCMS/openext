@@ -3,9 +3,9 @@ import mongoose from 'mongoose';
 import fs from 'fs';
 import path from 'path';
 import { getDynamicEnv } from '@/utils/dynamicEnv';
+import { withDbName } from '@/utils/mongoUri';
 
 function createConnectionUri(dbName: string) {
-  
   const {
     MONGODB_USERNAME,
     MONGODB_PASSWORD,
@@ -14,7 +14,16 @@ function createConnectionUri(dbName: string) {
     MONGODB_AUTH_MECH,
     MONGODB_AUTH_SOURCE,
     MONGODB,
+    MONGODB_URI,
   } = getDynamicEnv();
+
+  if (MONGODB === 'uri') {
+    if (!MONGODB_URI) {
+      throw new Error('MONGODB_URI is required when MONGODB=uri');
+    }
+    return withDbName(MONGODB_URI, dbName);
+  }
+
   if (!MONGODB_USERNAME || !MONGODB_PASSWORD || !MONGODB_HOST || !MONGODB) {
     throw new Error('Missing required MongoDB environment variables');
   }

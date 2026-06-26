@@ -12,7 +12,7 @@ export const GET = async () => {
   const backendUrl = getDynamicEnv().NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
 
   try {
-    const response = await fetch(`${backendUrl}/api/auth/verify-connection`);
+    const response = await fetch(`${backendUrl}/api/verify-connection`);
     if (!response.ok) {
       const errorText = await response.text();
       console.error(`Failed to verify connection: ${errorText}`);
