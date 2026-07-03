@@ -1,0 +1,123 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://opennext.cms/schema/layout-plan.schema.json",
+  "title": "LayoutPlan",
+  "description": "Structure-only page plan emitted by the FLAN-T5 layout planner (Stage 1). Contains NO marketing copy: every block.content MUST be an empty object. Copy is filled by the Stage-2 OpenRouter/Gemini filler.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["meta", "page"],
+  "properties": {
+    "meta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["business", "style", "websiteType", "pageName", "complexity"],
+      "properties": {
+        "business": { "type": "string", "minLength": 1 },
+        "style": {
+          "type": "string",
+          "description": "Wizard theme id (src/templates/types.ts WizardThemeId).",
+          "enum": ["modern", "corporate", "minimal", "luxury", "dark", "creative", "startup", "ecommerce"]
+        },
+        "websiteType": {
+          "type": "string",
+          "description": "Wizard website type (src/templates/types.ts WebsiteType).",
+          "enum": ["agency", "saas", "ecommerce", "portfolio", "personal-brand", "corporate", "restaurant", "real-estate", "healthcare", "education"]
+        },
+        "pageName": { "type": "string", "minLength": 1 },
+        "location": { "type": "string" },
+        "complexity": {
+          "type": "string",
+          "description": "Drives block count: simple 4-6, standard 7-10, rich 11-15.",
+          "enum": ["simple", "standard", "rich"]
+        }
+      }
+    },
+    "page": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["theme", "blocks"],
+      "properties": {
+        "theme": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["primaryColor", "secondaryColor", "backgroundColor", "textColor"],
+          "properties": {
+            "primaryColor": { "$ref": "#/definitions/hexColor" },
+            "secondaryColor": { "$ref": "#/definitions/hexColor" },
+            "backgroundColor": { "$ref": "#/definitions/hexColor" },
+            "textColor": { "$ref": "#/definitions/hexColor" },
+            "fontFamily": { "type": "string" },
+            "borderRadius": { "type": "string" }
+          }
+        },
+        "blocks": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 15,
+          "items": { "$ref": "#/definitions/block" }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "hexColor": {
+      "type": "string",
+      "pattern": "^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+    },
+    "block": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "order", "content"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "kebab-case, unique within the page.",
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "type": {
+          "type": "string",
+          "description": "Canonical BlockData['type'] union (src/types/index.ts) + planner-only section types (pricing, cta, footer). Keep in sync with schema/allowed-block-types.json.",
+          "enum": [
+            "column", "text", "hero", "stats", "progress", "countdown", "button", "row", "icon",
+            "hero-main", "hero-centered",
+            "statistics-main", "statistics-side-image", "statistics-boxed",
+            "testimonial-main", "testimonial-single", "testimonial-single-large",
+            "input", "radio", "checkbox", "badge", "alert", "avatar", "separator", "skeleton",
+            "switch", "textarea", "table", "tabs", "image", "card", "shape-divider", "slider",
+            "nav-bar", "contact", "contact-simple",
+            "content-features", "content-gallery", "content-icons", "content-categories",
+            "content-detail", "content-split", "content-trio",
+            "ecommerce-grid", "ecommerce-detail", "ecommerce-info", "ecommerce-info-alt",
+            "feature-trio", "feature-vertical", "feature-side-image", "feature-horizontal",
+            "feature-boxed", "feature-zigzag", "feature-checklist", "feature-list",
+            "blog-feed", "form-block",
+            "pricing", "cta", "footer"
+          ]
+        },
+        "order": { "type": "integer", "minimum": 0 },
+        "variant": {
+          "type": "string",
+          "description": "Optional visual variant hint, e.g. hero:centered, features:bento, navbar:split."
+        },
+        "layout": {
+          "type": "string",
+          "enum": ["horizontal", "vertical", "2-column", "3-column"]
+        },
+        "styles": {
+          "type": "object",
+          "properties": {
+            "backgroundColor": { "type": "string" },
+            "color": { "type": "string" },
+            "padding": { "type": "string" },
+            "textAlign": { "type": "string", "enum": ["left", "center", "right"] }
+          }
+        },
+        "content": {
+          "type": "object",
+          "description": "MUST be empty — structure-only plan. Copy is added by Stage 2.",
+          "maxProperties": 0
+        }
+      }
+    }
+  }
+}

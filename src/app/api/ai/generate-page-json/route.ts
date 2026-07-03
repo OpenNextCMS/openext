@@ -2405,6 +2405,22 @@ FINAL OUTPUT RULES
 13. Visual consistency
 14. Production-ready output`;
 
+/**
+ * TWO-STAGE PIPELINE HOOK POINT.
+ *
+ * This function is the single-stage path: it asks OpenRouter to generate page
+ * STRUCTURE *and* COPY together via AI_STRUCTURE_PROMPT_V2. The experimental
+ * two-stage layout planner (training/layout-planner/) splits that:
+ *   Stage 1  FLAN-T5 -> LayoutPlan (structure only, no copy)
+ *   Stage 2  OpenRouter fills copy into that fixed structure
+ * See training/layout-planner/pipeline.py for the reference implementation and
+ * the structure-injection filler prompt. To adopt it here, gate on a flag and,
+ * for the text path (no image), replace this prompt with: run the planner to get
+ * a LayoutPlan, translate its block types via schema/allowed-block-types.json
+ * `stage2Aliases`, and send a fill-only prompt that keeps the given block
+ * ids/types/order/styles and only populates each block's `data`. The result
+ * still flows through normalizeV2Document() unchanged.
+ */
 const buildAnalysisContent = ({
   prompt,
   requestedLayoutInstruction,

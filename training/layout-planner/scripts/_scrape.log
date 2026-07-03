@@ -1,0 +1,641 @@
+=== Phase 1: 145 homepages ===
+[1] https://www.godaddy.com HTTP 403
+[2] https://www.zoom.us SKIP (too few sections)
+[3] https://www.digitalocean.com SKIP (too few sections)
+[4] https://www.bigcommerce.com HTTP 403
+[5] https://www.etsy.com HTTP 403
+[6] https://www.ibm.com SKIP (too few sections)
+[7] https://www.oracle.com HTTP 403
+[8] https://www.sap.com HTTP 403
+[9] https://www.ey.com SKIP (too few sections)
+[10] https://www.opentable.com ERR HTTPSConnectionPool(host='www.opentable.com', port=443): Rea
+[11] https://resy.com SKIP (too few sections)
+[12] https://www.doordash.com HTTP 403
+[13] https://slicelife.com HTTP 403
+[14] https://www.grubhub.com SKIP (too few sections)
+[15] https://www.ubereats.com HTTP 410
+[16] https://www.yelp.com HTTP 403
+[17] https://www.sweetgreen.com (home) -> valid 8 blocks
+[18] https://www.chipotle.com SKIP (too few sections)
+[19] https://www.panerabread.com HTTP 403
+[20] https://www.dominos.com SKIP (too few sections)
+[21] https://www.pizzahut.com ERR HTTPSConnectionPool(host='www.pizzahut.com', port=443): Read
+[22] https://www.olivegarden.com (home) -> valid 5 blocks
+[23] https://www.shakeshack.com SKIP (too few sections)
+[24] https://www.dennys.com HTTP 404
+[25] https://www.ihop.com (home) -> valid 8 blocks
+[26] https://www.cava.com HTTP 403
+[27] https://www.wingstop.com SKIP (too few sections)
+[28] https://www.tlocations.com ERR HTTPSConnectionPool(host='www.tlocations.com', port=443): Ma
+[29] https://www.zillow.com HTTP 403
+[30] https://www.redfin.com HTTP 405
+[31] https://www.realtor.com HTTP 429
+[32] https://www.apartments.com HTTP 403
+[33] https://www.trulia.com HTTP 403
+[34] https://www.century21.com SKIP (too few sections)
+[35] https://www.coldwellbanker.com (home) -> valid 5 blocks
+[36] https://www.remax.com (home) -> valid 4 blocks
+[37] https://www.homes.com HTTP 403
+[38] https://www.loopnet.com HTTP 403
+[39] https://www.movoto.com HTTP 403
+[40] https://www.homelight.com SKIP (too few sections)
+[41] https://www.rockethomes.com HTTP 403
+[42] https://www.point2homes.com HTTP 403
+[43] https://www.landwatch.com HTTP 403
+[44] https://www.zocdoc.com HTTP 403
+[45] https://www.onemedical.com SKIP (too few sections)
+[46] https://www.hims.com HTTP 403
+[47] https://ro.co HTTP 403
+[48] https://www.calm.com HTTP 403
+[49] https://www.goodrx.com HTTP 403
+[50] https://www.noom.com SKIP (too few sections)
+[51] https://www.forwardpathway.com SKIP (too few sections)
+[52] https://cerebral.com SKIP (too few sections)
+[53] https://www.talkspace.com (home) -> valid 15 blocks
+[54] https://www.betterhelp.com (home) -> valid 11 blocks
+[55] https://curology.com (home) -> valid 5 blocks
+[56] https://www.lemonaidhealth.com (home) -> valid 10 blocks
+[57] https://plushcare.com (home) -> valid 8 blocks
+[58] https://www.forhers.com HTTP 403
+[59] https://www.carbonhealth.com HTTP 403
+[60] https://www.khanacademy.org SKIP (too few sections)
+[61] https://www.edx.org SKIP (too few sections)
+[62] https://www.duolingo.com SKIP (too few sections)
+[63] https://www.skillshare.com HTTP 403
+[64] https://www.masterclass.com HTTP 403
+[65] https://outschool.com SKIP (too few sections)
+[66] https://www.mathnasium.com (home) -> valid 4 blocks
+[67] https://www.chegg.com HTTP 403
+[68] https://quizlet.com HTTP 403
+[69] https://www.pluralsight.com (home) -> valid 4 blocks
+[70] https://www.futurelearn.com HTTP 403
+[71] https://alison.com (home) -> valid 5 blocks
+[72] https://www.udacity.com (home) -> valid 7 blocks
+[73] https://www.datacamp.com (home) -> valid 8 blocks
+[74] https://www.thinkful.com (home) -> valid 6 blocks
+[75] https://www.varsitytutors.com (home) -> valid 6 blocks
+[76] https://www.behance.net HTTP 403
+[77] https://readymag.com SKIP (too few sections)
+[78] https://www.adobe.com/portfolio ERR HTTPSConnectionPool(host='www.adobe.com', port=443): Read ti
+[79] https://www.cargo.site SKIP (too few sections)
+[80] https://contra.com SKIP (too few sections)
+[81] https://super.so (home) -> valid 4 blocks
+[82] https://carbonmade.com SKIP (too few sections)
+[83] https://www.dunked.com (home) -> valid 7 blocks
+[84] https://journoportfolio.com (home) -> valid 15 blocks
+[85] https://www.fabrik.io (home) -> valid 8 blocks
+[86] https://substack.com SKIP (too few sections)
+[87] https://gumroad.com SKIP (too few sections)
+[88] https://beacons.ai HTTP 403
+[89] https://linktr.ee (home) -> valid 11 blocks
+[90] https://podia.com SKIP (too few sections)
+[91] https://convertkit.com (home) -> valid 12 blocks
+[92] https://ghost.org (home) -> valid 5 blocks
+[93] https://www.buymeacoffee.com SKIP (too few sections)
+[94] https://ko-fi.com (home) -> valid 7 blocks
+[95] https://memberful.com (home) -> valid 10 blocks
+[96] https://mailerlite.com (home) -> valid 5 blocks
+
+=== Phase 2: inner pages of 27 working domains ===
+[97] https://www.sweetgreen.com/pricing (pricing) -> valid 8 blocks
+[98] https://www.sweetgreen.com/about HTTP 404
+[99] https://www.sweetgreen.com/features HTTP 404
+[100] https://www.sweetgreen.com/contact (contact) -> valid 8 blocks
+[101] https://www.sweetgreen.com/blog HTTP 404
+[102] https://www.sweetgreen.com/solutions HTTP 404
+[103] https://www.sweetgreen.com/services HTTP 404
+[104] https://www.sweetgreen.com/products HTTP 404
+[105] https://www.sweetgreen.com/plans HTTP 404
+[106] https://www.sweetgreen.com/company HTTP 404
+[107] https://www.sweetgreen.com/customers HTTP 404
+[108] https://www.sweetgreen.com/about-us HTTP 404
+[109] https://www.sweetgreen.com/menu (features) -> valid 5 blocks
+[110] https://www.sweetgreen.com/how-it-works HTTP 404
+[111] https://www.sweetgreen.com/enterprise HTTP 404
+[112] https://www.sweetgreen.com/case-studies HTTP 404
+[113] https://www.sweetgreen.com/careers (about) -> valid 8 blocks
+[114] https://www.sweetgreen.com/for-business HTTP 404
+[115] https://www.sweetgreen.com/reviews HTTP 404
+[116] https://www.sweetgreen.com/faq HTTP 404
+[117] https://www.olivegarden.com/pricing HTTP 404
+[118] https://www.olivegarden.com/about HTTP 404
+[119] https://www.olivegarden.com/features HTTP 404
+[120] https://www.olivegarden.com/contact HTTP 404
+[121] https://www.olivegarden.com/blog HTTP 404
+[122] https://www.olivegarden.com/solutions HTTP 404
+[123] https://www.olivegarden.com/services HTTP 404
+[124] https://www.olivegarden.com/products HTTP 404
+[125] https://www.olivegarden.com/plans HTTP 404
+[126] https://www.olivegarden.com/company HTTP 404
+[127] https://www.olivegarden.com/customers HTTP 404
+[128] https://www.olivegarden.com/about-us (about) -> valid 5 blocks
+[129] https://www.olivegarden.com/menu SKIP (too few sections)
+[130] https://www.olivegarden.com/how-it-works HTTP 404
+[131] https://www.olivegarden.com/enterprise HTTP 404
+[132] https://www.olivegarden.com/case-studies HTTP 404
+[133] https://www.olivegarden.com/careers (about) -> valid 5 blocks
+[134] https://www.olivegarden.com/for-business HTTP 404
+[135] https://www.olivegarden.com/reviews HTTP 404
+[136] https://www.olivegarden.com/faq HTTP 404
+[137] https://www.ihop.com/pricing HTTP 404
+[138] https://www.ihop.com/about (about) -> valid 5 blocks
+[139] https://www.ihop.com/features HTTP 404
+[140] https://www.ihop.com/contact (contact) -> valid 7 blocks
+[141] https://www.ihop.com/blog HTTP 404
+[142] https://www.ihop.com/solutions HTTP 404
+[143] https://www.ihop.com/services HTTP 404
+[144] https://www.ihop.com/products HTTP 404
+[145] https://www.ihop.com/plans HTTP 404
+[146] https://www.ihop.com/company HTTP 404
+[147] https://www.ihop.com/customers HTTP 404
+[148] https://www.ihop.com/about-us (about) -> valid 5 blocks
+[149] https://www.ihop.com/menu (features) -> valid 7 blocks
+[150] https://www.ihop.com/how-it-works HTTP 404
+[151] https://www.ihop.com/enterprise HTTP 404
+[152] https://www.ihop.com/case-studies HTTP 404
+[153] https://www.ihop.com/careers (about) -> valid 5 blocks
+[154] https://www.ihop.com/for-business HTTP 404
+[155] https://www.ihop.com/reviews HTTP 404
+[156] https://www.ihop.com/faq (contact) -> valid 7 blocks
+[157] https://www.coldwellbanker.com/pricing HTTP 500
+[158] https://www.coldwellbanker.com/about (about) -> valid 10 blocks
+[159] https://www.coldwellbanker.com/features HTTP 500
+[160] https://www.coldwellbanker.com/contact HTTP 500
+[161] https://www.coldwellbanker.com/blog SKIP (too few sections)
+[162] https://www.coldwellbanker.com/solutions HTTP 500
+[163] https://www.coldwellbanker.com/services HTTP 500
+[164] https://www.coldwellbanker.com/products HTTP 500
+[165] https://www.coldwellbanker.com/plans HTTP 500
+[166] https://www.coldwellbanker.com/company HTTP 500
+[167] https://www.coldwellbanker.com/customers HTTP 500
+[168] https://www.coldwellbanker.com/about-us HTTP 500
+[169] https://www.coldwellbanker.com/menu HTTP 500
+[170] https://www.coldwellbanker.com/how-it-works HTTP 500
+[171] https://www.coldwellbanker.com/enterprise HTTP 500
+[172] https://www.coldwellbanker.com/case-studies HTTP 500
+[173] https://www.coldwellbanker.com/careers (about) -> valid 4 blocks
+[174] https://www.coldwellbanker.com/for-business HTTP 500
+[175] https://www.coldwellbanker.com/reviews HTTP 500
+[176] https://www.coldwellbanker.com/faq HTTP 500
+[177] https://www.remax.com/pricing HTTP 404
+[178] https://www.remax.com/about HTTP 404
+[179] https://www.remax.com/features HTTP 404
+[180] https://www.remax.com/contact HTTP 404
+[181] https://www.remax.com/blog HTTP 404
+[182] https://www.remax.com/solutions SKIP (too few sections)
+[183] https://www.remax.com/services SKIP (too few sections)
+[184] https://www.remax.com/products SKIP (too few sections)
+[185] https://www.remax.com/plans SKIP (too few sections)
+[186] https://www.remax.com/company SKIP (too few sections)
+[187] https://www.remax.com/customers HTTP 404
+[188] https://www.remax.com/about-us SKIP (too few sections)
+[189] https://www.remax.com/menu HTTP 404
+[190] https://www.remax.com/how-it-works SKIP (too few sections)
+[191] https://www.remax.com/enterprise SKIP (too few sections)
+[192] https://www.remax.com/case-studies SKIP (too few sections)
+[193] https://www.remax.com/careers SKIP (too few sections)
+[194] https://www.remax.com/for-business SKIP (too few sections)
+[195] https://www.remax.com/reviews SKIP (too few sections)
+[196] https://www.remax.com/faq SKIP (too few sections)
+[197] https://www.talkspace.com/pricing (pricing) -> valid 10 blocks
+[198] https://www.talkspace.com/about HTTP 404
+[199] https://www.talkspace.com/features HTTP 404
+[200] https://www.talkspace.com/contact HTTP 404
+[201] https://www.talkspace.com/blog (blog) -> valid 5 blocks
+[202] https://www.talkspace.com/solutions HTTP 404
+[203] https://www.talkspace.com/services HTTP 404
+[204] https://www.talkspace.com/products HTTP 404
+[205] https://www.talkspace.com/plans HTTP 404
+[206] https://www.talkspace.com/company HTTP 404
+[207] https://www.talkspace.com/customers HTTP 404
+[208] https://www.talkspace.com/about-us HTTP 404
+[209] https://www.talkspace.com/menu HTTP 404
+[210] https://www.talkspace.com/how-it-works HTTP 404
+[211] https://www.talkspace.com/enterprise HTTP 404
+[212] https://www.talkspace.com/case-studies HTTP 404
+[213] https://www.talkspace.com/careers (about) -> valid 9 blocks
+[214] https://www.talkspace.com/for-business HTTP 404
+[215] https://www.talkspace.com/reviews (about) -> valid 10 blocks
+[216] https://www.talkspace.com/faq (contact) -> valid 15 blocks
+[217] https://www.betterhelp.com/pricing HTTP 404
+[218] https://www.betterhelp.com/about (about) -> valid 6 blocks
+[219] https://www.betterhelp.com/features HTTP 404
+[220] https://www.betterhelp.com/contact (contact) -> valid 4 blocks
+[221] https://www.betterhelp.com/blog HTTP 404
+[222] https://www.betterhelp.com/solutions HTTP 404
+[223] https://www.betterhelp.com/services HTTP 404
+[224] https://www.betterhelp.com/products HTTP 404
+[225] https://www.betterhelp.com/plans SKIP (too few sections)
+[226] https://www.betterhelp.com/company HTTP 404
+[227] https://www.betterhelp.com/customers HTTP 404
+[228] https://www.betterhelp.com/about-us HTTP 404
+[229] https://www.betterhelp.com/menu SKIP (too few sections)
+[230] https://www.betterhelp.com/how-it-works HTTP 404
+[231] https://www.betterhelp.com/enterprise SKIP (too few sections)
+[232] https://www.betterhelp.com/case-studies HTTP 404
+[233] https://www.betterhelp.com/careers (about) -> valid 8 blocks
+[234] https://www.betterhelp.com/for-business HTTP 404
+[235] https://www.betterhelp.com/reviews HTTP 404
+[236] https://www.betterhelp.com/faq (contact) -> valid 4 blocks
+[237] https://curology.com/pricing HTTP 404
+[238] https://curology.com/about HTTP 404
+[239] https://curology.com/features HTTP 404
+[240] https://curology.com/contact SKIP (too few sections)
+[241] https://curology.com/blog SKIP (too few sections)
+[242] https://curology.com/solutions HTTP 404
+[243] https://curology.com/services HTTP 404
+[244] https://curology.com/products HTTP 404
+[245] https://curology.com/plans HTTP 404
+[246] https://curology.com/company HTTP 404
+[247] https://curology.com/customers HTTP 404
+[248] https://curology.com/about-us HTTP 404
+[249] https://curology.com/menu HTTP 404
+[250] https://curology.com/how-it-works (features) -> valid 6 blocks
+[251] https://curology.com/enterprise HTTP 404
+[252] https://curology.com/case-studies HTTP 404
+[253] https://curology.com/careers SKIP (too few sections)
+[254] https://curology.com/for-business HTTP 404
+[255] https://curology.com/reviews (about) -> valid 4 blocks
+[256] https://curology.com/faq HTTP 404
+[257] https://www.lemonaidhealth.com/pricing HTTP 404
+[258] https://www.lemonaidhealth.com/about HTTP 404
+[259] https://www.lemonaidhealth.com/features HTTP 404
+[260] https://www.lemonaidhealth.com/contact HTTP 404
+[261] https://www.lemonaidhealth.com/blog HTTP 403
+[262] https://www.lemonaidhealth.com/solutions HTTP 404
+[263] https://www.lemonaidhealth.com/services HTTP 404
+[264] https://www.lemonaidhealth.com/products HTTP 404
+[265] https://www.lemonaidhealth.com/plans HTTP 404
+[266] https://www.lemonaidhealth.com/company HTTP 404
+[267] https://www.lemonaidhealth.com/customers HTTP 404
+[268] https://www.lemonaidhealth.com/about-us HTTP 404
+[269] https://www.lemonaidhealth.com/menu HTTP 404
+[270] https://www.lemonaidhealth.com/how-it-works HTTP 404
+[271] https://www.lemonaidhealth.com/enterprise HTTP 404
+[272] https://www.lemonaidhealth.com/case-studies HTTP 404
+[273] https://www.lemonaidhealth.com/careers SKIP (too few sections)
+[274] https://www.lemonaidhealth.com/for-business HTTP 404
+[275] https://www.lemonaidhealth.com/reviews HTTP 404
+[276] https://www.lemonaidhealth.com/faq (contact) -> valid 4 blocks
+[277] https://plushcare.com/pricing HTTP 404
+[278] https://plushcare.com/about (about) -> valid 5 blocks
+[279] https://plushcare.com/features HTTP 404
+[280] https://plushcare.com/contact (contact) -> valid 5 blocks
+[281] https://plushcare.com/blog (blog) -> valid 6 blocks
+[282] https://plushcare.com/solutions HTTP 404
+[283] https://plushcare.com/services HTTP 404
+[284] https://plushcare.com/products HTTP 404
+[285] https://plushcare.com/plans HTTP 404
+[286] https://plushcare.com/company HTTP 404
+[287] https://plushcare.com/customers HTTP 404
+[288] https://plushcare.com/about-us (about) -> valid 5 blocks
+[289] https://plushcare.com/menu HTTP 404
+[290] https://plushcare.com/how-it-works (features) -> valid 10 blocks
+[291] https://plushcare.com/enterprise HTTP 404
+[292] https://plushcare.com/case-studies HTTP 404
+[293] https://plushcare.com/careers (about) -> valid 7 blocks
+[294] https://plushcare.com/for-business HTTP 404
+[295] https://plushcare.com/reviews HTTP 404
+[296] https://plushcare.com/faq HTTP 404
+[297] https://www.mathnasium.com/pricing HTTP 404
+[298] https://www.mathnasium.com/about (about) -> valid 4 blocks
+[299] https://www.mathnasium.com/features HTTP 404
+[300] https://www.mathnasium.com/contact (contact) -> valid 4 blocks
+[301] https://www.mathnasium.com/blog (blog) -> valid 4 blocks
+[302] https://www.mathnasium.com/solutions HTTP 404
+[303] https://www.mathnasium.com/services HTTP 404
+[304] https://www.mathnasium.com/products HTTP 404
+[305] https://www.mathnasium.com/plans HTTP 404
+[306] https://www.mathnasium.com/company HTTP 404
+[307] https://www.mathnasium.com/customers HTTP 404
+[308] https://www.mathnasium.com/about-us (about) -> valid 4 blocks
+[309] https://www.mathnasium.com/menu HTTP 404
+[310] https://www.mathnasium.com/how-it-works (features) -> valid 5 blocks
+[311] https://www.mathnasium.com/enterprise HTTP 404
+[312] https://www.mathnasium.com/case-studies HTTP 404
+[313] https://www.mathnasium.com/careers (about) -> valid 4 blocks
+[314] https://www.mathnasium.com/for-business HTTP 404
+[315] https://www.mathnasium.com/reviews HTTP 404
+[316] https://www.mathnasium.com/faq (contact) -> valid 5 blocks
+[317] https://www.pluralsight.com/pricing (pricing) -> valid 4 blocks
+[318] https://www.pluralsight.com/about SKIP (too few sections)
+[319] https://www.pluralsight.com/features HTTP 404
+[320] https://www.pluralsight.com/contact SKIP (too few sections)
+[321] https://www.pluralsight.com/blog SKIP (too few sections)
+[322] https://www.pluralsight.com/solutions SKIP (too few sections)
+[323] https://www.pluralsight.com/services HTTP 404
+[324] https://www.pluralsight.com/products HTTP 404
+[325] https://www.pluralsight.com/plans (pricing) -> valid 4 blocks
+[326] https://www.pluralsight.com/company HTTP 404
+[327] https://www.pluralsight.com/customers HTTP 404
+[328] https://www.pluralsight.com/about-us HTTP 404
+[329] https://www.pluralsight.com/menu HTTP 404
+[330] https://www.pluralsight.com/how-it-works HTTP 404
+[331] https://www.pluralsight.com/enterprise SKIP (too few sections)
+[332] https://www.pluralsight.com/case-studies HTTP 404
+[333] https://www.pluralsight.com/careers SKIP (too few sections)
+[334] https://www.pluralsight.com/for-business HTTP 404
+[335] https://www.pluralsight.com/reviews HTTP 404
+[336] https://www.pluralsight.com/faq HTTP 404
+[337] https://alison.com/pricing HTTP 404
+[338] https://alison.com/about HTTP 404
+[339] https://alison.com/features HTTP 404
+[340] https://alison.com/contact HTTP 404
+[341] https://alison.com/blog SKIP (too few sections)
+[342] https://alison.com/solutions HTTP 404
+[343] https://alison.com/services HTTP 404
+[344] https://alison.com/products HTTP 404
+[345] https://alison.com/plans HTTP 404
+[346] https://alison.com/company HTTP 404
+[347] https://alison.com/customers HTTP 404
+[348] https://alison.com/about-us HTTP 404
+[349] https://alison.com/menu HTTP 404
+[350] https://alison.com/how-it-works HTTP 404
+[351] https://alison.com/enterprise HTTP 404
+[352] https://alison.com/case-studies HTTP 404
+[353] https://alison.com/careers (about) -> valid 5 blocks
+[354] https://alison.com/for-business HTTP 404
+[355] https://alison.com/reviews HTTP 404
+[356] https://alison.com/faq HTTP 404
+[357] https://www.udacity.com/pricing (pricing) -> valid 6 blocks
+[358] https://www.udacity.com/about (about) -> valid 8 blocks
+[359] https://www.udacity.com/features HTTP 404
+[360] https://www.udacity.com/contact (contact) -> valid 4 blocks
+[361] https://www.udacity.com/blog SKIP (too few sections)
+[362] https://www.udacity.com/solutions HTTP 404
+[363] https://www.udacity.com/services HTTP 404
+[364] https://www.udacity.com/products HTTP 404
+[365] https://www.udacity.com/plans (pricing) -> valid 8 blocks
+[366] https://www.udacity.com/company HTTP 404
+[367] https://www.udacity.com/customers HTTP 404
+[368] https://www.udacity.com/about-us (about) -> valid 8 blocks
+[369] https://www.udacity.com/menu HTTP 404
+[370] https://www.udacity.com/how-it-works (features) -> valid 7 blocks
+[371] https://www.udacity.com/enterprise (solutions) -> valid 6 blocks
+[372] https://www.udacity.com/case-studies HTTP 404
+[373] https://www.udacity.com/careers HTTP 404
+[374] https://www.udacity.com/for-business HTTP 404
+[375] https://www.udacity.com/reviews HTTP 404
+[376] https://www.udacity.com/faq (contact) -> valid 8 blocks
+[377] https://www.datacamp.com/pricing (pricing) -> valid 7 blocks
+[378] https://www.datacamp.com/about (about) -> valid 5 blocks
+[379] https://www.datacamp.com/features HTTP 404
+[380] https://www.datacamp.com/contact (contact) -> valid 4 blocks
+[381] https://www.datacamp.com/blog SKIP (too few sections)
+[382] https://www.datacamp.com/solutions HTTP 404
+[383] https://www.datacamp.com/services HTTP 404
+[384] https://www.datacamp.com/products HTTP 404
+[385] https://www.datacamp.com/plans HTTP 404
+[386] https://www.datacamp.com/company HTTP 404
+[387] https://www.datacamp.com/customers HTTP 404
+[388] https://www.datacamp.com/about-us HTTP 404
+[389] https://www.datacamp.com/menu HTTP 404
+[390] https://www.datacamp.com/how-it-works HTTP 404
+[391] https://www.datacamp.com/enterprise SKIP (too few sections)
+[392] https://www.datacamp.com/case-studies HTTP 404
+[393] https://www.datacamp.com/careers (about) -> valid 7 blocks
+[394] https://www.datacamp.com/for-business HTTP 404
+[395] https://www.datacamp.com/reviews HTTP 404
+[396] https://www.datacamp.com/faq HTTP 404
+[397] https://www.thinkful.com/pricing (pricing) -> valid 6 blocks
+[398] https://www.thinkful.com/about (about) -> valid 6 blocks
+[399] https://www.thinkful.com/features (features) -> valid 6 blocks
+[400] https://www.thinkful.com/contact (contact) -> valid 6 blocks
+[401] https://www.thinkful.com/blog (blog) -> valid 6 blocks
+[402] https://www.thinkful.com/solutions (solutions) -> valid 6 blocks
+[403] https://www.thinkful.com/services (services) -> valid 6 blocks
+[404] https://www.thinkful.com/products (products) -> valid 6 blocks
+[405] https://www.thinkful.com/plans (pricing) -> valid 6 blocks
+[406] https://www.thinkful.com/company (about) -> valid 6 blocks
+[407] https://www.thinkful.com/customers (customers) -> valid 6 blocks
+[408] https://www.thinkful.com/about-us (about) -> valid 6 blocks
+[409] https://www.thinkful.com/menu (features) -> valid 6 blocks
+[410] https://www.thinkful.com/how-it-works (features) -> valid 6 blocks
+[411] https://www.thinkful.com/enterprise (solutions) -> valid 6 blocks
+[412] https://www.thinkful.com/case-studies (about) -> valid 6 blocks
+[413] https://www.thinkful.com/careers (about) -> valid 6 blocks
+[414] https://www.thinkful.com/for-business (solutions) -> valid 6 blocks
+[415] https://www.thinkful.com/reviews (about) -> valid 6 blocks
+[416] https://www.thinkful.com/faq (contact) -> valid 6 blocks
+[417] https://www.varsitytutors.com/pricing HTTP 404
+[418] https://www.varsitytutors.com/about HTTP 404
+[419] https://www.varsitytutors.com/features HTTP 404
+[420] https://www.varsitytutors.com/contact HTTP 404
+[421] https://www.varsitytutors.com/blog (blog) -> valid 6 blocks
+[422] https://www.varsitytutors.com/solutions HTTP 404
+[423] https://www.varsitytutors.com/services HTTP 404
+[424] https://www.varsitytutors.com/products HTTP 404
+[425] https://www.varsitytutors.com/plans HTTP 404
+[426] https://www.varsitytutors.com/company HTTP 404
+[427] https://www.varsitytutors.com/customers HTTP 404
+[428] https://www.varsitytutors.com/about-us HTTP 404
+[429] https://www.varsitytutors.com/menu HTTP 404
+[430] https://www.varsitytutors.com/how-it-works HTTP 404
+[431] https://www.varsitytutors.com/enterprise HTTP 404
+[432] https://www.varsitytutors.com/case-studies HTTP 404
+[433] https://www.varsitytutors.com/careers (about) -> valid 5 blocks
+[434] https://www.varsitytutors.com/for-business HTTP 404
+[435] https://www.varsitytutors.com/reviews (about) -> valid 8 blocks
+[436] https://www.varsitytutors.com/faq HTTP 404
+[437] https://super.so/pricing (pricing) -> valid 5 blocks
+[438] https://super.so/about HTTP 404
+[439] https://super.so/features (features) -> valid 5 blocks
+[440] https://super.so/contact HTTP 404
+[441] https://super.so/blog (blog) -> valid 4 blocks
+[442] https://super.so/solutions HTTP 404
+[443] https://super.so/services HTTP 404
+[444] https://super.so/products HTTP 404
+[445] https://super.so/plans HTTP 404
+[446] https://super.so/company HTTP 404
+[447] https://super.so/customers HTTP 404
+[448] https://super.so/about-us HTTP 404
+[449] https://super.so/menu HTTP 404
+[450] https://super.so/how-it-works HTTP 404
+[451] https://super.so/enterprise HTTP 404
+[452] https://super.so/case-studies (about) -> valid 4 blocks
+[453] https://super.so/careers HTTP 404
+[454] https://super.so/for-business HTTP 404
+[455] https://super.so/reviews HTTP 404
+[456] https://super.so/faq HTTP 404
+[457] https://www.dunked.com/pricing (pricing) -> valid 6 blocks
+[458] https://www.dunked.com/about (about) -> valid 7 blocks
+[459] https://www.dunked.com/features (features) -> valid 7 blocks
+[460] https://www.dunked.com/contact (contact) -> valid 7 blocks
+[461] https://www.dunked.com/blog (blog) -> valid 7 blocks
+[462] https://www.dunked.com/solutions (solutions) -> valid 7 blocks
+[463] https://www.dunked.com/services (services) -> valid 7 blocks
+[464] https://www.dunked.com/products (products) -> valid 7 blocks
+[465] https://www.dunked.com/plans (pricing) -> valid 7 blocks
+[466] https://www.dunked.com/company (about) -> valid 7 blocks
+[467] https://www.dunked.com/customers (customers) -> valid 7 blocks
+[468] https://www.dunked.com/about-us (about) -> valid 7 blocks
+[469] https://www.dunked.com/menu (features) -> valid 7 blocks
+[470] https://www.dunked.com/how-it-works (features) -> valid 7 blocks
+[471] https://www.dunked.com/enterprise (solutions) -> valid 7 blocks
+[472] https://www.dunked.com/case-studies (about) -> valid 7 blocks
+[473] https://www.dunked.com/careers (about) -> valid 7 blocks
+[474] https://www.dunked.com/for-business (solutions) -> valid 7 blocks
+[475] https://www.dunked.com/reviews (about) -> valid 7 blocks
+[476] https://www.dunked.com/faq (contact) -> valid 7 blocks
+[477] https://journoportfolio.com/pricing (pricing) -> valid 5 blocks
+[478] https://journoportfolio.com/about HTTP 404
+[479] https://journoportfolio.com/features (features) -> valid 9 blocks
+[480] https://journoportfolio.com/contact HTTP 404
+[481] https://journoportfolio.com/blog SKIP (too few sections)
+[482] https://journoportfolio.com/solutions HTTP 404
+[483] https://journoportfolio.com/services HTTP 404
+[484] https://journoportfolio.com/products HTTP 404
+[485] https://journoportfolio.com/plans HTTP 404
+[486] https://journoportfolio.com/company HTTP 404
+[487] https://journoportfolio.com/customers HTTP 404
+[488] https://journoportfolio.com/about-us HTTP 404
+[489] https://journoportfolio.com/menu HTTP 404
+[490] https://journoportfolio.com/how-it-works HTTP 404
+[491] https://journoportfolio.com/enterprise HTTP 404
+[492] https://journoportfolio.com/case-studies HTTP 404
+[493] https://journoportfolio.com/careers HTTP 404
+[494] https://journoportfolio.com/for-business HTTP 404
+[495] https://journoportfolio.com/reviews HTTP 404
+[496] https://journoportfolio.com/faq (contact) -> valid 6 blocks
+[497] https://www.fabrik.io/pricing (pricing) -> valid 4 blocks
+[498] https://www.fabrik.io/about (about) -> valid 4 blocks
+[499] https://www.fabrik.io/features HTTP 404
+[500] https://www.fabrik.io/contact (contact) -> valid 4 blocks
+[501] https://www.fabrik.io/blog SKIP (too few sections)
+[502] https://www.fabrik.io/solutions HTTP 404
+[503] https://www.fabrik.io/services HTTP 404
+[504] https://www.fabrik.io/products HTTP 404
+[505] https://www.fabrik.io/plans HTTP 404
+[506] https://www.fabrik.io/company HTTP 404
+[507] https://www.fabrik.io/customers HTTP 404
+[508] https://www.fabrik.io/about-us HTTP 404
+[509] https://www.fabrik.io/menu HTTP 404
+[510] https://www.fabrik.io/how-it-works HTTP 404
+[511] https://www.fabrik.io/enterprise HTTP 404
+[512] https://www.fabrik.io/case-studies HTTP 404
+[513] https://www.fabrik.io/careers HTTP 404
+[514] https://www.fabrik.io/for-business HTTP 404
+[515] https://www.fabrik.io/reviews HTTP 404
+[516] https://www.fabrik.io/faq HTTP 404
+[517] https://linktr.ee/pricing ERR ('Connection aborted.', ConnectionResetError(10054, 'An exis
+[518] https://linktr.ee/about ERR ('Connection aborted.', ConnectionResetError(10054, 'An exis
+[519] https://linktr.ee/features ERR ('Connection aborted.', ConnectionResetError(10054, 'An exis
+[520] https://linktr.ee/contact ERR ('Connection aborted.', ConnectionResetError(10054, 'An exis
+[521] https://linktr.ee/blog ERR ('Connection aborted.', ConnectionResetError(10054, 'An exis
+[522] https://linktr.ee/solutions HTTP 404
+[523] https://linktr.ee/services (services) -> valid 4 blocks
+[524] https://linktr.ee/products HTTP 404
+[525] https://linktr.ee/plans (pricing) -> valid 4 blocks
+[526] https://linktr.ee/company SKIP (too few sections)
+[527] https://linktr.ee/customers SKIP (too few sections)
+[528] https://linktr.ee/about-us HTTP 404
+[529] https://linktr.ee/menu ERR ('Connection aborted.', ConnectionResetError(10054, 'An exis
+[530] https://linktr.ee/how-it-works ERR ('Connection aborted.', ConnectionResetError(10054, 'An exis
+[531] https://linktr.ee/enterprise SKIP (too few sections)
+[532] https://linktr.ee/case-studies HTTP 404
+[533] https://linktr.ee/careers ERR ('Connection aborted.', ConnectionResetError(10054, 'An exis
+[534] https://linktr.ee/for-business ERR ('Connection aborted.', ConnectionResetError(10054, 'An exis
+[535] https://linktr.ee/reviews ERR ('Connection aborted.', ConnectionResetError(10054, 'An exis
+[536] https://linktr.ee/faq ERR ('Connection aborted.', ConnectionResetError(10054, 'An exis
+[537] https://convertkit.com/pricing (pricing) -> valid 6 blocks
+[538] https://convertkit.com/about (about) -> valid 4 blocks
+[539] https://convertkit.com/features (features) -> valid 5 blocks
+[540] https://convertkit.com/contact HTTP 404
+[541] https://convertkit.com/blog (blog) -> valid 5 blocks
+[542] https://convertkit.com/solutions HTTP 404
+[543] https://convertkit.com/services HTTP 404
+[544] https://convertkit.com/products HTTP 404
+[545] https://convertkit.com/plans (pricing) -> valid 6 blocks
+[546] https://convertkit.com/company HTTP 404
+[547] https://convertkit.com/customers HTTP 404
+[548] https://convertkit.com/about-us HTTP 404
+[549] https://convertkit.com/menu HTTP 404
+[550] https://convertkit.com/how-it-works HTTP 404
+[551] https://convertkit.com/enterprise HTTP 404
+[552] https://convertkit.com/case-studies HTTP 404
+[553] https://convertkit.com/careers (about) -> valid 5 blocks
+[554] https://convertkit.com/for-business HTTP 404
+[555] https://convertkit.com/reviews HTTP 404
+[556] https://convertkit.com/faq (contact) -> valid 6 blocks
+[557] https://ghost.org/pricing (pricing) -> valid 4 blocks
+[558] https://ghost.org/about (about) -> valid 9 blocks
+[559] https://ghost.org/features (features) -> valid 5 blocks
+[560] https://ghost.org/contact SKIP (too few sections)
+[561] https://ghost.org/blog (blog) -> valid 5 blocks
+[562] https://ghost.org/solutions HTTP 404
+[563] https://ghost.org/services HTTP 404
+[564] https://ghost.org/products HTTP 404
+[565] https://ghost.org/plans HTTP 404
+[566] https://ghost.org/company HTTP 404
+[567] https://ghost.org/customers (customers) -> valid 5 blocks
+[568] https://ghost.org/about-us HTTP 404
+[569] https://ghost.org/menu HTTP 404
+[570] https://ghost.org/how-it-works HTTP 404
+[571] https://ghost.org/enterprise HTTP 404
+[572] https://ghost.org/case-studies HTTP 404
+[573] https://ghost.org/careers (about) -> valid 5 blocks
+[574] https://ghost.org/for-business HTTP 404
+[575] https://ghost.org/reviews HTTP 404
+[576] https://ghost.org/faq HTTP 404
+[577] https://ko-fi.com/pricing (pricing) -> valid 6 blocks
+[578] https://ko-fi.com/about (about) -> valid 6 blocks
+[579] https://ko-fi.com/features (features) -> valid 6 blocks
+[580] https://ko-fi.com/contact SKIP (too few sections)
+[581] https://ko-fi.com/blog SKIP (too few sections)
+[582] https://ko-fi.com/solutions (solutions) -> valid 4 blocks
+[583] https://ko-fi.com/services SKIP (too few sections)
+[584] https://ko-fi.com/products SKIP (too few sections)
+[585] https://ko-fi.com/plans SKIP (too few sections)
+[586] https://ko-fi.com/company SKIP (too few sections)
+[587] https://ko-fi.com/customers (customers) -> valid 7 blocks
+[588] https://ko-fi.com/about-us (about) -> valid 7 blocks
+[589] https://ko-fi.com/menu (features) -> valid 7 blocks
+[590] https://ko-fi.com/how-it-works (features) -> valid 7 blocks
+[591] https://ko-fi.com/enterprise SKIP (too few sections)
+[592] https://ko-fi.com/case-studies (about) -> valid 7 blocks
+[593] https://ko-fi.com/careers SKIP (too few sections)
+[594] https://ko-fi.com/for-business (solutions) -> valid 7 blocks
+[595] https://ko-fi.com/reviews SKIP (too few sections)
+[596] https://ko-fi.com/faq (contact) -> valid 7 blocks
+[597] https://memberful.com/pricing (pricing) -> valid 9 blocks
+[598] https://memberful.com/about (about) -> valid 7 blocks
+[599] https://memberful.com/features (features) -> valid 7 blocks
+[600] https://memberful.com/contact HTTP 404
+[601] https://memberful.com/blog (blog) -> valid 5 blocks
+[602] https://memberful.com/solutions HTTP 404
+[603] https://memberful.com/services HTTP 404
+[604] https://memberful.com/products HTTP 404
+[605] https://memberful.com/plans HTTP 404
+[606] https://memberful.com/company HTTP 404
+[607] https://memberful.com/customers (customers) -> valid 5 blocks
+[608] https://memberful.com/about-us HTTP 404
+[609] https://memberful.com/menu HTTP 404
+[610] https://memberful.com/how-it-works (features) -> valid 7 blocks
+[611] https://memberful.com/enterprise (solutions) -> valid 9 blocks
+[612] https://memberful.com/case-studies HTTP 404
+[613] https://memberful.com/careers (about) -> valid 5 blocks
+[614] https://memberful.com/for-business HTTP 404
+[615] https://memberful.com/reviews (about) -> valid 5 blocks
+[616] https://memberful.com/faq HTTP 404
+[617] https://mailerlite.com/pricing (pricing) -> valid 6 blocks
+[618] https://mailerlite.com/about (about) -> valid 8 blocks
+[619] https://mailerlite.com/features (features) -> valid 8 blocks
+[620] https://mailerlite.com/contact SKIP (too few sections)
+[621] https://mailerlite.com/blog (blog) -> valid 4 blocks
+[622] https://mailerlite.com/solutions HTTP 404
+[623] https://mailerlite.com/services HTTP 404
+[624] https://mailerlite.com/products HTTP 404
+[625] https://mailerlite.com/plans HTTP 404
+[626] https://mailerlite.com/company HTTP 429
+[627] https://mailerlite.com/customers HTTP 429
+[628] https://mailerlite.com/about-us HTTP 404
+[629] https://mailerlite.com/menu HTTP 404
+[630] https://mailerlite.com/how-it-works HTTP 404
+[631] https://mailerlite.com/enterprise HTTP 429
+[632] https://mailerlite.com/case-studies HTTP 429
+[633] https://mailerlite.com/careers HTTP 429
+[634] https://mailerlite.com/for-business HTTP 429
+[635] https://mailerlite.com/reviews HTTP 429
+[636] https://mailerlite.com/faq HTTP 429
+
+TOTAL: 173 pages written (173 valid, 0 invalid), 463 failed/skipped -> D:\OpenNext\OpenNext Main\nextcmsmains\training\data\raw\raw_pairs.jsonl

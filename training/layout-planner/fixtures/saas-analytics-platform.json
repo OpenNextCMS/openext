@@ -1,0 +1,30 @@
+{
+  "meta": {
+    "business": "Northwind Analytics",
+    "style": "startup",
+    "websiteType": "saas",
+    "pageName": "Home",
+    "location": "Remote",
+    "complexity": "standard"
+  },
+  "page": {
+    "theme": {
+      "primaryColor": "#2563eb",
+      "secondaryColor": "#06b6d4",
+      "backgroundColor": "#ffffff",
+      "textColor": "#0f172a",
+      "fontFamily": "Inter, sans-serif",
+      "borderRadius": "8px"
+    },
+    "blocks": [
+      { "id": "nav", "type": "nav-bar", "order": 0, "variant": "navbar:default", "layout": "horizontal", "styles": { "backgroundColor": "#ffffff", "color": "#0f172a", "padding": "16px 40px" }, "content": {} },
+      { "id": "hero", "type": "hero-main", "order": 1, "variant": "hero:main", "styles": { "backgroundColor": "#0b1120", "color": "#f8fafc", "padding": "112px 40px", "textAlign": "left" }, "content": {} },
+      { "id": "features", "type": "feature-trio", "order": 2, "variant": "features:trio", "layout": "3-column", "styles": { "backgroundColor": "#ffffff", "color": "#0f172a", "padding": "88px 40px" }, "content": {} },
+      { "id": "metrics", "type": "statistics-boxed", "order": 3, "styles": { "backgroundColor": "#f1f5f9", "color": "#0f172a", "padding": "72px 40px", "textAlign": "center" }, "content": {} },
+      { "id": "pricing", "type": "pricing", "order": 4, "styles": { "backgroundColor": "#ffffff", "color": "#0f172a", "padding": "88px 40px" }, "content": {} },
+      { "id": "voices", "type": "testimonial-single", "order": 5, "styles": { "backgroundColor": "#eff6ff", "color": "#0f172a", "padding": "80px 40px", "textAlign": "center" }, "content": {} },
+      { "id": "get-started", "type": "cta", "order": 6, "styles": { "backgroundColor": "#2563eb", "color": "#ffffff", "padding": "80px 40px", "textAlign": "center" }, "content": {} },
+      { "id": "footer", "type": "footer", "order": 7, "variant": "footer:columns", "styles": { "backgroundColor": "#0b1120", "color": "#cbd5e1", "padding": "56px 40px" }, "content": {} }
+    ]
+  }
+}

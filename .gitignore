@@ -41,8 +41,12 @@ next-env.d.ts
 
 /public/upload
 /public/siteicon
-# Layout planner training artifacts (schema + scripts stay tracked)
+# Layout planner training artifacts (schema + scripts + fixtures + briefs stay tracked)
 training/data/raw/
 training/data/validated/
 training/outputs/
+training/layout-planner/outputs/
+# Python bytecode from the training scripts
+training/**/__pycache__/
+*.pyc
 

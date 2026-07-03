@@ -1,10 +1,18 @@
-# Layout Planner — fine-tuning + inference + content filler
-transformers>=4.40.0
-datasets>=2.19.0
-accelerate>=0.30.0
-torch>=2.1.0
-sentencepiece>=0.2.0
-scikit-learn>=1.4.0
-httpx>=0.27.0
-json-repair>=0.30.0
-python-dotenv>=1.0.0
+# Local (inference + pipeline + data tooling). Colab installs its own GPU stack.
+# Phase 1 validation runs on the stdlib alone; jsonschema is an optional cross-check.
+
+# --- Phase 1: schema & validation (optional extra check) ---
+jsonschema>=4.21
+
+# --- Phase 2: training-data generation ---
+requests>=2.31          # OpenRouter HTTP calls
+python-dotenv>=1.0       # read OPENROUTER_API_KEY from .env
+
+# --- Phase 4/5: local inference + pipeline (CPU is fine for flan-t5-base) ---
+transformers>=4.44
+torch>=2.2
+sentencepiece>=0.2       # T5 tokenizer
+json-repair>=0.25        # repair malformed model JSON before parsing
+
+# Fine-tuning deps (datasets, accelerate) are installed inside the Colab notebook,
+# not required for local inference.

@@ -1,0 +1,30 @@
+{
+  "meta": {
+    "business": "Lumen & Thread",
+    "style": "ecommerce",
+    "websiteType": "ecommerce",
+    "pageName": "Home",
+    "location": "London, UK",
+    "complexity": "standard"
+  },
+  "page": {
+    "theme": {
+      "primaryColor": "#ea580c",
+      "secondaryColor": "#16a34a",
+      "backgroundColor": "#ffffff",
+      "textColor": "#111827",
+      "fontFamily": "Inter, sans-serif",
+      "borderRadius": "12px"
+    },
+    "blocks": [
+      { "id": "nav", "type": "nav-bar", "order": 0, "variant": "navbar:default", "layout": "horizontal", "styles": { "backgroundColor": "#ffffff", "color": "#111827", "padding": "16px 40px" }, "content": {} },
+      { "id": "hero", "type": "hero-centered", "order": 1, "variant": "hero:centered", "styles": { "backgroundColor": "#fff7ed", "color": "#111827", "padding": "104px 40px", "textAlign": "center" }, "content": {} },
+      { "id": "new-arrivals", "type": "ecommerce-grid", "order": 2, "layout": "3-column", "styles": { "backgroundColor": "#ffffff", "color": "#111827", "padding": "88px 40px" }, "content": {} },
+      { "id": "collections", "type": "content-categories", "order": 3, "layout": "3-column", "styles": { "backgroundColor": "#f9fafb", "color": "#111827", "padding": "80px 40px" }, "content": {} },
+      { "id": "trust", "type": "stats", "order": 4, "styles": { "backgroundColor": "#111827", "color": "#ffffff", "padding": "64px 40px", "textAlign": "center" }, "content": {} },
+      { "id": "reviews", "type": "testimonial-single", "order": 5, "styles": { "backgroundColor": "#fff7ed", "color": "#111827", "padding": "80px 40px", "textAlign": "center" }, "content": {} },
+      { "id": "shop-now", "type": "cta", "order": 6, "styles": { "backgroundColor": "#ea580c", "color": "#ffffff", "padding": "80px 40px", "textAlign": "center" }, "content": {} },
+      { "id": "footer", "type": "footer", "order": 7, "variant": "footer:columns", "styles": { "backgroundColor": "#111827", "color": "#d1d5db", "padding": "56px 40px" }, "content": {} }
+    ]
+  }
+}
