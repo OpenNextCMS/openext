@@ -1,0 +1,254 @@
+{
+  "version": 1,
+  "description": "Wizard CMS block type -> semantic LayoutPlan block with default layout/styles",
+  "headerTemplates": {
+    "classic": {
+      "type": "navbar",
+      "layout": {
+        "variant": "horizontal"
+      }
+    },
+    "centered": {
+      "type": "navbar",
+      "layout": {
+        "variant": "two-line"
+      }
+    },
+    "modern-saas": {
+      "type": "navbar",
+      "layout": {
+        "variant": "horizontal"
+      }
+    },
+    "mega-menu": {
+      "type": "navbar",
+      "layout": {
+        "variant": "horizontal"
+      }
+    },
+    "sidebar": {
+      "type": "navbar",
+      "layout": {
+        "variant": "hamburger"
+      }
+    }
+  },
+  "footerTemplates": {
+    "simple": {
+      "type": "footer",
+      "layout": {
+        "variant": "simple"
+      }
+    },
+    "corporate": {
+      "type": "footer",
+      "layout": {
+        "variant": "multi-column"
+      }
+    },
+    "newsletter": {
+      "type": "footer",
+      "layout": {
+        "variant": "simple"
+      },
+      "styles": {
+        "backgroundColor": "#0f172a"
+      }
+    },
+    "ecommerce": {
+      "type": "footer",
+      "layout": {
+        "variant": "multi-column"
+      }
+    }
+  },
+  "blocks": {
+    "hero-main": {
+      "type": "heroSplit",
+      "layout": {
+        "variant": "split-image",
+        "alignment": "left"
+      },
+      "styles": {
+        "padding": "96px 32px"
+      }
+    },
+    "hero-centered": {
+      "type": "heroCentered",
+      "layout": {
+        "variant": "centered",
+        "alignment": "center"
+      },
+      "styles": {
+        "padding": "80px 24px"
+      }
+    },
+    "feature-trio": {
+      "type": "featureGrid",
+      "layout": {
+        "columns": 3,
+        "variant": "3"
+      }
+    },
+    "feature-horizontal": {
+      "type": "featureGrid",
+      "layout": {
+        "columns": 3,
+        "variant": "3"
+      }
+    },
+    "feature-boxed": {
+      "type": "featureCards",
+      "layout": {
+        "columns": 3
+      }
+    },
+    "feature-side-image": {
+      "type": "about",
+      "layout": {
+        "variant": "split-image"
+      }
+    },
+    "feature-checklist": {
+      "type": "featureCards",
+      "layout": {
+        "columns": 2
+      }
+    },
+    "content-split": {
+      "type": "about",
+      "layout": {
+        "variant": "split-image"
+      }
+    },
+    "content-detail": {
+      "type": "about",
+      "layout": {
+        "variant": "stacked"
+      }
+    },
+    "content-trio": {
+      "type": "featureGrid",
+      "layout": {
+        "columns": 3,
+        "variant": "3"
+      }
+    },
+    "content-gallery": {
+      "type": "gallery",
+      "layout": {
+        "variant": "grid"
+      }
+    },
+    "content-categories": {
+      "type": "logos",
+      "layout": {
+        "variant": "grid"
+      }
+    },
+    "statistics-boxed": {
+      "type": "stats",
+      "layout": {
+        "variant": "boxed"
+      }
+    },
+    "statistics-main": {
+      "type": "stats",
+      "layout": {
+        "variant": "row"
+      }
+    },
+    "statistics-side-image": {
+      "type": "stats",
+      "layout": {
+        "variant": "split"
+      }
+    },
+    "testimonial-main": {
+      "type": "testimonials",
+      "layout": {
+        "variant": "grid"
+      }
+    },
+    "testimonial-single": {
+      "type": "testimonials",
+      "layout": {
+        "variant": "single"
+      }
+    },
+    "testimonial-single-large": {
+      "type": "testimonials",
+      "layout": {
+        "variant": "featured"
+      }
+    },
+    "contact-simple": {
+      "type": "contact",
+      "layout": {
+        "variant": "simple"
+      }
+    },
+    "contact": {
+      "type": "contact",
+      "layout": {
+        "variant": "split"
+      }
+    },
+    "ecommerce-grid": {
+      "type": "gallery",
+      "layout": {
+        "variant": "grid"
+      }
+    },
+    "ecommerce-info": {
+      "type": "cta",
+      "layout": {
+        "variant": "banner"
+      }
+    },
+    "blog-feed": {
+      "type": "blog",
+      "layout": {
+        "variant": "grid"
+      }
+    }
+  },
+  "industryHeroOverrides": {
+    "restaurant": {
+      "hero-main": {
+        "type": "hero",
+        "layout": {
+          "variant": "stacked-image-top",
+          "alignment": "center"
+        },
+        "styles": {
+          "padding": "72px 24px"
+        }
+      }
+    },
+    "ecommerce": {
+      "hero-main": {
+        "type": "hero",
+        "layout": {
+          "variant": "stacked-image-bottom",
+          "alignment": "center"
+        },
+        "styles": {
+          "padding": "64px 24px"
+        }
+      }
+    },
+    "real-estate": {
+      "hero-main": {
+        "type": "heroSplit",
+        "layout": {
+          "variant": "split-image-reverse",
+          "alignment": "right"
+        },
+        "styles": {
+          "padding": "88px 32px"
+        }
+      }
+    }
+  }
+}
