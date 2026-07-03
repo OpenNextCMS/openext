@@ -1,0 +1,58 @@
+# OpenNext CMS LayoutPlan Dataset Report
+
+## train (n=417)
+Sources: template=381, real-site=36
+Industries: unknown=381, saas=8, law=5, agency=4, ecommerce=4, fitness=4, restaurant=3, education=2, healthcare=2, real-estate=1, consulting=1, local-services=1
+Website types: corporate=53, saas=48, ecommerce=45, agency=45, restaurant=43, portfolio=41, real-estate=41, healthcare=35, education=34, personal-brand=32
+Page names: Home=121, Contact=80, About=72, Services=24, Menu=8, Gallery=8, Collections=8, Portfolio=8, Resume=8, Courses=8, Features=8, Listings=8, Projects=8, Agents=8, Work=8, Blog=8, Pricing=8, Shop=8, Case Studies=8
+Meta styles: Modern=134, Creative=79, Corporate=62, Luxury=60, Minimal=41, Startup=36, Premium=5
+Complexity: Medium=278, High=94, Low=45
+Confidence: avg=0.776 needs_review=0
+Block count distribution: 4=91, 5=82, 6=134, 7=7, 8=89, 9=4, 10=2, 11=4, 12=1, 14=3
+Top block types: navbar=417, footer=417, heroCentered=280, about=267, contact=205, featureGrid=202, stats=196, gallery=135, testimonials=128, heroSplit=83, hero=40, featureCards=33, team=26, logos=25, cta=13
+  pricing blocks: 11
+  faq blocks: 5
+  team blocks: 26
+
+## eval (n=48)
+Sources: template=44, real-site=4
+Industries: unknown=44, local-services=1, ecommerce=1, consulting=1, agency=1
+Website types: corporate=6, saas=5, agency=5, restaurant=5, ecommerce=5, portfolio=5, real-estate=5, education=4, healthcare=4, personal-brand=4
+Page names: Home=11, Contact=10, About=9, Services=3, Features=1, Portfolio=1, Gallery=1, Collections=1, Projects=1, Agents=1, Courses=1, Menu=1, Listings=1, Work=1, Shop=1, Blog=1, Pricing=1, Resume=1, Case Studies=1
+Meta styles: Modern=11, Corporate=10, Startup=7, Minimal=7, Creative=7, Luxury=6
+Complexity: Medium=31, High=10, Low=7
+Confidence: avg=0.767 needs_review=0
+Block count distribution: 4=12, 5=11, 6=17, 7=1, 8=7
+Top block types: navbar=48, footer=48, heroCentered=35, about=28, contact=25, stats=21, featureGrid=17, gallery=16, testimonials=11, heroSplit=8, featureCards=3, logos=3, hero=2, team=2, blog=1
+  pricing blocks: 0
+  faq blocks: 0
+  team blocks: 2
+
+## test (n=48)
+Sources: template=45, real-site=3
+Industries: unknown=45, local-services=2, healthcare=1
+Website types: corporate=6, restaurant=5, agency=5, portfolio=5, saas=5, ecommerce=5, real-estate=5, personal-brand=4, education=4, healthcare=4
+Page names: Home=11, Contact=10, About=9, Services=3, Menu=1, Portfolio=1, Resume=1, Pricing=1, Work=1, Collections=1, Shop=1, Projects=1, Courses=1, Case Studies=1, Agents=1, Gallery=1, Blog=1, Listings=1, Features=1
+Meta styles: Creative=13, Modern=13, Corporate=12, Luxury=5, Startup=4, Minimal=1
+Complexity: Medium=31, High=11, Low=6
+Confidence: avg=0.806 needs_review=0
+Block count distribution: 4=11, 5=11, 6=16, 8=9, 14=1
+Top block types: navbar=48, footer=48, heroCentered=35, about=29, contact=23, featureGrid=22, stats=21, gallery=16, testimonials=14, heroSplit=8, featureCards=4, hero=4, logos=2, cta=2, blog=1
+  pricing blocks: 1
+  faq blocks: 1
+  team blocks: 1
+
+## validated/all (n=513)
+Sources: template=470, real-site=43
+Industries: unknown=470, saas=8, agency=5, law=5, ecommerce=5, local-services=4, fitness=4, healthcare=3, restaurant=3, consulting=2, education=2, portfolio=1
+Website types: corporate=65, saas=58, agency=55, ecommerce=55, restaurant=53, portfolio=51, real-estate=51, healthcare=43, education=42, personal-brand=40
+Page names: Home=143, Contact=100, About=90, Services=30, Portfolio=10, Case Studies=10, Collections=10, Shop=10, Courses=10, Work=10, Projects=10, Resume=10, Agents=10, Listings=10, Gallery=10, Menu=10, Blog=10, Features=10, Pricing=10
+Meta styles: Modern=158, Creative=99, Corporate=84, Luxury=71, Minimal=49, Startup=47, Premium=5
+Complexity: Medium=340, High=115, Low=58
+Confidence: avg=0.777 needs_review=0
+Block count distribution: 4=114, 5=104, 6=167, 7=8, 8=105, 9=4, 10=2, 11=4, 12=1, 14=4
+Top block types: navbar=513, footer=513, heroCentered=350, about=324, contact=253, featureGrid=241, stats=238, gallery=167, testimonials=153, heroSplit=99, hero=46, featureCards=40, logos=30, team=29, cta=15
+  pricing blocks: 12
+  faq blocks: 6
+  team blocks: 29
+

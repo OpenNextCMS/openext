@@ -1,5 +1,4 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-python_api/__pycache__/
+﻿# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 # dependencies
 /node_modules
 /.pnp
@@ -42,3 +41,8 @@ next-env.d.ts
 
 /public/upload
 /public/siteicon
+# Layout planner training artifacts (schema + scripts stay tracked)
+training/data/raw/
+training/data/validated/
+training/outputs/
+
