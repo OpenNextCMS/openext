@@ -2,6 +2,7 @@
 
 import { InlineEditableText } from '@/components/editor/InlineEditableText';
 import { EditableElement } from '@/components/editor/EditableElement';
+import { InlineSlot } from '@/components/editor/blocks/InlineSlot';
 import type { BlockRendererProps } from '@/types/index';
 import { useAppDispatch } from '@/redux/hooks';
 import { updateBlockContent } from '@/redux/canvasSlice';
@@ -48,6 +49,7 @@ export const FeatureChecklist = ({ block, isEditing = false }: BlockRendererProp
   return (
     <section className="text-[color:var(--color-muted,#4b5563)] body-font w-full" style={block.style}>
       <div className="container px-5 py-24 mx-auto">
+        <InlineSlot block={block} slotIndex={2} isEditing={isEditing} />
         <div className="text-center mb-20">
           <InlineEditableText
             tagName="h1"
@@ -74,7 +76,9 @@ export const FeatureChecklist = ({ block, isEditing = false }: BlockRendererProp
             }}
           />
         </div>
+        <InlineSlot block={block} slotIndex={3} isEditing={isEditing} />
         <div className="flex flex-wrap lg:w-4/5 sm:mx-auto sm:mb-2 -mx-2">
+          <InlineSlot block={block} slotIndex={4} isEditing={isEditing} />
           {items.map((item: string, index: number) => (
             <div key={index} className="p-2 sm:w-1/2 w-full">
               <EditableElement
@@ -102,8 +106,10 @@ export const FeatureChecklist = ({ block, isEditing = false }: BlockRendererProp
               </EditableElement>
             </div>
           ))}
+          <InlineSlot block={block} slotIndex={5} isEditing={isEditing} />
         </div>
-        <a 
+        <InlineSlot block={block} slotIndex={6} isEditing={isEditing} />
+        <a
           href={isEditing ? undefined : content.buttonUrl || '#'}
           className="flex mx-auto mt-16 text-white bg-[var(--color-primary,#6366f1)] border-0 py-2 px-8 focus:outline-none hover:bg-[var(--color-primary,#4f46e5)] rounded text-lg text-center w-max" 
           style={{ 

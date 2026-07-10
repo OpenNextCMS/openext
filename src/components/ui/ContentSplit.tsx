@@ -2,6 +2,7 @@
 
 import { InlineEditableText } from '@/components/editor/InlineEditableText';
 import { EditableElement } from '@/components/editor/EditableElement';
+import { InlineSlot } from '@/components/editor/blocks/InlineSlot';
 import type { BlockRendererProps } from '@/types/index';
 import { useAppDispatch } from '@/redux/hooks';
 import { updateBlockContent } from '@/redux/canvasSlice';
@@ -54,6 +55,7 @@ export const ContentSplit = ({ block, isEditing = false }: BlockRendererProps) =
     <section className="text-[color:var(--color-muted,#4b5563)] body-font w-full" style={block.style}>
       <div className="container px-5 py-24 mx-auto">
         <div className="flex flex-wrap -mx-4 -mb-10 text-center">
+          <InlineSlot block={block} slotIndex={2} isEditing={isEditing} />
           <EditableElement
             block={block}
             isEditing={isEditing}
@@ -109,6 +111,7 @@ export const ContentSplit = ({ block, isEditing = false }: BlockRendererProps) =
               />
             </EditableElement>
           </EditableElement>
+          <InlineSlot block={block} slotIndex={3} isEditing={isEditing} />
           <EditableElement
             block={block}
             isEditing={isEditing}
@@ -164,6 +167,7 @@ export const ContentSplit = ({ block, isEditing = false }: BlockRendererProps) =
               />
             </EditableElement>
           </EditableElement>
+          <InlineSlot block={block} slotIndex={4} isEditing={isEditing} />
         </div>
       </div>
     </section>

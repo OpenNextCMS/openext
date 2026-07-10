@@ -3,6 +3,7 @@ import { useAppDispatch } from '@/redux/hooks';
 import { updateBlockContent, setSelectedBlock, setSelectedLabel } from '@/redux/canvasSlice';
 import { InlineEditableText } from '@/components/editor/InlineEditableText';
 import { EditableElement } from '@/components/editor/EditableElement';
+import { InlineSlot } from '@/components/editor/blocks/InlineSlot';
 import type { BlockRendererProps, BlockData } from '@/types/index';
 
 export const ContactSimple = ({ block, isEditing = false }: BlockRendererProps) => {
@@ -42,6 +43,7 @@ export const ContactSimple = ({ block, isEditing = false }: BlockRendererProps) 
       onClick={handleSelect}
     >
       <div className="container px-5 py-24 mx-auto">
+        <InlineSlot block={block} slotIndex={2} isEditing={isEditing} />
         <div className="flex flex-col text-center w-full mb-12">
           <InlineEditableText
             tagName="h1"
@@ -68,6 +70,7 @@ export const ContactSimple = ({ block, isEditing = false }: BlockRendererProps) 
             }}
           />
         </div>
+        <InlineSlot block={block} slotIndex={3} isEditing={isEditing} />
         <EditableElement
           block={block}
           isEditing={isEditing}
@@ -142,6 +145,7 @@ export const ContactSimple = ({ block, isEditing = false }: BlockRendererProps) 
                 />
               </EditableElement>
             </div>
+            <InlineSlot block={block} slotIndex={4} isEditing={isEditing} />
             <div className="p-2 w-full pt-8 mt-8 border-t border-gray-200 text-center">
               <InlineEditableText
                 tagName="a"
@@ -205,6 +209,7 @@ export const ContactSimple = ({ block, isEditing = false }: BlockRendererProps) 
             </div>
           </div>
         </EditableElement>
+        <InlineSlot block={block} slotIndex={5} isEditing={isEditing} />
       </div>
     </section>
   );

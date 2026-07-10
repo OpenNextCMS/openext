@@ -1,0 +1,27 @@
+sequenceDiagram
+    autonumber
+    actor Admin
+    participant B as Browser
+    participant MW as middleware.ts
+    participant API as POST /api/auth/login
+    participant AS as AuthService
+    participant DB as User DB (Mongoose)
+
+    Admin->>B: submit email + password
+    B->>MW: POST /api/auth/login
+    MW-->>B: pass (login route not gated)
+    B->>API: credentials
+    API->>AS: login(email, password)
+    AS->>DB: findOne({ email })
+    DB-->>AS: user (bcrypt hash)
+    AS->>AS: bcrypt.compare(password, hash)
+    alt password valid
+        AS->>AS: signJwt({userId,email,role})
+        AS-->>API: token
+        API-->>B: 200 + Set-Cookie: token
+        B->>MW: navigate /dashboard
+        MW-->>B: token present → allow
+    else invalid
+        AS-->>API: null
+        API-->>B: 401 Unauthorized
+    end

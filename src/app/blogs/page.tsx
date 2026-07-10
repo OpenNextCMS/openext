@@ -6,7 +6,7 @@ import PageClientWrapper from '@/components/PageClientWrapper';
 
 // Mock a block for the public blogs page
 const defaultBlogFeedBlock = {
-  type: 'blog-feed',
+  type: 'blog-feed' as const,
   content: JSON.stringify({
     layout: 'editorial', // Premium editorial look for the main blogs page
     postsPerPage: 9,

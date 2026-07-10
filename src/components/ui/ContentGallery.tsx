@@ -2,6 +2,7 @@
 
 import { InlineEditableText } from '@/components/editor/InlineEditableText';
 import { EditableElement } from '@/components/editor/EditableElement';
+import { InlineSlot } from '@/components/editor/blocks/InlineSlot';
 import type { BlockRendererProps } from '@/types/index';
 import type { BlockContentItem } from '@/types/blockContent';
 import { useAppDispatch } from '@/redux/hooks';
@@ -47,6 +48,7 @@ export const ContentGallery = ({ block, isEditing = false }: BlockRendererProps)
   return (
     <section className="text-[color:var(--color-muted,#4b5563)] body-font w-full" style={block.style}>
       <div className="container px-5 py-24 mx-auto">
+        <InlineSlot block={block} slotIndex={2} isEditing={isEditing} />
         <div className="flex flex-wrap w-full mb-20">
           <div className="lg:w-1/2 w-full mb-6 lg:mb-0">
             <InlineEditableText
@@ -76,6 +78,7 @@ export const ContentGallery = ({ block, isEditing = false }: BlockRendererProps)
             }}
           />
         </div>
+        <InlineSlot block={block} slotIndex={3} isEditing={isEditing} />
         <div className="flex flex-wrap -m-4">
           {items.map((item: BlockContentItem, index: number) => (
             <div key={index} className="xl:w-1/4 md:w-1/2 p-4">
@@ -132,6 +135,7 @@ export const ContentGallery = ({ block, isEditing = false }: BlockRendererProps)
             </div>
           ))}
         </div>
+        <InlineSlot block={block} slotIndex={4} isEditing={isEditing} />
       </div>
     </section>
   );

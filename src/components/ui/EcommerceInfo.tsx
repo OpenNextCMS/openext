@@ -5,6 +5,7 @@ import { EditableElement } from '@/components/editor/EditableElement';
 import type { BlockRendererProps } from '@/types/index';
 import { useAppDispatch } from '@/redux/hooks';
 import { updateBlockContent } from '@/redux/canvasSlice';
+import { InlineSlot } from '@/components/editor/blocks/InlineSlot';
 
 export const EcommerceInfo = ({ block, isEditing = false }: BlockRendererProps) => {
   const dispatch = useAppDispatch();
@@ -32,6 +33,7 @@ export const EcommerceInfo = ({ block, isEditing = false }: BlockRendererProps) 
   return (
     <section className="text-[color:var(--color-muted,#4b5563)] body-font overflow-hidden w-full" style={block.style}>
       <div className="container px-5 py-24 mx-auto">
+        <InlineSlot block={block} slotIndex={2} isEditing={isEditing} />
         <div className="lg:w-4/5 mx-auto flex flex-wrap">
           <EditableElement
             block={block}
@@ -39,6 +41,7 @@ export const EcommerceInfo = ({ block, isEditing = false }: BlockRendererProps) 
             path="cardStyle"
             className="lg:w-1/2 w-full lg:pr-10 lg:py-6 mb-6 lg:mb-0"
           >
+            <InlineSlot block={block} slotIndex={3} isEditing={isEditing} />
             <InlineEditableText
               tagName="h2"
               value={content.brand || 'BRAND NAME'}
@@ -68,6 +71,7 @@ export const EcommerceInfo = ({ block, isEditing = false }: BlockRendererProps) 
               <a className="flex-grow border-b-2 border-gray-300 py-2 text-lg px-1 cursor-pointer" style={{ color: block.style?.color || 'var(--color-text, #111827)', fontFamily: block.style?.fontFamily }}>Reviews</a>
               <a className="flex-grow border-b-2 border-gray-300 py-2 text-lg px-1 cursor-pointer" style={{ color: block.style?.color || 'var(--color-text, #111827)', fontFamily: block.style?.fontFamily }}>Details</a>
             </div>
+            <InlineSlot block={block} slotIndex={4} isEditing={isEditing} />
             <InlineEditableText
               tagName="p"
               value={content.description || 'Product description goes here...'}
@@ -92,6 +96,7 @@ export const EcommerceInfo = ({ block, isEditing = false }: BlockRendererProps) 
               <span className="text-[color:var(--color-muted,#6b7280)]" style={{ color: block.style?.color || 'var(--color-text, #111827)', fontFamily: block.style?.fontFamily }}>Quantity</span>
               <span className="ml-auto text-[color:var(--color-text,#111827)]" style={{ color: block.style?.color || 'var(--color-text, #111827)', fontFamily: block.style?.fontFamily }}>{content.quantity || '4'}</span>
             </div>
+            <InlineSlot block={block} slotIndex={5} isEditing={isEditing} />
             <div className="flex">
               <InlineEditableText
                 tagName="span"
@@ -136,6 +141,7 @@ export const EcommerceInfo = ({ block, isEditing = false }: BlockRendererProps) 
             extraProps={{ alt: "ecommerce", src: content.image || "https://dummyimage.com/400x400" }}
           />
         </div>
+        <InlineSlot block={block} slotIndex={6} isEditing={isEditing} />
       </div>
     </section>
   );

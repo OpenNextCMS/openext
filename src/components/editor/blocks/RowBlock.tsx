@@ -10,17 +10,21 @@ import { removeBlock, setSelectedBlock, setSelectedLabel } from '@/redux/canvasS
 import RenderBlock from '../renderblock';
 import { useBlockEvents } from '@/hooks/useBlockEvents';
 import { ColumnDropZone } from './ColumnDropZone';
+import { SortableChildren } from './SortableChildren';
+import { zoneContainerId } from '@/utils/blockContainers';
 
 function DraggableRowColumn({
   children,
   block,
   columnIndex,
   isEditing,
+  isEmpty,
 }: {
   children: React.ReactNode;
   block: Block;
   columnIndex: number;
   isEditing: boolean;
+  isEmpty?: boolean;
 }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: `${block.uniqueId}-row-column-${columnIndex}`,
@@ -56,7 +60,12 @@ function DraggableRowColumn({
           <GripVertical className="h-3.5 w-3.5" />
         </button>
       )}
-      <ColumnDropZone columnIndex={columnIndex} block={block} isEditing={isEditing}>
+      <ColumnDropZone
+        columnIndex={columnIndex}
+        block={block}
+        isEditing={isEditing}
+        isEmpty={isEmpty}
+      >
         {children}
       </ColumnDropZone>
     </div>
@@ -133,10 +142,18 @@ export const RowBlock = ({ block, isEditing = true }: BlockRendererProps) => {
               columnIndex={index}
               block={block as Block}
               isEditing={isEditing}
+              isEmpty={col.length === 0}
             >
-              {col.map((child) => (
-                <RenderBlock key={child.uniqueId} block={child} isEditing={isEditing} />
-              ))}
+              {isEditing ? (
+                <SortableChildren
+                  containerId={zoneContainerId(block.uniqueId || '', index)}
+                  childBlocks={col}
+                />
+              ) : (
+                col.map((child) => (
+                  <RenderBlock key={child.uniqueId} block={child} isEditing={false} />
+                ))
+              )}
             </DraggableRowColumn>
           ))
         ) : isEditing ? (
