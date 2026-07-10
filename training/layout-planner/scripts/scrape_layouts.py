@@ -104,6 +104,61 @@ SEEDS: dict[str, list[str]] = {
                        "https://memberful.com", "https://mailerlite.com"],
 }
 
+# Additional SSR-friendly marketing sites to GROW the dataset beyond the first
+# run's ~173 pages. Merged into SEEDS below. Curated toward server-rendered
+# marketing/business sites (higher section-yield than JS-only SPAs).
+EXTRA_SEEDS: dict[str, list[str]] = {
+    "agency": ["https://www.pentagram.com", "https://www.huge.com", "https://www.instrument.com",
+               "https://www.ueno.co", "https://www.metalab.com", "https://www.clay.global",
+               "https://www.rga.com", "https://www.work-co.com", "https://www.fantasy.co",
+               "https://www.hugeinc.com", "https://www.dept.com", "https://www.thoughtbot.com",
+               "https://www.10up.com", "https://www.upstatement.com"],
+    "saas": ["https://www.airtable.com", "https://linear.app", "https://www.figma.com",
+             "https://www.intercom.com", "https://segment.com", "https://www.datadoghq.com",
+             "https://www.pagerduty.com", "https://www.gitlab.com", "https://vercel.com",
+             "https://www.netlify.com", "https://supabase.com", "https://planetscale.com",
+             "https://www.retool.com", "https://www.calendly.com", "https://www.typeform.com",
+             "https://www.loom.com", "https://www.miro.com", "https://clickup.com"],
+    "ecommerce": ["https://www.mejuri.com", "https://www.brooklinen.com", "https://www.away.com",
+                  "https://www.bombas.com", "https://www.mvmt.com", "https://tentree.com",
+                  "https://www.rothys.com", "https://www.everlane.com", "https://mudwtr.com",
+                  "https://www.olipop.com", "https://www.magicspoon.com", "https://drinkag1.com",
+                  "https://www.hedleyandbennett.com", "https://www.thursdayboots.com"],
+    "corporate": ["https://www.mckinsey.com", "https://www.bain.com", "https://www.bcg.com",
+                  "https://www.gartner.com", "https://www.grantthornton.com", "https://www.bdo.com",
+                  "https://www.aon.com", "https://www.marsh.com", "https://www.wework.com",
+                  "https://www.jll.com", "https://www.cbre.com", "https://www.aecom.com"],
+    "restaurant": ["https://www.blazepizza.com", "https://www.mod-pizza.com", "https://www.honeygrow.com",
+                   "https://www.tacobell.com", "https://www.chick-fil-a.com", "https://www.jerseymikes.com",
+                   "https://www.firstwatch.com", "https://www.noodles.com", "https://www.potbelly.com",
+                   "https://www.qdoba.com", "https://www.eltacoloco.com", "https://www.tropicalsmoothiecafe.com"],
+    "real-estate": ["https://www.corcoran.com", "https://www.sothebysrealty.com", "https://www.douglaselliman.com",
+                    "https://www.kw.com", "https://www.exp.com", "https://www.weichert.com",
+                    "https://www.howardhanna.com", "https://www.baird-warner.com", "https://www.longandfoster.com"],
+    "healthcare": ["https://www.oscar.com", "https://www.pelotonhealth.com", "https://www.maven.com",
+                   "https://www.included.health", "https://www.omadahealth.com", "https://www.spring.health",
+                   "https://www.alto.com", "https://www.capsule.com", "https://www.parsleyhealth.com",
+                   "https://www.tiahealth.com", "https://www.everlywell.com", "https://www.function.health"],
+    "education": ["https://www.springboard.com", "https://www.generalassemb.ly", "https://www.lambdaschool.com",
+                  "https://www.udacity.com", "https://www.educative.io", "https://scrimba.com",
+                  "https://frontendmasters.com", "https://teamtreehouse.com", "https://www.365datascience.com",
+                  "https://www.memrise.com", "https://www.babbel.com", "https://www.busuu.com"],
+    "portfolio": ["https://www.awwwards.com", "https://www.uxfol.io", "https://www.copyfol.io",
+                  "https://www.notionfolio.com", "https://www.wixstudio.com", "https://www.semplice.com",
+                  "https://www.pixieset.com", "https://www.zenfolio.com", "https://www.smugmug.com",
+                  "https://www.crevado.com", "https://www.portfoliobox.net"],
+    "personal-brand": ["https://www.circle.so", "https://www.mighty.co", "https://www.thinkific.com",
+                       "https://www.learnworlds.com", "https://www.systeme.io", "https://www.stan.store",
+                       "https://www.milkshake.app", "https://www.snipfeed.co", "https://www.disco.co",
+                       "https://www.searchie.io", "https://www.uscreen.tv"],
+}
+
+# Merge the extra seeds in (dedup, preserve order) so both batches are scraped.
+for _wt, _urls in EXTRA_SEEDS.items():
+    _existing = set(SEEDS.get(_wt, []))
+    SEEDS.setdefault(_wt, [])
+    SEEDS[_wt].extend(u for u in _urls if u not in _existing)
+
 STYLE_FOR_TYPE = {
     "agency": "creative", "saas": "startup", "ecommerce": "ecommerce", "portfolio": "minimal",
     "personal-brand": "minimal", "corporate": "corporate", "restaurant": "luxury",

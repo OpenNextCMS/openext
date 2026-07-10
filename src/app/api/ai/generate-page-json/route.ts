@@ -98,13 +98,20 @@ const getAiRuntimeConfig = async () => {
     openrouterModel: getConfigValue(
       'openrouterModel',
       'OPENROUTER_MODEL',
-      'google/gemini-2.0-flash-001'
+      'google/gemini-2.5-flash'
     ),
     openrouterReviewModel: getConfigValue(
       'openrouterReviewModel',
       'OPENROUTER_REVIEW_MODEL',
-      'google/gemini-2.0-flash-001'
+      'google/gemini-2.5-flash-lite'
     ),
+    // The second-pass review doubles the model calls (and the up-front credit
+    // reservation) per generation. Set AI_SKIP_REVIEW=true (or aiConfig.aiSkipReview)
+    // to skip it and use the first-pass result directly.
+    skipReview:
+      String(aiConfig.aiSkipReview ?? env.AI_SKIP_REVIEW ?? '')
+        .trim()
+        .toLowerCase() === 'true',
     minQualityScore: Number(aiConfig.aiMinQualityScore || env.AI_MIN_QUALITY_SCORE || '80'),
   };
 };
@@ -1994,7 +2001,8 @@ const translateSemanticBlock = (block: SemanticBlock, theme?: PageTheme): BlockD
 
 const buildComponentsFromPage = (
   data: unknown,
-  pageType: PageContext
+  pageType: PageContext,
+  scope: boolean = true
 ): BlockData[] => {
   // v2 documents ({ meta, theme, blocks:[{type,data}] }) are rewritten into the
   // legacy semantic shape here; legacy/site-mode input passes through untouched.
@@ -2006,7 +2014,9 @@ const buildComponentsFromPage = (
   const blocks = sorted
     .map((b) => translateSemanticBlock(b, theme))
     .filter((b): b is BlockData => Boolean(b));
-  return enforcePageScope(blocks, pageType);
+  // scope=false keeps the whole page as-authored (nav-bar + footer included) —
+  // used by the paste-JSON renderer so a full page document renders intact.
+  return scope ? enforcePageScope(blocks, pageType) : blocks;
 };
 
 const sanitizeUserPrompt = (prompt: string) => {
@@ -2971,7 +2981,7 @@ const reviewAnalysisWithSecondModel = async ({
       let lastReviewError: string | null = null;
 
       for (let attempt = 0; attempt < 2; attempt++) {
-        const maxTokens = attempt === 0 ? 8192 : 16384;
+        const maxTokens = attempt === 0 ? 6144 : 10240;
         if (attempt > 0) {
           console.warn('[AI] Review parse failed or empty sections; retrying with higher max_completion_tokens');
         }
@@ -3020,7 +3030,7 @@ const runAnalysisProvider = async ({
     const payload = await callOpenRouterJson(apiKey, {
       model,
       messages: [{ role: 'user', content }],
-      max_completion_tokens: 8192,
+      max_completion_tokens: 6144,
     });
     return {
       payload,
@@ -3060,6 +3070,20 @@ const generateReviewedAnalysisWithFallback = async ({
           content,
           config,
         });
+
+        // Review disabled -> use the first-pass analysis directly (one model
+        // call instead of two, halving the credit reservation per generation).
+        if (config.skipReview) {
+          return {
+            provider,
+            model: analysisAttempt.model,
+            payload: analysisAttempt.payload,
+            reviewedAnalysis: analysisAttempt.analysis,
+            reviewPayload: analysisAttempt.payload,
+            qualityScore: config.minQualityScore,
+            reviewerProvider: provider,
+          };
+        }
 
         const { reviewedAnalysis, reviewPayload, reviewerProvider } =
           await reviewAnalysisWithSecondModel({
@@ -3131,7 +3155,7 @@ ${prompt ? `USER NOTE: ${prompt}` : ''}`;
     const payload = await callOpenRouterJson(apiKey, {
       model: config.openrouterModel,
       messages: [{ role: 'user', content }],
-      max_completion_tokens: attempt === 0 ? 12288 : 16384,
+      max_completion_tokens: attempt === 0 ? 8192 : 12288,
     });
     try {
       const parsed = parseModelJson(getOpenRouterMessageContent(payload));
@@ -3153,6 +3177,47 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }
 
+  let formData: FormData;
+  try {
+    formData = await request.formData();
+  } catch {
+    return NextResponse.json({ message: 'Invalid form data' }, { status: 400 });
+  }
+
+  // Direct JSON render: paste a v2 page document (or native editor components)
+  // and render it straight to the canvas — no LLM call, no API key required.
+  const renderJsonRaw = safeString(formData.get('renderJson'));
+  if (renderJsonRaw.trim()) {
+    const rawType = safeString(formData.get('pageType'), 'page').toLowerCase();
+    const rjPageType: PageContext =
+      rawType === 'header' ? 'header' : rawType === 'footer' ? 'footer' : 'page';
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(renderJsonRaw);
+    } catch (err) {
+      return NextResponse.json(
+        { message: `Invalid JSON: ${err instanceof Error ? err.message : 'parse error'}` },
+        { status: 400 }
+      );
+    }
+    // scope=false: render the pasted page exactly as authored (keep nav-bar + footer).
+    let components =
+      rjPageType === 'header'
+        ? buildComponentsFromPage(parsed, rjPageType)
+        : buildComponentsFromPage(parsed, rjPageType, false);
+    if (!components.length) {
+      // Fall back to native editor primitives (array / { components } / { page.blocks }).
+      components = extractPrimitiveComponents(parsed) as BlockData[];
+    }
+    if (!components.length) {
+      return NextResponse.json(
+        { message: 'No renderable blocks found in the pasted JSON.' },
+        { status: 400 }
+      );
+    }
+    return NextResponse.json({ components });
+  }
+
   const aiConfig = await getAiRuntimeConfig();
 
   if (!getOpenRouterApiKey(aiConfig)) {
@@ -3166,7 +3231,6 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const formData = await request.formData();
     const userPrompt = sanitizeUserPrompt(safeString(formData.get('prompt')));
     const image = formData.get('image');
     const hasImage = image instanceof File && image.size > 0;
@@ -3203,7 +3267,7 @@ export async function POST(request: NextRequest) {
       const sitePayload = await callOpenRouterJson(apiKey, {
         model: aiConfig.openrouterModel,
         messages: [{ role: 'user', content: sitePromptContent }],
-        max_completion_tokens: 16384,
+        max_completion_tokens: 12288,
       });
       const initialSite = parseModelJson(getOpenRouterMessageContent(sitePayload));
 
@@ -3214,7 +3278,7 @@ export async function POST(request: NextRequest) {
         siteReviewPayload = await callOpenRouterJson(apiKey, {
           model: aiConfig.openrouterReviewModel,
           messages: [{ role: 'user', content: reviewContent }],
-          max_completion_tokens: 16384,
+          max_completion_tokens: 12288,
         });
         reviewedSite = parseModelJson(getOpenRouterMessageContent(siteReviewPayload));
       } catch (err) {

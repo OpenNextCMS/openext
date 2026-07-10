@@ -41,6 +41,8 @@ next-env.d.ts
 
 /public/upload
 /public/siteicon
+/public/plugins/*
+!/public/plugins/.gitkeep
 # Layout planner training artifacts (schema + scripts + fixtures + briefs stay tracked)
 training/data/raw/
 training/data/validated/

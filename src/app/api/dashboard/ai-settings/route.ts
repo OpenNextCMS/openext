@@ -58,8 +58,8 @@ const getAuthorizedUser = async () => {
 const publicAiConfig = (aiConfig: AiConfig) => ({
   openrouterApiKey: maskSecret(aiConfig.openrouterApiKey),
   hasOpenrouterApiKey: Boolean(aiConfig.openrouterApiKey),
-  openrouterModel: aiConfig.openrouterModel || 'google/gemini-2.0-flash-001',
-  openrouterReviewModel: aiConfig.openrouterReviewModel || 'google/gemini-2.0-flash-001',
+  openrouterModel: aiConfig.openrouterModel || 'google/gemini-2.5-flash',
+  openrouterReviewModel: aiConfig.openrouterReviewModel || 'google/gemini-2.5-flash-lite',
   aiMinQualityScore: aiConfig.aiMinQualityScore ?? 80,
 });
 

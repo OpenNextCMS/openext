@@ -32,7 +32,7 @@ export async function getAiConfig(): Promise<AiConfig> {
   };
   return {
     apiKey: pick('openrouterApiKey', 'OPENROUTER_API_KEY'),
-    model: pick('openrouterModel', 'OPENROUTER_MODEL', 'google/gemini-2.0-flash-001'),
+    model: pick('openrouterModel', 'OPENROUTER_MODEL', 'google/gemini-2.5-flash'),
   };
 }
 

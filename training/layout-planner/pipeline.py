@@ -35,7 +35,7 @@ REPO_ROOT = HERE.parent.parent
 SCHEMA_DIR = HERE / "schema"
 FIXTURES = HERE / "fixtures"
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
-DEFAULT_MODEL = "google/gemini-2.0-flash-001"
+DEFAULT_MODEL = "openai/gpt-4o-mini"
 
 _ALIASES = json.loads((SCHEMA_DIR / "allowed-block-types.json").read_text(encoding="utf-8"))["stage2Aliases"]
 
@@ -88,7 +88,9 @@ def get_layout_plan(brief: str, planner=None, log=print) -> tuple[dict, str]:
         if plan and validate_plan(plan, "stage1").ok:
             return plan, "model"
         log("  Stage 1: first plan invalid -> retry with sampling")
-        raw = planner.generate_text(brief, num_beams=1)  # sampling-ish retry
+        # A genuine sampled draw (not another greedy pass) so the retry can differ
+        # from the first, invalid plan.
+        raw = planner.generate_text(brief, do_sample=True, temperature=0.7)
         plan = parse_plan_json(raw)
         if plan and validate_plan(plan, "stage1-retry").ok:
             return plan, "model-retry"
@@ -204,6 +206,15 @@ def run(brief: str, offline: bool = False, plan_only: bool = False,
 
 
 def main(argv: list[str] | None = None) -> int:
+    # Filled copy can contain emoji / non-Latin text; force UTF-8 so printing the
+    # result never dies with a cp1252 UnicodeEncodeError on Windows (console or
+    # redirected to a file).
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8")  # type: ignore[attr-defined]
+        except (AttributeError, ValueError):
+            pass
+
     ap = argparse.ArgumentParser(description="Two-stage brief -> filled page pipeline.")
     ap.add_argument("brief", nargs="+")
     ap.add_argument("--offline", action="store_true", help="no model/API: retrieval plan + unfilled skeleton")

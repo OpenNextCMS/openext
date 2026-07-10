@@ -101,7 +101,7 @@ def self_test() -> int:
     return 0 if ok else 1
 
 
-def eval_model(test_path: Path) -> int:
+def eval_model(test_path: Path, limit: int | None = None, max_new_tokens: int = 1024) -> int:
     if not test_path.is_file():
         print(f"error: test file not found: {test_path} (build it with build_seq2seq.py)", file=sys.stderr)
         return 1
@@ -121,11 +121,13 @@ def eval_model(test_path: Path) -> int:
         line = line.strip()
         if not line:
             continue
+        if limit is not None and len(scores) >= limit:
+            break
         rec = json.loads(line)
         brief = rec["input_text"]
         if brief.startswith(INPUT_PREFIX):
             brief = brief[len(INPUT_PREFIX):]
-        scores.append(score_raw(planner.generate_text(brief)))
+        scores.append(score_raw(planner.generate_text(brief, max_new_tokens=max_new_tokens)))
     print_metrics(aggregate(scores))
     return 0
 
@@ -151,13 +153,15 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--test", default=str(DEFAULT_TEST), help="test.jsonl (model mode)")
     ap.add_argument("--predictions", help="jsonl of pre-generated raw outputs (offline)")
     ap.add_argument("--self-test", action="store_true", help="offline metric-logic check (no model)")
+    ap.add_argument("--limit", type=int, default=None, help="max test samples to run (fast smoke eval)")
+    ap.add_argument("--max-new-tokens", type=int, default=512, help="generation cap per sample (default 512)")
     args = ap.parse_args(argv)
 
     if args.self_test:
         return self_test()
     if args.predictions:
         return eval_predictions(Path(args.predictions))
-    return eval_model(Path(args.test))
+    return eval_model(Path(args.test), limit=args.limit, max_new_tokens=args.max_new_tokens)
 
 
 if __name__ == "__main__":
