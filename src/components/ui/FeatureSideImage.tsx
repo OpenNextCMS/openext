@@ -2,6 +2,7 @@
 
 import { InlineEditableText } from '@/components/editor/InlineEditableText';
 import { EditableElement } from '@/components/editor/EditableElement';
+import { InlineSlot } from '@/components/editor/blocks/InlineSlot';
 import type { BlockRendererProps } from '@/types/index';
 import type { BlockContentItem } from '@/types/blockContent';
 import { useAppDispatch } from '@/redux/hooks';
@@ -46,9 +47,11 @@ export const FeatureSideImage = ({ block, isEditing = false }: BlockRendererProp
   return (
     <section className="text-[color:var(--color-muted,#4b5563)] body-font w-full" style={block.style}>
       <div className="container px-5 py-24 mx-auto flex flex-wrap">
+        <InlineSlot block={block} slotIndex={2} isEditing={isEditing} />
         <div className="lg:w-1/2 w-full mb-10 lg:mb-0 rounded-lg overflow-hidden">
           <img alt="feature" className="object-cover object-center h-full w-full" src={content.image || "https://dummyimage.com/460x500"} />
         </div>
+        <InlineSlot block={block} slotIndex={3} isEditing={isEditing} />
         <div className="flex flex-col flex-wrap lg:py-6 -mb-10 lg:w-1/2 lg:pl-12 lg:text-left text-center">
           {features.map((feature: BlockContentItem, index: number) => (
             <EditableElement
@@ -118,6 +121,7 @@ export const FeatureSideImage = ({ block, isEditing = false }: BlockRendererProp
             </EditableElement>
           ))}
         </div>
+        <InlineSlot block={block} slotIndex={4} isEditing={isEditing} />
       </div>
     </section>
   );

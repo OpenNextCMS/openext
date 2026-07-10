@@ -3,6 +3,7 @@ import { useAppDispatch } from '@/redux/hooks';
 import { updateBlockContent, setSelectedBlock, setSelectedLabel } from '@/redux/canvasSlice';
 import { InlineEditableText } from '@/components/editor/InlineEditableText';
 import { EditableElement } from '@/components/editor/EditableElement';
+import { InlineSlot } from '@/components/editor/blocks/InlineSlot';
 import type { BlockRendererProps, BlockData } from '@/types/index';
 import type { BlockContentItem } from '@/types/blockContent';
 
@@ -66,6 +67,7 @@ export const ContentCategories = ({ block, isEditing = false }: BlockRendererPro
       onClick={handleSelect}
     >
       <div className="container flex flex-wrap px-5 py-24 mx-auto items-center">
+        <InlineSlot block={block} slotIndex={2} isEditing={isEditing} />
         <div className="md:w-1/2 md:pr-12 md:py-8 md:border-r md:border-b-0 mb-10 md:mb-0 pb-10 border-b border-gray-200">
           <InlineEditableText
             tagName="h1"
@@ -111,6 +113,7 @@ export const ContentCategories = ({ block, isEditing = false }: BlockRendererPro
             </svg>
           </a>
         </div>
+        <InlineSlot block={block} slotIndex={3} isEditing={isEditing} />
         <div className="flex flex-col md:w-1/2 md:pl-12">
           <InlineEditableText
             tagName="h2"
@@ -151,6 +154,7 @@ export const ContentCategories = ({ block, isEditing = false }: BlockRendererPro
             ))}
           </nav>
         </div>
+        <InlineSlot block={block} slotIndex={4} isEditing={isEditing} />
       </div>
     </section>
   );

@@ -1,0 +1,13 @@
+flowchart TD
+    Start([User starts onboarding]) --> Wizard[Fill preferences wizard]
+    Wizard --> Autosave{Save draft?}
+    Autosave -- autosave --> Draft[(WebsitePreferences.draft=true)]
+    Autosave -- continue --> Complete[Complete wizard]
+    Complete --> Gen[POST /api/onboarding/generate]
+    Gen --> AI[callAI: generate page JSON<br/>from business profile]
+    AI --> Valid{Valid JSON<br/>& quality score ≥ min?}
+    Valid -- no --> Repair[jsonrepair / retry]
+    Repair --> AI
+    Valid -- yes --> Pages[Create Page docs<br/>home + generated slugs]
+    Pages --> Mark[WebsitePreferences.onboardingCompleted=true<br/>User.onboardingCompleted=true]
+    Mark --> Redirect([Redirect to /dashboard])

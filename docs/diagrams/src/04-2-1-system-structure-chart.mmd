@@ -1,0 +1,59 @@
+flowchart TB
+    subgraph CLIENT["🌐 Client (Browser)"]
+        UIadmin["Admin Dashboard<br/>(blogs, pages, forms,<br/>themes, plugins, analytics)"]
+        UIpublic["Public Site<br/>([slug] pages, blog,<br/>public forms)"]
+        EDITOR["Block/Page Editor<br/>(dnd-kit canvas)"]
+        FB["Form Builder<br/>(dnd-kit canvas)"]
+    end
+
+    subgraph NEXT["▲ Next.js 15 App Router (server)"]
+        MW["middleware.ts<br/>cookie gate (dbConnection, token)"]
+        subgraph API["API layer — ~106 route.ts handlers"]
+            A_AUTH["/api/auth/*"]
+            A_CONTENT["/api/pages · blogs · authors<br/>categories · tags · comments"]
+            A_FORMS["/api/forms/*"]
+            A_THEMES["/api/themes/*"]
+            A_ANALYTICS["/api/analytics/*"]
+            A_AI["/api/ai/* · forms/ai/*"]
+            A_MENU["/api/menu-redirect/*"]
+        end
+        HELP["src/lib/api/*<br/>(requireAuth, apiOk, pagination)"]
+    end
+
+    subgraph STATE["🔁 Client State — Redux Toolkit + persist"]
+        SL_CANVAS[canvasSlice]
+        SL_FORM[formBuilderSlice]
+        SL_THEME[themeBuilderSlice]
+        SL_MENU[menuRedirectSlice]
+    end
+
+    subgraph DOMAIN["⚙️ Services / Domain logic"]
+        SVC_AUTH["authService<br/>(bcrypt + JWT)"]
+        SVC_FORM["form-builder services<br/>(form, submission,<br/>analytics, email, webhook)"]
+        SVC_THEME["theme services<br/>(loader, validator, cache)"]
+        SVC_GEN["generateStarterWebsite<br/>(AI onboarding)"]
+    end
+
+    subgraph AIEXT["🤖 OpenRouter"]
+        AI["callAI()<br/>gemini-2.5-flash"]
+    end
+
+    subgraph DB["🗄️ MongoDB (Mongoose — 3 DBs)"]
+        DBM[(Master DB)]
+        DBU[(User DB)]
+        DBP[(Page DB)]
+    end
+
+    UIadmin & UIpublic & EDITOR & FB --> MW
+    MW --> API
+    EDITOR <--> SL_CANVAS
+    FB <--> SL_FORM
+    API --> HELP
+    A_AUTH --> SVC_AUTH
+    A_FORMS --> SVC_FORM
+    A_THEMES --> SVC_THEME
+    A_AI & A_FORMS --> AI
+    SVC_GEN --> AI
+    SVC_AUTH --> DBU
+    A_CONTENT & A_FORMS & A_ANALYTICS & A_MENU --> DBP
+    SVC_AUTH -. bootstrap .-> DBM

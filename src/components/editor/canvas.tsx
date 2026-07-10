@@ -184,6 +184,7 @@ export default function Canvas({ canvasBlocks, viewMode }: CanvasProps) {
                 <div className="flex-1">
                   {canvasBlocks.length > 0 ? (
                     <SortableContext
+                      id="root"
                       items={canvasBlocks.map((block) => block.uniqueId || '')}
                       strategy={verticalListSortingStrategy}
                     >

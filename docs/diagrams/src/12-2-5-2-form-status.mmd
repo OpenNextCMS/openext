@@ -1,0 +1,7 @@
+stateDiagram-v2
+    [*] --> draft : create
+    draft --> published : publish (public renderer live)
+    published --> draft : revert to draft
+    published --> archived : archive
+    draft --> archived : archive
+    archived --> draft : restore

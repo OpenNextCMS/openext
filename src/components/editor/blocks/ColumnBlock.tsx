@@ -1,11 +1,11 @@
 'use client';
 
-import { useDraggable } from '@dnd-kit/core';
-import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, Edit2, Trash2, Heart, Plus } from 'lucide-react';
-import type { Block, BlockRendererProps, BlockData } from '@/types/index';
+import { Edit2, Trash2, Heart, Plus } from 'lucide-react';
+import type { BlockRendererProps, BlockData } from '@/types/index';
 import { getIconForBlock } from './icons';
 import { ColumnDropZone } from './ColumnDropZone';
+import { SortableChildren } from './SortableChildren';
+import { zoneContainerId } from '@/utils/blockContainers';
 import RenderBlock from '../renderblock';
 import { useAppDispatch } from '@/redux/hooks';
 import {
@@ -19,47 +19,6 @@ import { useBlockEvents } from '@/hooks/useBlockEvents';
 
 interface Props extends BlockRendererProps {
   isEditing?: boolean;
-}
-
-function DraggableColumnChild({ child }: { child: Block }) {
-  const childDisplay = (child.style?.display as string) || 'block';
-  const isInlineDisplay = childDisplay === 'inline' || childDisplay === 'inline-block';
-  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
-    id: child.uniqueId || '',
-    data: {
-      source: 'existing-block',
-      blockId: child.uniqueId,
-    },
-    disabled: !child.uniqueId,
-  });
-
-  return (
-    <div
-      ref={setNodeRef}
-      className="group/column-child relative"
-      style={{
-        display: isInlineDisplay ? 'inline-block' : 'block',
-        width: isInlineDisplay ? child.style?.width || 'auto' : '100%',
-        minWidth: 0,
-        boxSizing: 'border-box',
-        transform: CSS.Translate.toString(transform),
-        opacity: isDragging ? 0.55 : 1,
-        zIndex: isDragging ? 30 : undefined,
-        verticalAlign: isInlineDisplay ? 'baseline' : undefined,
-      }}
-    >
-      <button
-        type="button"
-        className="absolute left-[-8px] top-2 z-20 hidden h-6 w-6 cursor-grab items-center justify-center rounded-full border bg-background text-muted-foreground shadow-sm hover:text-primary group-hover/column-child:flex active:cursor-grabbing"
-        title="Move block to another column"
-        {...attributes}
-        {...listeners}
-      >
-        <GripVertical className="h-3.5 w-3.5" />
-      </button>
-      <RenderBlock key={child.uniqueId} block={child} isEditing={true} />
-    </div>
-  );
 }
 
 export const ColumnBlock = ({ block, isEditing = false }: Props) => {
@@ -247,27 +206,12 @@ export const ColumnBlock = ({ block, isEditing = false }: Props) => {
               columnIndex={index}
               block={block}
               isEditing={true}
+              isEmpty={!Array.isArray(childBlocks) || childBlocks.length === 0}
             >
-              {Array.isArray(childBlocks) && childBlocks.length > 0 ? (
-                childBlocks.map((child) => (
-                  <DraggableColumnChild key={child.uniqueId} child={child} />
-                ))
-              ) : (
-                <div
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: '#6b7280',
-                    minHeight: '120px',
-                    width: '100%',
-                  }}
-                >
-                  <GripVertical style={{ width: 20, height: 20, marginBottom: '8px' }} />
-                  <p style={{ fontSize: '14px' }}>Drop blocks here</p>
-                </div>
-              )}
+              <SortableChildren
+                containerId={zoneContainerId(block.uniqueId || '', index)}
+                childBlocks={Array.isArray(childBlocks) ? childBlocks : []}
+              />
             </ColumnDropZone>
           </div>
         ))}

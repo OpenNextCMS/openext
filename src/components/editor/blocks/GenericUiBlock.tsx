@@ -6,17 +6,25 @@ import { BlockData, BlockRendererProps } from '@/types/index';
 import { useAppDispatch } from '@/redux/hooks';
 import { removeBlock, setSelectedBlock, setSelectedLabel } from '@/redux/canvasSlice';
 import { useBlockEvents } from '@/hooks/useBlockEvents';
+import { InlineSlot } from './InlineSlot';
 
 interface GenericUiBlockProps extends BlockRendererProps {
   Component: React.ComponentType<BlockRendererProps>;
   label?: string;
 }
 
+// children[] slots reserved by the GenericUiBlock wrapper itself. Slot 0 stacks
+// above the pre-made component, slot 1 below it. A component that wants its own
+// internal drop positions should use slot indices >= 2 (see HeroMain) so they
+// never collide with these.
+const SLOT_ABOVE = 0;
+const SLOT_BELOW = 1;
+
 export const GenericUiBlock = ({ block, isEditing = true, Component, label }: GenericUiBlockProps) => {
   const dispatch = useAppDispatch();
   const [isHovered, setIsHovered] = useState(false);
   const { handleClick } = useBlockEvents(block as BlockData, isEditing);
-  
+
   const blockLabel = label || block.label || 'UI Block';
 
   const handleRemove = (e: React.MouseEvent) => {
@@ -34,7 +42,13 @@ export const GenericUiBlock = ({ block, isEditing = true, Component, label }: Ge
   };
 
   if (!isEditing) {
-    return <Component block={block} isEditing={false} />;
+    return (
+      <>
+        <InlineSlot block={block} slotIndex={SLOT_ABOVE} isEditing={false} />
+        <Component block={block} isEditing={false} />
+        <InlineSlot block={block} slotIndex={SLOT_BELOW} isEditing={false} />
+      </>
+    );
   }
 
   return (
@@ -67,7 +81,15 @@ export const GenericUiBlock = ({ block, isEditing = true, Component, label }: Ge
           isHovered ? 'outline outline-1 outline-blue-500 outline-offset-2' : ''
         }`}
       >
+        {/* Stack blocks above the whole pre-made component. */}
+        <InlineSlot block={block} slotIndex={SLOT_ABOVE} isEditing={true} />
+
+        {/* The pre-made component may expose its own internal InlineSlots
+            (indices >= 2) so blocks can be dropped between its parts. */}
         <Component block={block} isEditing={true} />
+
+        {/* Stack blocks below the whole pre-made component. */}
+        <InlineSlot block={block} slotIndex={SLOT_BELOW} isEditing={true} />
       </div>
     </div>
   );

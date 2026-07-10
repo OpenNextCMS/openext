@@ -3,6 +3,7 @@ import { useAppDispatch } from '@/redux/hooks';
 import { updateBlockContent, setSelectedBlock, setSelectedLabel } from '@/redux/canvasSlice';
 import { InlineEditableText } from '@/components/editor/InlineEditableText';
 import { EditableElement } from '@/components/editor/EditableElement';
+import { InlineSlot } from '@/components/editor/blocks/InlineSlot';
 import type { BlockRendererProps, BlockData } from '@/types/index';
 
 export const ContactUI = ({ block, isEditing = false }: BlockRendererProps) => {
@@ -66,6 +67,7 @@ export const ContactUI = ({ block, isEditing = false }: BlockRendererProps) => {
           className="lg:w-1/3 md:w-1/2 bg-[var(--color-bg,#ffffff)] rounded-lg p-8 flex flex-col md:ml-auto w-full mt-10 md:mt-0 relative z-10 shadow-md"
           baseStyle={{ fontFamily: block.style?.fontFamily }}
         >
+          <InlineSlot block={block} slotIndex={2} isEditing={isEditing} />
           <InlineEditableText
             tagName="h2"
             value={content.title || 'Feedback'}
@@ -87,9 +89,10 @@ export const ContactUI = ({ block, isEditing = false }: BlockRendererProps) => {
             style={{ 
               fontFamily: block.style?.fontFamily,
               color: block.style?.color || 'var(--color-text, #111827)',
-              ...content.descriptionStyle 
+              ...content.descriptionStyle
             }}
           />
+          <InlineSlot block={block} slotIndex={3} isEditing={isEditing} />
           <div className="relative mb-4">
             <InlineEditableText
               tagName="label"
@@ -129,6 +132,7 @@ export const ContactUI = ({ block, isEditing = false }: BlockRendererProps) => {
               className="w-full bg-[var(--color-bg,#ffffff)] rounded border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 h-32 text-base outline-none text-[color:var(--color-muted,#374151)] py-1 px-3 resize-none leading-6 transition-colors duration-200 ease-in-out"
             ></textarea>
           </div>
+          <InlineSlot block={block} slotIndex={4} isEditing={isEditing} />
           <EditableElement
             as="button"
             block={block}
@@ -158,6 +162,7 @@ export const ContactUI = ({ block, isEditing = false }: BlockRendererProps) => {
               ...content.footerStyle
             }}
           />
+          <InlineSlot block={block} slotIndex={5} isEditing={isEditing} />
         </EditableElement>
       </div>
     </section>

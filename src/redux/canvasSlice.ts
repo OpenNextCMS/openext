@@ -1,6 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { v4 as uuidv4 } from 'uuid';
 import { setStyleAtPath } from '@/lib/editor/stylePath';
+import { ROOT_CONTAINER, parseContainerId } from '@/utils/blockContainers';
 
 export interface BlockData {
   id?: string;
@@ -228,6 +229,37 @@ const findBlockById = (blocks: BlockData[], blockId: string): BlockData | null =
   return null;
 };
 
+// Returns the (mutable, immer-draft) array of blocks that a container id points
+// to: the root canvas array, or a specific slot inside another block. Missing
+// child slots are created so a block can always be dropped into an empty zone.
+const getContainerArray = (state: CanvasState, containerId: string): BlockData[] | null => {
+  if (containerId === ROOT_CONTAINER) return state.blocks;
+
+  const parsed = parseContainerId(containerId);
+  if (!parsed) return null;
+
+  const block = findBlockById(state.blocks, parsed.blockId);
+  if (!block) return null;
+
+  if (!block.children) block.children = [];
+  while (block.children.length <= parsed.columnIndex) block.children.push([]);
+
+  return block.children[parsed.columnIndex];
+};
+
+// True if `id` belongs to `block` or any of its descendants. Used to stop a
+// block from being dropped into itself (which would detach part of the tree).
+const blockContainsId = (block: BlockData, id: string): boolean => {
+  if (!block.children) return false;
+  for (const column of block.children) {
+    for (const child of column) {
+      if (child.uniqueId === id) return true;
+      if (blockContainsId(child, id)) return true;
+    }
+  }
+  return false;
+};
+
 const normalizeBlockTreeIds = (
   blocks: BlockData[] = [],
   usedIds = new Set<string>()
@@ -446,6 +478,61 @@ const canvasSlice = createSlice({
       if (!removedBlock) return;
 
       state.blocks = appendBlockToColumn(blocks, targetBlockId, columnIndex, removedBlock);
+    },
+    // Unified precise placement: move an existing block, or insert a brand-new
+    // one, into any container (root or a nested zone) at an exact index. This
+    // powers precise drag-to-reorder everywhere. `targetIndex === null` appends.
+    placeBlockAt: (
+      state,
+      action: PayloadAction<{
+        targetContainerId: string;
+        targetIndex: number | null;
+        source?: { containerId: string; activeId: string } | null;
+        newBlock?: Omit<BlockData, 'uniqueId'> | null;
+      }>
+    ) => {
+      const { targetContainerId, targetIndex, source, newBlock } = action.payload;
+
+      const parsedTarget = parseContainerId(targetContainerId);
+      const targetBlockId = parsedTarget?.blockId ?? null;
+
+      let moved: BlockData | undefined;
+
+      if (source) {
+        const src = getContainerArray(state, source.containerId);
+        if (!src) return;
+
+        const sourceIndex = src.findIndex((b) => b.uniqueId === source.activeId);
+        if (sourceIndex === -1) return;
+
+        const candidate = src[sourceIndex];
+
+        // Never drop a block into itself or one of its own descendants.
+        if (
+          targetBlockId &&
+          (targetBlockId === candidate.uniqueId || blockContainsId(candidate, targetBlockId))
+        ) {
+          return;
+        }
+
+        // No-op guard: dropping onto its own current position.
+        if (source.containerId === targetContainerId && targetIndex === sourceIndex) return;
+
+        pushCanvasHistory(state);
+        [moved] = src.splice(sourceIndex, 1);
+      } else if (newBlock) {
+        pushCanvasHistory(state);
+        moved = { ...newBlock, style: newBlock.style || {}, uniqueId: uuidv4() } as BlockData;
+      }
+
+      if (!moved) return;
+
+      const target = getContainerArray(state, targetContainerId);
+      if (!target) return;
+
+      const insertAt =
+        targetIndex === null || targetIndex > target.length ? target.length : targetIndex;
+      target.splice(insertAt, 0, moved);
     },
     moveRowColumn: (
       state,
@@ -869,6 +956,7 @@ export const {
   moveBlockToColumn,
   moveRowColumn,
   moveBlock,
+  placeBlockAt,
   insertColumn,
   removeColumn,
   setViewMode,

@@ -5,6 +5,7 @@ import { useAppDispatch } from '@/redux/hooks';
 import { updateBlockContent } from '@/redux/canvasSlice';
 import { InlineEditableText } from '@/components/editor/InlineEditableText';
 import { EditableElement } from '@/components/editor/EditableElement';
+import { InlineSlot } from '@/components/editor/blocks/InlineSlot';
 import type { BlockRendererProps } from '@/types/index';
 import type { BlockContentItem } from '@/types/blockContent';
 
@@ -49,7 +50,9 @@ export const StatisticsMain = ({ block, isEditing = false }: BlockRendererProps)
   return (
     <section className="text-[color:var(--color-muted,#4b5563)] body-font w-full" style={block.style}>
       <div className="container px-5 py-24 mx-auto">
+        <InlineSlot block={block} slotIndex={2} isEditing={isEditing} />
         <div className="flex flex-wrap -m-4 text-center">
+          <InlineSlot block={block} slotIndex={3} isEditing={isEditing} />
           {stats.map((stat: BlockContentItem, index: number) => (
             <EditableElement
               key={index}
@@ -84,7 +87,9 @@ export const StatisticsMain = ({ block, isEditing = false }: BlockRendererProps)
               />
             </EditableElement>
           ))}
+          <InlineSlot block={block} slotIndex={4} isEditing={isEditing} />
         </div>
+        <InlineSlot block={block} slotIndex={5} isEditing={isEditing} />
       </div>
     </section>
   );

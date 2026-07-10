@@ -24,9 +24,11 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { InlineSlot } from '@/components/editor/blocks/InlineSlot';
+import type { Block } from '@/types/index';
 
 interface BlogFeedProps {
-  block: { content?: string | Record<string, unknown> };
+  block: Block;
   isEditing?: boolean;
 }
 
@@ -185,6 +187,7 @@ export function BlogFeed({ block, isEditing = false }: BlogFeedProps) {
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 py-16 font-sans antialiased">
+      <InlineSlot block={block} slotIndex={2} isEditing={isEditing} />
       {/* Navigation Header */}
       <div className="mb-16 space-y-10">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 border-b pb-8 sticky top-0 bg-background/80 backdrop-blur-xl z-20 pt-4">
@@ -227,8 +230,9 @@ export function BlogFeed({ block, isEditing = false }: BlogFeedProps) {
         </div>
       </div>
 
+      <InlineSlot block={block} slotIndex={3} isEditing={isEditing} />
       {/* Blog Feed Grid */}
-      <motion.div 
+      <motion.div
         layout
         className={cn(
           "gap-x-8 gap-y-12 grid",
@@ -298,6 +302,7 @@ export function BlogFeed({ block, isEditing = false }: BlogFeedProps) {
         </AnimatePresence>
       </motion.div>
 
+      <InlineSlot block={block} slotIndex={4} isEditing={isEditing} />
       {/* Pagination / Infinite Scroll */}
       <div className="mt-24 border-t pt-12">
         {totalPages > 1 && paginationType === 'pagination' && (
@@ -385,6 +390,7 @@ export function BlogFeed({ block, isEditing = false }: BlogFeedProps) {
           </div>
         )}
       </div>
+      <InlineSlot block={block} slotIndex={5} isEditing={isEditing} />
     </div>
   );
 }
