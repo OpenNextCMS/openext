@@ -44,6 +44,18 @@ RAW_OUT = DATA_DIR / "raw" / "raw_pairs.jsonl"
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 DEFAULT_MODEL = "google/gemini-2.0-flash-001"
 
+# Groq is OpenAI-compatible; free tier + fast. Used when GROQ_API_KEY is present
+# (the key already in this repo's .env). 70b gives the best rule adherence; switch
+# to llama-3.1-8b-instant via --model if you hit the free daily token limit.
+GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
+DEFAULT_GROQ_MODEL = "llama-3.3-70b-versatile"
+
+# provider -> (endpoint url, env var holding the key, default model, env var for model override)
+PROVIDERS = {
+    "openrouter": (OPENROUTER_URL, "OPENROUTER_API_KEY", DEFAULT_MODEL, "OPENROUTER_MODEL"),
+    "groq": (GROQ_URL, "GROQ_API_KEY", DEFAULT_GROQ_MODEL, "GROQ_MODEL"),
+}
+
 
 def _load_dotenv() -> None:
     """Best-effort: populate os.environ from the repo .env without a hard dep."""
@@ -93,17 +105,23 @@ def build_system_prompt() -> str:
 
 
 def build_user_prompt(brief: dict) -> str:
+    page_line = ""
+    if brief.get("pageName"):
+        page_line = f"meta.pageName = {brief['pageName']}  (this is a {brief.get('pageType', 'home')} page)\n"
     return (
         f"Brief: {brief['brief']}\n"
         f"meta.websiteType = {brief['websiteType']}\n"
         f"meta.style = {brief['style']}\n"
         f"meta.complexity = {brief['complexity']}\n"
         f"meta.location = {brief.get('location') or ''}\n"
+        f"{page_line}"
         "Return the minified LayoutPlan JSON now."
     )
 
 
-def call_openrouter(session, api_key: str, model: str, brief: dict) -> dict | None:
+def call_chat(session, url: str, api_key: str, model: str, brief: dict,
+              json_mode: bool = False) -> dict | None:
+    """Provider-agnostic OpenAI-compatible chat call (OpenRouter or Groq)."""
     payload = {
         "model": model,
         "temperature": 0.7,
@@ -112,12 +130,16 @@ def call_openrouter(session, api_key: str, model: str, brief: dict) -> dict | No
             {"role": "user", "content": build_user_prompt(brief)},
         ],
     }
+    # json_object mode (Groq / OpenAI) forces a syntactically valid JSON object,
+    # sharply raising the parseable-yield. The system prompt already says "JSON".
+    if json_mode:
+        payload["response_format"] = {"type": "json_object"}
     headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
-    for attempt in range(3):
+    for attempt in range(4):
         try:
-            resp = session.post(OPENROUTER_URL, headers=headers, json=payload, timeout=90)
+            resp = session.post(url, headers=headers, json=payload, timeout=90)
             if resp.status_code == 429:
-                time.sleep(2 * (attempt + 1))
+                time.sleep(3 * (attempt + 1))
                 continue
             resp.raise_for_status()
             text = resp.json()["choices"][0]["message"]["content"]
@@ -148,22 +170,42 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="Generate structure-only LayoutPlan targets via OpenRouter.")
     ap.add_argument("--briefs", default=str(BRIEFS))
     ap.add_argument("--out", default=str(RAW_OUT))
+    ap.add_argument("--provider", choices=list(PROVIDERS), default=None,
+                    help="LLM provider (default: auto — groq if GROQ_API_KEY, else openrouter)")
     ap.add_argument("--model", default=None,
-                    help="OpenRouter model id (default: $OPENROUTER_MODEL from .env, else built-in)")
+                    help="model id (default: provider default or its $*_MODEL env override)")
     ap.add_argument("--limit", type=int, default=0, help="cap number of NEW briefs this run (0 = all)")
     args = ap.parse_args(argv)
 
-    # load .env FIRST so OPENROUTER_MODEL / _API_KEY are visible before we resolve them
+    # load .env FIRST so *_MODEL / *_API_KEY are visible before we resolve them
     _load_dotenv()
-    model = args.model or os.environ.get("OPENROUTER_MODEL", DEFAULT_MODEL)
-    api_key = os.environ.get("OPENROUTER_API_KEY", "").strip()
+
+    # Resolve provider: explicit flag > auto-detect (prefer whichever key exists).
+    provider = args.provider
+    if provider is None:
+        if os.environ.get("GROQ_API_KEY", "").strip():
+            provider = "groq"
+        elif os.environ.get("OPENROUTER_API_KEY", "").strip():
+            provider = "openrouter"
+        else:
+            print(
+                "BLOCKED: no LLM key found. Set GROQ_API_KEY (recommended — free) or\n"
+                "OPENROUTER_API_KEY in .env, then re-run. This script made no API calls.",
+                file=sys.stderr,
+            )
+            return 2
+
+    url, key_env, default_model, model_env = PROVIDERS[provider]
+    api_key = os.environ.get(key_env, "").strip()
     if not api_key:
         print(
-            "BLOCKED: OPENROUTER_API_KEY is not set (checked environment and repo .env).\n"
+            f"BLOCKED: {key_env} is not set (provider={provider}; checked env and repo .env).\n"
             "Add it to .env, then re-run. This script made no API calls.",
             file=sys.stderr,
         )
         return 2
+    model = args.model or os.environ.get(model_env, default_model)
+    json_mode = provider == "groq"  # Groq reliably supports response_format json_object
 
     try:
         import requests  # type: ignore
@@ -184,13 +226,14 @@ def main(argv: list[str] | None = None) -> int:
     if args.limit:
         todo = todo[:args.limit]
 
-    print(f"briefs: {len(briefs)}  done: {len(done)}  this run: {len(todo)}  model: {model}")
+    print(f"briefs: {len(briefs)}  done: {len(done)}  this run: {len(todo)}  "
+          f"provider: {provider}  model: {model}")
 
     session = requests.Session()
     ok = fail = 0
     with out.open("a", encoding="utf-8") as fout:
         for i, brief in enumerate(todo, 1):
-            plan = call_openrouter(session, api_key, model, brief)
+            plan = call_chat(session, url, api_key, model, brief, json_mode=json_mode)
             if plan is None:
                 fail += 1
                 print(f"[{i}/{len(todo)}] {brief['id']} FAILED (no parseable JSON)")

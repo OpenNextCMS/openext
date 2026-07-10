@@ -12,6 +12,9 @@ const PluginSchema = new Schema<IPluginDocument>(
     isActive: { type: Boolean, default: false },
     icon: { type: String },
     entryPoint: { type: String },
+    customElement: { type: String },
+    styles: { type: [String], default: [] },
+    source: { type: String, enum: ['uploaded', 'marketplace', 'builtin'], default: 'marketplace' },
     hasUpdate: { type: Boolean, default: false },
   },
   { timestamps: true }

@@ -1,10 +1,11 @@
-﻿'use client';
+'use client';
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { pluginRegistry } from '@/lib/pluginRegistry';
 import * as Library from '@/components/plugins/PluginComponents';
 import { ContactUI } from '@/components/ui/ContactUI';
 import { sliderDefaultContentString } from '@/components/plugins/sliderSchema';
+import { ExternalPluginBlock } from '@/components/plugins/ExternalPluginBlock';
 
 interface PluginRecord {
   pluginId: string;
@@ -13,6 +14,10 @@ interface PluginRecord {
   icon?: string;
   type?: string;
   isActive?: boolean;
+  entryPoint?: string;
+  customElement?: string;
+  styles?: string[];
+  source?: string;
 }
 
 interface PluginContextType {
@@ -40,10 +45,9 @@ export const PluginProvider = ({ children }: { children: ReactNode }) => {
         pluginRegistry.clear();
 
         for (const plugin of activeOnes as PluginRecord[]) {
-          // Determine which component to use from our Library
-          let Component: React.ComponentType<Record<string, unknown>> = Library.GenericPlugin as unknown as React.ComponentType<Record<string, unknown>>;
+          const isUploadedPlugin =
+            plugin.source === 'uploaded' || plugin.entryPoint?.startsWith('/plugins/');
 
-          // Map by type (for marketplace installs) or by name (for existing ones)
           const pluginType = (plugin.type || '').toLowerCase();
           const pluginName = plugin.name.toLowerCase();
           const isSliderPlugin =
@@ -69,7 +73,11 @@ export const PluginProvider = ({ children }: { children: ReactNode }) => {
             (pluginName.includes('form') && pluginName.includes('builder'));
           if (isFormBuilder) continue;
 
-          if (
+          let Component: React.ComponentType<Record<string, unknown>> = Library.GenericPlugin as unknown as React.ComponentType<Record<string, unknown>>;
+
+          if (isUploadedPlugin) {
+            Component = ExternalPluginBlock as unknown as React.ComponentType<Record<string, unknown>>;
+          } else if (
             pluginType === 'chart' ||
             pluginName.includes('visualizer') ||
             pluginName.includes('analytics')

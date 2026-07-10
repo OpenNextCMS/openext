@@ -472,7 +472,10 @@ export interface IPlugin {
   type?: string;
   isActive: boolean;
   icon: string;
-  entryPoint?: string; // Path to the JS/TS file for execution
+  entryPoint?: string;
+  customElement?: string;
+  styles?: string[];
+  source?: 'uploaded' | 'marketplace' | 'builtin';
   hasUpdate?: boolean;
 }
 

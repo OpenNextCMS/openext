@@ -23,8 +23,8 @@ type AiSettingsForm = {
 
 const defaultForm: AiSettingsForm = {
   openrouterApiKey: '',
-  openrouterModel: 'google/gemini-2.0-flash-001',
-  openrouterReviewModel: 'google/gemini-2.0-flash-001',
+  openrouterModel: 'google/gemini-2.5-flash',
+  openrouterReviewModel: 'google/gemini-2.5-flash-lite',
   aiMinQualityScore: 80,
 };
 

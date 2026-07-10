@@ -44,8 +44,8 @@ const settingsSchema = new mongoose.Schema(
     ],
     aiConfig: {
       openrouterApiKey: String,
-      openrouterModel: { type: String, default: 'google/gemini-2.0-flash-001' },
-      openrouterReviewModel: { type: String, default: 'google/gemini-2.0-flash-001' },
+      openrouterModel: { type: String, default: 'google/gemini-2.5-flash' },
+      openrouterReviewModel: { type: String, default: 'google/gemini-2.5-flash-lite' },
       aiMinQualityScore: { type: Number, default: 80 },
     },
   },

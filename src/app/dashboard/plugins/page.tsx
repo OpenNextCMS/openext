@@ -654,7 +654,7 @@ export default function PluginManagementPage() {
                     Plugin Upload
                   </CardTitle>
                   <CardDescription>
-                    Upload a .zip file containing your custom plugin
+                    Upload a .zip file containing manifest.json, your plugin assets, and an entry script.
                   </CardDescription>
                 </CardHeader>
 
@@ -840,11 +840,18 @@ export default function PluginManagementPage() {
                       ))}
                     </ul>
 
-                    <div className="pt-4">
+                    <div className="pt-4 space-y-3">
                       <p className="text-sm font-medium">
-                        Plugins are securely sandboxed and reviewed for safety before being added to
-                        the marketplace.
+                        Your zip must include a root-level <code className="text-xs bg-muted px-1 py-0.5 rounded">manifest.json</code> with at least <code className="text-xs bg-muted px-1 py-0.5 rounded">name</code> and <code className="text-xs bg-muted px-1 py-0.5 rounded">version</code>, plus the files referenced by <code className="text-xs bg-muted px-1 py-0.5 rounded">entryPoint</code>.
                       </p>
+                      <pre className="text-xs bg-background/80 border rounded-lg p-3 overflow-x-auto">{`{
+  "id": "my-plugin",
+  "name": "My Plugin",
+  "version": "1.0.0",
+  "entryPoint": "index.js",
+  "styles": ["styles.css"],
+  "customElement": "my-plugin-block"
+}`}</pre>
                     </div>
                   </div>
                 </CardContent>

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUserDbConnection, getPluginModel } from '@/utils/db';
+import { removePluginDirectory } from '@/lib/plugins/storage';
 
 export async function DELETE(req: NextRequest) {
   try {
@@ -17,6 +18,10 @@ export async function DELETE(req: NextRequest) {
 
     if (!deletedPlugin) {
       return NextResponse.json({ message: 'Plugin not found' }, { status: 404 });
+    }
+
+    if (deletedPlugin.source === 'uploaded' || deletedPlugin.entryPoint?.startsWith('/plugins/')) {
+      await removePluginDirectory(pluginId);
     }
 
     return NextResponse.json({ message: 'Plugin removed successfully' }, { status: 200 });
