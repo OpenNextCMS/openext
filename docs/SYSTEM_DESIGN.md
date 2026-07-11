@@ -17,6 +17,13 @@
    - [2.5 State-transition diagrams](#25-state-transition-diagrams)
 3. [Forms Design](#3-forms-design)
 4. [Reports Design](#4-reports-design)
+5. [Data Flow Diagrams (DFD)](#5-data-flow-diagrams-dfd)
+   - [5.1 Level 0 — Context diagram](#51-level-0--context-diagram)
+   - [5.2 Level 1 — Major processes](#52-level-1--major-processes)
+   - [5.3 Level 2 — Form submission processing](#53-level-2--form-submission-processing)
+6. [Use-Case & Component Views](#6-use-case--component-views)
+   - [6.1 Use-case diagram](#61-use-case-diagram)
+   - [6.2 Component diagram](#62-component-diagram)
 
 ---
 
@@ -777,6 +784,378 @@ flowchart LR
     Ev --> S1 --> D1
     FA --> S2 --> D2
     MA --> S3 --> D3
+```
+
+---
+
+# 5. Data Flow Diagrams (DFD)
+
+Classic DeMarco-style DFD notation, rendered with Mermaid:
+
+- **Rounded box** = *process* (transforms data), numbered `n.0`
+- **Rectangle** = *external entity* (source/sink outside the system)
+- **Cylinder** = *data store* (`Dn`)
+- **Labeled arrow** = *data flow*
+
+## 5.1 Level 0 — Context diagram
+
+The whole CMS as a single process, showing every external actor and the data that crosses the system boundary.
+
+```mermaid
+flowchart TB
+    ADMIN["👤 Admin / Editor"]:::ext
+    VISITOR["🌐 Site Visitor"]:::ext
+    AI["🤖 OpenRouter AI"]:::ext
+    HOOK["🔗 3rd-party Webhook"]:::ext
+    MAIL["✉️ Email Recipient"]:::ext
+
+    SYS((("0<br/>OpenExtCMS"))):::proc
+
+    ADMIN -->|"credentials, content,<br/>form &amp; theme config"| SYS
+    SYS -->|"dashboards, reports,<br/>editor state"| ADMIN
+    VISITOR -->|"page requests, form submissions,<br/>analytics events, comments"| SYS
+    SYS -->|"rendered pages &amp; forms,<br/>confirmations"| VISITOR
+    SYS -->|"prompts"| AI
+    AI -->|"generated content / JSON"| SYS
+    SYS -->|"submission payload"| HOOK
+    HOOK -->|"delivery status"| SYS
+    SYS -->|"notification emails"| MAIL
+
+    classDef ext fill:#e8eaf6,stroke:#3949ab,color:#1a237e;
+    classDef proc fill:#c8e6c9,stroke:#2e7d32,color:#1b5e20;
+```
+
+## 5.2 Level 1 — Major processes
+
+The system decomposed into its eight major processes, the eight data stores they read/write, and the flows between them and the external entities.
+
+```mermaid
+flowchart LR
+    %% ---- external entities ----
+    ADMIN["👤 Admin / Editor"]:::ext
+    VISITOR["🌐 Site Visitor"]:::ext
+    AI["🤖 OpenRouter AI"]:::ext
+    HOOK["🔗 Webhook"]:::ext
+    MAIL["✉️ Email"]:::ext
+
+    %% ---- processes ----
+    P1(["1.0 Authentication<br/>&amp; Authorization"]):::proc
+    P2(["2.0 Content<br/>Management"]):::proc
+    P3(["3.0 Form Builder<br/>&amp; Management"]):::proc
+    P4(["4.0 Submission<br/>Processing"]):::proc
+    P5(["5.0 Analytics<br/>&amp; Reporting"]):::proc
+    P6(["6.0 Theme &amp; Plugin<br/>Management"]):::proc
+    P7(["7.0 AI Generation"]):::proc
+    P8(["8.0 Onboarding /<br/>Site Generation"]):::proc
+
+    %% ---- data stores ----
+    D1[("D1 Users / Roles / Settings")]:::store
+    D2[("D2 Pages &amp; Blog")]:::store
+    D3[("D3 Forms &amp; Versions")]:::store
+    D4[("D4 Form Submissions")]:::store
+    D5[("D5 Analytics Events")]:::store
+    D6[("D6 Themes / Layouts")]:::store
+    D7[("D7 Master Registry")]:::store
+    D8[("D8 Website Preferences")]:::store
+
+    %% ---- auth ----
+    ADMIN -->|credentials| P1
+    P1 -->|JWT cookie| ADMIN
+    P1 <-->|user records| D1
+    P1 -.->|bootstrap DBs| D7
+
+    %% ---- content ----
+    ADMIN -->|page / blog content| P2
+    P2 <-->|CRUD block-tree| D2
+    P2 -->|published pages| VISITOR
+    VISITOR -->|comments| P2
+
+    %% ---- forms ----
+    ADMIN -->|form definition| P3
+    P3 <-->|forms &amp; snapshots| D3
+    P3 -->|rendered form| VISITOR
+
+    %% ---- submissions ----
+    VISITOR -->|submission data| P4
+    P4 -->|store submission| D4
+    P4 -->|completions++| D3
+    P4 -->|payload| HOOK
+    HOOK -->|status| P4
+    P4 -->|notifications| MAIL
+    P4 -->|confirmation| VISITOR
+
+    %% ---- analytics ----
+    VISITOR -->|view / read / search| P5
+    P5 <-->|events| D5
+    P5 -->|read form metrics| D3
+    P5 -->|reports / dashboards| ADMIN
+
+    %% ---- themes / plugins ----
+    ADMIN -->|theme / plugin config| P6
+    P6 <-->|themes / layouts| D6
+    P6 <-->|plugin records| D1
+
+    %% ---- AI ----
+    P2 -->|content prompt| P7
+    P3 -->|form prompt| P7
+    P7 <-->|completions| AI
+    P7 -->|generated content| P2
+
+    %% ---- onboarding ----
+    ADMIN -->|business profile| P8
+    P8 <-->|preferences / draft| D8
+    P8 -->|site prompt| P7
+    P8 -->|starter pages| D2
+
+    classDef ext fill:#e8eaf6,stroke:#3949ab,color:#1a237e;
+    classDef proc fill:#c8e6c9,stroke:#2e7d32,color:#1b5e20;
+    classDef store fill:#fff3e0,stroke:#ef6c00,color:#e65100;
+```
+
+## 5.3 Level 2 — Form submission processing
+
+Explosion of process **4.0**, showing the spam guard, persistence, analytics update, and the asynchronous webhook + email side-effects.
+
+```mermaid
+flowchart TB
+    VISITOR["🌐 Site Visitor"]:::ext
+    HOOK["🔗 Webhook"]:::ext
+    MAIL["✉️ Email"]:::ext
+
+    P41(["4.1 Validate &amp;<br/>Spam Check"]):::proc
+    P42(["4.2 Persist<br/>Submission"]):::proc
+    P43(["4.3 Update<br/>Analytics"]):::proc
+    P44(["4.4 Dispatch<br/>Webhook"]):::proc
+    P45(["4.5 Send Email<br/>Notifications"]):::proc
+
+    D3[("D3 Forms")]:::store
+    D4[("D4 Submissions")]:::store
+
+    VISITOR -->|"form data + honeypot / Turnstile"| P41
+    D3 -->|"field defs, spam &amp; webhook settings"| P41
+    P41 -->|"reject (429 / 400)"| VISITOR
+    P41 -->|"clean data"| P42
+    P42 -->|"insert (webhookStatus=pending)"| D4
+    P42 -->|"success message / redirect"| VISITOR
+    P42 --> P43
+    P43 -->|"completions++"| D3
+    P42 --> P44
+    P44 -->|"payload"| HOOK
+    HOOK -->|"2xx / err → webhookStatus"| D4
+    P42 --> P45
+    P45 -->|"admin + user mail"| MAIL
+
+    classDef ext fill:#e8eaf6,stroke:#3949ab,color:#1a237e;
+    classDef proc fill:#c8e6c9,stroke:#2e7d32,color:#1b5e20;
+    classDef store fill:#fff3e0,stroke:#ef6c00,color:#e65100;
+```
+
+---
+
+# 6. Use-Case & Component Views
+
+Two supplementary UML views: the **use-case diagram** captures *who* can do *what* (actor roles vs. system functions), and the **component diagram** captures *how the code is assembled* (deployable units and the interfaces between them).
+
+## 6.1 Use-case diagram
+
+Four administrative roles form a **generalization hierarchy** — `SuperAdmin ▸ Admin ▸ Editor ▸ Author` — where each higher role inherits every use case of the roles below it (dashed *inherits* links). The **Site Visitor** is an unauthenticated actor; **OpenRouter AI** and the **cron scheduler** are secondary (system) actors. `«include»` / `«extend»` mark the AI-generation relationships.
+
+```mermaid
+flowchart LR
+    %% ---- actors ----
+    SA["👑 SuperAdmin"]:::actor
+    AD["🛡️ Admin"]:::actor
+    ED["✏️ Editor"]:::actor
+    AU["🖊️ Author"]:::actor
+    VIS["🌐 Site Visitor"]:::actor
+    AIA["🤖 OpenRouter AI"]:::sys
+    CRON["⏰ Scheduler (cron)"]:::sys
+
+    %% ---- role generalization (higher role inherits lower's use cases) ----
+    SA -.->|inherits| AD
+    AD -.->|inherits| ED
+    ED -.->|inherits| AU
+
+    subgraph SYS["🗄️ OpenExtCMS"]
+        direction TB
+        subgraph AUTHG["Access &amp; onboarding"]
+            U1(["Log in (JWT)"])
+            U2(["Manage sub-users &amp; roles"])
+            U3(["Complete AI onboarding"])
+        end
+        subgraph CONTENTG["Content"]
+            U4(["Edit pages (block editor)"])
+            U5(["Write blog posts"])
+            U6(["Publish / schedule content"])
+            U7(["Moderate comments"])
+        end
+        subgraph FORMG["Forms"]
+            U8(["Build form (drag &amp; drop)"])
+            U9(["Configure form settings"])
+            U10(["Version / restore form"])
+        end
+        subgraph SITEG["Site &amp; design"]
+            U12(["Manage themes &amp; layouts"])
+            U13(["Manage plugins"])
+            U14(["Configure menu redirects"])
+        end
+        subgraph REPORTG["Analytics &amp; reports"]
+            U15(["View blog analytics"])
+            U16(["View form analytics"])
+            U17(["View menu-redirect analytics"])
+        end
+        subgraph PUBG["Public"]
+            U18(["Browse site / read blog"])
+            U19(["Post comment"])
+            U11(["Submit form"])
+        end
+        UAI(["Generate content with AI"])
+    end
+
+    %% ---- Author (base content role) ----
+    AU --- U1
+    AU --- U4
+    AU --- U5
+    %% ---- Editor ----
+    ED --- U6
+    ED --- U7
+    ED --- U8
+    ED --- U9
+    ED --- U10
+    %% ---- Admin ----
+    AD --- U2
+    AD --- U3
+    AD --- U12
+    AD --- U13
+    AD --- U14
+    AD --- U15
+    AD --- U16
+    AD --- U17
+    %% ---- Site Visitor ----
+    VIS --- U18
+    VIS --- U19
+    VIS --- U11
+
+    %% ---- include / extend + secondary actors ----
+    U3 -.->|«include»| UAI
+    UAI -.->|«extend»| U5
+    UAI -.->|«extend»| U8
+    AIA --- UAI
+    CRON -.->|«triggers»| U6
+
+    classDef actor fill:#e8eaf6,stroke:#3949ab,color:#1a237e;
+    classDef sys fill:#fff3e0,stroke:#ef6c00,color:#e65100;
+```
+
+> **RBAC note** — this is the *intended* role model (`Role`: SuperAdmin=0, Admin=1, Editor=2, Author=3 seeded in `src/utils/db.ts`). Enforcement is partial today (see Appendix); the form-builder plugin uses its own `Owner/Admin/Editor/Viewer` scope (`useFormPermissions`).
+
+## 6.2 Component diagram
+
+Deployable/logical components grouped by tier, with the **provided/required interfaces** on each connector (HTTPS/JSON at the edge, Mongoose driver / REST / SMTP / HTTP POST at the external boundary). The Redux store is a client-side component; `utils/db.ts` is the single connection broker to all three MongoDB databases.
+
+```mermaid
+flowchart TB
+    subgraph CLIENT["🌐 Client components"]
+        direction LR
+        C_ADMIN["«component»<br/>Admin Dashboard"]
+        C_PUB["«component»<br/>Public Site Renderer"]
+        C_EDIT["«component»<br/>Block / Page Editor"]
+        C_FB["«component»<br/>Form Builder"]
+        C_FR["«component»<br/>Form Renderer"]
+    end
+
+    subgraph STORE["🔁 Redux Toolkit store (redux-persist)"]
+        direction LR
+        S1["canvasSlice"]
+        S2["formBuilderSlice"]
+        S3["formSubmissionSlice"]
+        S4["formAnalyticsSlice"]
+        S5["themeBuilderSlice"]
+        S6["menuRedirectSlice"]
+    end
+
+    subgraph SERVER["▲ Next.js 15 server"]
+        MW["«component»<br/>middleware.ts<br/>(cookie gate)"]
+        subgraph APIG["«component» API route handlers"]
+            direction LR
+            A1["/api/auth"]
+            A2["/api/pages · blogs<br/>authors · categories<br/>tags · comments"]
+            A3["/api/forms/*"]
+            A4["/api/themes · layouts"]
+            A5["/api/analytics"]
+            A6["/api/ai · forms/ai"]
+            A7["/api/menu-redirect"]
+            A8["/api/onboarding"]
+            A9["/api/sub-users"]
+        end
+        HELP["«component»<br/>lib/api<br/>requireAuth · response<br/>pagination · errors"]
+    end
+
+    subgraph DOMAIN["⚙️ Domain / service components"]
+        direction LR
+        SVCA["«component»<br/>authService<br/>(bcrypt + JWT)"]
+        SVCF["«component»<br/>form-builder services<br/>form · submission · analytics<br/>webhook · email"]
+        SVCT["«component»<br/>theme services<br/>loader · validator · cache"]
+        SVCAI["«component»<br/>AI provider<br/>callAI()"]
+        SVCG["«component»<br/>generateStarterWebsite"]
+        SVCM["«component»<br/>menu-redirect<br/>matcher · lifecycle · history"]
+        SVCP["«component»<br/>plugins<br/>extract · manifest · storage"]
+    end
+
+    subgraph DATA["🗃️ Data access"]
+        direction LR
+        MODELS["«component»<br/>Mongoose models (22)"]
+        DBMGR["«component»<br/>utils/db.ts<br/>3-connection manager"]
+    end
+
+    subgraph EXT["🔌 External systems"]
+        direction LR
+        EDB[("MongoDB<br/>Master · User · Page")]
+        EAI["OpenRouter API"]
+        EMAIL["SMTP / Email"]
+        EHOOK["3rd-party Webhook"]
+        ETS["Cloudflare Turnstile"]
+    end
+
+    %% ---- client → server ----
+    C_ADMIN & C_PUB & C_EDIT & C_FB & C_FR -->|HTTPS / JSON| MW
+    C_EDIT <--> S1
+    C_FB <--> S2
+    C_FR <--> S3
+    C_FB <--> S4
+    C_EDIT <--> S5
+    C_ADMIN <--> S6
+
+    %% ---- routing → services ----
+    MW --> APIG
+    APIG -->|uses| HELP
+    A1 --> SVCA
+    A3 & A6 --> SVCF
+    A4 --> SVCT
+    A6 --> SVCAI
+    A8 --> SVCG
+    A7 --> SVCM
+    A2 -->|plugin mgmt| SVCP
+    SVCF --> SVCAI
+    SVCG --> SVCAI
+    HELP --> SVCA
+
+    %% ---- services → data ----
+    SVCA & SVCF & SVCT & SVCM & SVCP & SVCG --> MODELS
+    A2 & A5 --> MODELS
+    MODELS --> DBMGR
+
+    %% ---- required external interfaces ----
+    DBMGR -->|Mongoose driver| EDB
+    SVCAI -->|REST| EAI
+    SVCF -->|SMTP| EMAIL
+    SVCF -->|HTTP POST| EHOOK
+    C_FR -.->|verify token| ETS
+
+    classDef comp fill:#e3f2fd,stroke:#1565c0,color:#0d47a1;
+    classDef ext fill:#fff3e0,stroke:#ef6c00,color:#e65100;
+    class C_ADMIN,C_PUB,C_EDIT,C_FB,C_FR,MW,HELP,SVCA,SVCF,SVCT,SVCAI,SVCG,SVCM,SVCP,MODELS,DBMGR comp;
+    class EDB,EAI,EMAIL,EHOOK,ETS ext;
 ```
 
 ---

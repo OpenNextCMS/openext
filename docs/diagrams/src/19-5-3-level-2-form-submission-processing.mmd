@@ -1,0 +1,31 @@
+flowchart TB
+    VISITOR["🌐 Site Visitor"]:::ext
+    HOOK["🔗 Webhook"]:::ext
+    MAIL["✉️ Email"]:::ext
+
+    P41(["4.1 Validate &amp;<br/>Spam Check"]):::proc
+    P42(["4.2 Persist<br/>Submission"]):::proc
+    P43(["4.3 Update<br/>Analytics"]):::proc
+    P44(["4.4 Dispatch<br/>Webhook"]):::proc
+    P45(["4.5 Send Email<br/>Notifications"]):::proc
+
+    D3[("D3 Forms")]:::store
+    D4[("D4 Submissions")]:::store
+
+    VISITOR -->|"form data + honeypot / Turnstile"| P41
+    D3 -->|"field defs, spam &amp; webhook settings"| P41
+    P41 -->|"reject (429 / 400)"| VISITOR
+    P41 -->|"clean data"| P42
+    P42 -->|"insert (webhookStatus=pending)"| D4
+    P42 -->|"success message / redirect"| VISITOR
+    P42 --> P43
+    P43 -->|"completions++"| D3
+    P42 --> P44
+    P44 -->|"payload"| HOOK
+    HOOK -->|"2xx / err → webhookStatus"| D4
+    P42 --> P45
+    P45 -->|"admin + user mail"| MAIL
+
+    classDef ext fill:#e8eaf6,stroke:#3949ab,color:#1a237e;
+    classDef proc fill:#c8e6c9,stroke:#2e7d32,color:#1b5e20;
+    classDef store fill:#fff3e0,stroke:#ef6c00,color:#e65100;

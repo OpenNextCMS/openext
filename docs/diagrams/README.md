@@ -26,5 +26,10 @@ node_modules/.bin/mmdc -i docs/diagrams/src/<name>.mmd -o docs/diagrams/<name>.p
 | 14 | Webhook delivery | State | `14-2-5-4-formsubmission-webhook-delivery.png` |
 | 15 | Forms design flow | Flowchart | `15-3-3-public-form-rendered-settings-surfaces.png` |
 | 16 | Report data flow | Flowchart | `16-4-4-report-data-flow.png` |
+| 17 | DFD Level 0 — Context | Data Flow | `17-5-1-level-0-context-diagram.png` |
+| 18 | DFD Level 1 — Major processes | Data Flow | `18-5-2-level-1-major-processes.png` |
+| 19 | DFD Level 2 — Form submission | Data Flow | `19-5-3-level-2-form-submission-processing.png` |
+| 20 | Use-case diagram | Use Case | `20-6-1-use-case-diagram.png` |
+| 21 | Component diagram | Component | `21-6-2-component-diagram.png` |
 
 All PNGs rendered at scale ×3 (crisp for print/slides) on a white background.

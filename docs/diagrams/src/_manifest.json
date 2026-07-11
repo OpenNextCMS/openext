@@ -62,5 +62,25 @@
   {
     "name": "16-4-4-report-data-flow",
     "heading": "4.4 Report data flow"
+  },
+  {
+    "name": "17-5-1-level-0-context-diagram",
+    "heading": "5.1 Level 0 — Context diagram"
+  },
+  {
+    "name": "18-5-2-level-1-major-processes",
+    "heading": "5.2 Level 1 — Major processes"
+  },
+  {
+    "name": "19-5-3-level-2-form-submission-processing",
+    "heading": "5.3 Level 2 — Form submission processing"
+  },
+  {
+    "name": "20-6-1-use-case-diagram",
+    "heading": "6.1 Use-case diagram"
+  },
+  {
+    "name": "21-6-2-component-diagram",
+    "heading": "6.2 Component diagram"
   }
 ]
