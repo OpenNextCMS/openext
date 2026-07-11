@@ -78,6 +78,17 @@ export const themeApi = {
     await unwrap(res);
   },
 
+  /** Import a theme from a parsed JSON token package. Created as an inactive custom theme. */
+  async importTheme(pkg: unknown): Promise<ThemeDTO> {
+    const res = await fetch('/api/themes/import', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(pkg),
+    });
+    return unwrap<ThemeDTO>(res);
+  },
+
   async activate(id: string): Promise<ThemeDTO> {
     const res = await fetch('/api/themes/activate', {
       method: 'POST',

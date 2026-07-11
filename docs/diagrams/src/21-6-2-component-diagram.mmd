@@ -1,0 +1,102 @@
+flowchart TB
+    subgraph CLIENT["🌐 Client components"]
+        direction LR
+        C_ADMIN["«component»<br/>Admin Dashboard"]
+        C_PUB["«component»<br/>Public Site Renderer"]
+        C_EDIT["«component»<br/>Block / Page Editor"]
+        C_FB["«component»<br/>Form Builder"]
+        C_FR["«component»<br/>Form Renderer"]
+    end
+
+    subgraph STORE["🔁 Redux Toolkit store (redux-persist)"]
+        direction LR
+        S1["canvasSlice"]
+        S2["formBuilderSlice"]
+        S3["formSubmissionSlice"]
+        S4["formAnalyticsSlice"]
+        S5["themeBuilderSlice"]
+        S6["menuRedirectSlice"]
+    end
+
+    subgraph SERVER["▲ Next.js 15 server"]
+        MW["«component»<br/>middleware.ts<br/>(cookie gate)"]
+        subgraph APIG["«component» API route handlers"]
+            direction LR
+            A1["/api/auth"]
+            A2["/api/pages · blogs<br/>authors · categories<br/>tags · comments"]
+            A3["/api/forms/*"]
+            A4["/api/themes · layouts"]
+            A5["/api/analytics"]
+            A6["/api/ai · forms/ai"]
+            A7["/api/menu-redirect"]
+            A8["/api/onboarding"]
+            A9["/api/sub-users"]
+        end
+        HELP["«component»<br/>lib/api<br/>requireAuth · response<br/>pagination · errors"]
+    end
+
+    subgraph DOMAIN["⚙️ Domain / service components"]
+        direction LR
+        SVCA["«component»<br/>authService<br/>(bcrypt + JWT)"]
+        SVCF["«component»<br/>form-builder services<br/>form · submission · analytics<br/>webhook · email"]
+        SVCT["«component»<br/>theme services<br/>loader · validator · cache"]
+        SVCAI["«component»<br/>AI provider<br/>callAI()"]
+        SVCG["«component»<br/>generateStarterWebsite"]
+        SVCM["«component»<br/>menu-redirect<br/>matcher · lifecycle · history"]
+        SVCP["«component»<br/>plugins<br/>extract · manifest · storage"]
+    end
+
+    subgraph DATA["🗃️ Data access"]
+        direction LR
+        MODELS["«component»<br/>Mongoose models (22)"]
+        DBMGR["«component»<br/>utils/db.ts<br/>3-connection manager"]
+    end
+
+    subgraph EXT["🔌 External systems"]
+        direction LR
+        EDB[("MongoDB<br/>Master · User · Page")]
+        EAI["OpenRouter API"]
+        EMAIL["SMTP / Email"]
+        EHOOK["3rd-party Webhook"]
+        ETS["Cloudflare Turnstile"]
+    end
+
+    %% ---- client → server ----
+    C_ADMIN & C_PUB & C_EDIT & C_FB & C_FR -->|HTTPS / JSON| MW
+    C_EDIT <--> S1
+    C_FB <--> S2
+    C_FR <--> S3
+    C_FB <--> S4
+    C_EDIT <--> S5
+    C_ADMIN <--> S6
+
+    %% ---- routing → services ----
+    MW --> APIG
+    APIG -->|uses| HELP
+    A1 --> SVCA
+    A3 & A6 --> SVCF
+    A4 --> SVCT
+    A6 --> SVCAI
+    A8 --> SVCG
+    A7 --> SVCM
+    A2 -->|plugin mgmt| SVCP
+    SVCF --> SVCAI
+    SVCG --> SVCAI
+    HELP --> SVCA
+
+    %% ---- services → data ----
+    SVCA & SVCF & SVCT & SVCM & SVCP & SVCG --> MODELS
+    A2 & A5 --> MODELS
+    MODELS --> DBMGR
+
+    %% ---- required external interfaces ----
+    DBMGR -->|Mongoose driver| EDB
+    SVCAI -->|REST| EAI
+    SVCF -->|SMTP| EMAIL
+    SVCF -->|HTTP POST| EHOOK
+    C_FR -.->|verify token| ETS
+
+    classDef comp fill:#e3f2fd,stroke:#1565c0,color:#0d47a1;
+    classDef ext fill:#fff3e0,stroke:#ef6c00,color:#e65100;
+    class C_ADMIN,C_PUB,C_EDIT,C_FB,C_FR,MW,HELP,SVCA,SVCF,SVCT,SVCAI,SVCG,SVCM,SVCP,MODELS,DBMGR comp;
+    class EDB,EAI,EMAIL,EHOOK,ETS ext;

@@ -1,0 +1,370 @@
+[
+  {
+    "file": "01-public-home-dark.png",
+    "group": "public",
+    "name": "home",
+    "path": "/",
+    "status": 200,
+    "cached": true
+  },
+  {
+    "file": "02-public-login-dark.png",
+    "group": "public",
+    "name": "login",
+    "path": "/login",
+    "status": 200,
+    "cached": true
+  },
+  {
+    "file": "03-public-onboarding-dark.png",
+    "group": "public",
+    "name": "onboarding",
+    "path": "/onboarding",
+    "status": 200,
+    "cached": true
+  },
+  {
+    "file": "04-public-admin-setup-dark.png",
+    "group": "public",
+    "name": "admin-setup",
+    "path": "/admin",
+    "status": 200,
+    "cached": true
+  },
+  {
+    "file": "05-public-language-dark.png",
+    "group": "public",
+    "name": "language",
+    "path": "/language",
+    "status": 200,
+    "cached": true
+  },
+  {
+    "file": "06-public-mongodb-setup-dark.png",
+    "group": "public",
+    "name": "mongodb-setup",
+    "path": "/mongodb-setup",
+    "status": 200,
+    "cached": true
+  },
+  {
+    "file": "07-public-mongodb-database-setup-dark.png",
+    "group": "public",
+    "name": "mongodb-database-setup",
+    "path": "/mongodb-setup/database-setup",
+    "status": 200,
+    "cached": true
+  },
+  {
+    "file": "08-public-blog-index-dark.png",
+    "group": "public",
+    "name": "blog-index",
+    "path": "/blog",
+    "status": 200,
+    "cached": true
+  },
+  {
+    "file": "09-public-blog-post-dark.png",
+    "group": "public",
+    "name": "blog-post",
+    "path": "/blog/introducing-opennext-cms-10",
+    "status": 200,
+    "cached": true
+  },
+  {
+    "file": "10-public-blogs-listing-dark.png",
+    "group": "public",
+    "name": "blogs-listing",
+    "path": "/blogs",
+    "status": 200,
+    "cached": true
+  },
+  {
+    "file": "11-public-public-page-dark.png",
+    "group": "public",
+    "name": "public-page",
+    "path": "/default_home",
+    "status": 200,
+    "cached": true
+  },
+  {
+    "file": "12-public-public-form-dark.png",
+    "group": "public",
+    "name": "public-form",
+    "path": "/forms/contact-us",
+    "status": 200,
+    "cached": true
+  },
+  {
+    "file": "13-public-preview-dark.png",
+    "group": "public",
+    "name": "preview",
+    "path": "/preview",
+    "status": 200,
+    "cached": true
+  },
+  {
+    "file": "14-public-doc-dark.png",
+    "group": "public",
+    "name": "doc",
+    "path": "/doc",
+    "status": 200,
+    "cached": true
+  },
+  {
+    "file": "15-public-default-theme-layouts-dark.png",
+    "group": "public",
+    "name": "default-theme-layouts",
+    "path": "/themes/openNextDefault/layouts",
+    "status": 200,
+    "cached": true
+  },
+  {
+    "file": "16-editor-block-page-editor-dark.png",
+    "group": "editor",
+    "name": "block-page-editor",
+    "path": "/Editor",
+    "status": 200,
+    "cached": true
+  },
+  {
+    "file": "17-dashboard-dashboard-home-dark.png",
+    "group": "dashboard",
+    "name": "dashboard-home",
+    "path": "/dashboard",
+    "status": 200,
+    "cached": true
+  },
+  {
+    "file": "18-dashboard-ai-settings-dark.png",
+    "group": "dashboard",
+    "name": "ai-settings",
+    "path": "/dashboard/ai-settings",
+    "status": 200,
+    "cached": true
+  },
+  {
+    "file": "19-dashboard-analytics-dark.png",
+    "group": "dashboard",
+    "name": "analytics",
+    "path": "/dashboard/analytics",
+    "status": 200,
+    "cached": true
+  },
+  {
+    "file": "20-dashboard-profile-dark.png",
+    "group": "dashboard",
+    "name": "profile",
+    "path": "/dashboard/profile",
+    "status": 200,
+    "cached": true
+  },
+  {
+    "file": "21-dashboard-settings-dark.png",
+    "group": "dashboard",
+    "name": "settings",
+    "path": "/dashboard/settings",
+    "status": 200,
+    "cached": true
+  },
+  {
+    "file": "22-dashboard-users-dark.png",
+    "group": "dashboard",
+    "name": "users",
+    "path": "/dashboard/users",
+    "status": 200,
+    "cached": true
+  },
+  {
+    "file": "23-blogs-blogs-all-dark.png",
+    "group": "blogs",
+    "name": "blogs-all",
+    "path": "/dashboard/blogs/allblogs",
+    "status": 200,
+    "cached": true
+  },
+  {
+    "file": "24-blogs-blog-new-dark.png",
+    "group": "blogs",
+    "name": "blog-new",
+    "path": "/dashboard/blogs/new",
+    "status": 200,
+    "cached": true
+  },
+  {
+    "file": "25-blogs-blog-edit-dark.png",
+    "group": "blogs",
+    "name": "blog-edit",
+    "path": "/dashboard/blogs/6a512ea325c40e8f5c8cfab6/edit",
+    "status": 200,
+    "finalUrl": "/dashboard/blogs/6a512ea325c40e8f5c8cfab6/edit"
+  },
+  {
+    "file": "26-blogs-blog-categories-dark.png",
+    "group": "blogs",
+    "name": "blog-categories",
+    "path": "/dashboard/blogs/categories",
+    "status": 200,
+    "cached": true
+  },
+  {
+    "file": "27-blogs-blog-tags-dark.png",
+    "group": "blogs",
+    "name": "blog-tags",
+    "path": "/dashboard/blogs/tags",
+    "status": 200,
+    "cached": true
+  },
+  {
+    "file": "28-blogs-blog-design-dark.png",
+    "group": "blogs",
+    "name": "blog-design",
+    "path": "/dashboard/blogs/design",
+    "status": 200,
+    "cached": true
+  },
+  {
+    "file": "29-blogs-blog-layout-dark.png",
+    "group": "blogs",
+    "name": "blog-layout",
+    "path": "/dashboard/blogs/layout",
+    "status": 200,
+    "cached": true
+  },
+  {
+    "file": "30-pages-pages-all-dark.png",
+    "group": "pages",
+    "name": "pages-all",
+    "path": "/dashboard/pages/allpages",
+    "status": 200,
+    "cached": true
+  },
+  {
+    "file": "31-pages-pages-headers-dark.png",
+    "group": "pages",
+    "name": "pages-headers",
+    "path": "/dashboard/pages/headers",
+    "status": 200,
+    "cached": true
+  },
+  {
+    "file": "32-pages-pages-footers-dark.png",
+    "group": "pages",
+    "name": "pages-footers",
+    "path": "/dashboard/pages/footers",
+    "status": 200,
+    "cached": true
+  },
+  {
+    "file": "33-themes-themes-all-dark.png",
+    "group": "themes",
+    "name": "themes-all",
+    "path": "/dashboard/themes/allthemes",
+    "status": 200,
+    "cached": true
+  },
+  {
+    "file": "34-themes-theme-builder-new-dark.png",
+    "group": "themes",
+    "name": "theme-builder-new",
+    "path": "/dashboard/themes/new",
+    "status": 200,
+    "cached": true
+  },
+  {
+    "file": "35-themes-theme-add-dark.png",
+    "group": "themes",
+    "name": "theme-add",
+    "path": "/dashboard/themes/addtheme",
+    "status": 200,
+    "cached": true
+  },
+  {
+    "file": "36-themes-theme-detail-dark.png",
+    "group": "themes",
+    "name": "theme-detail",
+    "path": "/dashboard/themes/6a4f81394ccadc845d6dfbc9",
+    "status": 200,
+    "cached": true
+  },
+  {
+    "file": "37-plugins-plugins-home-dark.png",
+    "group": "plugins",
+    "name": "plugins-home",
+    "path": "/dashboard/plugins",
+    "status": 200,
+    "cached": true
+  },
+  {
+    "file": "38-plugins-form-builder-list-dark.png",
+    "group": "plugins",
+    "name": "form-builder-list",
+    "path": "/dashboard/plugins/form-builder",
+    "status": 200,
+    "cached": true
+  },
+  {
+    "file": "39-plugins-form-builder-new-dark.png",
+    "group": "plugins",
+    "name": "form-builder-new",
+    "path": "/dashboard/plugins/form-builder/new",
+    "status": 200,
+    "cached": true
+  },
+  {
+    "file": "40-plugins-form-builder-edit-dark.png",
+    "group": "plugins",
+    "name": "form-builder-edit",
+    "path": "/dashboard/plugins/form-builder/6a512ea525c40e8f5c8cfaee/edit",
+    "status": 200,
+    "finalUrl": "/dashboard/plugins/form-builder/6a512ea525c40e8f5c8cfaee/edit"
+  },
+  {
+    "file": "41-plugins-form-builder-analytics-dark.png",
+    "group": "plugins",
+    "name": "form-builder-analytics",
+    "path": "/dashboard/plugins/form-builder/6a512ea525c40e8f5c8cfaee/analytics",
+    "status": 200,
+    "finalUrl": "/dashboard/plugins/form-builder/6a512ea525c40e8f5c8cfaee/analytics"
+  },
+  {
+    "file": "42-plugins-form-builder-submissions-dark.png",
+    "group": "plugins",
+    "name": "form-builder-submissions",
+    "path": "/dashboard/plugins/form-builder/6a512ea525c40e8f5c8cfaee/submissions",
+    "status": 200,
+    "cached": true
+  },
+  {
+    "file": "43-plugins-menu-redirect-home-dark.png",
+    "group": "plugins",
+    "name": "menu-redirect-home",
+    "path": "/dashboard/plugins/menu-redirect",
+    "status": 200,
+    "cached": true
+  },
+  {
+    "file": "44-plugins-menu-redirect-editor-dark.png",
+    "group": "plugins",
+    "name": "menu-redirect-editor",
+    "path": "/dashboard/plugins/menu-redirect/editor",
+    "status": 200,
+    "cached": true
+  },
+  {
+    "file": "45-plugins-menu-redirect-analytics-dark.png",
+    "group": "plugins",
+    "name": "menu-redirect-analytics",
+    "path": "/dashboard/plugins/menu-redirect/analytics",
+    "status": 200,
+    "cached": true
+  },
+  {
+    "file": "46-plugins-menu-redirect-history-dark.png",
+    "group": "plugins",
+    "name": "menu-redirect-history",
+    "path": "/dashboard/plugins/menu-redirect/history",
+    "status": 200,
+    "cached": true
+  }
+]
