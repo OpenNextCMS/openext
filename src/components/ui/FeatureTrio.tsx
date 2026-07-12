@@ -2,6 +2,7 @@
 
 import { InlineEditableText } from '@/components/editor/InlineEditableText';
 import { EditableElement } from '@/components/editor/EditableElement';
+import { InlineSlot } from '@/components/editor/blocks/InlineSlot';
 import type { BlockRendererProps } from '@/types/index';
 import type { BlockContentItem } from '@/types/blockContent';
 import { useAppDispatch } from '@/redux/hooks';
@@ -46,6 +47,7 @@ export const FeatureTrio = ({ block, isEditing = false }: BlockRendererProps) =>
   return (
     <section className="text-gray-600 body-font w-full" style={block.style}>
       <div className="container px-5 py-24 mx-auto">
+        <InlineSlot block={block} slotIndex={2} isEditing={isEditing} />
         <InlineEditableText
           tagName="h1"
           value={content.mainTitle || 'Raw Denim Heirloom Man Braid\nSelfies Wayfarers'}
@@ -58,6 +60,7 @@ export const FeatureTrio = ({ block, isEditing = false }: BlockRendererProps) =>
             ...content.mainTitleStyle
           }}
         />
+        <InlineSlot block={block} slotIndex={3} isEditing={isEditing} />
         <div className="flex flex-wrap sm:-m-4 -mx-4 -mb-10 -mt-4 md:space-y-0 space-y-6">
           {features.map((feature: BlockContentItem, index: number) => (
             <EditableElement
@@ -132,6 +135,7 @@ export const FeatureTrio = ({ block, isEditing = false }: BlockRendererProps) =>
             </EditableElement>
           ))}
         </div>
+        <InlineSlot block={block} slotIndex={4} isEditing={isEditing} />
       </div>
     </section>
   );

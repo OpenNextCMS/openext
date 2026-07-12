@@ -1,31 +1,28 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { DndContext, DragEndEvent } from '@dnd-kit/core';
+import { DndContext, DragEndEvent, closestCorners } from '@dnd-kit/core';
 import LeftSidebar from './left-sidebar';
 import RightSidebar from './right-sidebar';
 import Blocks from './blocks';
 import Canvas from './canvas';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { v4 as uuidv4 } from 'uuid';
 import Toolbar from './toolbar';
 import StatusBar from './status-bar';
 import { Suspense } from 'react';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import {
-  addBlock,
-  addBlockToColumn,
   addBlockToSliderSlide,
-  moveBlock,
-  moveBlockToColumn,
   moveRowColumn,
+  placeBlockAt,
   setCanvasState,
   setBlocks,
   setLayoutBlocks,
   type BlockData as CanvasBlockData,
 } from '@/redux/canvasSlice';
 import { BlockDragData, Block } from '@/types/index';
+import { ROOT_CONTAINER } from '@/utils/blockContainers';
 import { safeStorageGet, safeStorageSet } from '@/utils/safeStorage';
 import { pluginRegistry } from '@/lib/pluginRegistry';
 
@@ -54,6 +51,9 @@ interface DroppableData {
   columnIndex?: number;
   source?: string;
   slideId?: string;
+  containerId?: string;
+  // Injected by dnd-kit's useSortable on every sortable item.
+  sortable?: { containerId: string; index: number };
 }
 
 const editableBlockTypes: EditableBlockType[] = [
@@ -302,182 +302,114 @@ export default function Editor() {
     dispatch(setViewMode(mode));
   };
 
+  // Builds a fresh block payload from a library drag (no uniqueId yet — the
+  // reducer assigns it). Container blocks get their empty column slots.
+  const buildNewBlock = (data: BlockDragData) => ({
+    content: data?.content || '',
+    type: getEditableBlockType(data?.type),
+    icon:
+      data?.type === 'icon'
+        ? data?.content || 'sparkles'
+        : typeof data?.icon === 'string'
+          ? data.icon
+          : undefined,
+    style: typeof data?.style === 'object' ? data.style : undefined,
+    ...(data?.type === 'column' || data?.type === 'row'
+      ? {
+          children:
+            data.id === '1-column'
+              ? [[]]
+              : data.id === '2-column'
+                ? [[], []]
+                : data.id === '3-column'
+                  ? [[], [], []]
+                  : data.id === 'row'
+                    ? [[], []]
+                    : [],
+        }
+      : {}),
+  });
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-
     if (!over) return;
 
-    // Type-safe handling of the data
-    const blockData = active.data.current as BlockDragData;
-    const overData = over.data.current as DroppableData;
+    const activeData = (active.data.current || {}) as BlockDragData & {
+      sortable?: { containerId: string; index: number };
+    };
+    const overData = (over.data.current || {}) as DroppableData;
 
-    if (blockData?.source === 'canvas-block') {
-      const activeId = String(active.id);
-      const overId = String(over.id);
-
-      if (activeId !== overId) {
-        dispatch(moveBlock({ activeId, overId }));
-      }
-
-      return;
-    }
-
-    if (blockData?.source === 'existing-block') {
-      if (overData?.type === 'column' && overData.blockId !== blockData.blockId) {
-        dispatch(
-          moveBlockToColumn({
-            activeId: String(active.id),
-            targetBlockId: overData.blockId || '',
-            columnIndex: overData.columnIndex || 0,
-          })
-        );
-      }
-
-      return;
-    }
-
-    if (blockData?.source === 'row-column') {
-      if (overData?.type === 'column' && blockData.rowBlockId && overData.blockId) {
+    // Special case: move an entire row column between rows (unchanged path).
+    if (activeData?.source === 'row-column') {
+      if (overData?.type === 'column' && activeData.rowBlockId && overData.blockId) {
         dispatch(
           moveRowColumn({
-            sourceRowBlockId: blockData.rowBlockId,
-            sourceColumnIndex: blockData.columnIndex || 0,
+            sourceRowBlockId: activeData.rowBlockId,
+            sourceColumnIndex: activeData.columnIndex || 0,
             targetRowBlockId: overData.blockId,
             targetColumnIndex: overData.columnIndex || 0,
           })
         );
       }
-
       return;
     }
 
+    // Special case: drop into a slider slide (unchanged path).
     if (overData?.type === 'slider-slide' && overData.blockId && overData.slideId) {
-      const activeData = active.data.current as BlockDragData;
-      const nestedBlock = {
-        ...activeData,
-        icon:
-          activeData?.type === 'icon'
-            ? activeData?.content || 'sparkles'
-            : typeof activeData?.icon === 'string'
-              ? activeData.icon
-              : undefined,
-        content: activeData?.content || '',
-        type: getEditableBlockType(activeData?.type),
-        style: typeof activeData?.style === 'object' ? activeData.style : undefined,
-        uniqueId: uuidv4(),
-        ...(activeData?.type === 'column' || activeData?.type === 'row'
-          ? {
-              children:
-                activeData.id === '1-column'
-                  ? [[]]
-                  : activeData.id === '2-column'
-                    ? [[], []]
-                    : activeData.id === '3-column'
-                      ? [[], [], []]
-                      : activeData.id === 'row'
-                        ? [[], []]
-                        : [],
-            }
-          : {}),
-      };
-
       dispatch(
         addBlockToSliderSlide({
           targetBlockId: overData.blockId,
           slideId: overData.slideId,
-          newBlock: nestedBlock,
+          newBlock: buildNewBlock(activeData),
         })
       );
       return;
     }
 
-    if (over.id === 'canvas') {
-      console.log('Adding new block to canvas root');
+    // Resolve the precise target container + index from the drop target:
+    //  - over a sortable sibling -> its container + index (insert before it)
+    //  - over an empty zone/canvas -> that container, append (index = null)
+    let targetContainerId: string | null = null;
+    let targetIndex: number | null = null;
 
-      const newBlock = {
-        content: blockData?.content || '',
-        type: getEditableBlockType(blockData?.type),
-        icon:
-          blockData?.type === 'icon'
-            ? blockData?.content || 'sparkles'
-            : typeof blockData?.icon === 'string'
-              ? blockData.icon
-              : undefined,
-        uniqueId: uuidv4(),
-        style: typeof blockData?.style === 'object' ? blockData.style : undefined,
-        // Add children for container blocks
-        ...(blockData?.type === 'column' || blockData?.type === 'row'
-          ? {
-              children:
-                blockData.id === '1-column'
-                  ? [[]]
-                  : blockData.id === '2-column'
-                    ? [[], []]
-                    : blockData.id === '3-column'
-                      ? [[], [], []]
-                      : blockData.id === 'row'
-                        ? [[], []]
-                        : [],
-            }
-          : {}),
-      };
-
-      dispatch(addBlock(newBlock));
-      console.log('Block payload before dispatch:', newBlock);
+    if (overData?.sortable && typeof overData.sortable.containerId === 'string') {
+      targetContainerId = overData.sortable.containerId;
+      targetIndex = overData.sortable.index;
+    } else if (typeof overData?.containerId === 'string') {
+      targetContainerId = overData.containerId;
+    } else if (over.id === 'canvas') {
+      targetContainerId = ROOT_CONTAINER;
     }
 
-    // Column addition logic with proper typing/
-    if (overData?.type === 'column') {
-      console.log('Adding block to column');
+    if (!targetContainerId) return;
 
-      const activeData = active.data.current as BlockDragData;
-
-      const blockData = {
-        ...activeData,
-        icon:
-          activeData?.type === 'icon'
-            ? activeData?.content || 'sparkles'
-            : typeof activeData?.icon === 'string'
-              ? activeData.icon
-              : undefined,
-        content: activeData?.content || '',
-        type: getEditableBlockType(activeData?.type),
-        style: typeof activeData?.style === 'object' ? activeData.style : undefined,
-        uniqueId: uuidv4(),
-        // Add children for column blocks
-        ...(activeData?.type === 'column' || activeData?.type === 'row'
-          ? {
-              children:
-                activeData.id === '1-column'
-                  ? [[]]
-                  : activeData.id === '2-column'
-                    ? [[], []]
-                    : activeData.id === '3-column'
-                      ? [[], [], []]
-                      : activeData.id === 'row'
-                        ? [[], []]
-                        : [],
-            }
-          : {}),
-      };
-
-      console.log('Block payload for column:', blockData);
-
-      const actionPayload = {
-        targetBlockId: overData.blockId || '',
-        columnIndex: overData.columnIndex || 0,
-        newBlock: blockData,
-      };
-
-      console.log('Full action payload:', actionPayload);
-
-      dispatch(addBlockToColumn(actionPayload));
+    // A sortable `active` is an existing block being moved; anything else is a
+    // brand-new block dragged in from the library.
+    if (activeData?.sortable) {
+      dispatch(
+        placeBlockAt({
+          targetContainerId,
+          targetIndex,
+          source: {
+            containerId: activeData.sortable.containerId,
+            activeId: String(active.id),
+          },
+        })
+      );
+    } else {
+      dispatch(
+        placeBlockAt({
+          targetContainerId,
+          targetIndex,
+          newBlock: buildNewBlock(activeData),
+        })
+      );
     }
   };
 
   return (
     <div className="flex h-screen w-screen flex-col overflow-hidden bg-background text-foreground transition-colors duration-300">
-      <DndContext onDragEnd={handleDragEnd}>
+      <DndContext collisionDetection={closestCorners} onDragEnd={handleDragEnd}>
         <div className="flex h-full overflow-hidden">
           {showButton && (
             <div className="relative">

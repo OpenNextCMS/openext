@@ -13,6 +13,9 @@ It is independent from the older **blog-only** design system
 also **supersedes** the legacy ZIP-upload theme installer (`/api/themes/upload`,
 now dormant); `/dashboard/themes/addtheme` redirects to the new create flow.
 
+Themes can also be **imported** as a JSON token package — see
+[Theme Upload Format](./theme-upload-format.md).
+
 ---
 
 ## Architecture
@@ -37,8 +40,9 @@ Public page ──► SiteThemeProvider ──► getActiveTheme() ──► CSS
 | Seeding | `src/lib/theme/seed.ts`, `scripts/seedThemes.ts` |
 | Service / loader / cache | `src/lib/theme/theme-service.ts`, `theme-loader.ts`, `theme-cache.ts` |
 | Validation | `src/lib/theme/theme-validator.ts` (Zod) |
+| Import (upload) | `src/lib/theme/theme-package.ts`, `src/app/api/themes/import/route.ts` — see [Theme Upload Format](./theme-upload-format.md) |
 | RBAC | `src/lib/theme/permissions.ts`, `guard.ts` |
-| APIs | `src/app/api/themes/{route,[id],[id]/duplicate,activate}` |
+| APIs | `src/app/api/themes/{route,[id],[id]/duplicate,activate,import}` |
 | Redux | `src/redux/themeBuilderSlice.ts` |
 | Providers | `src/providers/SiteThemeProvider.tsx` (public), `ThemeConfigProvider.tsx` (client) |
 | Variant registry | `src/lib/theme/component-registry.ts` |
@@ -138,8 +142,20 @@ the active theme) and `activate` call `invalidateActiveThemeCache()`.
 
 ---
 
+## Import / export
+
+**Import is built.** A theme can be uploaded as a JSON token package via
+Dashboard → Themes → **Import**, or `POST /api/themes/import`. Imported themes
+land as **inactive** custom themes (activate to go live). Full spec, token
+reference, validation rules, and examples: [Theme Upload Format](./theme-upload-format.md).
+
+**Export is not built yet** — start from the **Download starter template** in the
+Import dialog, or hand-author a file against the format spec.
+
+---
+
 ## Future compatibility (architected, not yet built)
 
 The model reserves a `meta?` bag and keeps token groups flexible so these slot
-in without a migration: **export/import**, **versioning/rollback**, **AI theme
+in without a migration: **export**, **versioning/rollback**, **AI theme
 generation**, **theme marketplace/sharing**.

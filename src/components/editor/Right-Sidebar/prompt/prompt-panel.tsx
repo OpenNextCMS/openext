@@ -245,6 +245,9 @@ export default function PromptPanel() {
     footer?: number;
   } | null>(null);
   const [autoCreateLayoutParts, setAutoCreateLayoutParts] = useState(true);
+  const [pasteJson, setPasteJson] = useState('');
+  const [isRendering, setIsRendering] = useState(false);
+  const [pasteError, setPasteError] = useState('');
   const canvasBlocks = useAppSelector((state) => state.canvas.blocks);
   const selectedBlock = useAppSelector((state) => state.canvas.selectedBlock);
   const blockCount = canvasBlocks.length;
@@ -472,6 +475,47 @@ export default function PromptPanel() {
     toast.success(mode === 'replace' ? 'Canvas replaced' : 'Blocks inserted');
   };
 
+  // Paste a v2 page document (pipeline output) OR native editor components and
+  // render straight to the canvas. The server converts v2 -> editor blocks; no
+  // AI call is made.
+  const renderPastedJson = async (mode: 'replace' | 'append') => {
+    const raw = pasteJson.trim();
+    if (!raw) return;
+    try {
+      setIsRendering(true);
+      const formData = new FormData();
+      formData.append('renderJson', raw);
+      formData.append('pageType', pageType);
+      const response = await fetch('/api/ai/generate-page-json', {
+        method: 'POST',
+        credentials: 'include',
+        body: formData,
+      });
+      const result = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(result?.message || 'Failed to render JSON');
+      }
+      const components = Array.isArray(result?.components) ? (result.components as BlockData[]) : [];
+      if (components.length === 0) {
+        throw new Error('No renderable blocks found in the pasted JSON');
+      }
+      const blocks = normalizeBlockIds(components);
+      dispatch(setBlocks(mode === 'replace' ? blocks : [...canvasBlocks, ...blocks]));
+      setPasteError('');
+      toast.success(
+        `${mode === 'replace' ? 'Canvas replaced' : 'Inserted'} — ${blocks.length} block${
+          blocks.length === 1 ? '' : 's'
+        }`
+      );
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to render JSON';
+      setPasteError(message);
+      toast.error(message);
+    } finally {
+      setIsRendering(false);
+    }
+  };
+
   const contextLabel =
     pageType === 'header'
       ? 'Header page — output is scoped to nav-bar only'
@@ -575,6 +619,51 @@ export default function PromptPanel() {
           <Trash2 className="mr-2 h-4 w-4" />
           Clear
         </Button>
+      </div>
+
+      <div className="space-y-2 rounded-md border p-3">
+        <div className="flex items-center gap-2">
+          <Braces className="h-4 w-4 text-muted-foreground" />
+          <Label htmlFor="paste-json-editor">Paste page JSON</Label>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Paste a generated page document (v2 <code>{'{ meta, theme, blocks }'}</code>) or editor
+          components and render it straight to the canvas — no AI call.
+        </p>
+        <Textarea
+          id="paste-json-editor"
+          value={pasteJson}
+          onChange={(event) => {
+            setPasteJson(event.target.value);
+            if (pasteError) setPasteError('');
+          }}
+          placeholder='{ "meta": {...}, "theme": {...}, "blocks": [ ... ] }'
+          className="min-h-[160px] resize-y font-mono text-[11px]"
+        />
+        {pasteError && <p className="text-xs text-destructive">{pasteError}</p>}
+        <div className="grid grid-cols-2 gap-2">
+          <Button
+            type="button"
+            disabled={isRendering || !pasteJson.trim()}
+            onClick={() => renderPastedJson('replace')}
+          >
+            {isRendering ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <RefreshCw className="mr-2 h-4 w-4" />
+            )}
+            {isRendering ? 'Rendering' : 'Render to canvas'}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            disabled={isRendering || !pasteJson.trim()}
+            onClick={() => renderPastedJson('append')}
+          >
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Insert
+          </Button>
+        </div>
       </div>
 
       {generatedBlocks.length > 0 && (

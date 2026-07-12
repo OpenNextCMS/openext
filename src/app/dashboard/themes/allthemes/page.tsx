@@ -1,11 +1,12 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import {
   Plus, Pencil, Copy, Trash2, Check, Palette, Loader2, Lock, Search, Eye,
-  Monitor, Tablet, Smartphone, ChevronDown, Sparkles, LayoutGrid,
+  Monitor, Tablet, Smartphone, ChevronDown, Sparkles, LayoutGrid, Upload,
+  FileJson, Download,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,7 +17,7 @@ import {
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from '@/components/ui/select';
 import { themeApi } from '@/components/theme-builder/api';
-import { mergeThemeConfig } from '@/lib/theme/cssVars.site';
+import { mergeThemeConfig, DEFAULT_THEME_CONFIG } from '@/lib/theme/cssVars.site';
 import { PreviewCanvas } from '@/components/theme-preview/PreviewCanvas';
 import type { ThemeDTO, ThemeConfig } from '@/types/theme';
 import {
@@ -151,6 +152,11 @@ export default function AllThemesPage() {
   const [previewId, setPreviewId] = useState<string | null>(null);
   const [device, setDevice] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
 
+  // Import (JSON theme package)
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [importing, setImporting] = useState(false);
+  const [showFormat, setShowFormat] = useState(false);
+
   // The design style picked during onboarding (one of the 8 wizard themes).
   const [onboardingTheme, setOnboardingTheme] = useState<WizardThemeId | ''>('');
   const [onboardingBusy, setOnboardingBusy] = useState<WizardThemeId | null>(null);
@@ -219,6 +225,46 @@ export default function AllThemesPage() {
     catch (e) { toast.error((e as Error).message); } finally { setBusyId(null); }
   };
 
+  // Import a theme from an uploaded JSON token package. It lands as an inactive
+  // custom theme, so the live site is untouched until the user activates it.
+  const onImportFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = ''; // allow re-selecting the same file later
+    if (!file) return;
+    setImporting(true);
+    try {
+      let parsed: unknown;
+      try { parsed = JSON.parse(await file.text()); }
+      catch { throw new Error('That file isn’t valid JSON.'); }
+      const created = await themeApi.importTheme(parsed);
+      toast.success(`Imported “${created.name}” — activate it to go live`);
+      await load();
+    } catch (err) {
+      toast.error((err as Error).message);
+    } finally {
+      setImporting(false);
+    }
+  };
+
+  // Download a valid starter theme package (defaults pre-filled) to edit + re-import.
+  const downloadTemplate = () => {
+    const template = {
+      format: 'nextcms-theme',
+      version: 1,
+      name: 'My Custom Theme',
+      description: 'Describe your theme here',
+      theme: DEFAULT_THEME_CONFIG,
+      componentVariants: { hero: 'main', features: 'trio' },
+    };
+    const blob = new Blob([JSON.stringify(template, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'theme-template.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const active = themes.find((t) => t.isActive);
   const systemCount = themes.filter((t) => t.isSystemTheme).length;
   const customCount = themes.filter((t) => !t.isSystemTheme).length;
@@ -252,6 +298,19 @@ export default function AllThemesPage() {
         <div className="flex gap-2">
           <Button variant="outline" disabled={!active} onClick={() => { setPreviewId(active?._id || null); setDevice('desktop'); }}>
             <Eye className="mr-2 h-4 w-4" /> Live Preview
+          </Button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="application/json,.json"
+            className="hidden"
+            onChange={onImportFile}
+          />
+          <Button variant="outline" disabled={importing} onClick={() => fileInputRef.current?.click()}>
+            {importing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />} Import
+          </Button>
+          <Button variant="ghost" size="icon" title="Theme file format & template" onClick={() => setShowFormat(true)}>
+            <FileJson className="h-4 w-4" />
           </Button>
           <Button asChild>
             <Link href="/dashboard/themes/new" prefetch><Plus className="mr-2 h-4 w-4" /> Create Theme</Link>
@@ -417,6 +476,57 @@ export default function AllThemesPage() {
           })}
         </div>
       )}
+
+      {/* Theme file format & template */}
+      <Dialog open={showFormat} onOpenChange={setShowFormat}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileJson className="h-5 w-5" /> Theme file format
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 text-sm">
+            <p className="text-muted-foreground">
+              A theme is a small <b>JSON file of design tokens</b> — colors, typography,
+              spacing, radius, shadows, layout, and component-variant choices. Every field
+              is optional; anything you leave out uses the platform default. Imported themes
+              land as an <b>inactive</b> custom theme — activate it to go live.
+            </p>
+            <pre className="overflow-x-auto rounded-lg bg-muted p-3 text-xs leading-relaxed">
+{`{
+  "format": "nextcms-theme",
+  "name": "Ocean Breeze",
+  "description": "Cool, airy blue theme",
+  "theme": {
+    "colors":     { "primary": "#0ea5e9", "secondary": "#7c3aed" },
+    "typography": { "headingFont": "Poppins, system-ui, sans-serif" },
+    "spacing":    { "lg": "28px" },
+    "radius":     { "md": "12px" },
+    "shadows":    { "md": "0 6px 16px -4px rgba(0,0,0,0.2)" },
+    "layout":     { "containerWidth": "1240px" }
+  },
+  "componentVariants": { "hero": "split", "features": "bento" }
+}`}
+            </pre>
+            <ul className="list-disc space-y-1 pl-5 text-muted-foreground">
+              <li>Colors accept hex, <code>rgb()/hsl()</code>, or <code>var(--…)</code>.</li>
+              <li>Sizes are any CSS length (e.g. <code>16px</code>, <code>1.5rem</code>).</li>
+              <li>Max file size 512&nbsp;KB. Invalid colors are rejected.</li>
+              <li>The full spec lives in <code>docs/theme-upload-format.md</code>.</li>
+            </ul>
+            <div className="flex flex-wrap justify-end gap-2 pt-2">
+              <Button variant="outline" onClick={downloadTemplate}>
+                <Download className="mr-2 h-4 w-4" /> Download starter template
+              </Button>
+              <Button
+                onClick={() => { setShowFormat(false); fileInputRef.current?.click(); }}
+              >
+                <Upload className="mr-2 h-4 w-4" /> Choose file to import
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Live Preview drawer */}
       <Dialog open={!!previewId} onOpenChange={(o) => !o && setPreviewId(null)}>

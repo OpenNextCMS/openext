@@ -2,6 +2,7 @@
 
 import { InlineEditableText } from '@/components/editor/InlineEditableText';
 import { EditableElement } from '@/components/editor/EditableElement';
+import { InlineSlot } from '@/components/editor/blocks/InlineSlot';
 import type { BlockRendererProps } from '@/types/index';
 import type { BlockContentItem } from '@/types/blockContent';
 import { useAppDispatch } from '@/redux/hooks';
@@ -46,6 +47,7 @@ export const ContentTrio = ({ block, isEditing = false }: BlockRendererProps) =>
   return (
     <section className="text-[color:var(--color-muted,#4b5563)] body-font w-full" style={block.style}>
       <div className="container px-5 py-24 mx-auto">
+        <InlineSlot block={block} slotIndex={2} isEditing={isEditing} />
         <div className="flex flex-col">
           <div className="h-1 bg-[var(--color-surface,#e5e7eb)] rounded overflow-hidden">
             <div className="w-24 h-full bg-[var(--color-primary,#6366f1)]"></div>
@@ -77,6 +79,7 @@ export const ContentTrio = ({ block, isEditing = false }: BlockRendererProps) =>
             />
           </div>
         </div>
+        <InlineSlot block={block} slotIndex={3} isEditing={isEditing} />
         <div className="flex flex-wrap sm:-m-4 -mx-4 -mb-10 -mt-4">
           {items.map((item: BlockContentItem, index: number) => (
             <EditableElement
@@ -140,6 +143,7 @@ export const ContentTrio = ({ block, isEditing = false }: BlockRendererProps) =>
             </EditableElement>
           ))}
         </div>
+        <InlineSlot block={block} slotIndex={4} isEditing={isEditing} />
       </div>
     </section>
   );

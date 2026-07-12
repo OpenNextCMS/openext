@@ -6,6 +6,7 @@ import type { BlockRendererProps } from '@/types/index';
 import type { BlockContentItem } from '@/types/blockContent';
 import { useAppDispatch } from '@/redux/hooks';
 import { updateBlockContent } from '@/redux/canvasSlice';
+import { InlineSlot } from '@/components/editor/blocks/InlineSlot';
 
 export const EcommerceGrid = ({ block, isEditing = false }: BlockRendererProps) => {
   const dispatch = useAppDispatch();
@@ -51,7 +52,9 @@ export const EcommerceGrid = ({ block, isEditing = false }: BlockRendererProps) 
   return (
     <section className="text-[color:var(--color-muted,#4b5563)] body-font w-full" style={block.style}>
       <div className="container px-5 py-24 mx-auto">
+        <InlineSlot block={block} slotIndex={2} isEditing={isEditing} />
         <div className="flex flex-wrap -m-4">
+          <InlineSlot block={block} slotIndex={3} isEditing={isEditing} />
           {products.map((product: BlockContentItem, index: number) => (
             <EditableElement
               key={index}
@@ -109,7 +112,9 @@ export const EcommerceGrid = ({ block, isEditing = false }: BlockRendererProps) 
               </div>
             </EditableElement>
           ))}
+          <InlineSlot block={block} slotIndex={4} isEditing={isEditing} />
         </div>
+        <InlineSlot block={block} slotIndex={5} isEditing={isEditing} />
       </div>
     </section>
   );

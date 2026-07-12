@@ -5,6 +5,7 @@ import { EditableElement } from '@/components/editor/EditableElement';
 import type { BlockRendererProps } from '@/types/index';
 import { useAppDispatch } from '@/redux/hooks';
 import { updateBlockContent } from '@/redux/canvasSlice';
+import { InlineSlot } from '@/components/editor/blocks/InlineSlot';
 
 export const EcommerceDetail = ({ block, isEditing = false }: BlockRendererProps) => {
   const dispatch = useAppDispatch();
@@ -32,6 +33,7 @@ export const EcommerceDetail = ({ block, isEditing = false }: BlockRendererProps
   return (
     <section className="text-[color:var(--color-muted,#4b5563)] body-font overflow-hidden w-full" style={block.style}>
       <div className="container px-5 py-24 mx-auto">
+        <InlineSlot block={block} slotIndex={2} isEditing={isEditing} />
         <div className="lg:w-4/5 mx-auto flex flex-wrap">
           <EditableElement
             as="img"
@@ -47,6 +49,7 @@ export const EcommerceDetail = ({ block, isEditing = false }: BlockRendererProps
             path="cardStyle"
             className="lg:w-1/2 w-full lg:pl-10 lg:py-6 mt-6 lg:mt-0"
           >
+            <InlineSlot block={block} slotIndex={3} isEditing={isEditing} />
             <InlineEditableText
               tagName="h2"
               value={content.brand || 'BRAND NAME'}
@@ -101,6 +104,7 @@ export const EcommerceDetail = ({ block, isEditing = false }: BlockRendererProps
                 </a>
               </span>
             </div>
+            <InlineSlot block={block} slotIndex={4} isEditing={isEditing} />
             <InlineEditableText
               tagName="p"
               value={content.description || 'Product description goes here...'}
@@ -137,6 +141,7 @@ export const EcommerceDetail = ({ block, isEditing = false }: BlockRendererProps
                 </div>
               </div>
             </div>
+            <InlineSlot block={block} slotIndex={5} isEditing={isEditing} />
             <div className="flex">
               <InlineEditableText
                 tagName="span"
@@ -173,6 +178,7 @@ export const EcommerceDetail = ({ block, isEditing = false }: BlockRendererProps
             </div>
           </EditableElement>
         </div>
+        <InlineSlot block={block} slotIndex={6} isEditing={isEditing} />
       </div>
     </section>
   );

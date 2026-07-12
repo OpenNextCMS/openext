@@ -2,6 +2,7 @@
 
 import { InlineEditableText } from '@/components/editor/InlineEditableText';
 import { EditableElement } from '@/components/editor/EditableElement';
+import { InlineSlot } from '@/components/editor/blocks/InlineSlot';
 import type { BlockRendererProps } from '@/types/index';
 import { useAppDispatch } from '@/redux/hooks';
 import { updateBlockContent } from '@/redux/canvasSlice';
@@ -33,6 +34,7 @@ export const ContentDetail = ({ block, isEditing = false }: BlockRendererProps) 
     <section className="text-[color:var(--color-muted,#4b5563)] body-font w-full" style={block.style}>
       <div className="container px-5 py-24 mx-auto flex flex-col">
         <div className="lg:w-4/6 mx-auto">
+          <InlineSlot block={block} slotIndex={2} isEditing={isEditing} />
           <EditableElement
             block={block}
             isEditing={isEditing}
@@ -41,6 +43,7 @@ export const ContentDetail = ({ block, isEditing = false }: BlockRendererProps) 
           >
             <img alt="content" className="object-cover object-center h-full w-full" src={content.heroImage || "https://dummyimage.com/1200x500"} />
           </EditableElement>
+          <InlineSlot block={block} slotIndex={3} isEditing={isEditing} />
           <div className="flex flex-col sm:flex-row mt-10">
             <div className="sm:w-1/3 text-center sm:pr-8 sm:py-8">
               <EditableElement
@@ -120,6 +123,7 @@ export const ContentDetail = ({ block, isEditing = false }: BlockRendererProps) 
               </EditableElement>
             </div>
           </div>
+          <InlineSlot block={block} slotIndex={4} isEditing={isEditing} />
         </div>
       </div>
     </section>

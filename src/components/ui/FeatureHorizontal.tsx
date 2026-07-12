@@ -2,6 +2,7 @@
 
 import { InlineEditableText } from '@/components/editor/InlineEditableText';
 import { EditableElement } from '@/components/editor/EditableElement';
+import { InlineSlot } from '@/components/editor/blocks/InlineSlot';
 import type { BlockRendererProps } from '@/types/index';
 import type { BlockContentItem } from '@/types/blockContent';
 import { useAppDispatch } from '@/redux/hooks';
@@ -45,7 +46,9 @@ export const FeatureHorizontal = ({ block, isEditing = false }: BlockRendererPro
   return (
     <section className="text-[color:var(--color-muted,#4b5563)] body-font w-full" style={block.style}>
       <div className="container px-5 py-24 mx-auto flex flex-wrap">
+        <InlineSlot block={block} slotIndex={2} isEditing={isEditing} />
         <div className="flex flex-wrap -m-4">
+          <InlineSlot block={block} slotIndex={3} isEditing={isEditing} />
           {features.map((feature: BlockContentItem, index: number) => (
             <div key={index} className="p-4 lg:w-1/2 md:w-full">
               <EditableElement
@@ -117,7 +120,9 @@ export const FeatureHorizontal = ({ block, isEditing = false }: BlockRendererPro
               </EditableElement>
             </div>
           ))}
+          <InlineSlot block={block} slotIndex={4} isEditing={isEditing} />
         </div>
+        <InlineSlot block={block} slotIndex={5} isEditing={isEditing} />
       </div>
     </section>
   );
