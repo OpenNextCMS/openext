@@ -1,0 +1,57 @@
+classDiagram
+    class AuthService {
+        +register(dto) User
+        +login(email, password) token
+        +getUserByEmail(email) User
+    }
+    class JwtUtil {
+        +signJwt(payload) string
+        +verify(token) payload
+    }
+    class RequireAuth {
+        +getAuthUser(req) AuthUser
+        +requireAuth(req) AuthUser
+    }
+    class FormService {
+        +create(dto) Form
+        +update(id, dto) Form
+        +duplicate(id) Form
+        +listVersions(id) FormVersion[]
+        +restore(id, version) Form
+    }
+    class SubmissionService {
+        +submit(formId, data) FormSubmission
+        +list(formId) FormSubmission[]
+    }
+    class AnalyticsService {
+        +track(formId, event) void
+        +summary(formId) FormAnalytics
+    }
+    class WebhookService {
+        +dispatch(submission) WebhookAttempt
+    }
+    class EmailService {
+        +notifyAdmin(sub) void
+        +notifyUser(sub) void
+    }
+    class AIProvider {
+        +callAI(prompt, opts) string
+        +safeParseJson(raw) object
+    }
+    class ThemeService {
+        +load(slug) Theme
+        +validate(theme) Result
+        +activate(id) void
+    }
+
+    AuthService ..> JwtUtil : signs
+    RequireAuth ..> JwtUtil : decodes
+    AuthService ..> UserModel : persists
+    FormService ..> FormModel
+    FormService ..> FormVersionModel
+    SubmissionService ..> FormSubmissionModel
+    SubmissionService ..> WebhookService : on submit
+    SubmissionService ..> EmailService : on submit
+    AnalyticsService ..> FormModel : reads analytics
+    FormService ..> AIProvider : ai/generate
+    ThemeService ..> ThemeModel

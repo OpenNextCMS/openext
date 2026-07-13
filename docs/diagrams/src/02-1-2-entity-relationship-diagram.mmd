@@ -1,0 +1,188 @@
+erDiagram
+    %% ============ USER DB ============
+    User {
+        ObjectId _id PK
+        string   username UK
+        string   email UK
+        string   password  "bcrypt hash"
+        number   role      "FK->Role.value"
+        string   firstName
+        string   lastName
+        string   displayName
+        boolean  active
+        boolean  onboardingCompleted
+        date     createdAt
+    }
+    Role {
+        ObjectId _id PK
+        string   name UK  "SuperAdmin|Admin|Editor|Author"
+        number   value UK "0|1|2|3"
+    }
+    Settings {
+        ObjectId _id PK
+        string   siteTitle
+        string   language
+        string   timeZone
+        array    themes    "[{name,isActive}]"
+        object   aiConfig  "openrouter keys + model"
+    }
+    Plugin {
+        ObjectId _id PK
+        string   pluginId UK
+        string   name
+        string   version
+        string   source "uploaded|marketplace|builtin"
+        boolean  isActive
+        boolean  hasUpdate
+    }
+
+    %% ============ PAGE DB — content ============
+    Page {
+        ObjectId _id PK
+        string   pageName
+        ObjectId createdBy FK "->User (logical)"
+        string   pageType "page|header|footer"
+        string   slug UK
+        boolean  isPublished
+        boolean  isHome
+        array    component "block-tree JSON"
+    }
+    BlogPost {
+        ObjectId _id PK
+        string   pageName
+        ObjectId createdBy FK "->User (logical)"
+        string   slug UK
+        string   status "draft|published|scheduled|archived"
+        ObjectId authorId FK "->Author"
+        array    categories FK "->Category[]"
+        array    tags FK "->Tag[]"
+        object   seo
+        number   views
+        date     publishedAt
+    }
+    Author {
+        ObjectId _id PK
+        string   name
+        string   email
+        string   bio
+        object   socialLinks
+    }
+    Category {
+        ObjectId _id PK
+        string   name
+        string   slug UK
+        ObjectId parentCategory FK "->Category (self)"
+    }
+    Tag {
+        ObjectId _id PK
+        string   name
+        string   slug UK
+    }
+    Comment {
+        ObjectId _id PK
+        ObjectId blogId FK "->Page"
+        string   name
+        string   email
+        string   comment
+        string   status "pending|approved|spam"
+    }
+    AnalyticsEvent {
+        ObjectId _id PK
+        ObjectId blogId FK "->Page"
+        string   type "view|read|search"
+        string   visitorId
+        number   durationSec
+        string   query
+        date     createdAt
+    }
+    Layout {
+        ObjectId _id PK
+        string   name
+        boolean  isActive
+        array    sections "[{type,visible,responsive}]"
+    }
+    Theme {
+        ObjectId _id PK
+        string   name
+        string   slug UK
+        boolean  isActive
+        object   theme "design tokens"
+    }
+    ThemeSettings {
+        ObjectId _id PK
+        object   typography
+        object   colors
+        object   layout
+        string   darkMode "light|dark|auto"
+    }
+    WebsitePreferences {
+        ObjectId _id PK
+        ObjectId userId UK "->User (logical)"
+        string   businessName
+        boolean  onboardingCompleted
+        boolean  draft
+        array    generatedPageSlugs
+    }
+
+    %% ============ PAGE DB — forms ============
+    Form {
+        ObjectId _id PK
+        string   name
+        string   slug UK
+        string   status "draft|published|archived"
+        array    fields "embedded FormField[]"
+        object   settings
+        object   analytics
+        ObjectId createdBy FK "->User (logical)"
+    }
+    FormSubmission {
+        ObjectId _id PK
+        ObjectId formId FK "->Form"
+        map      submissionData
+        string   ipAddress
+        string   webhookStatus "pending|sent|failed"
+        date     createdAt
+    }
+    FormVersion {
+        ObjectId _id PK
+        ObjectId formId FK "->Form"
+        number   version
+        object   snapshot "full Form copy"
+    }
+
+    %% ============ PAGE DB — menu redirect plugin ============
+    MenuRedirectMapping {
+        ObjectId _id PK
+        string   headerId
+        string   menuItemId
+        string   targetType "page|blog|anchor|external|cms"
+        boolean  enabled
+    }
+    MenuRedirectAnalytics {
+        ObjectId _id PK
+        ObjectId mappingId FK "->MenuRedirectMapping"
+        number   clicks
+        date     lastClickedAt
+    }
+    MenuRedirectHistory {
+        ObjectId _id PK
+        string   action
+        ObjectId userId FK "->User (logical)"
+        date     createdAt
+    }
+
+    %% ============ RELATIONSHIPS ============
+    User               ||--o{ Page                 : creates
+    User               ||--o{ BlogPost             : authors
+    User               ||--o{ Form                 : owns
+    User               ||--o{ WebsitePreferences   : configures
+    User               }o--|| Role                 : "has (by value)"
+    BlogPost           }o--|| Author               : "written by"
+    BlogPost           }o--o{ Category             : categorized
+    BlogPost           }o--o{ Tag                   : tagged
+    Category           ||--o{ Category             : "parent of"
+    Page               ||--o{ Comment              : receives
+    Page               ||--o{ AnalyticsEvent       : generates
+    Form               ||--o{ FormSubmission       : collects
+    Form               ||--o{ FormVersion          : snapshots
+    MenuRedirectMapping ||--|| MenuRedirectAnalytics : "tracked by"

@@ -144,7 +144,7 @@ export const ChoiceInputBlock = ({ block, isEditing = true }: BlockRendererProps
           width: '16px',
           height: '16px',
           cursor: isEditing ? 'pointer' : 'pointer',
-          accentColor: '#2563eb',
+          accentColor: 'var(--color-primary, #2563eb)',
         }}
       />
 

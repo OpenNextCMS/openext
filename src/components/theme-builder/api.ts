@@ -89,6 +89,22 @@ export const themeApi = {
     return unwrap<ThemeDTO>(res);
   },
 
+  /**
+   * Import a theme from an uploaded file — a `.json` token package or a `.zip`
+   * bundle (theme.json + optional preview). The server unpacks and validates it.
+   * Sent as multipart; the browser sets the Content-Type boundary itself.
+   */
+  async importFile(file: File): Promise<ThemeDTO> {
+    const form = new FormData();
+    form.append('file', file);
+    const res = await fetch('/api/themes/import', {
+      method: 'POST',
+      credentials: 'include',
+      body: form,
+    });
+    return unwrap<ThemeDTO>(res);
+  },
+
   async activate(id: string): Promise<ThemeDTO> {
     const res = await fetch('/api/themes/activate', {
       method: 'POST',

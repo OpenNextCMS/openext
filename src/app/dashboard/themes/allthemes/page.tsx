@@ -225,18 +225,27 @@ export default function AllThemesPage() {
     catch (e) { toast.error((e as Error).message); } finally { setBusyId(null); }
   };
 
-  // Import a theme from an uploaded JSON token package. It lands as an inactive
-  // custom theme, so the live site is untouched until the user activates it.
+  // Import a theme from an uploaded file — a JSON token package or a ZIP bundle
+  // (theme.json + optional preview.png). It lands as an inactive custom theme, so
+  // the live site is untouched until the user activates it.
   const onImportFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     e.target.value = ''; // allow re-selecting the same file later
     if (!file) return;
     setImporting(true);
     try {
-      let parsed: unknown;
-      try { parsed = JSON.parse(await file.text()); }
-      catch { throw new Error('That file isn’t valid JSON.'); }
-      const created = await themeApi.importTheme(parsed);
+      const isZip = /\.zip$/i.test(file.name);
+      let created;
+      if (isZip) {
+        // ZIP is unpacked + validated server-side (manifest + assets).
+        created = await themeApi.importFile(file);
+      } else {
+        // Parse JSON client-side for a fast, friendly error before the round-trip.
+        let parsed: unknown;
+        try { parsed = JSON.parse(await file.text()); }
+        catch { throw new Error('That file isn’t valid JSON. Upload a .json token file or a .zip theme bundle.'); }
+        created = await themeApi.importTheme(parsed);
+      }
       toast.success(`Imported “${created.name}” — activate it to go live`);
       await load();
     } catch (err) {
@@ -302,7 +311,7 @@ export default function AllThemesPage() {
           <input
             ref={fileInputRef}
             type="file"
-            accept="application/json,.json"
+            accept="application/json,.json,.zip,application/zip"
             className="hidden"
             onChange={onImportFile}
           />
@@ -479,20 +488,27 @@ export default function AllThemesPage() {
 
       {/* Theme file format & template */}
       <Dialog open={showFormat} onOpenChange={setShowFormat}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-h-[85vh] max-w-2xl overflow-hidden">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <FileJson className="h-5 w-5" /> Theme file format
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 text-sm">
+          {/* Scrollable body — the spec can be tall, so it scrolls while the
+              action buttons below stay pinned and always visible. */}
+          <div className="-mr-2 max-h-[60vh] space-y-4 overflow-y-auto pr-2 text-sm">
             <p className="text-muted-foreground">
-              A theme is a small <b>JSON file of design tokens</b> — colors, typography,
+              A theme is a small set of <b>design tokens</b> — colors, typography,
               spacing, radius, shadows, layout, and component-variant choices. Every field
-              is optional; anything you leave out uses the platform default. Imported themes
-              land as an <b>inactive</b> custom theme — activate it to go live.
+              is optional; anything you leave out uses the platform default. Upload it as a
+              raw <code>.json</code> file, or as a <code>.zip</code> bundle (a manifest plus a
+              preview image). Imported themes land as an <b>inactive</b> custom theme —
+              activate it to go live.
             </p>
-            <pre className="overflow-x-auto rounded-lg bg-muted p-3 text-xs leading-relaxed">
+
+            <div>
+              <p className="mb-1.5 font-medium">1. The token manifest (<code>theme.json</code>)</p>
+              <pre className="overflow-x-auto rounded-lg bg-muted p-3 text-xs leading-relaxed">
 {`{
   "format": "nextcms-theme",
   "name": "Ocean Breeze",
@@ -507,23 +523,39 @@ export default function AllThemesPage() {
   },
   "componentVariants": { "hero": "split", "features": "bento" }
 }`}
-            </pre>
+              </pre>
+            </div>
+
+            <div>
+              <p className="mb-1.5 font-medium">2. Or a ZIP bundle</p>
+              <p className="mb-1.5 text-muted-foreground">
+                Same manifest, plus an optional preview image. A single wrapping folder is fine.
+              </p>
+              <pre className="overflow-x-auto rounded-lg bg-muted p-3 text-xs leading-relaxed">
+{`my-theme.zip
+├── theme.json      (required — the manifest above)
+├── preview.png     (optional — gallery image; jpg/webp/gif ok)
+└── assets/         (optional — fonts, etc.)`}
+              </pre>
+            </div>
+
             <ul className="list-disc space-y-1 pl-5 text-muted-foreground">
               <li>Colors accept hex, <code>rgb()/hsl()</code>, or <code>var(--…)</code>.</li>
               <li>Sizes are any CSS length (e.g. <code>16px</code>, <code>1.5rem</code>).</li>
-              <li>Max file size 512&nbsp;KB. Invalid colors are rejected.</li>
+              <li>Themes carry <b>tokens only</b>, never code — a ZIP is just a container.</li>
+              <li>Max <b>512&nbsp;KB</b> for a <code>.json</code>, <b>5&nbsp;MB</b> for a <code>.zip</code>. Invalid colors are rejected.</li>
               <li>The full spec lives in <code>docs/theme-upload-format.md</code>.</li>
             </ul>
-            <div className="flex flex-wrap justify-end gap-2 pt-2">
-              <Button variant="outline" onClick={downloadTemplate}>
-                <Download className="mr-2 h-4 w-4" /> Download starter template
-              </Button>
-              <Button
-                onClick={() => { setShowFormat(false); fileInputRef.current?.click(); }}
-              >
-                <Upload className="mr-2 h-4 w-4" /> Choose file to import
-              </Button>
-            </div>
+          </div>
+          <div className="flex flex-wrap justify-end gap-2 border-t pt-4">
+            <Button variant="outline" onClick={downloadTemplate}>
+              <Download className="mr-2 h-4 w-4" /> Download starter template
+            </Button>
+            <Button
+              onClick={() => { setShowFormat(false); fileInputRef.current?.click(); }}
+            >
+              <Upload className="mr-2 h-4 w-4" /> Choose file to import
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

@@ -1,0 +1,84 @@
+flowchart LR
+    %% ---- actors ----
+    SA["👑 SuperAdmin"]:::actor
+    AD["🛡️ Admin"]:::actor
+    ED["✏️ Editor"]:::actor
+    AU["🖊️ Author"]:::actor
+    VIS["🌐 Site Visitor"]:::actor
+    AIA["🤖 OpenRouter AI"]:::sys
+    CRON["⏰ Scheduler (cron)"]:::sys
+
+    %% ---- role generalization (higher role inherits lower's use cases) ----
+    SA -.->|inherits| AD
+    AD -.->|inherits| ED
+    ED -.->|inherits| AU
+
+    subgraph SYS["🗄️ OpenExtCMS"]
+        direction TB
+        subgraph AUTHG["Access &amp; onboarding"]
+            U1(["Log in (JWT)"])
+            U2(["Manage sub-users &amp; roles"])
+            U3(["Complete AI onboarding"])
+        end
+        subgraph CONTENTG["Content"]
+            U4(["Edit pages (block editor)"])
+            U5(["Write blog posts"])
+            U6(["Publish / schedule content"])
+            U7(["Moderate comments"])
+        end
+        subgraph FORMG["Forms"]
+            U8(["Build form (drag &amp; drop)"])
+            U9(["Configure form settings"])
+            U10(["Version / restore form"])
+        end
+        subgraph SITEG["Site &amp; design"]
+            U12(["Manage themes &amp; layouts"])
+            U13(["Manage plugins"])
+            U14(["Configure menu redirects"])
+        end
+        subgraph REPORTG["Analytics &amp; reports"]
+            U15(["View blog analytics"])
+            U16(["View form analytics"])
+            U17(["View menu-redirect analytics"])
+        end
+        subgraph PUBG["Public"]
+            U18(["Browse site / read blog"])
+            U19(["Post comment"])
+            U11(["Submit form"])
+        end
+        UAI(["Generate content with AI"])
+    end
+
+    %% ---- Author (base content role) ----
+    AU --- U1
+    AU --- U4
+    AU --- U5
+    %% ---- Editor ----
+    ED --- U6
+    ED --- U7
+    ED --- U8
+    ED --- U9
+    ED --- U10
+    %% ---- Admin ----
+    AD --- U2
+    AD --- U3
+    AD --- U12
+    AD --- U13
+    AD --- U14
+    AD --- U15
+    AD --- U16
+    AD --- U17
+    %% ---- Site Visitor ----
+    VIS --- U18
+    VIS --- U19
+    VIS --- U11
+
+    %% ---- include / extend + secondary actors ----
+    U3 -.->|«include»| UAI
+    UAI -.->|«extend»| U5
+    UAI -.->|«extend»| U8
+    AIA --- UAI
+    CRON -.->|«triggers»| U6
+
+    classDef actor fill:#e8eaf6,stroke:#3949ab,color:#1a237e;
+    classDef sys fill:#fff3e0,stroke:#ef6c00,color:#e65100;

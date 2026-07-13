@@ -1,0 +1,7 @@
+stateDiagram-v2
+    [*] --> pending : visitor submits
+    pending --> approved : moderator approves
+    pending --> spam : moderator/filter flags
+    approved --> spam : re-flag
+    spam --> approved : restore
+    approved --> [*] : visible on post
