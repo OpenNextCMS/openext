@@ -176,7 +176,7 @@ export default function Canvas({ canvasBlocks, viewMode }: CanvasProps) {
           } `}
           style={{ transform: `scale(${zoom / 100})`, transformOrigin: 'top left' }}
         >
-          <ActiveThemeScope>
+          <ActiveThemeScope variablesOnly>
           {hasVerticalHeader(headerBlocks as BlockData[]) ? (
             <div className="flex min-h-[750px]">
               <aside className="w-64 flex-shrink-0">
