@@ -117,7 +117,7 @@ export const ReusableUiBlock = ({ block, isEditing = true }: BlockRendererProps)
     name: 'enable_option',
     checked: false,
     labelStyle: {
-      color: '#111827',
+      color: 'var(--color-text, #111827)',
       fontSize: '14px',
       fontWeight: '500',
       lineHeight: '1.4',
@@ -131,7 +131,7 @@ export const ReusableUiBlock = ({ block, isEditing = true }: BlockRendererProps)
     value: '',
     required: false,
     labelStyle: {
-      color: '#111827',
+      color: 'var(--color-text, #111827)',
       fontSize: '14px',
       fontWeight: '500',
       lineHeight: '1.4',
@@ -234,7 +234,7 @@ export const ReusableUiBlock = ({ block, isEditing = true }: BlockRendererProps)
 
     if (block.type === 'switch') {
       const labelStyle: React.CSSProperties = {
-        color: '#111827',
+        color: 'var(--color-text, #111827)',
         fontSize: '14px',
         fontWeight: '500',
         lineHeight: '1.4',
@@ -274,7 +274,7 @@ export const ReusableUiBlock = ({ block, isEditing = true }: BlockRendererProps)
     if (block.type === 'textarea') {
       const labelStyle: React.CSSProperties = {
         display: 'block',
-        color: '#111827',
+        color: 'var(--color-text, #111827)',
         fontSize: '14px',
         fontWeight: '500',
         lineHeight: '1.4',

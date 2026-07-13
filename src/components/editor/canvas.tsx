@@ -3,6 +3,7 @@ import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import RenderBlock from './renderblock';
+import ActiveThemeScope from '@/components/theme-preview/ActiveThemeScope';
 import { DevicePreviewFrame } from './DevicePreviewFrame';
 import { GripVertical, LayoutGrid, PlusSquare, MousePointerClick, Trash2 } from 'lucide-react';
 import { useState } from 'react';
@@ -147,7 +148,7 @@ export default function Canvas({ canvasBlocks, viewMode }: CanvasProps) {
         {isPreview ? (
           <div className="mx-auto h-[calc(100vh-220px)] w-full">
             <DevicePreviewFrame width={deviceWidth}>
-              <div className="rendered-page">
+              <ActiveThemeScope className="rendered-page">
                 {headerBlocks.map((block, index) => (
                   <RenderBlock
                     key={`prev-h-${index}`}
@@ -165,7 +166,7 @@ export default function Canvas({ canvasBlocks, viewMode }: CanvasProps) {
                     isEditing={false}
                   />
                 ))}
-              </div>
+              </ActiveThemeScope>
             </DevicePreviewFrame>
           </div>
         ) : (
@@ -175,6 +176,7 @@ export default function Canvas({ canvasBlocks, viewMode }: CanvasProps) {
           } `}
           style={{ transform: `scale(${zoom / 100})`, transformOrigin: 'top left' }}
         >
+          <ActiveThemeScope>
           {hasVerticalHeader(headerBlocks as BlockData[]) ? (
             <div className="flex min-h-[750px]">
               <aside className="w-64 flex-shrink-0">
@@ -265,6 +267,7 @@ export default function Canvas({ canvasBlocks, viewMode }: CanvasProps) {
               <Box content="Footer" blocks={footerBlocks} />
             </>
           )}
+          </ActiveThemeScope>
         </div>
         )}
       </div>
