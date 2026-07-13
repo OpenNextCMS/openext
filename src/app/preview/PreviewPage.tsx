@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import renderFromJson from '@/components/ReusableComponents/RenderFromJson';
 import { safeStorageGet } from '@/utils/safeStorage';
 import SiteChromeLayout from '@/components/layout/SiteChromeLayout';
+import ActiveThemeScope from '@/components/theme-preview/ActiveThemeScope';
 
 import PageClientWrapper from '@/components/PageClientWrapper';
 
@@ -129,9 +130,11 @@ export default function PreviewPage() {
 
   return (
     <PageClientWrapper>
-      <SiteChromeLayout headerBlocks={headerBlocks} footerBlocks={footerBlocks}>
-        {pageContent}
-      </SiteChromeLayout>
+      <ActiveThemeScope>
+        <SiteChromeLayout headerBlocks={headerBlocks} footerBlocks={footerBlocks}>
+          {pageContent}
+        </SiteChromeLayout>
+      </ActiveThemeScope>
     </PageClientWrapper>
   );
 }

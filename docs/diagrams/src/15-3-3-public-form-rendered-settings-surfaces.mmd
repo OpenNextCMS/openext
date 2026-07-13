@@ -1,0 +1,11 @@
+flowchart LR
+    subgraph Builder["Design time"]
+        Palette[Field Library] -->|drag| Canvas[Form Canvas]
+        Canvas --> Props[Properties Panel]
+        Props --> Save[(Form doc)]
+    end
+    subgraph Runtime["Run time"]
+        Save --> Render[FormRenderer]
+        Render --> Submit["POST /submit"]
+        Submit --> Sub[(FormSubmission)]
+    end

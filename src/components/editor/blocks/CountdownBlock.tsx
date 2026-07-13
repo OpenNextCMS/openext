@@ -69,9 +69,9 @@ export const CountdownBlock = ({ block, isEditing = true }: BlockRendererProps) 
       >
         {Object.entries(timeLeft).map(([label, value]) => (
           <div key={label} className="flex flex-col items-center min-w-[60px]">
-            <div className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-white font-light mb-1">{value}</div>
+            <div className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-light mb-1" style={{ color: 'var(--color-text, #ffffff)' }}>{value}</div>
             <div className="w-full h-0.5 mb-1" style={{ backgroundColor: 'var(--color-primary, #22d3ee)' }} />
-            <div className="text-[10px] sm:text-xs text-gray-400 uppercase tracking-widest">{label}</div>
+            <div className="text-[10px] sm:text-xs uppercase tracking-widest" style={{ color: 'var(--color-muted, #9ca3af)' }}>{label}</div>
           </div>
         ))}
       </div>

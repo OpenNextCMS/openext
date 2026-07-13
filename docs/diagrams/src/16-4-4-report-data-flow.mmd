@@ -1,0 +1,17 @@
+flowchart LR
+    subgraph Collect
+        Ev[AnalyticsEvent] & FA[Form.analytics] & MA[MenuRedirectAnalytics]
+    end
+    subgraph Aggregate["API (Mongo aggregation)"]
+        S1["/analytics/summary"]
+        S2["/forms/:id/analytics"]
+        S3["/menu-redirect/analytics"]
+    end
+    subgraph Present["Dashboards (recharts)"]
+        D1[Blog Analytics]
+        D2[Form Analytics]
+        D3[Menu Analytics]
+    end
+    Ev --> S1 --> D1
+    FA --> S2 --> D2
+    MA --> S3 --> D3

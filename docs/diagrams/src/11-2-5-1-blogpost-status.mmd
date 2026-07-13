@@ -1,0 +1,10 @@
+stateDiagram-v2
+    [*] --> draft : create
+    draft --> scheduled : schedule(scheduledAt)
+    draft --> published : publish
+    scheduled --> published : cron reaches scheduledAt
+    scheduled --> draft : unschedule
+    published --> archived : archive
+    published --> draft : unpublish
+    archived --> draft : restore
+    archived --> [*]

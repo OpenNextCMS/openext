@@ -2,15 +2,22 @@
 
 How to author and upload a **theme package** for the [Theme Builder](./theme-builder.md).
 
-A theme package is a small **JSON file of design tokens** — colors, typography,
+A theme package is a small set of **design tokens** — colors, typography,
 spacing, radius, shadows, layout, and component-variant choices. It is **not**
-code: no React, CSS, or ZIP of files. Uploading one creates a new **inactive
-custom theme**; you then **Activate** it to re-skin the live public site.
+code: there is no React or CSS in a theme. You upload it in one of two forms:
 
-- **Upload UI:** Dashboard → **Themes** → **Import** → choose a `.json` file.
+- a raw **`.json`** file (the token manifest), or
+- a **`.zip`** bundle — the same `theme.json` manifest plus an optional preview
+  image (and room for assets). A ZIP is only a *container*; it never carries code.
+
+Uploading either creates a new **inactive custom theme**; you then **Activate** it
+to re-skin the live public site.
+
+- **Upload UI:** Dashboard → **Themes** → **Import** → choose a `.json` or `.zip` file.
 - **API:** `POST /api/themes/import` (see [Uploading](#uploading)).
 - **Endpoint code:** `src/app/api/themes/import/route.ts`
 - **Validator / normalizer:** `src/lib/theme/theme-package.ts`
+- **ZIP unpacker:** `src/lib/theme/theme-zip.ts`
 
 ---
 
@@ -83,6 +90,48 @@ The importer is forgiving. Both of these are valid:
 A file must contain at least one recognized token group (`colors`, `typography`,
 `spacing`, `radius`, `shadows`, or `layout`), otherwise it is rejected as "not a
 valid theme file".
+
+---
+
+## ZIP packages
+
+Instead of a bare `.json`, you may upload a `.zip`. This is the recommended form
+when you want to ship a **preview image** alongside the tokens (bundling a real
+image file is cleaner than pasting a giant `previewImage` data URI into the JSON).
+
+### Accepted ZIP structure
+
+```text
+my-theme.zip
+├── theme.json      (required — the token manifest documented above; manifest.json also accepted)
+├── preview.png     (optional — gallery image; .jpg / .jpeg / .webp / .gif also accepted)
+└── assets/         (optional — fonts or other files; currently ignored on import)
+```
+
+- A **single wrapping root folder** is tolerated, e.g. `my-theme/theme.json`.
+- The **manifest** (`theme.json`) is validated by the exact same rules as a JSON
+  upload — the two paths accept identical token content.
+- If no `theme.json` / `manifest.json` is present but the ZIP contains **exactly
+  one** `.json` file, that file is used as the manifest.
+- A `preview` image is embedded as the theme's preview (as a data URI). If the
+  manifest already sets `previewImage`, that value wins and the file is ignored.
+- Everything is read **in memory** — the ZIP is never written to disk, so there is
+  no path-traversal ("zip-slip") risk. A ZIP cannot install code.
+
+### ZIP limits
+
+| Rule | Limit / behavior |
+| --- | --- |
+| ZIP file size | ≤ **5 MB** |
+| Total uncompressed size | ≤ **10 MB** (zip-bomb guard) → `413` |
+| Manifest size | ≤ **512 KB** → `413` |
+| Preview image | ≤ **140 KB**; larger is silently skipped (theme still imports) |
+| No manifest found | **400** — "No theme.json found in the ZIP" |
+| Unreadable archive | **400** — "Could not read the ZIP file" |
+
+> **Note:** This ZIP importer is unrelated to the legacy `/api/themes/extract`
+> route, which extracted a ZIP of *code* onto disk. This importer only reads a
+> token manifest (plus an optional image) into the database.
 
 ---
 
@@ -198,7 +247,7 @@ Enforced at import (`POST /api/themes/import`):
 
 | Rule | Limit / behavior |
 | --- | --- |
-| File size | ≤ **512 KB** (multipart uploads) |
+| File size | `.json` ≤ **512 KB**; `.zip` ≤ **5 MB** (see [ZIP limits](#zip-limits)) |
 | `name` | trimmed, ≤ 80 chars; blank → file name → `"Imported Theme"` |
 | `description` | trimmed, ≤ 500 chars |
 | `previewImage` | ≤ 200 000 chars, else silently dropped |
@@ -219,9 +268,10 @@ live site until you Activate the theme.
 
 ### Via the dashboard
 
-Dashboard → **Themes** → **Import** → pick your `.json` file. A toast confirms the
-import; the theme appears in the gallery as a Custom theme. Click **Activate** to
-go live.
+Dashboard → **Themes** → **Import** → pick your `.json` or `.zip` file. A toast
+confirms the import; the theme appears in the gallery as a Custom theme. Click
+**Activate** to go live. The **format** button (next to Import) shows the accepted
+structure before you upload.
 
 ### Via the API
 
@@ -234,12 +284,18 @@ curl -X POST https://YOUR_SITE/api/themes/import \
   -d @my-theme.json
 ```
 
-**Multipart file upload:**
+**Multipart file upload (`.json` or `.zip`):**
 
 ```bash
+# A JSON manifest
 curl -X POST https://YOUR_SITE/api/themes/import \
   --cookie "YOUR_SESSION_COOKIE" \
   -F "file=@my-theme.json"
+
+# A ZIP bundle (theme.json + preview.png)
+curl -X POST https://YOUR_SITE/api/themes/import \
+  --cookie "YOUR_SESSION_COOKIE" \
+  -F "file=@my-theme.zip"
 ```
 
 Success returns `201` with the created theme in the standard envelope:
@@ -309,7 +365,9 @@ Errors return the matching status (`400`/`403`/`413`) with
   another, since it only carries tokens (no site-specific IDs or content).
 - **Export is not built yet.** For now, start from the **Download starter template**
   in the Import dialog, or hand-author a file against this spec.
-- This is the token-based Theme Builder format. It is unrelated to the legacy,
-  dormant ZIP "website template" installer, which this system supersedes.
+- The optional ZIP form is still **token-based**: the ZIP only bundles the
+  `theme.json` manifest and an optional preview image. It is unrelated to the
+  legacy, dormant ZIP "website template" *code* installer (`/api/themes/extract`),
+  which this system supersedes.
 
 See also: [Theme Builder architecture](./theme-builder.md).
