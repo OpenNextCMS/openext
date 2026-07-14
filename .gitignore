@@ -1,4 +1,4 @@
-﻿# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 # dependencies
 /node_modules
 /.pnp
@@ -43,6 +43,10 @@ next-env.d.ts
 /public/siteicon
 /public/plugins/*
 !/public/plugins/.gitkeep
+
+# Theme Package Manager — extracted ZIPs (keep directory via .gitkeep)
+/storage/themes/*
+
 # Layout planner training artifacts (schema + scripts + fixtures + briefs stay tracked)
 training/data/raw/
 training/data/validated/

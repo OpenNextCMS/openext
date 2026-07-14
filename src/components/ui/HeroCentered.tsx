@@ -1,12 +1,9 @@
-﻿import React from 'react';
+import React from 'react';
 import { useAppDispatch } from '@/redux/hooks';
 import { updateBlockContent, setSelectedBlock, setSelectedLabel } from '@/redux/canvasSlice';
 import { InlineEditableText } from '@/components/editor/InlineEditableText';
 import { InlineSlot } from '@/components/editor/blocks/InlineSlot';
-<<<<<<< HEAD
 import { isPartHidden } from '@/lib/editor/stylePath';
-=======
->>>>>>> 18020fe3f52e89bc4734d8741d2904a004c57b3e
 import type { BlockRendererProps, BlockData } from '@/types/index';
 
 export const HeroCentered = ({ block, isEditing = false }: BlockRendererProps) => {
@@ -52,7 +49,6 @@ export const HeroCentered = ({ block, isEditing = false }: BlockRendererProps) =
         <div className="text-center lg:w-2/3 w-full">
           {/* Insert blocks between the image and the heading */}
           <InlineSlot block={block} slotIndex={3} isEditing={isEditing} />
-<<<<<<< HEAD
           {!isPartHidden(content, 'titleStyle') && (
             <InlineEditableText
               tagName="h1"
@@ -81,32 +77,6 @@ export const HeroCentered = ({ block, isEditing = false }: BlockRendererProps) =
               isEditing={isEditing}
             />
           )}
-=======
-          <InlineEditableText
-            tagName="h1"
-            className="title-font sm:text-4xl text-3xl mb-4 font-medium text-[color:var(--color-text,#111827)] whitespace-pre-line"
-            style={{ 
-              color: block.style?.color || 'var(--color-text, #111827)', 
-              fontFamily: block.style?.fontFamily,
-              ...content.titleStyle 
-            }}
-            value={content.title || 'Microdosing synth tattooed vexillologist'}
-            onBlur={(v) => handleUpdate('title', v)}
-            isEditing={isEditing}
-          />
-          <InlineEditableText
-            tagName="p"
-            className="mb-8 leading-relaxed"
-            style={{ 
-              color: block.style?.color || 'var(--color-text, #111827)', 
-              fontFamily: block.style?.fontFamily,
-              ...content.descriptionStyle 
-            }}
-            value={content.description || 'Meggings kinfolk echo park stumptown DIY, kale chips beard jianbing tousled. Chambray dreamcatcher trust fund, kitsch vice godard disrupt ramps hexagon mustache umami snackwave tilde chillwave ugh. Pour-over meditation PBR&B pickled ennui celiac mlkshk freegan photo booth af fingerstache pitchfork.'}
-            onBlur={(v) => handleUpdate('description', v)}
-            isEditing={isEditing}
-          />
->>>>>>> 18020fe3f52e89bc4734d8741d2904a004c57b3e
           {/* Insert blocks between the description and the buttons */}
           <InlineSlot block={block} slotIndex={4} isEditing={isEditing} />
           <div className="flex justify-center">

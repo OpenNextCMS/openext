@@ -37,6 +37,9 @@ export async function fetchPageWithLayout(slug: string): Promise<PageDataResult 
     const findActiveLayoutPart = async (
       pageType: 'header' | 'footer'
     ): Promise<PageDoc | null> => {
+      // Prefer the current global part for this owner (multi-user), then any
+      // active global. Theme package apply stamps createdBy to match homepage
+      // owner so this first query succeeds after theme chrome is applied.
       if (page.createdBy) {
         const owned = (await PageModel.findOne({
           ...activeLayoutFilter,
@@ -49,9 +52,20 @@ export async function fetchPageWithLayout(slug: string): Promise<PageDataResult 
         if (owned) return owned;
       }
 
-      return (await PageModel.findOne({
+      const globalPart = (await PageModel.findOne({
         ...activeLayoutFilter,
         pageType,
+      })
+        .sort({ updatedAt: -1 })
+        .lean()
+        .exec()) as PageDoc | null;
+      if (globalPart) return globalPart;
+
+      // Last resort: any published layout part of this type (covers edge cases
+      // where isGlobal was left false).
+      return (await PageModel.findOne({
+        pageType,
+        isPublished: true,
       })
         .sort({ updatedAt: -1 })
         .lean()

@@ -1,4 +1,5 @@
 import renderFromJson from '@/components/ReusableComponents/RenderFromJson';
+import ActiveThemeScope from '@/components/theme-preview/ActiveThemeScope';
 import { BlockData, Page } from '@/types';
 import { useEffect, useState } from 'react';
 import { hasVerticalHeader } from '@/utils/headerLayout';
@@ -92,26 +93,30 @@ const Default = () => {
 
   if (sidebarHeader) {
     return (
-      <div className="flex min-h-screen">
-        <aside className="w-64 flex-shrink-0 sticky top-0 self-start h-screen overflow-y-auto">
-          {headerData.map((element) => renderFromJson(element))}
-        </aside>
-        <div className="flex-1 flex flex-col min-h-screen">
-          <main className="flex-1">
-            {pageData.map((element) => renderFromJson(element))}
-          </main>
-          {footerData.map((element) => renderFromJson(element))}
+      <ActiveThemeScope>
+        <div className="flex min-h-screen">
+          <aside className="w-64 flex-shrink-0 sticky top-0 self-start h-screen overflow-y-auto">
+            {headerData.map((element) => renderFromJson(element))}
+          </aside>
+          <div className="flex-1 flex flex-col min-h-screen">
+            <main className="flex-1">
+              {pageData.map((element) => renderFromJson(element))}
+            </main>
+            {footerData.map((element) => renderFromJson(element))}
+          </div>
         </div>
-      </div>
+      </ActiveThemeScope>
     );
   }
 
   return (
-    <div>
-      {headerData.map((element) => renderFromJson(element))}
-      {pageData.map((element) => renderFromJson(element))}
-      {footerData.map((element) => renderFromJson(element))}
-    </div>
+    <ActiveThemeScope>
+      <div>
+        {headerData.map((element) => renderFromJson(element))}
+        {pageData.map((element) => renderFromJson(element))}
+        {footerData.map((element) => renderFromJson(element))}
+      </div>
+    </ActiveThemeScope>
   );
 };
 

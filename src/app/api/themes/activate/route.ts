@@ -1,16 +1,15 @@
 import { NextRequest } from 'next/server';
-import { apiOk, handleApiError } from '@/lib/api/response';
-import { guardTheme } from '@/lib/theme/guard';
-import { ThemeService } from '@/lib/theme/theme-service';
+import { handleApiError } from '@/lib/api/response';
+import { ThemeActivationController } from '@/modules/theme';
 import { activateThemeSchema } from '@/lib/theme/theme-validator';
+
+export const dynamic = 'force-dynamic';
 
 /** POST /api/themes/activate { id } — make a theme the single active theme. */
 export async function POST(req: NextRequest) {
   try {
-    await guardTheme('activate');
     const { id } = activateThemeSchema.parse(await req.json());
-    const theme = await ThemeService.activate(id);
-    return apiOk(theme);
+    return ThemeActivationController.activate(id);
   } catch (err) {
     return handleApiError(err);
   }

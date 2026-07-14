@@ -114,4 +114,70 @@ export const themeApi = {
     });
     return unwrap<ThemeDTO>(res);
   },
+
+  /** Upload a full theme package ZIP (Theme Package Manager). */
+  async uploadPackage(file: File): Promise<ThemeDTO> {
+    const form = new FormData();
+    form.append('file', file);
+    const res = await fetch('/api/themes/upload', {
+      method: 'POST',
+      credentials: 'include',
+      body: form,
+    });
+    return unwrap<ThemeDTO>(res);
+  },
+
+  /** Finalize installation of an uploaded package theme. */
+  async install(id: string): Promise<ThemeDTO> {
+    const res = await fetch(`/api/themes/${id}/install`, {
+      method: 'POST',
+      credentials: 'include',
+    });
+    return unwrap<ThemeDTO>(res);
+  },
+
+  /**
+   * Apply the theme's layouts/default (+ variants/presets) to the live homepage.
+   * Optionally persist `applyPageLayout` so activation auto-applies next time.
+   */
+  async applyLayout(
+    id: string,
+    opts?: { layoutKey?: string; applyPageLayout?: boolean }
+  ): Promise<{
+    pageId: string;
+    slug: string;
+    blockCount: number;
+    header?: string;
+    footer?: string;
+    message?: string;
+  }> {
+    const res = await fetch(`/api/themes/${id}/apply-layout`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(opts || {}),
+    });
+    return unwrap(res);
+  },
+
+  /** Toggle “match homepage to this theme’s layout” without rewriting pages yet. */
+  async setApplyPageLayout(id: string, applyPageLayout: boolean): Promise<ThemeDTO> {
+    const res = await fetch(`/api/themes/${id}/apply-layout`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ applyPageLayout }),
+    });
+    return unwrap<ThemeDTO>(res);
+  },
+
+  /** Download the theme as a portable ZIP (includes Theme Builder customizations). */
+  async exportZip(id: string): Promise<Blob> {
+    const res = await fetch(`/api/themes/${id}/export`, { credentials: 'include' });
+    if (!res.ok) {
+      const json = await res.json().catch(() => null);
+      throw new Error(json?.error?.message || `Export failed (${res.status})`);
+    }
+    return res.blob();
+  },
 };

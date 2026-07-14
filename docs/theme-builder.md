@@ -1,161 +1,134 @@
 # Theme Builder
 
-A site-wide, configuration-driven theming system. Tenants customize their site
-appearance (colors, typography, spacing, radius, shadows, layout, component
-variants) without touching code. The **active** theme drives the live public
-site via CSS variables.
+In-app design-token editor for OpenNext CMS. Themes are configuration — not React
+or PHP code. Tokens become CSS custom properties on `.site-theme-scope` for the
+public site and the editor canvas.
 
-This is a **core** dashboard feature (not a marketplace plugin) and is fully
-multi-tenant: themes live in the per-tenant page DB (tenancy = separate DB).
-
-It is independent from the older **blog-only** design system
-(`ThemeSettings` + `cssVars.ts` + `BlogThemeProvider`), which is unchanged. It
-also **supersedes** the legacy ZIP-upload theme installer (`/api/themes/upload`,
-now dormant); `/dashboard/themes/addtheme` redirects to the new create flow.
-
-Themes can also be **imported** as a JSON token package — see
-[Theme Upload Format](./theme-upload-format.md).
-
----
-
-## Architecture
-
-```
-Builder UI ──► Redux draft ──► live preview (CSS vars)
-   │
-   └─► /api/themes (CRUD/activate) ──► Theme model (page DB)
-                                          │
-Public page ──► SiteThemeProvider ──► getActiveTheme() ──► CSS vars on wrapper
-                                          ▲
-                                     theme-cache (5s TTL)
-```
-
-### Key files
-| Concern | File |
+| Related docs | |
 | --- | --- |
-| Token types | `src/types/theme.ts`, `src/types/component-variants.ts` |
-| CSS-var engine | `src/lib/theme/cssVars.site.ts` (`themeConfigToCssVars`, `mergeThemeConfig`, `DEFAULT_THEME_CONFIG`) |
-| Model | `src/models/Theme.ts` (+ `getThemeModel` / auto-seed in `src/utils/db.ts`) |
-| System themes | `src/themes/*` (Startup, Agency, Corporate, Ecommerce, Portfolio) |
-| Seeding | `src/lib/theme/seed.ts`, `scripts/seedThemes.ts` |
-| Service / loader / cache | `src/lib/theme/theme-service.ts`, `theme-loader.ts`, `theme-cache.ts` |
-| Validation | `src/lib/theme/theme-validator.ts` (Zod) |
-| Import (upload) | `src/lib/theme/theme-package.ts`, `src/app/api/themes/import/route.ts` — see [Theme Upload Format](./theme-upload-format.md) |
-| RBAC | `src/lib/theme/permissions.ts`, `guard.ts` |
-| APIs | `src/app/api/themes/{route,[id],[id]/duplicate,activate,import}` |
-| Redux | `src/redux/themeBuilderSlice.ts` |
-| Providers | `src/providers/SiteThemeProvider.tsx` (public), `ThemeConfigProvider.tsx` (client) |
-| Variant registry | `src/lib/theme/component-registry.ts` |
-| Builder UI | `src/components/theme-builder/*` |
-| Live preview | `src/components/theme-preview/*` |
-| Admin pages | `src/app/dashboard/themes/{allthemes,new,[id],addtheme}` |
+| [Theme Uploading](./theme-upload-format.md) | Import token JSON/ZIP or upload a full package |
+| [Theme Package Manager](./theme-package-manager.md) | Full ZIP packages (tokens + assets + templates) |
 
 ---
 
-## CSS token reference
+## Concepts
 
-`themeConfigToCssVars(config)` emits these custom properties on the public
-wrapper (`.site-theme-scope`). Components read them as `var(--token, fallback)`.
+- **System themes** — seeded from `src/themes/` (startup, agency, corporate, …). Read-only; duplicate to edit.
+- **Custom themes** — created in the dashboard, imported as tokens, or uploaded as packages.
+- **Active theme** — exactly one `Theme.isActive` document in the tenant page DB. Public pages load it via `getActiveTheme()` / `ThemeLoader`.
+- **CSS variables** — mapped in `src/lib/theme/cssVars.site.ts` (`themeConfigToCssVars`).
 
-| Group | Variables |
+Dashboard: **Themes** gallery → open a theme → Builder tabs (Colors, Typography, Spacing, Radius, Shadows, Layout, Variants).
+
+---
+
+## Token → CSS mapping
+
+### Colors
+
+| Key | CSS variable | Default |
+| --- | --- | --- |
+| `primary` | `--color-primary` | `#2563eb` |
+| `secondary` | `--color-secondary` | `#7c3aed` |
+| `accent` | `--color-accent` | `#f59e0b` |
+| `background` | `--color-bg` | `#ffffff` |
+| `surface` | `--color-surface` | `#f8fafc` |
+| `text` | `--color-text` | `#111827` |
+| `muted` | `--color-muted` | `#6b7280` |
+| `success` | `--color-success` | `#16a34a` |
+| `warning` | `--color-warning` | `#d97706` |
+| `danger` | `--color-danger` | `#dc2626` |
+
+Accepted color formats: hex, `rgb(a)`, `hsl(a)`, `var(--…)`.
+
+### Typography
+
+| Key | CSS variable | Default |
+| --- | --- | --- |
+| `displayFont` | `--font-display` | `Inter, system-ui, sans-serif` |
+| `headingFont` | `--font-heading` | `Inter, system-ui, sans-serif` |
+| `bodyFont` | `--font-body` | `Inter, system-ui, sans-serif` |
+| `baseFontSize` | `--font-size-base` | `16px` |
+| `lineHeight` | `--line-height-base` | `1.6` |
+
+### Spacing / radius / shadows / layout
+
+| Group | Examples |
 | --- | --- |
-| Colors | `--color-primary`, `--color-secondary`, `--color-accent`, `--color-bg`, `--color-surface`, `--color-text`, `--color-muted`, `--color-success`, `--color-warning`, `--color-danger` |
-| Typography | `--font-heading`, `--font-body`, `--font-size-base`, `--line-height-base` |
-| Spacing | `--space-xs/sm/md/lg/xl`, `--section-spacing` |
-| Radius | `--radius` (alias of md), `--radius-sm/md/lg/xl` |
-| Shadows | `--shadow-sm/md/lg` |
-| Layout | `--layout-width`, `--container-padding` |
-
-The wrapper also sets base `background/color/font/size/line-height` so unstyled
-blocks inherit the theme automatically (no per-block change required).
-
----
-
-## Retrofit rule (how blocks consume the theme)
-
-Per-block inline styles always win; the theme only fills gaps:
-
-```
-value = block.style?.x ?? 'var(--token, <original-literal>)'
-```
-
-- Pages someone hand-styled keep their look.
-- Blocks left at defaults adopt the active theme.
-- With **no** active theme (or in the dashboard editor, which is not wrapped in
-  `SiteThemeProvider`), `var()` resolves to the original literal → **zero**
-  visual change.
-
-Retrofitted so far (representative): `ButtonBlock`, `CardBlock`, `NavbarBlock`,
-`HeroMain`, `FeatureTrio`. `TextBlock`/`RowBlock`/`ColumnBlock` inherit via the
-cascade. `BlogFeed` already uses the shadcn semantic-token classes. Apply the
-same rule to additional components as needed.
+| Spacing | `--space-xs` … `--space-xl` (also `--container-padding` from `lg`) |
+| Radius | `--radius-sm` … `--radius-2xl` (also `--radius` from `md`) |
+| Shadows | `--shadow-sm` … `--shadow-xl` |
+| Layout | `--layout-width`, `--section-spacing` |
 
 ---
 
 ## Component variants
 
-Variants are visual presets for a section *family* (navbar, hero, features, cta,
-pricing, testimonials, footer), selected in the builder and stored on the theme.
+`componentVariants` is a `family → variantId` map. On the live site and editor
+canvas, matching page blocks swap layout while keeping content
+(e.g. `hero-main` → Split when `"hero": "split"`).
 
-They are **not** new draggable block types — the registry
-(`component-registry.ts`) maps `(family, variantId)` to an existing
-`src/components/ui/*` component. Adding a variant = add a registry entry; no
-block-type unions / palettes change.
+| Family | Variant ids | Default |
+| --- | --- | --- |
+| `navbar` | `default`, `centered`, `split` | `default` |
+| `hero` | `main`, `centered`, `split` | `main` |
+| `features` | `trio`, `vertical`, `horizontal`, `boxed`, `zigzag`, `bento` | `trio` |
+| `cta` | `default` | `default` |
+| `pricing` | `default` | `default` |
+| `testimonials` | `main`, `single`, `single-large` | `main` |
+| `footer` | `default` | `default` |
 
----
-
-## Seeding (multi-tenant)
-
-The 5 system themes are defined in code (`src/themes/*`) and installed per
-tenant DB:
-
-- **Auto-seed (primary):** `getPageDbConnection()` seeds them on first access of
-  a fresh tenant DB (`countDocuments() === 0`), mirroring how Roles/Settings are
-  seeded. Startup is the default + initial active theme.
-- **Manual re-seed:** run `npx tsx scripts/seedThemes.ts` after you add/edit a
-  system theme (upserts by slug; idempotent). Auto-seed won't re-run once any
-  theme exists.
-
-System themes are **read-only** — duplicate to edit.
+Source of truth: `src/lib/theme/component-registry.ts` + `block-variant-map.ts`.
 
 ---
 
-## RBAC
+## Runtime wiring
 
-Theme management is gated by `guardTheme(action)` → `requireAuth()` + role:
+| Piece | Path | Role |
+| --- | --- | --- |
+| `SiteThemeProvider` | `src/providers/SiteThemeProvider.tsx` | Public pages: CSS vars + package CSS + variants/presets |
+| `ActiveThemeScope` | `src/components/theme-preview/ActiveThemeScope.tsx` | Editor / preview canvas theming |
+| `ActiveThemeVariantsProvider` | `src/providers/ActiveThemeVariantsProvider.tsx` | Client context for `RenderBlock` + package presets |
+| `ThemeService` | `src/lib/theme/theme-service.ts` | CRUD / activate (package-aware delete & activate) |
+| Theme Package Manager | `src/modules/theme/` | Upload, install, export, assets |
 
-- **Owner (SuperAdmin) / Admin:** view + all writes
-- **Editor:** view only
-- **Viewer / Author:** no access
-
-`getCurrentThemeRole()` is a placeholder (defaults to Admin) like the
-menu-redirect/form-builder gates — wire it to the real user→role lookup when
-auth is hardened.
-
----
-
-## Performance
-
-The active theme is served from an in-process cache (`theme-cache.ts`, 5s TTL),
-so the hot public-page path skips the DB (load well under 50ms). `update` (of
-the active theme) and `activate` call `invalidateActiveThemeCache()`.
+Activating a theme clears the short-lived active-theme cache and revalidates
+public paths. Package themes may also update global header/footer pages and
+`WebsitePreferences.theme`.
 
 ---
 
-## Import / export
+## APIs (builder-focused)
 
-**Import is built.** A theme can be uploaded as a JSON token package via
-Dashboard → Themes → **Import**, or `POST /api/themes/import`. Imported themes
-land as **inactive** custom themes (activate to go live). Full spec, token
-reference, validation rules, and examples: [Theme Upload Format](./theme-upload-format.md).
+| Method | Path | Notes |
+| --- | --- | --- |
+| `GET\|POST` | `/api/themes` | List / create |
+| `GET\|PUT\|DELETE` | `/api/themes/[id]` | Read / update / delete |
+| `POST` | `/api/themes/[id]/duplicate` | Copy (incl. system → custom) |
+| `POST` | `/api/themes/activate` | `{ "id" }` |
+| `POST` | `/api/themes/import` | Token JSON or light ZIP |
+| `POST` | `/api/themes/upload` | Full theme package ZIP |
+| `GET` | `/api/themes/[id]/export` | Portable ZIP export |
 
-**Export is not built yet** — start from the **Download starter template** in the
-Import dialog, or hand-author a file against the format spec.
+Client helper: `src/components/theme-builder/api.ts` (`themeApi`).
+
+Validation: Zod in `src/lib/theme/theme-validator.ts` (+ package validators under
+`src/modules/theme/validators/`).
 
 ---
 
-## Future compatibility (architected, not yet built)
+## Uploaded packages ↔ builder
 
-The model reserves a `meta?` bag and keeps token groups flexible so these slot
-in without a migration: **export**, **versioning/rollback**, **AI theme
-generation**, **theme marketplace/sharing**.
+If an uploaded package theme is active (or opened in the builder):
+
+- `tokens/colors.json` → Colors tab  
+- `tokens/typography.json` → Typography  
+- `tokens/spacing.json` → Spacing  
+- `tokens/radius.json` → Radius  
+- `tokens/shadows.json` → Shadows  
+
+Saving in the builder updates the Theme document and keeps `tokens` aligned so
+**export** ships your customizations.
+
+See [Theme Package Manager](./theme-package-manager.md) for the full ZIP layout,
+security limits, and asset URLs.

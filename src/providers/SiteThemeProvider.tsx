@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
-import { getActiveTheme } from '@/lib/theme/theme-loader';
+import { ThemeLoader } from '@/modules/theme/services/ThemeLoader';
 import { themeConfigToCssVars } from '@/lib/theme/cssVars.site';
+import { ActiveThemeVariantsProvider } from '@/providers/ActiveThemeVariantsProvider';
 
 /**
  * Server component that reads the tenant's ACTIVE site theme and applies it as
@@ -8,15 +9,28 @@ import { themeConfigToCssVars } from '@/lib/theme/cssVars.site';
  * these via `var(--token, <fallback>)`, so unstyled blocks adopt the theme while
  * per-block inline styles still win.
  *
- * The public-site counterpart to the blog's `BlogThemeProvider`. Used at the
- * `[slug]` page level (NOT the root layout) so the dashboard is never themed.
+ * Also exposes `componentVariants` + package presets/layouts to client
+ * `RenderBlock` / builder helpers.
+ *
+ * Package themes additionally inject their global CSS from /theme-assets/{slug}/….
  */
 export default async function SiteThemeProvider({ children }: { children: ReactNode }) {
-  const active = await getActiveTheme();
+  const active = await ThemeLoader.getActive();
   const vars = themeConfigToCssVars(active.config);
   return (
-    <div className="site-theme-scope" style={vars}>
-      {children}
-    </div>
+    <ActiveThemeVariantsProvider
+      componentVariants={active.componentVariants}
+      blockPresets={active.presets.blocks}
+      stylePresets={active.presets.styles}
+      layouts={active.layouts}
+      cssUrls={active.cssUrls}
+    >
+      {active.cssUrls.map((href) => (
+        <link key={href} rel="stylesheet" href={href} />
+      ))}
+      <div className="site-theme-scope" style={vars}>
+        {children}
+      </div>
+    </ActiveThemeVariantsProvider>
   );
 }

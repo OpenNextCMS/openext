@@ -3,6 +3,11 @@ import type { NextConfig } from 'next';
 const nextConfig: NextConfig = {
   reactStrictMode: true,
 
+  // Windows: limit static-generation workers to reduce flaky child_process spawns.
+  experimental: {
+    cpus: 1,
+  },
+
   images: {
     domains: ['localhost'],
     remotePatterns: [

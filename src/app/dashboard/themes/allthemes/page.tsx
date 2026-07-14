@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import {
   Plus, Pencil, Copy, Trash2, Check, Palette, Loader2, Lock, Search, Eye,
   Monitor, Tablet, Smartphone, ChevronDown, Sparkles, LayoutGrid, Upload,
-  FileJson, Download,
+  FileJson, Download, LayoutTemplate,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -210,9 +210,72 @@ export default function AllThemesPage() {
 
   const activate = async (id: string) => {
     setBusyId(id);
-    try { await themeApi.activate(id); toast.success('Theme activated — your live site now uses it'); await load(); }
-    catch (e) { toast.error((e as Error).message); } finally { setBusyId(null); }
+    try {
+      await themeApi.activate(id);
+      const theme = themes.find((t) => t._id === id);
+      if (theme?.applyPageLayout) {
+        toast.success('Theme activated — homepage layout matched to this theme');
+      } else {
+        toast.success('Theme activated — your live site now uses it');
+      }
+      await load();
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setBusyId(null);
+    }
   };
+
+  const toggleApplyPageLayout = async (id: string, applyPageLayout: boolean) => {
+    setBusyId(id);
+    try {
+      await themeApi.setApplyPageLayout(id, applyPageLayout);
+      setThemes((prev) => prev.map((t) => (t._id === id ? { ...t, applyPageLayout } : t)));
+      toast.success(
+        applyPageLayout
+          ? 'This theme will apply its page layout when activated'
+          : 'Theme will only change colors/styles (layout unchanged)'
+      );
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const applyLayoutNow = async (id: string) => {
+    if (
+      !confirm(
+        'Replace your homepage sections with this theme’s layout? Header/footer chrome may update too. This cannot be undone easily.'
+      )
+    ) {
+      return;
+    }
+    setBusyId(id);
+    try {
+      const result = await themeApi.applyLayout(id, { applyPageLayout: true });
+      const chromeBits = [
+        result.header && result.header !== 'skipped' ? `header ${result.header}` : null,
+        result.footer && result.footer !== 'skipped' ? `footer ${result.footer}` : null,
+      ].filter(Boolean);
+      toast.success(
+        [
+          result.blockCount
+            ? `Applied ${result.blockCount} sections to /${result.slug || 'homepage'}`
+            : 'Homepage body unchanged',
+          chromeBits.length ? chromeBits.join(', ') : null,
+        ]
+          .filter(Boolean)
+          .join(' · ')
+      );
+      await load();
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setBusyId(null);
+    }
+  };
+
   const duplicate = async (id: string) => {
     setBusyId(id);
     try { await themeApi.duplicate(id); toast.success('Theme duplicated'); await load(); }
@@ -225,9 +288,10 @@ export default function AllThemesPage() {
     catch (e) { toast.error((e as Error).message); } finally { setBusyId(null); }
   };
 
-  // Import a theme from an uploaded file — a JSON token package or a ZIP bundle
-  // (theme.json + optional preview.png). It lands as an inactive custom theme, so
-  // the live site is untouched until the user activates it.
+  // Import / upload a theme file:
+  //   • .json  → token package (POST /api/themes/import)
+  //   • .zip   → full theme package manager path (POST /api/themes/upload),
+  //              which also accepts token-only ZIPs (theme.json + optional preview)
   const onImportFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     e.target.value = ''; // allow re-selecting the same file later
@@ -237,16 +301,23 @@ export default function AllThemesPage() {
       const isZip = /\.zip$/i.test(file.name);
       let created;
       if (isZip) {
-        // ZIP is unpacked + validated server-side (manifest + assets).
-        created = await themeApi.importFile(file);
+        created = await themeApi.uploadPackage(file);
       } else {
-        // Parse JSON client-side for a fast, friendly error before the round-trip.
         let parsed: unknown;
-        try { parsed = JSON.parse(await file.text()); }
-        catch { throw new Error('That file isn’t valid JSON. Upload a .json token file or a .zip theme bundle.'); }
+        try {
+          parsed = JSON.parse(await file.text());
+        } catch {
+          throw new Error(
+            'That file isn’t valid JSON. Upload a .json token file or a .zip theme package.'
+          );
+        }
         created = await themeApi.importTheme(parsed);
       }
-      toast.success(`Imported “${created.name}” — activate it to go live`);
+      toast.success(
+        created.layouts && Object.keys(created.layouts).length > 0
+          ? `Uploaded “${created.name}” with ${Object.keys(created.layouts).length} layout(s) — activate it to go live`
+          : `Uploaded “${created.name}” — activate it to go live`
+      );
       await load();
     } catch (err) {
       toast.error((err as Error).message);
@@ -255,7 +326,7 @@ export default function AllThemesPage() {
     }
   };
 
-  // Download a valid starter theme package (defaults pre-filled) to edit + re-import.
+  // Download a valid starter token package (defaults pre-filled) to edit + re-import.
   const downloadTemplate = () => {
     const template = {
       format: 'nextcms-theme',
@@ -263,7 +334,13 @@ export default function AllThemesPage() {
       name: 'My Custom Theme',
       description: 'Describe your theme here',
       theme: DEFAULT_THEME_CONFIG,
-      componentVariants: { hero: 'main', features: 'trio' },
+      componentVariants: {
+        navbar: 'default',
+        hero: 'main',
+        features: 'trio',
+        testimonials: 'main',
+        footer: 'default',
+      },
     };
     const blob = new Blob([JSON.stringify(template, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -316,7 +393,7 @@ export default function AllThemesPage() {
             onChange={onImportFile}
           />
           <Button variant="outline" disabled={importing} onClick={() => fileInputRef.current?.click()}>
-            {importing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />} Import
+            {importing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />} Upload
           </Button>
           <Button variant="ghost" size="icon" title="Theme file format & template" onClick={() => setShowFormat(true)}>
             <FileJson className="h-4 w-4" />
@@ -351,6 +428,19 @@ export default function AllThemesPage() {
               {active.description ? <p className="mt-1 max-w-lg text-sm opacity-90">{active.description}</p> : null}
             </div>
             <div className="flex gap-2">
+              <Button
+                variant="secondary"
+                size="sm"
+                disabled={busyId === active._id}
+                onClick={() => applyLayoutNow(active._id)}
+              >
+                {busyId === active._id ? (
+                  <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+                ) : (
+                  <LayoutTemplate className="mr-1.5 h-4 w-4" />
+                )}
+                Apply layout to homepage
+              </Button>
               <Button variant="secondary" size="sm" onClick={() => { setPreviewId(active._id); setDevice('desktop'); }}>
                 <Eye className="mr-1.5 h-4 w-4" /> Preview
               </Button>
@@ -442,10 +532,36 @@ export default function AllThemesPage() {
                     v{t.version}{t.updatedAt ? ` · Updated ${new Date(t.updatedAt).toLocaleDateString()}` : ''}
                   </p>
 
+                  <label className="flex cursor-pointer items-start gap-2 rounded-lg border bg-muted/30 p-2 text-xs leading-snug">
+                    <input
+                      type="checkbox"
+                      className="mt-0.5"
+                      checked={!!t.applyPageLayout}
+                      disabled={busy || !!t.isSystemTheme}
+                      onChange={(e) => toggleApplyPageLayout(t._id, e.target.checked)}
+                    />
+                    <span>
+                      <span className="font-medium text-foreground">Match homepage layout</span>
+                      <span className="mt-0.5 block text-muted-foreground">
+                        Use this theme’s section order &amp; presets on the live homepage when activated.
+                      </span>
+                    </span>
+                  </label>
+
                   <div className="flex flex-wrap gap-2 pt-2">
                     {!t.isActive && (
                       <Button size="sm" variant="outline" disabled={busy} onClick={() => activate(t._id)}>
                         {busy ? <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" /> : null} Activate
+                      </Button>
+                    )}
+                    {t.isActive && (
+                      <Button size="sm" variant="default" disabled={busy} onClick={() => applyLayoutNow(t._id)}>
+                        {busy ? (
+                          <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <LayoutTemplate className="mr-1 h-3.5 w-3.5" />
+                        )}
+                        Apply layout to homepage
                       </Button>
                     )}
                     <Button size="sm" variant="ghost" asChild>
@@ -494,57 +610,115 @@ export default function AllThemesPage() {
               <FileJson className="h-5 w-5" /> Theme file format
             </DialogTitle>
           </DialogHeader>
-          {/* Scrollable body — the spec can be tall, so it scrolls while the
-              action buttons below stay pinned and always visible. */}
-          <div className="-mr-2 max-h-[60vh] space-y-4 overflow-y-auto pr-2 text-sm">
+          <div className="-mr-2 max-h-[60vh] space-y-5 overflow-y-auto pr-2 text-sm">
             <p className="text-muted-foreground">
-              A theme is a small set of <b>design tokens</b> — colors, typography,
-              spacing, radius, shadows, layout, and component-variant choices. Every field
-              is optional; anything you leave out uses the platform default. Upload it as a
-              raw <code>.json</code> file, or as a <code>.zip</code> bundle (a manifest plus a
-              preview image). Imported themes land as an <b>inactive</b> custom theme —
-              activate it to go live.
+              Themes are <b>not</b> code. Upload design tokens (and optionally assets) as
+              JSON or ZIP. Files land as an <b>inactive</b> custom theme — activate to go live.
             </p>
 
             <div>
-              <p className="mb-1.5 font-medium">1. The token manifest (<code>theme.json</code>)</p>
+              <p className="mb-1.5 font-medium">1. Token package — <code>.json</code> (Import)</p>
+              <p className="mb-1.5 text-muted-foreground">
+                Lightweight design tokens only. Every field inside <code>theme</code> is optional.
+              </p>
               <pre className="overflow-x-auto rounded-lg bg-muted p-3 text-xs leading-relaxed">
 {`{
   "format": "nextcms-theme",
+  "version": 1,
   "name": "Ocean Breeze",
   "description": "Cool, airy blue theme",
   "theme": {
-    "colors":     { "primary": "#0ea5e9", "secondary": "#7c3aed" },
-    "typography": { "headingFont": "Poppins, system-ui, sans-serif" },
-    "spacing":    { "lg": "28px" },
-    "radius":     { "md": "12px" },
-    "shadows":    { "md": "0 6px 16px -4px rgba(0,0,0,0.2)" },
-    "layout":     { "containerWidth": "1240px" }
+    "colors": {
+      "primary": "#0ea5e9",
+      "secondary": "#7c3aed",
+      "accent": "#f59e0b",
+      "background": "#ffffff",
+      "surface": "#f8fafc",
+      "text": "#111827",
+      "muted": "#6b7280"
+    },
+    "typography": {
+      "displayFont": "Sora, system-ui, sans-serif",
+      "headingFont": "Poppins, system-ui, sans-serif",
+      "bodyFont": "Inter, system-ui, sans-serif",
+      "baseFontSize": "16px",
+      "lineHeight": "1.6"
+    },
+    "spacing": { "xs": "4px", "sm": "8px", "md": "16px", "lg": "24px", "xl": "40px" },
+    "radius":  { "sm": "4px", "md": "8px", "lg": "16px", "xl": "24px", "2xl": "32px" },
+    "shadows": { "sm": "…", "md": "…", "lg": "…", "xl": "…" },
+    "layout":  { "containerWidth": "1200px", "sectionSpacing": "80px" }
   },
-  "componentVariants": { "hero": "split", "features": "bento" }
+  "componentVariants": {
+    "navbar": "default",
+    "hero": "split",
+    "features": "bento",
+    "testimonials": "main",
+    "footer": "default"
+  }
 }`}
               </pre>
             </div>
 
             <div>
-              <p className="mb-1.5 font-medium">2. Or a ZIP bundle</p>
+              <p className="mb-1.5 font-medium">2. Full theme package — <code>.zip</code> (Upload)</p>
               <p className="mb-1.5 text-muted-foreground">
-                Same manifest, plus an optional preview image. A single wrapping folder is fine.
+                Tokens, templates, layouts, presets, CSS, fonts, and images. A single wrapping
+                folder is optional. Sample: <code>examples/business-theme/</code>.
               </p>
               <pre className="overflow-x-auto rounded-lg bg-muted p-3 text-xs leading-relaxed">
-{`my-theme.zip
-├── theme.json      (required — the manifest above)
-├── preview.png     (optional — gallery image; jpg/webp/gif ok)
-└── assets/         (optional — fonts, etc.)`}
+{`business-theme.zip
+└── business-theme/
+    ├── theme.json              (required metadata)
+    ├── preview.png             (optional gallery preview)
+    ├── thumbnail.jpg           (optional)
+    ├── tokens/
+    │   ├── colors.json
+    │   ├── typography.json
+    │   ├── spacing.json
+    │   ├── radius.json
+    │   ├── shadows.json
+    │   └── layout.json
+    ├── templates/
+    │   ├── header.json
+    │   └── footer.json
+    ├── layouts/default.json
+    ├── blocks/hero.json
+    ├── presets/buttons.json
+    ├── css/
+    ├── fonts/
+    ├── images/
+    └── assets/`}
+              </pre>
+            </div>
+
+            <div>
+              <p className="mb-1.5 font-medium">3. Package <code>theme.json</code> metadata</p>
+              <pre className="overflow-x-auto rounded-lg bg-muted p-3 text-xs leading-relaxed">
+{`{
+  "name": "Business Theme",
+  "slug": "business-theme",
+  "version": "1.0.0",
+  "author": "OpenNext",
+  "description": "Professional Business Theme",
+  "preview": "preview.png",
+  "thumbnail": "thumbnail.jpg",
+  "compatibleCms": "^1.0.0",
+  "supports": ["dark-mode", "responsive", "ai-builder", "block-presets"],
+  "componentVariants": { "hero": "split", "features": "bento" }
+}`}
               </pre>
             </div>
 
             <ul className="list-disc space-y-1 pl-5 text-muted-foreground">
-              <li>Colors accept hex, <code>rgb()/hsl()</code>, or <code>var(--…)</code>.</li>
-              <li>Sizes are any CSS length (e.g. <code>16px</code>, <code>1.5rem</code>).</li>
-              <li>Themes carry <b>tokens only</b>, never code — a ZIP is just a container.</li>
-              <li>Max <b>512&nbsp;KB</b> for a <code>.json</code>, <b>5&nbsp;MB</b> for a <code>.zip</code>. Invalid colors are rejected.</li>
-              <li>The full spec lives in <code>docs/theme-upload-format.md</code>.</li>
+              <li>Colors: hex, <code>rgb()/hsl()</code>, or <code>var(--…)</code>.</li>
+              <li>Sizes: any CSS length (<code>16px</code>, <code>1.5rem</code>, …).</li>
+              <li>
+                <code>.json</code> ≤ <b>512&nbsp;KB</b> · light token ZIP via import ≤ <b>5&nbsp;MB</b> ·
+                full package ZIP ≤ <b>25&nbsp;MB</b>.
+              </li>
+              <li>Dashboard <b>Upload</b> sends <code>.json</code> to token import and <code>.zip</code> to package upload.</li>
+              <li>Spec: <code>docs/theme-upload-format.md</code>.</li>
             </ul>
           </div>
           <div className="flex flex-wrap justify-end gap-2 border-t pt-4">
@@ -552,9 +726,12 @@ export default function AllThemesPage() {
               <Download className="mr-2 h-4 w-4" /> Download starter template
             </Button>
             <Button
-              onClick={() => { setShowFormat(false); fileInputRef.current?.click(); }}
+              onClick={() => {
+                setShowFormat(false);
+                fileInputRef.current?.click();
+              }}
             >
-              <Upload className="mr-2 h-4 w-4" /> Choose file to import
+              <Upload className="mr-2 h-4 w-4" /> Choose file to upload
             </Button>
           </div>
         </DialogContent>
@@ -593,7 +770,17 @@ export default function AllThemesPage() {
             <div className="flex max-h-[70vh] justify-center overflow-auto rounded-xl bg-muted/30 p-4">
               <div className={`${DEVICE_WIDTH[device]} transition-all`}>
                 <div className="overflow-hidden rounded-xl border bg-white">
-                  <PreviewCanvas config={mergeThemeConfig(previewTheme.theme)} componentVariants={previewTheme.componentVariants || {}} />
+                  <PreviewCanvas
+                    config={mergeThemeConfig(previewTheme.theme)}
+                    componentVariants={previewTheme.componentVariants || {}}
+                    layoutSections={
+                      Array.isArray(
+                        (previewTheme.layouts?.default as { sections?: string[] } | undefined)?.sections
+                      )
+                        ? (previewTheme.layouts!.default as { sections: string[] }).sections
+                        : undefined
+                    }
+                  />
                 </div>
               </div>
             </div>

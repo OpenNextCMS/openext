@@ -134,6 +134,7 @@ export interface Block {
     | 'icon'
     | 'hero-main'
     | 'hero-centered'
+    | 'hero-split'
     | 'statistics-main'
     | 'statistics-side-image'
     | 'statistics-boxed'
@@ -178,6 +179,10 @@ export interface Block {
     | 'feature-zigzag'
     | 'feature-checklist'
     | 'feature-list'
+    | 'feature-bento'
+    | 'pricing-table'
+    | 'cta-section'
+    | 'footer-section'
     | 'blog-feed'
     | 'form-block';
   children?: ColumnChild[]; // Updated type for children
@@ -518,6 +523,7 @@ export interface BlockData {
     | 'icon'
     | 'hero-main'
     | 'hero-centered'
+    | 'hero-split'
     | 'statistics-main'
     | 'statistics-side-image'
     | 'statistics-boxed'
@@ -562,6 +568,10 @@ export interface BlockData {
     | 'feature-zigzag'
     | 'feature-checklist'
     | 'feature-list'
+    | 'feature-bento'
+    | 'pricing-table'
+    | 'cta-section'
+    | 'footer-section'
     | 'blog-feed'
     | 'form-block';
   children?: BlockData[][];

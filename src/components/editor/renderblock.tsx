@@ -29,6 +29,7 @@ import { TestimonialSingleLarge } from '@/components/ui/TestimonialSingleLarge';
 import { HeroMain } from '@/components/ui/HeroMain';
 
 import { HeroCentered } from '@/components/ui/HeroCentered';
+import { HeroSplit } from '@/components/ui/HeroSplit';
 import { ContentFeatures } from '@/components/ui/ContentFeatures';
 import { ContentGallery } from '@/components/ui/ContentGallery';
 import { ContentIcons } from '@/components/ui/ContentIcons';
@@ -44,11 +45,19 @@ import { FeatureBoxed } from '@/components/ui/FeatureBoxed';
 import { FeatureZigzag } from '@/components/ui/FeatureZigzag';
 import { FeatureChecklist } from '@/components/ui/FeatureChecklist';
 import { FeatureList } from '@/components/ui/FeatureList';
+import { FeatureBento } from '@/components/ui/FeatureBento';
 import { BlogFeed } from '@/components/ui/BlogFeed';
 import { EcommerceGrid } from '@/components/ui/EcommerceGrid';
 import { EcommerceDetail } from '@/components/ui/EcommerceDetail';
 import { EcommerceInfo } from '@/components/ui/EcommerceInfo';
+import { PricingTable } from '@/components/ui/PricingTable';
+import { CTASection } from '@/components/ui/CTASection';
+import { FooterSection } from '@/components/ui/FooterSection';
 import { FormBlock } from '@/components/form-builder/blocks/FormBlock';
+import { useActiveThemeVariants } from '@/providers/ActiveThemeVariantsProvider';
+import { getVariantFamilyForBlockType } from '@/lib/theme/block-variant-map';
+import { getVariantComponent, listVariants } from '@/lib/theme/component-registry';
+import type { VariantFamily } from '@/types/component-variants';
 
 const blockComponents: Record<string, React.ComponentType<BlockRendererProps>> = {
   column: ColumnBlock,
@@ -78,6 +87,7 @@ const genericUiBlocks: Record<string, { component: React.ComponentType<BlockRend
   'testimonial-single-large': { component: TestimonialSingleLarge, label: 'Testimonial Large' },
   'hero-main': { component: HeroMain, label: 'Hero Main' },
   'hero-centered': { component: HeroCentered, label: 'Hero Centered' },
+  'hero-split': { component: HeroSplit, label: 'Hero Split' },
   'content-features': { component: ContentFeatures, label: 'Content Features' },
   'content-gallery': { component: ContentGallery, label: 'Content Gallery' },
   'content-icons': { component: ContentIcons, label: 'Content Icons' },
@@ -93,6 +103,10 @@ const genericUiBlocks: Record<string, { component: React.ComponentType<BlockRend
   'feature-zigzag': { component: FeatureZigzag, label: 'Feature Zigzag' },
   'feature-checklist': { component: FeatureChecklist, label: 'Feature Checklist' },
   'feature-list': { component: FeatureList, label: 'Feature List' },
+  'feature-bento': { component: FeatureBento, label: 'Feature Bento' },
+  'pricing-table': { component: PricingTable, label: 'Pricing' },
+  'cta-section': { component: CTASection, label: 'Call To Action' },
+  'footer-section': { component: FooterSection, label: 'Footer' },
   'blog-feed': { component: BlogFeed, label: 'Blog Feed' },
   'ecommerce-grid': { component: EcommerceGrid, label: 'Product Grid' },
   'ecommerce-detail': { component: EcommerceDetail, label: 'Ecommerce Detail' },
@@ -101,7 +115,26 @@ const genericUiBlocks: Record<string, { component: React.ComponentType<BlockRend
 
 const reusableUiTypes = ['radio', 'checkbox', 'avatar', 'separator', 'skeleton', 'switch', 'textarea', 'table', 'tabs'];
 
+const FAMILY_LABELS: Record<VariantFamily, string> = {
+  navbar: 'Navbar',
+  hero: 'Hero',
+  features: 'Features',
+  cta: 'Call To Action',
+  pricing: 'Pricing',
+  testimonials: 'Testimonials',
+  footer: 'Footer',
+};
+
+function variantLabel(family: VariantFamily, variantId?: string): string {
+  const variants = listVariants(family);
+  const match = variants.find((v) => v.id === variantId);
+  const familyLabel = FAMILY_LABELS[family];
+  return match ? `${familyLabel} (${match.label})` : familyLabel;
+}
+
 const RenderBlock = ({ block, isEditing = true }: BlockRendererProps) => {
+  const componentVariants = useActiveThemeVariants();
+
   // 1. Check if it's a plugin-provided block
   const pluginExtension = pluginRegistry.getExtension(block.type);
   if (pluginExtension) {
@@ -109,17 +142,44 @@ const RenderBlock = ({ block, isEditing = true }: BlockRendererProps) => {
     return <PluginComponent block={block} isEditing={isEditing} />;
   }
 
-  // 2. Check for choice inputs
+  // 2. Theme-driven section layouts: when the active theme picks a variant for
+  //    this block's family, render that component instead of the fixed type map.
+  //    Content JSON stays on the block — only the visual layout swaps.
+  const family = getVariantFamilyForBlockType(block.type);
+  if (family) {
+    const variantId = componentVariants[family];
+    // Only swap when the theme explicitly sets a variant for this family.
+    // Empty / missing → keep the block's own type component (backward compatible).
+    if (variantId) {
+      const VariantComponent = getVariantComponent(family, variantId);
+
+      // Navbar is a standard block (not GenericUiBlock) — keep that pattern.
+      if (family === 'navbar') {
+        return <VariantComponent block={block} isEditing={isEditing} />;
+      }
+
+      return (
+        <GenericUiBlock
+          block={block}
+          isEditing={isEditing}
+          Component={VariantComponent}
+          label={variantLabel(family, variantId)}
+        />
+      );
+    }
+  }
+
+  // 3. Check for choice inputs
   if (block.type === 'radio' || block.type === 'checkbox') {
     return <ChoiceInputBlock block={block} isEditing={isEditing} />;
   }
 
-  // 3. Check for reusable UI blocks
+  // 4. Check for reusable UI blocks
   if (reusableUiTypes.includes(block.type)) {
     return <ReusableUiBlock block={block} isEditing={isEditing} />;
   }
 
-  // 4. Check for generic UI blocks (wrapped with GenericUiBlock)
+  // 5. Check for generic UI blocks (wrapped with GenericUiBlock)
   const genericConfig = genericUiBlocks[block.type];
   if (genericConfig) {
     return (
@@ -132,7 +192,7 @@ const RenderBlock = ({ block, isEditing = true }: BlockRendererProps) => {
     );
   }
 
-  // 5. Use component map for standard blocks
+  // 6. Use component map for standard blocks
   const Component = blockComponents[block.type];
   if (Component) {
     return <Component block={block} isEditing={isEditing} />;

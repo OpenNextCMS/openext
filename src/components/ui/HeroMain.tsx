@@ -1,12 +1,9 @@
-﻿import React from 'react';
+import React from 'react';
 import { useAppDispatch } from '@/redux/hooks';
 import { updateBlockContent } from '@/redux/canvasSlice';
 import { InlineEditableText } from '@/components/editor/InlineEditableText';
 import { InlineSlot } from '@/components/editor/blocks/InlineSlot';
-<<<<<<< HEAD
 import { isPartHidden } from '@/lib/editor/stylePath';
-=======
->>>>>>> 18020fe3f52e89bc4734d8741d2904a004c57b3e
 import type { BlockRendererProps } from '@/types/index';
 
 export const HeroMain = ({ block, isEditing = false }: BlockRendererProps) => {
@@ -38,7 +35,6 @@ export const HeroMain = ({ block, isEditing = false }: BlockRendererProps) => {
         <div className="lg:flex-grow md:w-1/2 lg:pr-24 md:pr-16 flex flex-col md:items-start md:text-left mb-16 md:mb-0 items-center text-center">
           {/* Insert blocks before the heading */}
           <InlineSlot block={block} slotIndex={2} isEditing={isEditing} />
-<<<<<<< HEAD
           {!isPartHidden(content, 'titleStyle') && (
             <InlineEditableText
               tagName="h1"
@@ -69,34 +65,6 @@ export const HeroMain = ({ block, isEditing = false }: BlockRendererProps) => {
               isEditing={isEditing}
             />
           )}
-=======
-          <InlineEditableText
-            tagName="h1"
-            className="title-font sm:text-4xl text-3xl mb-4 font-medium whitespace-pre-line"
-            style={{
-              color: block.style?.color || 'var(--color-text, #111827)',
-              fontFamily: block.style?.fontFamily || 'var(--font-heading)',
-              ...content.titleStyle
-            }}
-            value={content.title || 'Before they sold out\nreadymade gluten'}
-            onBlur={(v) => handleUpdate('title', v)}
-            isEditing={isEditing}
-          />
-          {/* Insert blocks between the heading and the description */}
-          <InlineSlot block={block} slotIndex={3} isEditing={isEditing} />
-          <InlineEditableText
-            tagName="p"
-            className="mb-8 leading-relaxed"
-            style={{
-              color: block.style?.color || 'var(--color-muted, #4b5563)',
-              fontFamily: block.style?.fontFamily || 'var(--font-body)',
-              ...content.descriptionStyle
-            }}
-            value={content.description || 'Copper mug try-hard pitchfork pour-over freegan heirloom neutra air plant cold-pressed tacos poke beard tote bag. Heirloom echo park mlkshk tote bag selvage hot chicken authentic tumeric truffaut hexagon try-hard chambray.'}
-            onBlur={(v) => handleUpdate('description', v)}
-            isEditing={isEditing}
-          />
->>>>>>> 18020fe3f52e89bc4734d8741d2904a004c57b3e
           {/* Insert blocks between the description and the buttons */}
           <InlineSlot block={block} slotIndex={4} isEditing={isEditing} />
           <div className="flex justify-center">
