@@ -7,11 +7,13 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { updateSelectedBlockStyles } from '@/redux/canvasSlice';
+import { getStyleAtPath } from '@/lib/editor/stylePath';
 import InputSelect from '@/components/ReusableComponents/SizeInput';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 export default function Size() {
   const selectedBlock = useAppSelector((state) => state.canvas.selectedBlock);
+  const selectedPart = useAppSelector((state) => state.canvas.selectedPart);
   const dispatch = useAppDispatch();
   const [open, setOpen] = useState(false);
   const isTyping = useRef(false);
@@ -46,12 +48,28 @@ export default function Size() {
     maxHeight: { val: '', unit: 'px' },
   });
 
-  // Sync state from Redux whenever the selected block or its style changes
+  // Sync state from Redux whenever the selected block/part or its style changes.
+  // When a sub-element (Title, Description, …) is selected we read that part's
+  // style out of the block's content JSON, so Size edits the selected part —
+  // matching where `updateSelectedBlockStyles` writes it.
   useEffect(() => {
     // Skip sync while typing to prevent cursor jump/clearing
     if (isTyping.current) return;
 
-    const s = (selectedBlock?.style || {}) as Record<string, unknown>;
+    let s: Record<string, unknown> = {};
+    if (selectedBlock) {
+      if (selectedPart) {
+        try {
+          const content = JSON.parse(selectedBlock.content);
+          s = getStyleAtPath(content, selectedPart) as Record<string, unknown>;
+        } catch {
+          s = {};
+        }
+      } else {
+        s = (selectedBlock.style || {}) as Record<string, unknown>;
+      }
+    }
+
     setStyles({
       width: parseValue(s.width),
       height: parseValue(s.height),
@@ -60,7 +78,7 @@ export default function Size() {
       minHeight: parseValue(s.minHeight),
       maxHeight: parseValue(s.maxHeight),
     });
-  }, [selectedBlock, parseValue]);
+  }, [selectedBlock, selectedPart, parseValue]);
 
   const handleStyleChange = (prop: string, val: string, unit: string) => {
     isTyping.current = true;
