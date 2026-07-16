@@ -26,6 +26,21 @@ export const ThemeLayoutApplyService = {
     const theme = await ThemeRepository.findById(themeId);
     if (!theme) throw new ApiError('Theme not found', 404);
 
+    // Template (WordPress-style) themes render their own HTML — there is no block
+    // layout to "apply". Activating them is enough; treat Apply layout as a no-op
+    // success (revalidate the public routes) instead of erroring.
+    const isTemplateTheme =
+      (theme as { meta?: { renderer?: string } }).meta?.renderer === 'template';
+    if (isTemplateTheme) {
+      try {
+        revalidatePath('/');
+        revalidatePath('/[slug]', 'page');
+      } catch {
+        // outside request context
+      }
+      return { pageId: '', slug: '', blockCount: 0, header: 'skipped', footer: 'skipped' };
+    }
+
     const layoutKey = opts?.layoutKey || 'default';
     const hasLayouts = theme.layouts && Object.keys(theme.layouts).length > 0;
     const hasTemplates =

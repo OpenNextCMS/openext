@@ -3,16 +3,35 @@
 How to upload themes into OpenNext CMS — from a lightweight token file to a full
 ZIP package with CSS, fonts, templates, and presets.
 
-Themes are **configuration + static assets**, not PHP or React code. The package
-language is **JSON** (structure + tokens) plus optional **CSS**, **fonts**, and
-**images**. Uploading creates an **inactive** custom theme; you **Activate**
-(and optionally **Apply layout**) so the live site updates on purpose.
+Uploading creates an **inactive** custom theme; you **Activate** (and optionally
+**Apply layout**) so the live site updates on purpose.
+
+## Two kinds of themes — pick your language
+
+Choose the kind that matches how much control you want. Both upload the same way
+(a `.zip` to **Themes → Upload**); the difference is what's **inside** the ZIP and
+which files the CMS reads.
+
+| | **Block theme** (default) | **Template theme** (WordPress-style) |
+| --- | --- | --- |
+| **What you write** | **JSON** design tokens + section choices | Your own **HTML + CSS + JS** |
+| **Who renders the page** | The CMS renders its built-in section components, styled by your tokens | **Your HTML renders verbatim** — Next.js is the backend (the role PHP plays in WordPress) |
+| **Looks like** | The CMS's components in your colors/fonts | **Exactly your design**, pixel for pixel |
+| **Required files** | `theme.json` + tokens (or inline `theme`) | `theme.json` + at least one `.html` template |
+| **Marker** | `renderer` omitted / `"blocks"` | `theme.json` → `"renderer": "template"` (auto-detected if the ZIP has `.html` files) |
+| **Dynamic content** | Blocks edited in the visual editor | Template tags: `{{site_title}}`, `{{menu}}`, `{{content}}`, `{{#posts}}…{{/posts}}` |
+| **Best for** | Editable, AI-buildable sites; token theming | Porting an existing HTML/Bootstrap/Tailwind theme unchanged |
+
+> **Languages summary.** Block themes are **JSON** (+ optional CSS/fonts/images).
+> Template themes are **HTML/CSS/JS** (+ a small JSON manifest). No PHP, no React,
+> no build step — you upload static files and the CMS serves them. Server-executable
+> files (`.php`, `.sh`, `.exe`, …) are **rejected**.
 
 | Related docs | |
 | --- | --- |
 | [Theme Builder](./theme-builder.md) | Edit tokens after upload; CSS variables |
 | [Theme Package Manager](./theme-package-manager.md) | Full package architecture, DB fields, security |
-| Sample packages | [`examples/business-theme/`](../examples/business-theme/), [`examples/meridian-theme/`](../examples/meridian-theme/) |
+| Sample packages | [`examples/business-theme/`](../examples/business-theme/) (block), `Aurora Glass/aurora-glass-template.zip` (template) |
 
 ---
 
@@ -370,9 +389,11 @@ Samples: [`examples/business-theme/`](../examples/business-theme/),
 | `preview` / `thumbnail` | no | Relative paths inside the ZIP |
 | `applyPageLayout` | no | If `true`, Activate also rewrites the homepage from `layouts/` |
 | `componentVariants` | no | Section variant map used when building layout blocks |
+| `renderer` | no | `"blocks"` (default) or `"template"` (WordPress-style — see [Path C](#path-c--template-theme-wordpress-style-html)) |
 
 Design tokens: provide **`tokens/*.json`** and/or an inline `theme` object
-(same shape as Path A). At least one is required.
+(same shape as Path A). At least one is required — **except** for template themes
+(`renderer: "template"`), which need no tokens (their styling is their own CSS).
 
 ### Upload pipeline (server)
 
@@ -395,6 +416,137 @@ Design tokens: provide **`tokens/*.json`** and/or an inline `theme` object
 | Blocked types | `.exe`, `.php`, `.sh`, `.bat`, … |
 
 Code: `src/modules/theme/` → `ThemeUploadController` / `ThemeUploadService`.
+
+---
+
+## Path C — Template theme (WordPress-style HTML)
+
+Use this when you want the site to look **exactly** like a hand-built HTML design.
+The theme ships its own **HTML/CSS/JS**; when active, the CMS serves those files
+verbatim and fills in dynamic bits — Next.js does what PHP does in WordPress.
+Same upload endpoint as Path B (`POST /api/themes/upload`, `.zip`).
+
+### What you need (and the language for each)
+
+| File / folder | Required | Language | Purpose |
+| --- | --- | --- | --- |
+| `theme.json` | **yes** | JSON | Manifest with `"renderer": "template"` + `name`, `slug`, `version` |
+| `index.html` | **yes** | HTML | Home template. This is the minimum to be a valid template theme |
+| `about.html`, `pricing.html`, … | no | HTML | One file per page. `page.html` acts as a generic fallback |
+| `post.html` / `single.html` | no | HTML | Blog-post template (receives `{{#posts}}` data) |
+| `404.html` | no | HTML | Shown for unknown paths |
+| `assets/`, `css/`, `js/`, `images/`, `fonts/` | no | CSS / JS / media | Your stylesheets, scripts, and media |
+| `preview.png` | no | image | Gallery card |
+
+No tokens, no `componentVariants`, no `layouts/`, no `templates/*.json` are needed —
+those are for block themes. **You do not write any JSON beyond `theme.json`.**
+
+```text
+my-html-theme.zip
+├── theme.json          ← { "name", "slug", "version", "renderer": "template" }
+├── index.html          ← required
+├── about.html          ← optional extra pages
+├── page.html           ← optional generic fallback
+├── post.html           ← optional blog-post template
+├── 404.html            ← optional
+├── preview.png
+└── assets/
+    ├── style.css
+    ├── app.js
+    └── logo.svg
+```
+
+### `theme.json` for a template theme (minimal)
+
+```json
+{
+  "name": "Aurora Glass",
+  "slug": "aurora-glass",
+  "version": "2.0.0",
+  "renderer": "template",
+  "preview": "preview.png"
+}
+```
+
+> If you forget `"renderer": "template"`, the CMS still auto-detects it when the
+> ZIP contains `.html` files. Set it explicitly to be safe.
+
+### How links & assets should be written
+
+Write your HTML with **relative** paths, exactly as you would for a static site —
+the CMS rewrites them automatically on render:
+
+| You write | Becomes | Notes |
+| --- | --- | --- |
+| `assets/style.css`, `./js/app.js`, `img/hero.png` | `/theme-assets/{slug}/…` | CSS/JS/images served from safe storage |
+| `about.html`, `pricing.html` | the site's page route | Internal navigation just works |
+| `index.html` / `home.html` | site home | — |
+| `https://…`, `//cdn…`, `#anchor`, `data:…` | left unchanged | External/anchor/data URLs are never rewritten |
+| `url(fonts/x.woff2)` inside a linked CSS file | resolves relative to the CSS | So your CSS `url()`s need no changes |
+
+### Template hierarchy (which file renders a path)
+
+Like WordPress's template hierarchy — the first file that exists wins:
+
+| Request | Template tried, in order |
+| --- | --- |
+| `/` or `/home` | `index.html` → `home.html` |
+| `/about` | `about.html` → `page.html` → `index.html` |
+| a blog post | `post.html` → `single.html` → `page.html` → `index.html` |
+| unknown path | `404.html` → `index.html` |
+
+### Template tags (dynamic content)
+
+Put these anywhere in your HTML; the CMS replaces them at render time. Unknown
+tags are left as-is, so plain static HTML also works.
+
+| Tag | Replaced with |
+| --- | --- |
+| `{{site_title}}` | Site title (Settings) → theme name |
+| `{{site_description}}` | Site description |
+| `{{page_title}}` | Current page's title |
+| `{{menu}}` | `<li><a href="/slug">Name</a></li>` for each published page — put it inside your own `<ul>` |
+| `{{content}}` | The matching CMS page's editor content (headings/text) |
+| `{{year}}` | Current year (e.g. for `© {{year}} {{site_title}}`) |
+| `{{#posts}} … {{/posts}}` | Repeats the inner HTML for each published blog post |
+| ↳ inside a posts loop: `{{title}}`, `{{excerpt}}`, `{{url}}`, `{{date}}` | Per-post values |
+
+Example nav + posts:
+
+```html
+<nav><ul>{{menu}}</ul></nav>
+
+<section class="posts">
+  {{#posts}}
+    <article>
+      <a href="{{url}}"><h3>{{title}}</h3></a>
+      <p>{{excerpt}}</p>
+      <time>{{date}}</time>
+    </article>
+  {{/posts}}
+</section>
+
+<footer>© {{year}} {{site_title}}</footer>
+```
+
+### Rules & limits
+
+- **Allowed:** `.html`, `.htm`, `.css`, `.js`, `.svg`, `.png/.jpg/.jpeg/.gif/.webp/.ico`,
+  `.woff/.woff2/.ttf/.otf`, `.json`, `.txt`, `.md`.
+- **Rejected (400):** any server/executable type — `.php`, `.sh`, `.bat`, `.exe`,
+  `.py`, `.rb`, `.jsp`, `.htaccess`, … Your JS runs in the **browser** only.
+- Same size caps as Path B: ZIP ≤ 25 MB, ≤ 500 files, single file ≤ 8 MB.
+- Uploads are **admin-only**; a template theme's CSS/JS runs on your site, so treat
+  themes as trusted code (same model as installing a WordPress theme).
+
+### Serving path
+
+`GET /api/site/render?path=<slug>` returns the rendered HTML document. The public
+page route detects the active template theme and serves it there automatically, so
+visitors just see your design at the normal URLs.
+
+Code: `src/modules/theme/services/TemplateThemeRenderer.ts`,
+`src/app/api/site/render/route.ts`.
 
 ---
 

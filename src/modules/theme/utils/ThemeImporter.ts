@@ -31,6 +31,12 @@ export const ThemeImporter = {
       await writeThemeFile(slug, entry.relativePath, buf);
     }
 
+    // Template (WordPress-style) themes: persist their HTML template files verbatim.
+    for (const entry of pkg.htmlEntries ?? []) {
+      const buf = await entry.getBuffer();
+      await writeThemeFile(slug, entry.relativePath, buf);
+    }
+
     let previewImage = '';
     let thumbnail = '';
 
@@ -146,6 +152,9 @@ export const ThemeImporter = {
         compatibleCms: pkg.meta.compatibleCms,
         packageFormat: pkg.meta.format,
         uploadedAt: new Date().toISOString(),
+        // WordPress-style template themes: render engine + available HTML templates.
+        renderer: pkg.renderer,
+        htmlTemplates: pkg.htmlTemplates,
       },
     });
   },

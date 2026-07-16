@@ -16,6 +16,12 @@ export interface ThemePackageMeta {
   applyPageLayout?: boolean;
   /** Informational package format tag */
   format?: string;
+  /**
+   * Render engine for this theme:
+   *  - 'blocks'   (default) — CMS renders its own section components from tokens/layout.
+   *  - 'template' — WordPress-style: the theme's own HTML files render the site verbatim.
+   */
+  renderer?: 'blocks' | 'template';
 }
 
 /** Structured contents parsed from a theme ZIP (before persistence). */
@@ -37,6 +43,12 @@ export interface ParsedThemePackage {
     styles: Record<string, unknown>;
   };
   supports: string[];
+  /** 'blocks' (token/section themes) or 'template' (WordPress-style HTML themes). */
+  renderer: 'blocks' | 'template';
+  /** HTML template files (index.html, page.html, post.html, …) for template themes. */
+  htmlEntries: ThemeZipEntry[];
+  /** Relative paths of the HTML templates (posix), e.g. ["index.html","about.html"]. */
+  htmlTemplates: string[];
   /** Relative paths inside the package that should be extracted to disk. */
   assetEntries: ThemeZipEntry[];
   previewBuffer?: Buffer;

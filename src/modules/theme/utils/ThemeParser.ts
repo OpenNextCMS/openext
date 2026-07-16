@@ -175,11 +175,27 @@ export async function parseThemePackage(
     }
   }
 
-  assertHasDesignTokens({
-    hasTokenFiles,
-    hasInlineTheme: !!inlineTheme,
-  });
+  // ---- template (WordPress-style HTML) theme detection ----
+  // A theme is a "template" theme when theme.json declares `renderer:"template"`
+  // OR the package ships HTML template files. Such themes render their own HTML
+  // verbatim and are NOT required to carry design tokens.
+  const htmlEntries = zip.entries.filter((e) => /\.html?$/i.test(e.relativePath));
+  const declaredRenderer =
+    typeof themeObj.renderer === 'string' ? themeObj.renderer.toLowerCase() : undefined;
+  const renderer: 'blocks' | 'template' =
+    declaredRenderer === 'template' || (declaredRenderer !== 'blocks' && htmlEntries.length > 0)
+      ? 'template'
+      : 'blocks';
 
+  if (renderer !== 'template') {
+    assertHasDesignTokens({
+      hasTokenFiles,
+      hasInlineTheme: !!inlineTheme,
+    });
+  }
+
+  // Template themes with no tokens still get a valid (default) ThemeConfig so the
+  // Theme Builder / block fallbacks keep working; their real styling is their CSS.
   const theme = mergeAndValidateTokens(partialTokens, inlineTheme);
 
   // If no token files, still store merged groups under tokens for export
@@ -292,7 +308,7 @@ export async function parseThemePackage(
   }
 
   return {
-    meta,
+    meta: { ...meta, renderer },
     theme,
     componentVariants,
     tokens: rawTokens,
@@ -300,6 +316,9 @@ export async function parseThemePackage(
     layouts,
     presets: { blocks, styles },
     supports: meta.supports ?? [],
+    renderer,
+    htmlEntries,
+    htmlTemplates: htmlEntries.map((e) => e.relativePath),
     assetEntries,
     previewBuffer,
     previewExt,
