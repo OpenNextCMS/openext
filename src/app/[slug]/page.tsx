@@ -6,6 +6,7 @@ import { Metadata } from 'next';
 import renderFromJson from '@/components/ReusableComponents/RenderFromJson';
 import { hasVerticalHeader } from '@/utils/headerLayout';
 import { getPageDataForSlug } from '@/utils/getPageData';
+import { TemplateThemeRenderer } from '@/modules/theme/services/TemplateThemeRenderer';
 
 export const revalidate = 30;
 
@@ -27,6 +28,21 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function Page({ params }: PageProps) {
   const resolvedParams = await params;
   if (!resolvedParams) return notFound();
+
+  // WordPress-style template theme: when active, the site is served from the
+  // theme's own HTML (rendered by /api/site/render), embedded full-viewport so
+  // it displays verbatim — regardless of whether a CMS page exists at this slug.
+  const templateTheme = await TemplateThemeRenderer.getActive();
+  if (templateTheme) {
+    const slug = resolvedParams.slug || '';
+    return (
+      <iframe
+        src={`/api/site/render?path=${encodeURIComponent(slug)}`}
+        title={templateTheme.name}
+        style={{ position: 'fixed', inset: 0, width: '100%', height: '100%', border: 'none' }}
+      />
+    );
+  }
 
   const pageData = await getPageDataForSlug(resolvedParams.slug);
   if (!pageData) return notFound();

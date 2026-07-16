@@ -1,38 +1,23 @@
-'use client'; // Ensure this runs only on the client side
+import { TemplateThemeRenderer } from '@/modules/theme/services/TemplateThemeRenderer';
+import HomeClient from './HomeClient';
 
-import { useEffect, useState } from 'react';
-import ThemeLoader from '@/components/ThemeLoader';
+export const dynamic = 'force-dynamic';
 
-const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
-
-export default function Home() {
-  const [themeName, setThemeName] = useState<string | null>(null);
-  useEffect(() => {
-    const checkDbStatus = async () => {
-      const res = await fetch('/api/env-connection?key=dbConnection');
-      const data = await res.json();
-      document.cookie = `dbConnection=${data.dbConnection}; path=/; expires=Fri, 31 Dec 9999 23:59:59 GMT`;
-    };
-
-    checkDbStatus();
-  }, []);
-
-  useEffect(() => {
-    const fetchTheme = async () => {
-      try {
-        const response = await fetch(`${backendUrl}/api/themes/get-theme`);
-        if (!response.ok) throw new Error('Failed to fetch theme');
-        const { themeName } = await response.json();
-        setThemeName(themeName);
-      } catch (error) {
-        console.error('Error fetching theme:', error);
-      }
-    };
-
-    fetchTheme();
-  }, []);
-
-  if (!themeName) return <p>Loading theme...</p>; // Prevent rendering until theme is loaded
-
-  return <ThemeLoader themeName={themeName} />;
+/**
+ * Site root. When a WordPress-style **template theme** is active, the home page is
+ * served from the theme's own HTML (rendered by /api/site/render) so it looks
+ * exactly like the theme. Otherwise the default block-theme home renders.
+ */
+export default async function Home() {
+  const templateTheme = await TemplateThemeRenderer.getActive();
+  if (templateTheme) {
+    return (
+      <iframe
+        src="/api/site/render?path="
+        title={templateTheme.name}
+        style={{ position: 'fixed', inset: 0, width: '100%', height: '100%', border: 'none' }}
+      />
+    );
+  }
+  return <HomeClient />;
 }

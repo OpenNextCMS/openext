@@ -65,6 +65,8 @@ export const BLOCKED_THEME_EXTENSIONS = new Set([
 
 /** Safe asset extensions that may be served / stored. */
 export const ALLOWED_THEME_ASSET_EXTENSIONS = new Set([
+  '.html', // WordPress-style template themes ship HTML template files
+  '.htm',
   '.css',
   '.js',
   '.json',
