@@ -28,6 +28,7 @@ import {
   PlusSquare,
   Tag,
   Tags,
+  UploadCloud,
   type LucideIcon,
 } from 'lucide-react';
 import { usePlugins } from '@/context/PluginContext';
@@ -79,6 +80,7 @@ const navItems: NavSection[] = [
     links: [
       { label: 'All Themes', icon: Paintbrush, path: '/dashboard/themes/allthemes' },
       { label: 'Create Theme', icon: PlusCircle, path: '/dashboard/themes/new' },
+      { label: 'Theme Engine (Beta)', icon: UploadCloud, path: '/dashboard/theme-engine' },
     ],
   },
   {

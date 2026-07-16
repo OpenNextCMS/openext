@@ -1,12 +1,13 @@
+import { cookies } from 'next/headers';
 import { notFound } from 'next/navigation';
-import { BlockData } from '@/types';
+import type { Metadata } from 'next';
 import PageClientWrapper from '@/components/PageClientWrapper';
-import SiteThemeProvider from '@/providers/SiteThemeProvider';
-import { Metadata } from 'next';
-import renderFromJson from '@/components/ReusableComponents/RenderFromJson';
-import { hasVerticalHeader } from '@/utils/headerLayout';
+import PreviewBanner from '@/components/theme-engine/PreviewBanner';
 import { getPageDataForSlug } from '@/utils/getPageData';
-import { TemplateThemeRenderer } from '@/modules/theme/services/TemplateThemeRenderer';
+import { buildRenderInput } from '@/modules/themeEngine/buildRenderInput';
+import { themeManager } from '@/modules/themeEngine/ThemeManager';
+import { themePreviewService } from '@/modules/themeEngine/ThemePreviewService';
+import { PREVIEW_COOKIE_NAME } from '@/modules/themeEngine/config';
 
 export const revalidate = 30;
 
@@ -18,7 +19,7 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const resolvedParams = await params;
   const pageData = await getPageDataForSlug(resolvedParams?.slug || '');
-  
+
   return {
     title: pageData?.metadata?.pageName || `Page: ${resolvedParams?.slug ?? 'Unknown'}`,
     description: pageData?.metadata?.description || '',
@@ -29,64 +30,25 @@ export default async function Page({ params }: PageProps) {
   const resolvedParams = await params;
   if (!resolvedParams) return notFound();
 
-  // WordPress-style template theme: when active, the site is served from the
-  // theme's own HTML (rendered by /api/site/render), embedded full-viewport so
-  // it displays verbatim — regardless of whether a CMS page exists at this slug.
-  const templateTheme = await TemplateThemeRenderer.getActive();
-  if (templateTheme) {
-    const slug = resolvedParams.slug || '';
-    return (
-      <iframe
-        src={`/api/site/render?path=${encodeURIComponent(slug)}`}
-        title={templateTheme.name}
-        style={{ position: 'fixed', inset: 0, width: '100%', height: '100%', border: 'none' }}
-      />
-    );
-  }
+  // The preview cookie is read HERE, in the route handler, and NOWHERE else —
+  // ThemeRenderer/ThemeAPI never touch cookies themselves (spec §4.12).
+  const cookieStore = await cookies();
+  const previewToken = cookieStore.get(PREVIEW_COOKIE_NAME)?.value;
+  const previewThemeSlug = previewToken
+    ? ((await themePreviewService.getPreviewTheme(previewToken)) ?? undefined)
+    : undefined;
 
-  const pageData = await getPageDataForSlug(resolvedParams.slug);
-  if (!pageData) return notFound();
+  const input = await buildRenderInput(resolvedParams.slug, previewThemeSlug);
+  if (!input) return notFound();
 
-  const sidebarHeader = hasVerticalHeader(pageData.headerBlocks);
-
-  if (sidebarHeader) {
-    return (
-      <PageClientWrapper>
-        <SiteThemeProvider>
-          <div className="flex min-h-screen rendered-page">
-            <aside className="w-64 flex-shrink-0 sticky top-0 self-start h-screen overflow-y-auto">
-              {pageData.headerBlocks.map((block) => renderFromJson(block as BlockData))}
-            </aside>
-            <div className="flex-1 flex flex-col min-h-screen bg-white">
-              <main className="flex-1">
-                <div>
-                  {pageData.blocks.map((block) => renderFromJson(block as BlockData))}
-                </div>
-              </main>
-              {pageData.footerBlocks.map((block) => renderFromJson(block as BlockData))}
-            </div>
-          </div>
-        </SiteThemeProvider>
-      </PageClientWrapper>
-    );
-  }
+  const result = await themeManager.renderPage(input);
 
   return (
     <PageClientWrapper>
-      <SiteThemeProvider>
-        <div className="rendered-page">
-          {pageData.headerBlocks.map((block) => renderFromJson(block as BlockData))}
-        </div>
-
-        <div className="min-h-screen rendered-page">
-          <main>
-            <div>
-              {pageData.blocks.map((block) => renderFromJson(block as BlockData))}
-            </div>
-          </main>
-          {pageData.footerBlocks.map((block) => renderFromJson(block as BlockData))}
-        </div>
-      </SiteThemeProvider>
+      <link rel="stylesheet" href={result.stylesheetUrl} />
+      {previewThemeSlug ? <PreviewBanner slug={previewThemeSlug} /> : null}
+      <div className="rendered-page">{result.element}</div>
+      <script src={result.scriptUrl} defer />
     </PageClientWrapper>
   );
 }

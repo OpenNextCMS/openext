@@ -28,6 +28,21 @@ export const TEMP_UPLOAD_ROOT = process.env.THEME_ENGINE_TMP_DIR
   ? path.resolve(process.env.THEME_ENGINE_TMP_DIR)
   : path.join(process.cwd(), 'storage', 'tmp', 'theme-uploads');
 
+/**
+ * Compiled JS for theme `.tsx`/`.ts` source (spec §4.6 implementation detail).
+ *
+ * A theme package ships raw `.tsx` source, but it lives OUTSIDE Next.js's own
+ * build graph (installed at RUNTIME, after the app is already built) — a plain
+ * `import()` of a `.tsx` file is a Node.js module load, and Node has no idea
+ * what JSX/TS syntax is (confirmed empirically: `Unknown file extension ".tsx"`).
+ * `ThemeLoader` compiles each referenced source file to plain CommonJS once,
+ * here, keyed by (slug, version, relative path) — the same versioning
+ * discipline as `ThemeCache` — and imports the compiled output instead.
+ */
+export const COMPILED_ROOT = process.env.THEME_ENGINE_COMPILED_DIR
+  ? path.resolve(process.env.THEME_ENGINE_COMPILED_DIR)
+  : path.join(process.cwd(), 'storage', 'theme-engine-compiled');
+
 /** Total unpacked package size cap — zip-bomb defence (spec §4.2 check 8). */
 export const MAX_UNPACKED_BYTES =
   Number(process.env.THEME_ENGINE_MAX_UNPACKED_BYTES) || 50 * 1024 * 1024; // 50 MB
@@ -38,6 +53,36 @@ export const MAX_ENTRY_BYTES =
 
 /** Max number of entries in a package — zip-bomb defence. */
 export const MAX_ENTRIES = Number(process.env.THEME_ENGINE_MAX_ENTRIES) || 2000;
+
+/** Max size of the raw uploaded .zip itself, before extraction (spec §4.3 step 1). */
+export const MAX_UPLOAD_BYTES =
+  Number(process.env.THEME_ENGINE_MAX_UPLOAD_BYTES) || 60 * 1024 * 1024; // 60 MB
+
+/** Max (uncompressed / compressed) ratio per entry before it's treated as a bomb. */
+export const MAX_COMPRESSION_RATIO =
+  Number(process.env.THEME_ENGINE_MAX_COMPRESSION_RATIO) || 120;
+
+/** Preview session lifetime (spec §1.3 / §4.12) — e.g. 30 min. */
+export const PREVIEW_SESSION_TTL_MS =
+  Number(process.env.THEME_ENGINE_PREVIEW_SESSION_TTL_MS) || 30 * 60 * 1000;
+
+/**
+ * `ThemeManager`'s built-in fallback theme (spec §4.13). Installed through the
+ * exact same `ThemeInstaller` pipeline as any uploaded theme — no special-cased
+ * render path — from source shipped in-repo at `DEFAULT_THEME_SOURCE_DIR`.
+ * Slug intentionally avoids `default`/`_default`: not underscore-safe against
+ * `ManifestParser`'s kebab-case slug rule, and "default" alone is a name a
+ * real uploaded theme might legitimately want.
+ */
+export const DEFAULT_THEME_SLUG = 'theme-engine-default';
+export const DEFAULT_THEME_SOURCE_DIR = path.join(process.cwd(), 'src', 'modules', 'themeEngine', 'default-theme-source');
+
+/**
+ * Preview-session cookie name (spec §4.12: httpOnly, `sameSite: strict`,
+ * scoped to admin routes only). Only the ROUTE HANDLER ever reads/writes this
+ * — `ThemePreviewService` and `ThemeRenderer` never touch cookies directly.
+ */
+export const PREVIEW_COOKIE_NAME = 'theme_engine_preview_token';
 
 /** The manifest filename; the ONLY `.json` permitted in a package (spec §3). */
 export const MANIFEST_FILENAME = 'theme.json';

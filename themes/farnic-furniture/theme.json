@@ -1,0 +1,23 @@
+{
+  "name": "Farnic Furniture",
+  "author": "OpenNext Demo",
+  "version": "1.0.0",
+  "description": "A dark-green & cream furniture eCommerce homepage theme, inspired by the Farnic Webflow template.",
+  "compatibleCmsVersion": "^2.0.0",
+  "templates": {
+    "index": "templates/Index.tsx"
+  },
+  "partials": {
+    "header": "partials/Header.tsx",
+    "footer": "partials/Footer.tsx"
+  },
+  "menus": [
+    { "key": "primary", "label": "Primary Navigation", "maxDepth": 2 }
+  ],
+  "widgetAreas": [],
+  "themeSettings": [
+    { "key": "accentColor", "label": "Accent Color", "type": "color", "default": "#c1694a" },
+    { "key": "darkColor", "label": "Dark Section Color", "type": "color", "default": "#1b332c" }
+  ],
+  "supportedFeatures": ["custom-logo", "menus", "post-thumbnails"]
+}
