@@ -52,6 +52,9 @@ export const ValidationCode = {
   COMPONENT_UNVERIFIABLE: 'COMPONENT_UNVERIFIABLE',
   PACKAGE_TOO_LARGE: 'PACKAGE_TOO_LARGE',
   UNREADABLE_FILE: 'UNREADABLE_FILE',
+  EDITABLE_SECTION_UNKNOWN_BLOCK: 'EDITABLE_SECTION_UNKNOWN_BLOCK',
+  EDITABLE_SECTION_DUPLICATE_ID: 'EDITABLE_SECTION_DUPLICATE_ID',
+  EDITABLE_SECTION_MISSING_SCHEMA: 'EDITABLE_SECTION_MISSING_SCHEMA',
 } as const;
 
 interface WalkedFile {
@@ -211,6 +214,35 @@ export class ThemeValidator {
       (manifest.blocks ?? []).forEach((b, i) => {
         declared.push({ field: `blocks[${i}].rendererPath`, rel: b.rendererPath, required: false });
         if (b.schemaPath) declared.push({ field: `blocks[${i}].schemaPath`, rel: b.schemaPath, required: false });
+      });
+
+      // Editable-section cross-checks (parser already validates shape + block refs).
+      const blockByType = new Map((manifest.blocks ?? []).map((b) => [b.type, b]));
+      const seenSectionIds = new Set<string>();
+      (manifest.editableSections ?? []).forEach((section, i) => {
+        if (seenSectionIds.has(section.id)) {
+          errors.push({
+            code: ValidationCode.EDITABLE_SECTION_DUPLICATE_ID,
+            message: `editableSections[${i}].id "${section.id}" is duplicated.`,
+            file: MANIFEST_FILENAME,
+          });
+        }
+        seenSectionIds.add(section.id);
+
+        const block = blockByType.get(section.blockType);
+        if (!block) {
+          errors.push({
+            code: ValidationCode.EDITABLE_SECTION_UNKNOWN_BLOCK,
+            message: `editableSections[${i}] references unknown blockType "${section.blockType}".`,
+            file: MANIFEST_FILENAME,
+          });
+        } else if (!block.schemaPath) {
+          warnings.push({
+            code: ValidationCode.EDITABLE_SECTION_MISSING_SCHEMA,
+            message: `editableSections[${i}] ("${section.id}") has no schemaPath on block "${section.blockType}" — inspector fields will be limited.`,
+            file: MANIFEST_FILENAME,
+          });
+        }
       });
 
       for (const d of declared) {

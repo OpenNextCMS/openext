@@ -8,7 +8,7 @@
  *   npx tsx --tsconfig scripts/tsconfig.scripts.json scripts/install-theme-package.ts <folder-name> [--no-activate]
  *
  * Example:
- *   npx tsx --tsconfig scripts/tsconfig.scripts.json scripts/install-theme-package.ts farnic-furniture
+ *   npx tsx --tsconfig scripts/tsconfig.scripts.json scripts/install-theme-package.ts coffee-time
  *
  * Writes `theme-packages/<folder-name>.zip` as a ready-to-upload artifact,
  * regardless of activation.

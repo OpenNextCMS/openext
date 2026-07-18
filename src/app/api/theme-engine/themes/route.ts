@@ -15,8 +15,10 @@ export async function GET() {
         name: t.name,
         author: t.author,
         version: t.version,
+        description: t.description || '',
         status: t.status,
         installedAt: t.installedAt,
+        updatedAt: t.updatedAt,
       })),
     });
   } catch (err) {

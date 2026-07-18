@@ -105,14 +105,27 @@ export const themeApi = {
     return unwrap<ThemeDTO>(res);
   },
 
-  async activate(id: string): Promise<ThemeDTO> {
+  async activate(
+    id: string,
+    opts?: { applyToEditor?: boolean }
+  ): Promise<
+    ThemeDTO & {
+      appliedToEditor?: {
+        pageId: string;
+        slug: string;
+        blockCount: number;
+        header?: string;
+        footer?: string;
+      } | null;
+    }
+  > {
     const res = await fetch('/api/themes/activate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify({ id }),
+      body: JSON.stringify({ id, applyToEditor: opts?.applyToEditor }),
     });
-    return unwrap<ThemeDTO>(res);
+    return unwrap(res);
   },
 
   /** Upload a full theme package ZIP (Theme Package Manager). */

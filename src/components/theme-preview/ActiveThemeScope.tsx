@@ -9,7 +9,8 @@ import type { ComponentVariants } from '@/types/component-variants';
 
 /**
  * Client-side counterpart to the server `SiteThemeProvider` used on public pages.
- * Loads the active theme (including package presets/layouts) for the editor canvas.
+ * Loads the active Theme Builder theme AND the active Theme Engine package CSS
+ * so editable CMS sections on the canvas can match the live Theme Engine look.
  */
 export default function ActiveThemeScope({
   children,
@@ -25,6 +26,8 @@ export default function ActiveThemeScope({
   const [blockPresets, setBlockPresets] = useState<Record<string, unknown>>({});
   const [stylePresets, setStylePresets] = useState<Record<string, unknown>>({});
   const [layouts, setLayouts] = useState<Record<string, unknown>>({});
+  const [engineStylesheetUrl, setEngineStylesheetUrl] = useState<string | null>(null);
+  const [engineSlug, setEngineSlug] = useState<string | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -42,6 +45,27 @@ export default function ActiveThemeScope({
       .catch(() => {
         // Non-critical — fall back to unthemed defaults so the canvas still renders.
       });
+
+    // Theme Engine (Beta) active package stylesheet for editable-section parity.
+    fetch('/api/theme-engine/themes', { credentials: 'include' })
+      .then(async (res) => {
+        if (!res.ok) return null;
+        const json = await res.json();
+        return json?.data as { activeSlug?: string | null } | null;
+      })
+      .then((data) => {
+        if (!alive || !data?.activeSlug) return;
+        const slug = data.activeSlug;
+        setEngineSlug(slug);
+        // Cache-bust lightly; AssetManager also appends hashes when served via ThemeLoader.
+        setEngineStylesheetUrl(
+          `/theme-engine-assets/${encodeURIComponent(slug)}/assets/style.css?editor=1`
+        );
+      })
+      .catch(() => {
+        // Theme Engine may be unused — ignore.
+      });
+
     return () => {
       alive = false;
     };
@@ -50,11 +74,30 @@ export default function ActiveThemeScope({
   const vars = useMemo(() => {
     if (!config) return undefined;
     const all = themeConfigToCssVars(config);
-    if (!variablesOnly) return all;
-    return Object.fromEntries(
-      Object.entries(all).filter(([key]) => key.startsWith('--'))
-    ) as CSSProperties;
-  }, [config, variablesOnly]);
+    // When a Theme Engine package is active, its stylesheet + cms-blocks mapping
+    // own the color tokens. Theme Builder --color-* would otherwise wash out the look.
+    const filtered = engineSlug
+      ? Object.fromEntries(
+          Object.entries(all).filter(
+            ([key]) =>
+              key.startsWith('--') &&
+              !key.startsWith('--color-') &&
+              !key.startsWith('--font-')
+          )
+        )
+      : variablesOnly
+        ? Object.fromEntries(Object.entries(all).filter(([key]) => key.startsWith('--')))
+        : all;
+    return filtered as CSSProperties;
+  }, [config, variablesOnly, engineSlug]);
+
+  const scopeClass = [
+    'site-theme-scope',
+    engineSlug ? 'theme-engine-cms-scope ct-page ct-page--cms-blocks' : '',
+    className || '',
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <ActiveThemeVariantsProvider
@@ -63,7 +106,36 @@ export default function ActiveThemeScope({
       stylePresets={stylePresets}
       layouts={layouts}
     >
-      <div className={`site-theme-scope${className ? ` ${className}` : ''}`} style={vars}>
+      {engineStylesheetUrl ? (
+        <link rel="stylesheet" href={engineStylesheetUrl} data-theme-engine-editor-css={engineSlug || ''} />
+      ) : null}
+      {/* Bridge package tokens → CMS block CSS vars (works for --ct-* and common aliases). */}
+      {engineSlug ? (
+        <style
+          dangerouslySetInnerHTML={{
+            __html: `
+.theme-engine-cms-scope {
+  --color-primary: var(--ct-accent, var(--theme-accent, #2cc8c6));
+  --color-secondary: var(--ct-panel, var(--theme-panel, #272d3f));
+  --color-bg: var(--ct-bg, var(--theme-bg, #1f2433));
+  --color-surface: var(--ct-panel, var(--theme-panel, #272d3f));
+  --color-text: var(--ct-text, var(--theme-text, #f5f7ff));
+  --color-muted: var(--ct-muted, var(--theme-muted, #c2c8dd));
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+.theme-engine-cms-scope .text-gray-600,
+.theme-engine-cms-scope .body-font {
+  color: inherit;
+}
+.theme-engine-cms-scope .bg-indigo-100 {
+  background-color: rgba(44, 200, 198, 0.15);
+}
+`,
+          }}
+        />
+      ) : null}
+      <div className={scopeClass} style={vars} data-theme-engine-slug={engineSlug || undefined}>
         {children}
       </div>
     </ActiveThemeVariantsProvider>

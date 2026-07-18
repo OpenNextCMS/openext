@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z, type ZodIssue } from 'zod';
 import semver from 'semver';
 import { ManifestValidationError } from './errors';
 import type { ManifestIssue, ManifestParseResult, ThemeManifest } from './types';
@@ -32,7 +32,10 @@ const KNOWN_TOP_LEVEL_KEYS = new Set([
   'themeSettings',
   'supportedFeatures',
   'blocks',
+  'editableSections',
 ]);
+
+const SECTION_ID_RE = /^[a-z][a-z0-9-]{1,63}$/;
 
 const NAME_RE = /^[A-Za-z0-9 _-]{3,50}$/;
 const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -129,6 +132,16 @@ const blockSchema = z.object({
   schemaPath: tsPath.optional(),
 });
 
+const editableSectionSchema = z.object({
+  id: z
+    .string()
+    .regex(SECTION_ID_RE, 'must be kebab-case starting with a letter (2-64 chars)'),
+  label: z.string().min(1).max(80),
+  blockType: z.string().min(1),
+  defaults: z.record(z.string(), z.unknown()).optional(),
+  hiddenByDefault: z.boolean().optional(),
+});
+
 const manifestSchema = z
   .object({
     name: z.string().regex(NAME_RE, 'must be 3-50 chars of letters, numbers, spaces, "_" or "-"'),
@@ -157,9 +170,36 @@ const manifestSchema = z
       .array(z.enum(['dark-mode', 'rtl', 'custom-logo', 'post-thumbnails', 'widgets', 'menus', 'block-editor']))
       .optional(),
     blocks: z.array(blockSchema).optional(),
+    editableSections: z.array(editableSectionSchema).optional(),
   })
   // Forward compatibility: unknown top-level keys are dropped, not rejected.
-  .strip();
+  .strip()
+  .superRefine((data, ctx) => {
+    const sections = data.editableSections ?? [];
+    if (sections.length === 0) return;
+
+    const blockTypes = new Set((data.blocks ?? []).map((b) => b.type));
+    const seenIds = new Set<string>();
+
+    sections.forEach((section, i) => {
+      if (seenIds.has(section.id)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['editableSections', i, 'id'],
+          message: `duplicate section id "${section.id}"`,
+        });
+      }
+      seenIds.add(section.id);
+
+      if (!blockTypes.has(section.blockType)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['editableSections', i, 'blockType'],
+          message: `references unknown block type "${section.blockType}" — declare it under "blocks" first`,
+        });
+      }
+    });
+  });
 
 /** Derive a kebab-case slug from the theme name (spec §1.1 / §2). */
 export function deriveSlug(name: string): string {
@@ -206,7 +246,7 @@ export class ManifestParser {
     // `safeParse` so Zod collects ALL issues instead of throwing on the first.
     const result = manifestSchema.safeParse(raw);
     if (!result.success) {
-      const issues: ManifestIssue[] = result.error.issues.map((issue) => ({
+      const issues: ManifestIssue[] = result.error.issues.map((issue: ZodIssue) => ({
         path: formatPath(issue.path),
         message: issue.message,
       }));
@@ -259,6 +299,7 @@ export class ManifestParser {
       themeSettings: (parsed.themeSettings ?? []) as ThemeManifest['themeSettings'],
       supportedFeatures: parsed.supportedFeatures ?? [],
       ...(parsed.blocks ? { blocks: parsed.blocks } : {}),
+      ...(parsed.editableSections ? { editableSections: parsed.editableSections } : {}),
     };
 
     return { manifest, warnings };

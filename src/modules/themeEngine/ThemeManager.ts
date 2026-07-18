@@ -6,9 +6,10 @@ import { themeInstaller, type ThemeInstaller } from './ThemeInstaller';
 import { themeRegistry, type ThemeRegistry } from './ThemeRegistry';
 import { themeRenderer, type ThemeRenderer } from './ThemeRenderer';
 import { themePreviewService, type ThemePreviewService } from './ThemePreviewService';
-import { DEFAULT_THEME_SLUG, DEFAULT_THEME_SOURCE_DIR } from './config';
+import { DEFAULT_THEME_SLUG, DEFAULT_THEME_SOURCE_DIR, THEMES_ROOT, COMPILED_ROOT } from './config';
 import type { IThemeEngineThemeDocument } from './models/Theme';
 import type { RenderInput, RenderResult, ThemePreviewTicket } from './types';
+import { ThemeEngineError, ThemeNotFoundError } from './errors';
 
 /** Well-known id attributed to installs `ThemeManager` performs itself (the default theme), never a real user. */
 const SYSTEM_USER_ID = new Types.ObjectId('000000000000000000000000');
@@ -47,6 +48,29 @@ export class ThemeManager {
 
   async activate(slug: string, userId: Types.ObjectId | string): Promise<void> {
     await this.registry.activate(slug, userId);
+  }
+
+  /**
+   * Remove an installed theme from the registry and delete its on-disk package
+   * + compiled cache. Refuses the active theme and the built-in default theme.
+   */
+  async remove(slug: string): Promise<void> {
+    if (slug === DEFAULT_THEME_SLUG) {
+      throw new ThemeEngineError(
+        'THEME_ACTIVE_LOCKED',
+        `The built-in default theme "${DEFAULT_THEME_SLUG}" cannot be deleted.`
+      );
+    }
+
+    const existing = await this.registry.getBySlug(slug);
+    if (!existing) throw new ThemeNotFoundError(slug);
+
+    await this.registry.remove(slug);
+
+    await Promise.all([
+      fs.rm(path.join(THEMES_ROOT, slug), { recursive: true, force: true }).catch(() => undefined),
+      fs.rm(path.join(COMPILED_ROOT, slug), { recursive: true, force: true }).catch(() => undefined),
+    ]);
   }
 
   async listInstalled(): Promise<IThemeEngineThemeDocument[]> {

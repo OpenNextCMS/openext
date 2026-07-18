@@ -71,7 +71,8 @@ export interface BlockData {
     | 'cta-section'
     | 'footer-section'
     | 'blog-feed'
-    | 'form-block';
+    | 'form-block'
+    | 'theme-engine-frame';
   children?: BlockData[][];
   style?: React.CSSProperties;
   hoverStyle?: React.CSSProperties;

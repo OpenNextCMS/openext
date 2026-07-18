@@ -53,6 +53,7 @@ import { EcommerceInfo } from '@/components/ui/EcommerceInfo';
 import { PricingTable } from '@/components/ui/PricingTable';
 import { CTASection } from '@/components/ui/CTASection';
 import { FooterSection } from '@/components/ui/FooterSection';
+import { ThemeEngineFrameBlock } from './blocks/ThemeEngineFrameBlock';
 import { FormBlock } from '@/components/form-builder/blocks/FormBlock';
 import { useActiveThemeVariants } from '@/providers/ActiveThemeVariantsProvider';
 import { getVariantFamilyForBlockType } from '@/lib/theme/block-variant-map';
@@ -74,6 +75,7 @@ const blockComponents: Record<string, React.ComponentType<BlockRendererProps>> =
   progress: ProgressBarBlock,
   countdown: CountdownBlock,
   'form-block': FormBlock,
+  'theme-engine-frame': ThemeEngineFrameBlock,
 };
 
 const genericUiBlocks: Record<string, { component: React.ComponentType<BlockRendererProps>; label: string }> = {

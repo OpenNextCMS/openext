@@ -154,12 +154,16 @@ export const ThemeService = {
   },
 
   /** Make exactly one theme active (unsets all others), then bust the cache. */
-  async activate(id: string): Promise<ITheme & { _id: string }> {
+  async activate(
+    id: string,
+    opts?: { applyToEditor?: boolean }
+  ): Promise<ITheme & { _id: string }> {
     // Package-aware activation (WebsitePreferences, header/footer, ISR, cache).
     const { ThemeActivationService } = await import(
       '@/modules/theme/services/ThemeActivationService'
     );
-    return ThemeActivationService.activate(id);
+    const result = await ThemeActivationService.activate(id, opts);
+    return result.theme;
   },
 
   /** Activate a theme by its slug (e.g. a system theme like 'startup' or 'dark'). */

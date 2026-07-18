@@ -31,7 +31,11 @@ export const HeroMain = ({ block, isEditing = false }: BlockRendererProps) => {
 
   return (
     <section className="text-gray-600 body-font w-full" style={block.style}>
-      <div className="container mx-auto flex px-5 py-24 md:flex-row flex-col items-center">
+      <div
+        className={`container mx-auto flex px-5 md:flex-row flex-col items-center ${
+          block.style?.paddingTop || block.style?.paddingBottom ? 'py-8' : 'py-24'
+        }`}
+      >
         <div className="lg:flex-grow md:w-1/2 lg:pr-24 md:pr-16 flex flex-col md:items-start md:text-left mb-16 md:mb-0 items-center text-center">
           {/* Insert blocks before the heading */}
           <InlineSlot block={block} slotIndex={2} isEditing={isEditing} />
@@ -40,7 +44,7 @@ export const HeroMain = ({ block, isEditing = false }: BlockRendererProps) => {
               tagName="h1"
               className="title-font sm:text-4xl text-3xl mb-4 font-medium whitespace-pre-line"
               style={{
-                color: block.style?.color || 'var(--color-text, #111827)',
+                color: 'var(--color-text, #111827)',
                 fontFamily: block.style?.fontFamily || 'var(--font-heading)',
                 ...content.titleStyle
               }}
@@ -56,7 +60,7 @@ export const HeroMain = ({ block, isEditing = false }: BlockRendererProps) => {
               tagName="p"
               className="mb-8 leading-relaxed"
               style={{
-                color: block.style?.color || 'var(--color-muted, #4b5563)',
+                color: 'var(--color-muted, #4b5563)',
                 fontFamily: block.style?.fontFamily || 'var(--font-body)',
                 ...content.descriptionStyle
               }}

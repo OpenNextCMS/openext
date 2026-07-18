@@ -5,6 +5,26 @@ import { getPageDbConnection, getWebsitePreferencesModel } from '@/utils/db';
 import { ThemeRepository } from '../repositories/ThemeRepository';
 import type { ITheme } from '@/types/theme';
 
+export interface ThemeActivateOptions {
+  /**
+   * When true, rewrite the homepage (and header/footer chrome) into editable
+   * page-editor blocks so the user can customize the theme layout.
+   * When false/omitted, only activate the theme for live-site styling.
+   */
+  applyToEditor?: boolean;
+}
+
+export interface ThemeActivateResult {
+  theme: ITheme & { _id: string };
+  appliedToEditor: {
+    pageId: string;
+    slug: string;
+    blockCount: number;
+    header: string;
+    footer: string;
+  } | null;
+}
+
 /**
  * ThemeActivationService — activate a theme for the live site.
  *
@@ -13,12 +33,14 @@ import type { ITheme } from '@/types/theme';
  *  2. Deactivate every other theme
  *  3. Activate selected theme
  *  4. Sync WebsitePreferences.theme to the slug
- *  5. Apply global header / footer templates from the package (upsert if missing)
- *  6. Optionally apply homepage layout when applyPageLayout is set
- *  7. Invalidate active-theme cache + revalidate public ISR paths
+ *  5. Optionally apply homepage layout into the page editor canvas
+ *  6. Invalidate active-theme cache + revalidate public ISR paths
  */
 export const ThemeActivationService = {
-  async activate(themeId: string): Promise<ITheme & { _id: string }> {
+  async activate(
+    themeId: string,
+    opts: ThemeActivateOptions = {}
+  ): Promise<ThemeActivateResult> {
     const target = await ThemeRepository.getDocument(themeId);
     if (!target) throw new ApiError('Theme not found', 404);
 
@@ -35,22 +57,30 @@ export const ThemeActivationService = {
 
     await syncWebsitePreferencesTheme(target.slug);
 
-    try {
-      const { applyThemeHeaderFooter } = await import('../utils/ThemeChromeApply');
-      const pageDb = await getPageDbConnection();
-      await applyThemeHeaderFooter(pageDb, target.toObject() as ITheme, {
-        forceDefaults: true,
-      });
-    } catch (err) {
-      console.warn('Theme header/footer apply on activate failed:', err);
-    }
+    let appliedToEditor: ThemeActivateResult['appliedToEditor'] = null;
 
-    if (target.applyPageLayout) {
+    if (opts.applyToEditor) {
       try {
         const { ThemeLayoutApplyService } = await import('./ThemeLayoutApplyService');
-        await ThemeLayoutApplyService.applyLayout(String(target._id));
+        const result = await ThemeLayoutApplyService.applyLayout(String(target._id));
+        appliedToEditor = {
+          pageId: result.pageId,
+          slug: result.slug,
+          blockCount: result.blockCount,
+          header: result.header,
+          footer: result.footer,
+        };
       } catch (err) {
-        console.warn('applyPageLayout on activate failed:', err);
+        console.warn('applyToEditor on activate failed; falling back to chrome only:', err);
+        try {
+          const { applyThemeHeaderFooter } = await import('../utils/ThemeChromeApply');
+          const pageDb = await getPageDbConnection();
+          await applyThemeHeaderFooter(pageDb, target.toObject() as ITheme, {
+            forceDefaults: true,
+          });
+        } catch (chromeErr) {
+          console.warn('Theme header/footer apply on activate failed:', chromeErr);
+        }
       }
     }
 
@@ -64,7 +94,7 @@ export const ThemeActivationService = {
 
     const plain = await ThemeRepository.findById(String(target._id));
     if (!plain) throw new ApiError('Theme not found', 404);
-    return plain;
+    return { theme: plain, appliedToEditor };
   },
 };
 

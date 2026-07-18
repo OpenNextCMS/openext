@@ -152,6 +152,11 @@ export default function AllThemesPage() {
   const [previewId, setPreviewId] = useState<string | null>(null);
   const [device, setDevice] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
 
+  // Activate → optional “load into page editor” prompt
+  const [activateTarget, setActivateTarget] = useState<ThemeDTO | null>(null);
+  const [applyToEditor, setApplyToEditor] = useState(true);
+  const [openEditorAfter, setOpenEditorAfter] = useState(true);
+
   // Import (JSON theme package)
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [importing, setImporting] = useState(false);
@@ -190,40 +195,70 @@ export default function AllThemesPage() {
     const target = themes.find((t) => t.slug === slug);
     if (!target) { toast.error(`Theme "${option.label}" is not available yet.`); return; }
     setOnboardingBusy(option.id);
-    try {
-      await themeApi.activate(target._id);
-      await fetch('/api/onboarding/preferences', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ theme: option.id }),
-      }).catch(() => null);
-      setOnboardingTheme(option.id);
-      toast.success(`"${option.label}" applied — your live site now uses it`);
-      await load();
-    } catch (e) {
-      toast.error((e as Error).message);
-    } finally {
-      setOnboardingBusy(null);
-    }
+    setActivateTarget(target);
+    setApplyToEditor(true);
+    setOpenEditorAfter(false);
   };
 
-  const activate = async (id: string) => {
+  const openActivateDialog = (id: string) => {
+    const target = themes.find((t) => t._id === id);
+    if (!target) return;
+    setActivateTarget(target);
+    setApplyToEditor(true);
+    setOpenEditorAfter(true);
+  };
+
+  const confirmActivate = async () => {
+    if (!activateTarget) return;
+    const id = activateTarget._id;
+    const wantEditor = applyToEditor;
+    const wantOpen = openEditorAfter && wantEditor;
     setBusyId(id);
     try {
-      await themeApi.activate(id);
-      const theme = themes.find((t) => t._id === id);
-      if (theme?.applyPageLayout) {
-        toast.success('Theme activated — homepage layout matched to this theme');
+      const result = await themeApi.activate(id, { applyToEditor: wantEditor });
+      if (activateTarget.slug && THEME_OPTIONS.some((o) => WIZARD_THEME_TO_SLUG[o.id] === activateTarget.slug)) {
+        const wizardId = THEME_OPTIONS.find((o) => WIZARD_THEME_TO_SLUG[o.id] === activateTarget.slug)?.id;
+        if (wizardId) {
+          await fetch('/api/onboarding/preferences', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ theme: wizardId }),
+          }).catch(() => null);
+          setOnboardingTheme(wizardId);
+        }
+      }
+      setActivateTarget(null);
+      setOnboardingBusy(null);
+      if (wantEditor) {
+        toast.success(
+          result.appliedToEditor?.blockCount
+            ? `Theme activated — ${result.appliedToEditor.blockCount} sections loaded into the page editor`
+            : 'Theme activated — layout applied to the page editor'
+        );
+        if (wantOpen && result.appliedToEditor?.slug) {
+          const slug = result.appliedToEditor.slug;
+          const pageId = result.appliedToEditor.pageId;
+          window.open(
+            `/Editor?pagename=${encodeURIComponent(slug)}${pageId ? `&pageId=${encodeURIComponent(pageId)}` : ''}&pageType=page`,
+            '_blank',
+            'noopener'
+          );
+        }
       } else {
-        toast.success('Theme activated — your live site now uses it');
+        toast.success('Theme activated — live site updated (page editor unchanged)');
       }
       await load();
     } catch (e) {
       toast.error((e as Error).message);
     } finally {
       setBusyId(null);
+      setOnboardingBusy(null);
     }
+  };
+
+  const activate = async (id: string) => {
+    openActivateDialog(id);
   };
 
   const toggleApplyPageLayout = async (id: string, applyPageLayout: boolean) => {
@@ -233,8 +268,8 @@ export default function AllThemesPage() {
       setThemes((prev) => prev.map((t) => (t._id === id ? { ...t, applyPageLayout } : t)));
       toast.success(
         applyPageLayout
-          ? 'This theme will apply its page layout when activated'
-          : 'Theme will only change colors/styles (layout unchanged)'
+          ? 'Preference saved — use Activate to choose loading into the page editor'
+          : 'Preference saved — Activate will only change live-site styling unless you opt in'
       );
     } catch (e) {
       toast.error((e as Error).message);
@@ -733,6 +768,81 @@ export default function AllThemesPage() {
             >
               <Upload className="mr-2 h-4 w-4" /> Choose file to upload
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Activate — optional page-editor load */}
+      <Dialog
+        open={!!activateTarget}
+        onOpenChange={(open) => {
+          if (!open) {
+            setActivateTarget(null);
+            setOnboardingBusy(null);
+          }
+        }}
+      >
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Palette className="h-5 w-5" /> Activate “{activateTarget?.name}”
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 text-sm">
+            <p className="text-muted-foreground">
+              This will make <b>{activateTarget?.name}</b> the live site theme.
+            </p>
+            <label className="flex cursor-pointer items-start gap-3 rounded-lg border bg-muted/30 p-3">
+              <input
+                type="checkbox"
+                className="mt-1"
+                checked={applyToEditor}
+                onChange={(e) => setApplyToEditor(e.target.checked)}
+              />
+              <span>
+                <span className="font-medium text-foreground">
+                  Also load this theme into the page editor
+                </span>
+                <span className="mt-0.5 block text-muted-foreground">
+                  Replace the homepage sections with this theme’s layout so you can edit
+                  blocks, text, and images in the editor.
+                </span>
+              </span>
+            </label>
+            {applyToEditor ? (
+              <label className="flex cursor-pointer items-start gap-3 rounded-lg border bg-muted/30 p-3">
+                <input
+                  type="checkbox"
+                  className="mt-1"
+                  checked={openEditorAfter}
+                  onChange={(e) => setOpenEditorAfter(e.target.checked)}
+                />
+                <span>
+                  <span className="font-medium text-foreground">Open the page editor after activating</span>
+                  <span className="mt-0.5 block text-muted-foreground">
+                    Jump straight into the homepage canvas to customize the theme.
+                  </span>
+                </span>
+              </label>
+            ) : null}
+            <div className="flex justify-end gap-2 border-t pt-4">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setActivateTarget(null);
+                  setOnboardingBusy(null);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                disabled={!!busyId}
+                onClick={confirmActivate}
+              >
+                {busyId ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                Activate{applyToEditor ? ' & load editor' : ''}
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

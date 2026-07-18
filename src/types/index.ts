@@ -184,7 +184,8 @@ export interface Block {
     | 'cta-section'
     | 'footer-section'
     | 'blog-feed'
-    | 'form-block';
+    | 'form-block'
+    | 'theme-engine-frame';
   children?: ColumnChild[]; // Updated type for children
   content?: string;
   icon?: ReactNode | string;
@@ -468,16 +469,23 @@ export interface IAnalyticsEventDocument extends IAnalyticsEvent, Document {
   createdAt: Date;
 }
 
+export type PluginKind = 'block' | 'system';
+
 export interface IPlugin {
   pluginId: string;
   name: string;
   version: string;
   description: string;
   author: string;
+  /** Category label (slider, chart, …). */
   type?: string;
+  /** Upload classification: editor block vs dashboard system plugin. */
+  kind?: PluginKind;
   isActive: boolean;
   icon: string;
   entryPoint?: string;
+  adminEntry?: string;
+  blockEntry?: string;
   customElement?: string;
   styles?: string[];
   source?: 'uploaded' | 'marketplace' | 'builtin';
@@ -573,7 +581,8 @@ export interface BlockData {
     | 'cta-section'
     | 'footer-section'
     | 'blog-feed'
-    | 'form-block';
+    | 'form-block'
+    | 'theme-engine-frame';
   children?: BlockData[][];
   style?: React.CSSProperties;
   hoverStyle?: React.CSSProperties;

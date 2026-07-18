@@ -68,8 +68,10 @@ export class ThemeRegistry {
     themeCache.invalidateActive();
   }
 
-  /** Refuses to remove the currently active theme. */
   async remove(slug: string): Promise<void> {
+    const existing = await themeRepository.findBySlug(slug);
+    if (!existing) throw new ThemeNotFoundError(slug);
+
     const settings = await themeRepository.getSettings();
     if (settings.activeThemeSlug === slug) throw new ThemeActiveLockedError(slug);
     await themeRepository.remove(slug);

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getUserDbConnection, getPluginModel } from '@/utils/db';
+import { getUserDbConnection, getPluginModel, getPluginDataModel } from '@/utils/db';
 import { removePluginDirectory } from '@/lib/plugins/storage';
 
 export async function DELETE(req: NextRequest) {
@@ -22,6 +22,12 @@ export async function DELETE(req: NextRequest) {
 
     if (deletedPlugin.source === 'uploaded' || deletedPlugin.entryPoint?.startsWith('/plugins/')) {
       await removePluginDirectory(pluginId);
+      try {
+        const PluginData = getPluginDataModel();
+        await PluginData.deleteMany({ pluginId });
+      } catch {
+        // PluginData model may not exist on older DBs; ignore cleanup failure
+      }
     }
 
     return NextResponse.json({ message: 'Plugin removed successfully' }, { status: 200 });

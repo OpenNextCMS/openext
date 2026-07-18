@@ -1,11 +1,21 @@
 {
   "name": "Theme Engine Default",
   "author": "System",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Built-in safety-net theme. Installed automatically and only ever used when the active theme fails to render (spec section 4.13's fallback policy).",
   "compatibleCmsVersion": "^2.0.0",
   "templates": {
     "index": "templates/Index.tsx"
   },
-  "supportedFeatures": []
+  "supportedFeatures": ["block-editor"],
+  "blocks": [
+    {
+      "type": "default-hero",
+      "rendererPath": "blocks/Hero/Renderer.tsx",
+      "schemaPath": "blocks/Hero/schema.ts"
+    }
+  ],
+  "editableSections": [
+    { "id": "hero", "label": "Hero", "blockType": "default-hero" }
+  ]
 }

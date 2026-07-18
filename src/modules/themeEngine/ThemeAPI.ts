@@ -3,6 +3,7 @@ import renderFromJson from '@/components/ReusableComponents/RenderFromJson';
 import type { BlockData } from '@/types';
 import { assetManager, type AssetManager } from './AssetManager';
 import { resolveImageUrl } from './bridges/imageBridge';
+import { parseThemeSectionContent } from './sectionSchema';
 import type { CmsBlock, CmsMenuItem, CmsPage, CmsUserSummary, LoadedTheme, RenderInput, ThemeAPI as ThemeAPIInterface } from './types';
 
 /**
@@ -68,7 +69,15 @@ export class ThemeApiImpl implements ThemeAPIInterface {
   }
 
   blocks(): React.ReactElement[] {
-    return this.ctx.input.blocks.map((block) => this.renderBlock(block));
+    const source = this.ctx.input.draftBlocks ?? this.ctx.input.blocks;
+    return source
+      .filter((block) => {
+        const parsed = parseThemeSectionContent(
+          (block.data as { content?: unknown })?.content ?? block.data
+        );
+        return !parsed?.hidden;
+      })
+      .map((block) => this.renderBlock(block));
   }
 
   currentUser(): CmsUserSummary | null {
@@ -110,18 +119,55 @@ export class ThemeApiImpl implements ThemeAPIInterface {
    * throws (never propagated — blocks() must never throw, spec §4.10).
    */
   private renderBlock(block: CmsBlock): React.ReactElement {
+    const parsed = parseThemeSectionContent(
+      (block.data as { content?: unknown })?.content ?? block.data
+    );
+    const sectionId = parsed?.sectionId || block.id;
+    const blockPayload = parsed
+      ? {
+          ...block,
+          data: {
+            ...parsed.data,
+            id: block.id,
+            type: block.type,
+            sectionId: parsed.sectionId,
+          },
+        }
+      : block;
+
+    let inner: React.ReactElement;
     const registered = this.ctx.loadedTheme.blocks[block.type];
     if (registered) {
-      return React.createElement(registered.Renderer, { key: block.id, block, schema: registered.schema });
+      inner = React.createElement(registered.Renderer, {
+        key: block.id,
+        block: blockPayload,
+        schema: registered.schema,
+        data: parsed?.data || block.data,
+      });
+    } else {
+      try {
+        inner = renderFromJson(block.data as unknown as BlockData);
+      } catch {
+        inner = React.createElement(
+          'div',
+          { key: block.id, 'data-theme-engine-missing-block': block.type },
+          `Block type "${block.type}" is not supported by this theme.`
+        );
+      }
     }
-    try {
-      return renderFromJson(block.data as unknown as BlockData);
-    } catch {
-      return React.createElement(
-        'div',
-        { key: block.id, 'data-theme-engine-missing-block': block.type },
-        `Block type "${block.type}" is not supported by this theme.`
-      );
-    }
+
+    if (!this.ctx.input.editMode) return inner;
+
+    // Non-layout-changing markers for the exact editor iframe bridge.
+    return React.createElement(
+      'div',
+      {
+        key: block.id,
+        'data-theme-section-id': sectionId,
+        'data-theme-section-type': block.type,
+        style: { display: 'contents' },
+      },
+      inner
+    );
   }
 }

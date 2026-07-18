@@ -245,6 +245,8 @@ export default function PromptPanel() {
     footer?: number;
   } | null>(null);
   const [autoCreateLayoutParts, setAutoCreateLayoutParts] = useState(true);
+  /** How generated output is applied to the canvas after Generate. */
+  const [applyMode, setApplyMode] = useState<'replace' | 'append'>('replace');
   const [pasteJson, setPasteJson] = useState('');
   const [isRendering, setIsRendering] = useState(false);
   const [pasteError, setPasteError] = useState('');
@@ -323,6 +325,9 @@ export default function PromptPanel() {
   const handleGenerate = async () => {
     if (!canGenerate) return;
 
+    const existingBlocks = canvasBlocks;
+    const mode = applyMode;
+
     const formData = new FormData();
     formData.append('prompt', prompt.trim());
     formData.append('pageType', pageType);
@@ -377,26 +382,48 @@ export default function PromptPanel() {
         return;
       }
 
-      const components = Array.isArray(result?.components) ? result.components : [];
+      const components = Array.isArray(result?.components)
+        ? (result.components as BlockData[])
+        : [];
       const headerComponents = Array.isArray(result?.headerComponents)
-        ? result.headerComponents
+        ? (result.headerComponents as BlockData[])
         : [];
       const footerComponents = Array.isArray(result?.footerComponents)
-        ? result.footerComponents
+        ? (result.footerComponents as BlockData[])
         : [];
 
-      setGeneratedBlocks(components);
+      if (components.length === 0) {
+        throw new Error(
+          'AI returned no blocks. Try a clearer screenshot or add a short prompt describing the layout.'
+        );
+      }
+
+      const canvasReady = normalizeBlockIds(
+        components.map((block) => normalizeImportedBlockShape(block as RawBlock))
+      );
+      setGeneratedBlocks(canvasReady);
       setGeneratedJson(
-        stringifyGeneratedOutput(components, headerComponents, footerComponents)
+        stringifyGeneratedOutput(canvasReady, headerComponents, footerComponents)
       );
       setJsonError('');
       setLastUsage({
-        body: components.length,
+        body: canvasReady.length,
         header: headerComponents.length || undefined,
         footer: footerComponents.length || undefined,
       });
 
-      toast.success(`Generated ${components.length} block${components.length === 1 ? '' : 's'}`);
+      // Apply straight to the canvas so screenshot → Generate actually builds the page.
+      dispatch(
+        setBlocks(mode === 'replace' ? canvasReady : [...existingBlocks, ...canvasReady])
+      );
+
+      toast.success(
+        mode === 'replace'
+          ? `Page generated from ${imageFile ? 'screenshot' : 'prompt'} — ${canvasReady.length} block${
+              canvasReady.length === 1 ? '' : 's'
+            } on canvas`
+          : `Inserted ${canvasReady.length} block${canvasReady.length === 1 ? '' : 's'} onto canvas`
+      );
 
       // Auto-create header / footer pages when on a regular page with image-derived parts
       if (
@@ -548,7 +575,7 @@ export default function PromptPanel() {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="ai-reference-image">Reference Image</Label>
+        <Label htmlFor="ai-reference-image">Reference Image (screenshot)</Label>
         <input
           ref={fileInputRef}
           id="ai-reference-image"
@@ -564,7 +591,7 @@ export default function PromptPanel() {
           onClick={() => fileInputRef.current?.click()}
         >
           <ImagePlus className="mr-2 h-4 w-4" />
-          {imageName || 'Upload image'}
+          {imageName || 'Upload screenshot'}
         </Button>
         {imagePreview && (
           <img
@@ -573,6 +600,39 @@ export default function PromptPanel() {
             className="w-full rounded-md border object-contain max-h-40"
           />
         )}
+        {imageFile ? (
+          <p className="text-xs text-muted-foreground">
+            Screenshot ready — choose how to apply the result, then click Generate. No text prompt
+            is required.
+          </p>
+        ) : null}
+      </div>
+
+      <div className="space-y-2 rounded-md border p-3">
+        <Label className="text-sm">Apply generated output as</Label>
+        <div className="grid grid-cols-2 gap-2">
+          <Button
+            type="button"
+            size="sm"
+            variant={applyMode === 'replace' ? 'default' : 'outline'}
+            onClick={() => setApplyMode('replace')}
+          >
+            Full page
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant={applyMode === 'append' ? 'default' : 'outline'}
+            onClick={() => setApplyMode('append')}
+          >
+            Insert blocks
+          </Button>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          {applyMode === 'replace'
+            ? 'Replaces the entire canvas with the generated page/section.'
+            : 'Appends the generated blocks below what is already on the canvas.'}
+        </p>
       </div>
 
       {isPage && imageFile && (
@@ -613,7 +673,13 @@ export default function PromptPanel() {
           ) : (
             <Wand2 className="mr-2 h-4 w-4" />
           )}
-          {isGenerating ? 'Generating' : 'Generate'}
+          {isGenerating
+            ? 'Generating'
+            : imageFile
+              ? applyMode === 'replace'
+                ? 'Generate page'
+                : 'Generate blocks'
+              : 'Generate'}
         </Button>
         <Button type="button" variant="outline" onClick={handleClear}>
           <Trash2 className="mr-2 h-4 w-4" />
@@ -668,10 +734,14 @@ export default function PromptPanel() {
 
       {generatedBlocks.length > 0 && (
         <div className="space-y-3">
+          <p className="text-xs text-muted-foreground">
+            Output is already on the canvas. Use these if you want to re-apply or tweak the JSON
+            first.
+          </p>
           <div className="grid grid-cols-2 gap-2">
             <Button type="button" variant="outline" onClick={() => insertGeneratedBlocks('append')}>
               <PlusCircle className="mr-2 h-4 w-4" />
-              Insert
+              Insert again
             </Button>
             <Button
               type="button"
@@ -679,7 +749,7 @@ export default function PromptPanel() {
               onClick={() => insertGeneratedBlocks('replace')}
             >
               <RefreshCw className="mr-2 h-4 w-4" />
-              Replace
+              Replace again
             </Button>
           </div>
           <div className="flex items-center justify-between gap-2">

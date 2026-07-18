@@ -46,3 +46,23 @@ export async function buildRenderInput(slug: string, previewThemeSlug?: string):
       : null,
   };
 }
+
+/**
+ * Build a RenderInput forced onto a specific theme for admin card / gallery
+ * previews. Empty CMS blocks so ONLY the uploaded theme templates/partials
+ * render — site settings + menu still feed the theme Header/Footer chrome.
+ */
+export async function buildCardPreviewInput(themeSlug: string): Promise<RenderInput> {
+  const [settings, menuItems] = await Promise.all([
+    resolveSiteSettings(),
+    resolveSiteMenu(),
+  ]);
+  return {
+    page: { id: 'card-preview', slug: 'home', title: 'Home', type: 'home' },
+    blocks: [],
+    menus: [{ key: 'primary', items: menuItems }],
+    settings,
+    previewThemeSlug: themeSlug,
+    currentUser: null,
+  };
+}

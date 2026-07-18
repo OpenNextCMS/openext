@@ -16,7 +16,6 @@ import {
   ChevronLeft,
   Codesandbox,
   Wrench,
-  Paintbrush,
   ArrowUpToLine,
   ArrowDownToLine,
   BrainCircuit,
@@ -28,10 +27,10 @@ import {
   PlusSquare,
   Tag,
   Tags,
-  UploadCloud,
+  Puzzle,
   type LucideIcon,
 } from 'lucide-react';
-import { usePlugins } from '@/context/PluginContext';
+import { usePlugins, type PluginRecord } from '@/context/PluginContext';
 
 type NavSection = {
   label: string;
@@ -77,11 +76,8 @@ const navItems: NavSection[] = [
   {
     label: 'Themes',
     icon: Palette,
-    links: [
-      { label: 'All Themes', icon: Paintbrush, path: '/dashboard/themes/allthemes' },
-      { label: 'Create Theme', icon: PlusCircle, path: '/dashboard/themes/new' },
-      { label: 'Theme Engine (Beta)', icon: UploadCloud, path: '/dashboard/theme-engine' },
-    ],
+    path: '/dashboard/theme-engine',
+    links: [],
   },
   {
     label: 'Plugins',
@@ -149,6 +145,30 @@ function hasFormBuilder(plugins: { pluginId: string; name: string; type?: string
   });
 }
 
+const BUILTIN_SYSTEM_IDS = new Set(['menu-redirect', 'form-builder']);
+
+/** Uploaded system plugins get a dynamic sidebar section pointing at the runtime shell. */
+function uploadedSystemNavSections(plugins: PluginRecord[]): NavSection[] {
+  return plugins
+    .filter(
+      (p) =>
+        p.kind === 'system' &&
+        p.source === 'uploaded' &&
+        !BUILTIN_SYSTEM_IDS.has(p.pluginId)
+    )
+    .map((p) => ({
+      label: p.name || p.pluginId,
+      icon: Puzzle,
+      links: [
+        {
+          label: 'Open',
+          icon: Puzzle,
+          path: `/dashboard/plugins/runtime/${encodeURIComponent(p.pluginId)}`,
+        },
+      ],
+    }));
+}
+
 export default function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
@@ -164,6 +184,8 @@ export default function Sidebar() {
     let s = navItems;
     if (hasMenuRedirect(activePlugins)) s = [...s, menuRedirectNav];
     if (hasFormBuilder(activePlugins)) s = [...s, formBuilderNav];
+    const uploadedSystem = uploadedSystemNavSections(activePlugins);
+    if (uploadedSystem.length) s = [...s, ...uploadedSystem];
     return s;
   }, [activePlugins]);
 

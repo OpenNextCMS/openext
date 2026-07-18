@@ -102,6 +102,8 @@ export const updateThemeSchema = z.object({
 
 export const activateThemeSchema = z.object({
   id: z.string().trim().min(1, 'Theme id is required'),
+  /** When true, also rewrite the homepage into editable page-editor blocks. */
+  applyToEditor: z.boolean().optional(),
 });
 
 export type CreateThemeInput = z.infer<typeof createThemeSchema>;

@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import PageClientWrapper from '@/components/PageClientWrapper';
 import PreviewBanner from '@/components/theme-engine/PreviewBanner';
+import ThemeRenderBoundary from '@/components/theme-engine/ThemeRenderBoundary';
 import { getPageDataForSlug } from '@/utils/getPageData';
 import { buildRenderInput } from '@/modules/themeEngine/buildRenderInput';
 import { themeManager } from '@/modules/themeEngine/ThemeManager';
@@ -47,7 +48,9 @@ export default async function Page({ params }: PageProps) {
     <PageClientWrapper>
       <link rel="stylesheet" href={result.stylesheetUrl} />
       {previewThemeSlug ? <PreviewBanner slug={previewThemeSlug} /> : null}
-      <div className="rendered-page">{result.element}</div>
+      <ThemeRenderBoundary>
+        <div className="rendered-page">{result.element}</div>
+      </ThemeRenderBoundary>
       <script src={result.scriptUrl} defer />
     </PageClientWrapper>
   );

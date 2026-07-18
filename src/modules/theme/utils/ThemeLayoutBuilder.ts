@@ -1,4 +1,3 @@
-import { randomUUID } from 'crypto';
 import type { ComponentVariants, VariantFamily } from '@/types/component-variants';
 import type { ITheme } from '@/types/theme';
 
@@ -85,6 +84,16 @@ export interface BuiltThemeBlock {
   content?: string;
 }
 
+function createThemeBlockId(section: string): string {
+  const uuid =
+    typeof globalThis !== 'undefined' &&
+    globalThis.crypto &&
+    typeof globalThis.crypto.randomUUID === 'function'
+      ? globalThis.crypto.randomUUID().slice(0, 8)
+      : Math.random().toString(36).slice(2, 10);
+  return `theme-${section}-${uuid}`;
+}
+
 function resolveBlockType(section: string, variants: ComponentVariants): string {
   const familyMap = VARIANT_BLOCK_TYPE[section];
   if (!familyMap) return section;
@@ -149,7 +158,7 @@ export function buildPageBlocksFromTheme(
     const content = contentFromPreset(section, theme.presets);
     const block: BuiltThemeBlock = {
       type,
-      uniqueId: `theme-${section}-${randomUUID().slice(0, 8)}`,
+      uniqueId: createThemeBlockId(section),
       ...(content ? { content } : {}),
     };
 

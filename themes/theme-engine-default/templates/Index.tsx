@@ -6,6 +6,7 @@
  * "render Header/Footer (or default)") already covers that, so this package
  * only needs to render the page's actual content.
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- theme source is compiled independently of the app's own types (ThemeComponent = React.ComponentType<any>, spec §4.6).
 export default function Index({ theme }: { theme: any }) {
   return (
     <div className="theme-engine-default-theme">

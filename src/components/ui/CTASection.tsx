@@ -22,33 +22,35 @@ export const CTASection = ({ block }: BlockRendererProps) => {
     }
   }, [block?.content]);
 
+  const sectionStyle: React.CSSProperties = {
+    padding: 'var(--section-spacing, 80px) var(--container-padding, 24px)',
+    background: 'var(--color-primary, #2563eb)',
+    color: 'var(--color-bg, #ffffff)',
+    fontFamily: 'var(--font-body, inherit)',
+    textAlign: 'center',
+    ...(block?.style || {}),
+  };
+
   return (
-    <section
-      style={{
-        padding: 'var(--section-spacing, 80px) var(--container-padding, 24px)',
-        background: 'var(--color-primary, #2563eb)',
-        color: 'var(--color-bg, #ffffff)',
-        fontFamily: 'var(--font-body, inherit)',
-        textAlign: 'center',
-      }}
-    >
+    <section style={sectionStyle}>
       <div style={{ maxWidth: 'var(--layout-width, 1200px)', margin: '0 auto' }}>
         <h2
           style={{
             fontFamily: 'var(--font-heading, inherit)',
             fontSize: '2rem',
             marginBottom: 'var(--space-sm, 8px)',
+            color: 'inherit',
           }}
         >
           {content.heading || 'Ready to get started?'}
         </h2>
-        <p style={{ opacity: 0.9, marginBottom: 'var(--space-lg, 24px)' }}>
+        <p style={{ opacity: 0.9, marginBottom: 'var(--space-lg, 24px)', color: 'inherit' }}>
           {content.subheading || 'Join thousands of teams already building with us.'}
         </p>
         <button
           style={{
             background: 'var(--color-bg, #ffffff)',
-            color: 'var(--color-primary, #2563eb)',
+            color: (block?.style?.backgroundColor as string) || 'var(--color-primary, #2563eb)',
             border: 'none',
             borderRadius: 'var(--radius-md, 8px)',
             padding: '12px 28px',

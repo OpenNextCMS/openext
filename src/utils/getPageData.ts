@@ -32,6 +32,16 @@ export async function fetchPageWithLayout(slug: string): Promise<PageDataResult 
       return { page, header: null, footer: null };
     }
 
+    // A Theme Engine frame renders its package Header + Template + Footer in
+    // one exact surface. Never resolve active CMS chrome around that page or
+    // the user would see two headers/footers.
+    const usesThemeEngineChrome =
+      Array.isArray(page.component) &&
+      page.component.some((block) => block?.type === 'theme-engine-frame');
+    if (usesThemeEngineChrome) {
+      return { page, header: null, footer: null };
+    }
+
     const activeLayoutFilter = { isGlobal: true, isPublished: true };
 
     const findActiveLayoutPart = async (

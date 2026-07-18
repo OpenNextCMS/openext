@@ -5,11 +5,13 @@ import { activateThemeSchema } from '@/lib/theme/theme-validator';
 
 export const dynamic = 'force-dynamic';
 
-/** POST /api/themes/activate { id } — make a theme the single active theme. */
+/** POST /api/themes/activate { id, applyToEditor? } — make a theme the single active theme. */
 export async function POST(req: NextRequest) {
   try {
-    const { id } = activateThemeSchema.parse(await req.json());
-    return ThemeActivationController.activate(id);
+    const body = activateThemeSchema.parse(await req.json());
+    return ThemeActivationController.activate(body.id, {
+      applyToEditor: body.applyToEditor,
+    });
   } catch (err) {
     return handleApiError(err);
   }

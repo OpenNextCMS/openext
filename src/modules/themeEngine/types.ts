@@ -126,6 +126,40 @@ export interface ThemeManifestBlock {
   schemaPath?: string;
 }
 
+/** Field types allowed in a theme block schema (schemaPath export). */
+export type ThemeSectionFieldType =
+  | 'text'
+  | 'textarea'
+  | 'color'
+  | 'image'
+  | 'number'
+  | 'boolean'
+  | 'url'
+  | 'select'
+  | 'list';
+
+export interface ThemeSectionFieldSchema {
+  key: string;
+  label: string;
+  type: ThemeSectionFieldType;
+  default?: unknown;
+  options?: string[];
+  /** Nested fields when `type === 'list'`. */
+  itemFields?: ThemeSectionFieldSchema[];
+}
+
+/** Declared homepage section order for exact + editable Theme Engine packages. */
+export interface ThemeEditableSection {
+  /** Stable section id used for selection, persistence, and reorder. */
+  id: string;
+  label: string;
+  /** Must match a `manifest.blocks[].type`. */
+  blockType: string;
+  /** Optional overrides of schema defaults when seeding the homepage. */
+  defaults?: Record<string, unknown>;
+  hiddenByDefault?: boolean;
+}
+
 export interface ThemeManifest {
   name: string;
   /** Derived from `name` when absent (kebab-case). */
@@ -141,6 +175,13 @@ export interface ThemeManifest {
   themeSettings: ThemeManifestSetting[];
   supportedFeatures: ThemeSupportedFeature[];
   blocks?: ThemeManifestBlock[];
+  /**
+   * Optional homepage section contract. When present, activation seeds these
+   * sections onto the homepage and the editor can edit them while rendering
+   * the exact theme package. When absent, the theme still renders exactly
+   * but structural section editing is unavailable.
+   */
+  editableSections?: ThemeEditableSection[];
 }
 
 /* ------------------------------------------------------------------ *
@@ -264,6 +305,13 @@ export interface RenderInput {
   previewThemeSlug?: string;
   /** Read-only current user, if any (surfaced via ThemeAPI.currentUser()). */
   currentUser?: CmsUserSummary | null;
+  /**
+   * When true, theme.blocks() wraps each section with selection markers for the
+   * exact editor iframe (non-layout-changing data attributes only).
+   */
+  editMode?: boolean;
+  /** Optional draft overrides keyed by sectionId (editor live preview). */
+  draftBlocks?: CmsBlock[];
 }
 
 export interface RenderResult {

@@ -7,6 +7,7 @@ import { ThemeCache, themeCache } from './ThemeCache';
 import { assetManager, type AssetManager } from './AssetManager';
 import { ThemeLoadError } from './errors';
 import { COMPILED_ROOT, THEMES_ROOT } from './config';
+import { readDiskManifest } from './readDiskManifest';
 import type { LoadedTheme, LoadedThemeBlock, ThemeComponent } from './types';
 
 /**
@@ -40,8 +41,11 @@ export class ThemeLoader {
       throw new ThemeLoadError(slug, `theme is not installed (status: ${doc?.status ?? 'not found'}).`);
     }
 
-    const manifest = doc.manifest;
-    const version = doc.version;
+    // Prefer on-disk theme.json so package updates (new editableSections/blocks)
+    // apply without a full re-upload when the Mongo manifest is stale.
+    const diskManifest = await readDiskManifest(slug);
+    const manifest = diskManifest ?? doc.manifest;
+    const version = diskManifest?.version ?? doc.version;
     const root = path.join(THEMES_ROOT, slug);
 
     // Seed AssetManager's sync lookup cache (spec §4.9) — the ONLY place the
@@ -124,11 +128,14 @@ export class ThemeLoader {
   private async compile(slug: string, version: string, relPath: string, sourcePath: string): Promise<string> {
     const outPath = path.join(COMPILED_ROOT, slug, version, `${relPath}.cjs`);
 
-    const alreadyCompiled = await fs
-      .stat(outPath)
-      .then((st) => st.isFile())
-      .catch(() => false);
-    if (alreadyCompiled) return outPath;
+    try {
+      const [outStat, sourceStat] = await Promise.all([fs.stat(outPath), fs.stat(sourcePath)]);
+      if (outStat.isFile() && sourceStat.mtimeMs <= outStat.mtimeMs) {
+        return outPath;
+      }
+    } catch {
+      // missing compiled or source — fall through to compile
+    }
 
     const source = await fs.readFile(sourcePath, 'utf8');
     const result = ts.transpileModule(source, {
@@ -153,6 +160,8 @@ export class ThemeLoader {
 
     await fs.mkdir(path.dirname(outPath), { recursive: true });
     await fs.writeFile(outPath, result.outputText, 'utf8');
+    // Force the next loadModule to re-import the freshly compiled file.
+    this.cache.invalidateTheme(slug);
     return outPath;
   }
 
