@@ -1,3 +1,4 @@
+import { apiUrl } from '@/lib/apiClient';
 import type { ApiEnvelope, InstalledTheme } from './types';
 
 /**
@@ -26,15 +27,25 @@ async function unwrap<T>(res: Response): Promise<T> {
     throw new ThemeApiError(`Unexpected server response (${res.status}).`, 'PARSE_ERROR');
   }
   if (!res.ok || body.error) {
-    throw new ThemeApiError(body.error?.message || res.statusText, body.error?.code || 'ERROR', body.error?.details);
+    throw new ThemeApiError(
+      body.error?.message || res.statusText,
+      body.error?.code || 'ERROR',
+      body.error?.details
+    );
   }
   return body.data as T;
 }
 
-function xhrUpload(url: string, method: 'POST' | 'PUT', file: File, onProgress?: (pct: number) => void): Promise<InstalledTheme> {
+function xhrUpload(
+  url: string,
+  method: 'POST' | 'PUT',
+  file: File,
+  onProgress?: (pct: number) => void
+): Promise<InstalledTheme> {
   return new Promise<InstalledTheme>((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open(method, url);
+    xhr.withCredentials = true;
     xhr.upload.onprogress = (e) => {
       if (e.lengthComputable && onProgress) onProgress(Math.round((e.loaded / e.total) * 100));
     };
@@ -42,7 +53,14 @@ function xhrUpload(url: string, method: 'POST' | 'PUT', file: File, onProgress?:
       try {
         const body = JSON.parse(xhr.responseText) as ApiEnvelope<InstalledTheme>;
         if (xhr.status >= 200 && xhr.status < 300 && !body.error) resolve(body.data as InstalledTheme);
-        else reject(new ThemeApiError(body.error?.message || xhr.statusText, body.error?.code || 'ERROR', body.error?.details));
+        else
+          reject(
+            new ThemeApiError(
+              body.error?.message || xhr.statusText,
+              body.error?.code || 'ERROR',
+              body.error?.details
+            )
+          );
       } catch {
         reject(new ThemeApiError('Invalid server response.', 'PARSE_ERROR'));
       }
@@ -55,28 +73,53 @@ function xhrUpload(url: string, method: 'POST' | 'PUT', file: File, onProgress?:
 }
 
 export const themeSystemApi = {
-  list: () => fetch(BASE, { cache: 'no-store' }).then((r) => unwrap<InstalledTheme[]>(r)),
-  active: () => fetch(`${BASE}/active`, { cache: 'no-store' }).then((r) => unwrap<InstalledTheme | null>(r)),
-  details: (slug: string) => fetch(`${BASE}/${slug}`, { cache: 'no-store' }).then((r) => unwrap<InstalledTheme>(r)),
-  activate: (slug: string) => fetch(`${BASE}/activate/${slug}`, { method: 'POST' }).then((r) => unwrap<InstalledTheme>(r)),
-  remove: (slug: string) => fetch(`${BASE}/${slug}`, { method: 'DELETE' }).then((r) => unwrap<{ slug: string }>(r)),
+  list: () =>
+    fetch(apiUrl(BASE), { cache: 'no-store', credentials: 'include' }).then((r) =>
+      unwrap<InstalledTheme[]>(r)
+    ),
+  active: () =>
+    fetch(apiUrl(`${BASE}/active`), { cache: 'no-store', credentials: 'include' }).then((r) =>
+      unwrap<InstalledTheme | null>(r)
+    ),
+  details: (slug: string) =>
+    fetch(apiUrl(`${BASE}/${slug}`), { cache: 'no-store', credentials: 'include' }).then((r) =>
+      unwrap<InstalledTheme>(r)
+    ),
+  activate: (slug: string) =>
+    fetch(apiUrl(`${BASE}/activate/${slug}`), { method: 'POST', credentials: 'include' }).then((r) =>
+      unwrap<InstalledTheme>(r)
+    ),
+  remove: (slug: string) =>
+    fetch(apiUrl(`${BASE}/${slug}`), { method: 'DELETE', credentials: 'include' }).then((r) =>
+      unwrap<{ slug: string }>(r)
+    ),
   updateSettings: (slug: string, settings: Record<string, unknown>) =>
-    fetch(`${BASE}/${slug}`, {
+    fetch(apiUrl(`${BASE}/${slug}`), {
       method: 'PATCH',
+      credentials: 'include',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ settings }),
     }).then((r) => unwrap<InstalledTheme>(r)),
-  assetUrl: (slug: string, rel: string) => `${BASE}/asset/${slug}/${rel.replace(/^\/+/, '')}`,
-  upload: (file: File, onProgress?: (pct: number) => void) => xhrUpload(`${BASE}/upload`, 'POST', file, onProgress),
-  update: (slug: string, file: File, onProgress?: (pct: number) => void) => xhrUpload(`${BASE}/update/${slug}`, 'PUT', file, onProgress),
+  assetUrl: (slug: string, rel: string) =>
+    apiUrl(`${BASE}/asset/${slug}/${rel.replace(/^\/+/, '')}`),
+  upload: (file: File, onProgress?: (pct: number) => void) =>
+    xhrUpload(apiUrl(`${BASE}/upload`), 'POST', file, onProgress),
+  update: (slug: string, file: File, onProgress?: (pct: number) => void) =>
+    xhrUpload(apiUrl(`${BASE}/update/${slug}`), 'PUT', file, onProgress),
 
-  // Theme Editor
-  listFiles: (slug: string) => fetch(`${BASE}/${slug}/files`, { cache: 'no-store' }).then((r) => unwrap<string[]>(r)),
+  listFiles: (slug: string) =>
+    fetch(apiUrl(`${BASE}/${slug}/files`), { cache: 'no-store', credentials: 'include' }).then((r) =>
+      unwrap<string[]>(r)
+    ),
   readFile: (slug: string, path: string) =>
-    fetch(`${BASE}/${slug}/file?path=${encodeURIComponent(path)}`, { cache: 'no-store' }).then((r) => unwrap<{ path: string; content: string }>(r)),
+    fetch(apiUrl(`${BASE}/${slug}/file?path=${encodeURIComponent(path)}`), {
+      cache: 'no-store',
+      credentials: 'include',
+    }).then((r) => unwrap<{ path: string; content: string }>(r)),
   writeFile: (slug: string, path: string, content: string) =>
-    fetch(`${BASE}/${slug}/file`, {
+    fetch(apiUrl(`${BASE}/${slug}/file`), {
       method: 'PUT',
+      credentials: 'include',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ path, content }),
     }).then((r) => unwrap<{ path: string }>(r)),

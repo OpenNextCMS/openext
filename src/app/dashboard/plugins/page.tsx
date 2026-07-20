@@ -1,4 +1,5 @@
 'use client';
+import { apiUrl } from '@/lib/apiClient';
 
 import type React from 'react';
 
@@ -170,7 +171,7 @@ export default function PluginManagementPage() {
   // Fetch installed plugins on mount
   const fetchPlugins = async () => {
     try {
-      const response = await fetch('/api/dashboard/plugins/get-plugins');
+      const response = await fetch(apiUrl('/api/dashboard/plugins/get-plugins'));
       const data = await response.json();
       if (response.ok) {
         setInstalledPluginsList(data.plugins || []);
@@ -237,7 +238,7 @@ export default function PluginManagementPage() {
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await fetch('/api/dashboard/plugins/upload-plugin', {
+      const response = await fetch(apiUrl('/api/dashboard/plugins/upload-plugin'), {
         method: 'POST',
         body: formData,
       });
@@ -283,7 +284,7 @@ export default function PluginManagementPage() {
   const togglePluginStatus = async (pluginId: string) => {
     const newStatus = !activePlugins[pluginId];
     try {
-      const response = await fetch('/api/dashboard/plugins/toggle-plugin', {
+      const response = await fetch(apiUrl('/api/dashboard/plugins/toggle-plugin'), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ pluginId, isActive: newStatus }),
@@ -304,7 +305,7 @@ export default function PluginManagementPage() {
 
   const deletePlugin = async (pluginId: string) => {
     try {
-      const response = await fetch(`/api/dashboard/plugins/remove-plugin?pluginId=${pluginId}`, {
+      const response = await fetch(apiUrl(`/api/dashboard/plugins/remove-plugin?pluginId=${pluginId}`), {
         method: 'DELETE',
       });
 
@@ -329,7 +330,7 @@ export default function PluginManagementPage() {
     }
 
     try {
-      const response = await fetch('/api/dashboard/plugins/install-plugin', {
+      const response = await fetch(apiUrl('/api/dashboard/plugins/install-plugin'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -382,7 +383,7 @@ export default function PluginManagementPage() {
 
     const installedEdit = editingPlugin as PluginRecord;
     try {
-      const response = await fetch('/api/dashboard/plugins/update-plugin', {
+      const response = await fetch(apiUrl('/api/dashboard/plugins/update-plugin'), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

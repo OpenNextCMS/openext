@@ -1,4 +1,5 @@
 'use client';
+import { apiUrl } from '@/lib/apiClient';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Eye, EyeOff, GripVertical, Loader2 } from 'lucide-react';
@@ -48,7 +49,7 @@ export default function ThemeSectionInspector({
   useEffect(() => {
     let alive = true;
     setLoading(true);
-    fetch(`/api/theme-engine/themes/${encodeURIComponent(themeSlug)}/sections`, {
+    fetch(apiUrl(`/api/theme-engine/themes/${encodeURIComponent(themeSlug)}/sections`), {
       credentials: 'include',
     })
       .then(async (res) => {

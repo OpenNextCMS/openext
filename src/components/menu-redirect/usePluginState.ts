@@ -1,4 +1,5 @@
 'use client';
+import { apiUrl } from '@/lib/apiClient';
 
 import { useCallback, useEffect, useState } from 'react';
 import type { PluginState } from '@/types/menu-redirect';
@@ -16,7 +17,7 @@ export function usePluginState() {
 
   const refresh = useCallback(async () => {
     try {
-      const res = await fetch('/api/menu-redirect/lifecycle/status');
+      const res = await fetch(apiUrl('/api/menu-redirect/lifecycle/status'));
       const json = await res.json();
       setState(json?.data ?? { installed: false, enabled: false });
     } catch {
@@ -34,7 +35,7 @@ export function usePluginState() {
     async (action: LifecycleAction) => {
       setActing(action);
       try {
-        const res = await fetch(`/api/menu-redirect/lifecycle/${action}`, {
+        const res = await fetch(apiUrl(`/api/menu-redirect/lifecycle/${action}`), {
           method: 'POST',
           credentials: 'include',
         });

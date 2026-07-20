@@ -1,4 +1,5 @@
 'use client';
+import { apiUrl } from '@/lib/apiClient';
 
 import { useState, useEffect } from 'react';
 import type React from 'react';
@@ -78,9 +79,7 @@ export default function AllBlogs() {
 
   const fetchBlogs = async () => {
     setLoading(true);
-    try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
-      const response = await fetch(`${backendUrl}/api/blogs?limit=100`, {
+    try {      const response = await fetch(apiUrl(`/api/blogs?limit=100`), {
         credentials: 'include',
       });
       const result = await response.json();
@@ -119,9 +118,7 @@ export default function AllBlogs() {
   }, []);
 
   const handleTogglePublish = async (id: string, currentStatus: boolean) => {
-    try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
-      const response = await fetch(`${backendUrl}/api/blogs/${id}`, {
+    try {      const response = await fetch(apiUrl(`/api/blogs/${id}`), {
         method: 'PUT',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -143,9 +140,7 @@ export default function AllBlogs() {
   const handlePostDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this post? This action cannot be undone.')) return;
     
-    try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
-      const response = await fetch(`${backendUrl}/api/blogs/${id}`, {
+    try {      const response = await fetch(apiUrl(`/api/blogs/${id}`), {
         method: 'DELETE',
         credentials: 'include',
       });

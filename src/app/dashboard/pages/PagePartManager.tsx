@@ -1,4 +1,5 @@
 'use client';
+import { apiUrl } from '@/lib/apiClient';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
@@ -33,11 +34,7 @@ import { footerTemplates } from './footerTemplates';
 
 interface PagePartManagerProps {
   pageType: 'header' | 'footer';
-}
-
-const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
-
-const generateSlug = (value: string, pageType: 'header' | 'footer') => {
+}const generateSlug = (value: string, pageType: 'header' | 'footer') => {
   const base = value
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
@@ -72,7 +69,7 @@ export default function PagePartManager({ pageType }: PagePartManagerProps) {
   const fetchItems = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(`${backendUrl}/api/pages/get-pages`, {
+      const response = await fetch(apiUrl(`/api/pages/get-pages`), {
         credentials: 'include',
         cache: 'no-store',
       });
@@ -118,7 +115,7 @@ export default function PagePartManager({ pageType }: PagePartManagerProps) {
       const selectedTemplate = templates.find((t) => t.id === selectedTemplateId);
       const component = selectedTemplate ? selectedTemplate.buildBlocks() : undefined;
 
-      const response = await fetch(`${backendUrl}/api/pages/add-page`, {
+      const response = await fetch(apiUrl(`/api/pages/add-page`), {
         method: 'POST',
         credentials: 'include',
         headers: {
@@ -155,7 +152,7 @@ export default function PagePartManager({ pageType }: PagePartManagerProps) {
 
   const updateItem = async (page: Page, updates: Partial<Page>) => {
     try {
-      const response = await fetch(`${backendUrl}/api/pages/update-page`, {
+      const response = await fetch(apiUrl(`/api/pages/update-page`), {
         method: 'PATCH',
         credentials: 'include',
         headers: {

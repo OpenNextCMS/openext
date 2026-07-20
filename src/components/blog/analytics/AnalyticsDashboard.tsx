@@ -1,4 +1,5 @@
 'use client';
+import { apiUrl } from '@/lib/apiClient';
 
 import { useEffect, useState } from 'react';
 import {
@@ -41,7 +42,7 @@ export default function AnalyticsDashboard() {
 
   useEffect(() => {
     setLoading(true);
-    fetch(`/api/analytics/summary?range=${range}`)
+    fetch(apiUrl(`/api/analytics/summary?range=${range}`))
       .then((r) => r.json())
       .then((res) => setData(res?.data ?? null))
       .catch(() => {})

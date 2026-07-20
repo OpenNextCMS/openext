@@ -1,4 +1,5 @@
 'use client';
+import { apiUrl } from '@/lib/apiClient';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
@@ -34,7 +35,7 @@ export default function BlogListing({ initialCategory }: { initialCategory?: str
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    fetch('/api/categories')
+    fetch(apiUrl('/api/categories'))
       .then((r) => r.json())
       .then((res) => Array.isArray(res?.data) && setCategories(res.data))
       .catch(() => {});
@@ -51,7 +52,7 @@ export default function BlogListing({ initialCategory }: { initialCategory?: str
       if (category) qs.set('category', category);
       if (search.trim()) qs.set('search', search.trim());
       try {
-        const res = await fetch(`/api/blogs?${qs.toString()}`).then((r) => r.json());
+        const res = await fetch(apiUrl(`/api/blogs?${qs.toString()}`)).then((r) => r.json());
         const data: Post[] = res?.data ?? [];
         setTotal(res?.meta?.total ?? data.length);
         setHasMore(!!res?.meta?.hasMore);

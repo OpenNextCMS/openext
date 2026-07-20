@@ -1,4 +1,5 @@
 'use client';
+import { apiUrl } from '@/lib/apiClient';
 
 import { useState } from 'react';
 import { Provider } from 'react-redux';
@@ -30,11 +31,8 @@ export default function AddPage() {
   const handleProceed = async () => {
     if (!pageName || !slug) return;
     setIsSubmitting(true);
-    try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
-
-      // Step 1: Create the page
-      const response = await fetch(`${backendUrl}/api/pages/add-page`, {
+    try {      // Step 1: Create the page
+      const response = await fetch(apiUrl(`/api/pages/add-page`), {
         method: 'POST',
         credentials: 'include',
         headers: {
@@ -47,7 +45,7 @@ export default function AddPage() {
 
       if (response.ok && result.success) {
         // Step 2: Get pages and userId
-        const getResponse = await fetch(`${backendUrl}/api/pages/get-pages`, {
+        const getResponse = await fetch(apiUrl(`/api/pages/get-pages`), {
           method: 'GET',
           credentials: 'include',
         });

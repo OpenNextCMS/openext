@@ -1,4 +1,5 @@
 'use client';
+import { apiUrl } from '@/lib/apiClient';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
@@ -179,7 +180,7 @@ export default function AllThemesPage() {
 
   const loadOnboardingTheme = useCallback(async () => {
     try {
-      const res = await fetch('/api/onboarding/preferences', { credentials: 'include' });
+      const res = await fetch(apiUrl('/api/onboarding/preferences'), { credentials: 'include' });
       const json = await res.json().catch(() => null);
       if (res.ok && json?.data?.theme) setOnboardingTheme(json.data.theme as WizardThemeId);
     } catch {
@@ -219,7 +220,7 @@ export default function AllThemesPage() {
       if (activateTarget.slug && THEME_OPTIONS.some((o) => WIZARD_THEME_TO_SLUG[o.id] === activateTarget.slug)) {
         const wizardId = THEME_OPTIONS.find((o) => WIZARD_THEME_TO_SLUG[o.id] === activateTarget.slug)?.id;
         if (wizardId) {
-          await fetch('/api/onboarding/preferences', {
+          await fetch(apiUrl('/api/onboarding/preferences'), {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',

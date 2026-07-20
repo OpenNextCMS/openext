@@ -11,7 +11,7 @@ import { Schema, type Connection, type Model, type Document, type Types } from '
  * `themesettings`) registered on the same connection; keep the two apart.
  */
 
-export interface IThemeEngineSettingsDocument extends Document {
+export interface IThemeEngineSettingsDocument extends Omit<Document, '_id'> {
   _id: string;
   activeThemeSlug: string | null;
   /** Rollback target for a failed activation. */

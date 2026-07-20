@@ -1,4 +1,5 @@
 'use client';
+import { apiUrl } from '@/lib/apiClient';
 
 import { Trash2, Menu, X, MousePointer2, ChevronDown } from 'lucide-react';
 import { BlockRendererProps, BlockData } from '@/types/index';
@@ -66,7 +67,7 @@ export const NavbarBlock = ({ block, isEditing = true }: BlockRendererProps) => 
 
   useEffect(() => {
     let alive = true;
-    fetch('/api/dashboard/settings')
+    fetch(apiUrl('/api/dashboard/settings'))
       .then((res) => res.json())
       .then((json) => {
         if (!alive) return;

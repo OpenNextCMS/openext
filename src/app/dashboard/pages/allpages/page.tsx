@@ -1,4 +1,5 @@
 'use client';
+import { apiUrl } from '@/lib/apiClient';
 
 import { useState, useEffect } from 'react';
 import type React from 'react';
@@ -38,10 +39,7 @@ interface Page {
   isPublished: boolean;
   lastModified: string;
   slug: string;
-}
-const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
-
-export default function AllPagesPage() {
+}export default function AllPagesPage() {
 
   const [pages, setPages] = useState<Page[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -53,7 +51,7 @@ export default function AllPagesPage() {
   const fetchPages = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(`${backendUrl}/api/pages/get-pages`, {
+      const response = await fetch(apiUrl(`/api/pages/get-pages`), {
         credentials: 'include',
         cache: 'no-store',
       });
@@ -96,7 +94,7 @@ export default function AllPagesPage() {
     updates: { isPublished?: boolean }
   ) => {
     try {
-      const response = await fetch(`${backendUrl}/api/pages/update-page`, {
+      const response = await fetch(apiUrl(`/api/pages/update-page`), {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

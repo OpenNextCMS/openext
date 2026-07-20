@@ -1,4 +1,5 @@
 'use client';
+import { apiUrl } from '@/lib/apiClient';
 
 import { useEffect, useState } from 'react';
 import type { MenuRedirectRole } from '@/types/menu-redirect';
@@ -16,7 +17,7 @@ export function useCanEditMappings() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/menu-redirect/access')
+    fetch(apiUrl('/api/menu-redirect/access'))
       .then((r) => r.json())
       .then((res) => res?.data && setAccess(res.data))
       .catch(() => {})

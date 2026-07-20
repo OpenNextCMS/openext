@@ -1,4 +1,5 @@
 'use client';
+import { apiUrl } from '@/lib/apiClient';
 
 import { useState, useEffect, useCallback } from 'react';
 import { DndContext, DragEndEvent, closestCorners } from '@dnd-kit/core';
@@ -190,10 +191,7 @@ export default function Editor() {
   const [showButton, setShowButton] = useState(true);
   const dispatch = useAppDispatch();
   const canvasBlocks = useAppSelector((state) => state.canvas.blocks);
-  const viewMode = useAppSelector((state) => state.canvas.viewMode);
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
-
-  useEffect(() => {
+  const viewMode = useAppSelector((state) => state.canvas.viewMode);  useEffect(() => {
     const getDBPageData = async () => {
       if (typeof window === 'undefined') return;
 
@@ -204,8 +202,7 @@ export default function Editor() {
       const persistKey = `persist:root-${pageName}`;
 
       try {
-        const response = await fetch(
-          `${backendUrl}/api/pages/get-page?name=${pageName}&key=allowMe`,
+        const response = await fetch(apiUrl(`/api/pages/get-page?name=${pageName}&key=allowMe`),
           {
             cache: 'no-store',
             credentials: 'include',
@@ -274,7 +271,7 @@ export default function Editor() {
     };
 
     getDBPageData();
-  }, [dispatch, backendUrl]);
+  }, [dispatch]);
 
   useEffect(() => {
     document.body.style.overflow = 'hidden';

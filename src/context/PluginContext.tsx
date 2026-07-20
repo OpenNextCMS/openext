@@ -1,4 +1,5 @@
 'use client';
+import { apiUrl } from '@/lib/apiClient';
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { pluginRegistry } from '@/lib/pluginRegistry';
@@ -60,7 +61,7 @@ export const PluginProvider = ({ children }: { children: ReactNode }) => {
 
   const loadPlugins = async () => {
     try {
-      const response = await fetch('/api/dashboard/plugins/get-plugins');
+      const response = await fetch(apiUrl('/api/dashboard/plugins/get-plugins'));
       const data = await response.json();
 
       if (response.ok) {

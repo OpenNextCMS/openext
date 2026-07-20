@@ -7,6 +7,7 @@ import { AlertCircle, ArrowLeft, Loader2, Puzzle } from 'lucide-react';
 import { usePlugins } from '@/context/PluginContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { assetUrl } from '@/lib/apiClient';
 
 /**
  * Runtime shell for uploaded system plugins.
@@ -27,10 +28,13 @@ export default function UploadedSystemPluginRuntimePage() {
   const adminSrc = useMemo(() => {
     const raw = (plugin?.adminEntry || '').trim();
     if (!raw) return '';
-    if (raw.startsWith('/plugins/') || raw.startsWith('http://') || raw.startsWith('https://')) {
+    if (raw.startsWith('http://') || raw.startsWith('https://')) {
       return raw;
     }
-    return `/plugins/${encodeURIComponent(pluginId)}/${raw.replace(/^\/+/, '')}`;
+    if (raw.startsWith('/plugins/')) {
+      return assetUrl(raw);
+    }
+    return assetUrl(`/plugins/${encodeURIComponent(pluginId)}/${raw.replace(/^\/+/, '')}`);
   }, [plugin?.adminEntry, pluginId]);
 
   if (!isLoaded) {

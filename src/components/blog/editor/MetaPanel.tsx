@@ -1,4 +1,5 @@
 'use client';
+import { apiUrl } from '@/lib/apiClient';
 
 import { useRef, useState } from 'react';
 import toast from 'react-hot-toast';
@@ -32,7 +33,7 @@ export default function MetaPanel({ post, options, onField, slugEdited, onSlugEd
     try {
       const formData = new FormData();
       formData.append('file', file);
-      const res = await fetch('/api/blogs/upload-image', {
+      const res = await fetch(apiUrl('/api/blogs/upload-image'), {
         method: 'POST',
         body: formData,
       });

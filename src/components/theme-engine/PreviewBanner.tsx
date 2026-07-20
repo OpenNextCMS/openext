@@ -1,4 +1,5 @@
 'use client';
+import { apiUrl } from '@/lib/apiClient';
 
 import { useState } from 'react';
 
@@ -9,7 +10,7 @@ export default function PreviewBanner({ slug }: { slug: string }) {
   const exitPreview = async () => {
     setEnding(true);
     try {
-      await fetch('/api/theme-engine/preview', { method: 'DELETE' });
+      await fetch(apiUrl('/api/theme-engine/preview'), { method: 'DELETE' });
     } finally {
       window.location.reload();
     }

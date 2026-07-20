@@ -1,3 +1,4 @@
+import { apiUrl } from '@/lib/apiClient';
 import { useState, useEffect } from 'react';
 
 export function useAvailableContent(needsContent: boolean) {
@@ -5,10 +6,7 @@ export function useAvailableContent(needsContent: boolean) {
   const [availableBlogs, setAvailableBlogs] = useState<{ slug: string; pageName: string }[]>([]);
 
   useEffect(() => {
-    if (!needsContent || (availablePages.length > 0 && availableBlogs.length > 0)) return;
-    
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
-    fetch(`${backendUrl}/api/pages/get-pages`, {
+    if (!needsContent || (availablePages.length > 0 && availableBlogs.length > 0)) return;    fetch(apiUrl(`/api/pages/get-pages`), {
       credentials: 'include',
       cache: 'no-store',
     })

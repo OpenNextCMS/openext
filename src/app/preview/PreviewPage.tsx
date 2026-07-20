@@ -1,5 +1,7 @@
-// app/preview/PreviewPage.tsx
 'use client';
+
+import { apiUrl } from '@/lib/apiClient';
+// app/preview/PreviewPage.tsx
 
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -23,10 +25,7 @@ export default function PreviewPage() {
   const [footerBlocks, setFooterBlocks] = useState<BlockData[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
-
-    const loadDraftData = () => {
+  useEffect(() => {    const loadDraftData = () => {
       const draft = safeStorageGet(`preview:draft-${pagename}`);
       if (draft) {
         const parsedDraft = JSON.parse(draft) as BlockData[];
@@ -60,8 +59,7 @@ export default function PreviewPage() {
         const loadLayoutBlocks = async () => {
           if (!pagename) return;
 
-          const layoutRes = await fetch(
-            `${backendUrl}/api/pages/get-page?name=${encodeURIComponent(pagename)}&key=allowMe`,
+          const layoutRes = await fetch(apiUrl(`/api/pages/get-page?name=${encodeURIComponent(pagename)}&key=allowMe`),
             {
               cache: 'no-store',
               credentials: 'include',
@@ -82,8 +80,8 @@ export default function PreviewPage() {
         }
 
         const url = pagename
-          ? `${backendUrl}/api/pages/get-page?name=${encodeURIComponent(pagename)}&key=allowMe`
-          : `${backendUrl}/api/pages/get-pages`;
+          ? apiUrl(`/api/pages/get-page?name=${encodeURIComponent(pagename)}&key=allowMe`)
+          : apiUrl(`/api/pages/get-pages`);
 
         const res = await fetch(url, {
           cache: 'no-store',

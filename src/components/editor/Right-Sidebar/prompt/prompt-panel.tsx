@@ -1,4 +1,5 @@
 'use client';
+import { apiUrl } from '@/lib/apiClient';
 
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
@@ -296,7 +297,7 @@ export default function PromptPanel() {
     const baseName = `Imported ${friendly} ${new Date().toISOString().slice(0, 10)}`;
     const baseSlug = `${type}-imported-${Date.now()}`;
     try {
-      const res = await fetch('/api/pages/add-page', {
+      const res = await fetch(apiUrl('/api/pages/add-page'), {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -338,7 +339,7 @@ export default function PromptPanel() {
 
     try {
       setIsGenerating(true);
-      const response = await fetch('/api/ai/generate-page-json', {
+      const response = await fetch(apiUrl('/api/ai/generate-page-json'), {
         method: 'POST',
         credentials: 'include',
         body: formData,
@@ -513,7 +514,7 @@ export default function PromptPanel() {
       const formData = new FormData();
       formData.append('renderJson', raw);
       formData.append('pageType', pageType);
-      const response = await fetch('/api/ai/generate-page-json', {
+      const response = await fetch(apiUrl('/api/ai/generate-page-json'), {
         method: 'POST',
         credentials: 'include',
         body: formData,

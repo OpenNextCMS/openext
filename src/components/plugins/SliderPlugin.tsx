@@ -1,4 +1,5 @@
 'use client';
+import { apiUrl } from '@/lib/apiClient';
 
 import React from 'react';
 import { ChevronLeft, ChevronRight, Plus, Star } from 'lucide-react';
@@ -231,7 +232,7 @@ export const SliderPlugin = ({ block, isEditing = true }: SliderPluginProps) => 
       setUploadingSlideId(slide.id);
       const formData = new FormData();
       formData.append('file', file);
-      const response = await fetch('/api/editor/background-upload', {
+      const response = await fetch(apiUrl('/api/editor/background-upload'), {
         method: 'POST',
         body: formData,
       });

@@ -1,4 +1,5 @@
 'use client';
+import { apiUrl } from '@/lib/apiClient';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
@@ -210,8 +211,8 @@ export default function ThemeEnginePage() {
     setLoading(true);
     try {
       const [themes, preview] = await Promise.all([
-        unwrap<ListResponse>(await fetch('/api/theme-engine/themes')),
-        unwrap<PreviewStatus>(await fetch('/api/theme-engine/preview')),
+        unwrap<ListResponse>(await fetch(apiUrl('/api/theme-engine/themes'))),
+        unwrap<PreviewStatus>(await fetch(apiUrl('/api/theme-engine/preview'))),
       ]);
       setList(themes);
       setPreviewStatus(preview);
@@ -265,7 +266,7 @@ export default function ThemeEnginePage() {
         form.append('file', file);
         form.append('replace', String(withReplace));
         return unwrap<{ slug: string; version: string; status: string }>(
-          await fetch('/api/theme-engine/themes/upload', { method: 'POST', body: form })
+          await fetch(apiUrl('/api/theme-engine/themes/upload'), { method: 'POST', body: form })
         );
       };
 
@@ -319,7 +320,7 @@ export default function ThemeEnginePage() {
           hasEditableSections?: boolean;
         } | null;
       }>(
-        await fetch(`/api/theme-engine/themes/${slug}/activate`, {
+        await fetch(apiUrl(`/api/theme-engine/themes/${slug}/activate`), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ applyToEditor: wantEditor, editorMode: 'exact-editable' }),
@@ -371,7 +372,7 @@ export default function ThemeEnginePage() {
     const slug = deleteTarget.slug;
     setBusySlug(slug);
     try {
-      await unwrap(await fetch(`/api/theme-engine/themes/${encodeURIComponent(slug)}`, { method: 'DELETE' }));
+      await unwrap(await fetch(apiUrl(`/api/theme-engine/themes/${encodeURIComponent(slug)}`), { method: 'DELETE' }));
       setDeleteTarget(null);
       if (previewSlug === slug) setPreviewSlug(null);
       if (expanded === slug) setExpanded(null);
@@ -389,7 +390,7 @@ export default function ThemeEnginePage() {
     try {
       // Start a preview session (banner on public pages) and open a theme-only
       // snapshot — no CMS homepage blocks mixed into the package design.
-      await unwrap(await fetch(`/api/theme-engine/themes/${slug}/preview`, { method: 'POST' }));
+      await unwrap(await fetch(apiUrl(`/api/theme-engine/themes/${slug}/preview`), { method: 'POST' }));
       await refresh();
       window.open(
         `/theme-engine-card-preview/${encodeURIComponent(slug)}`,
@@ -406,7 +407,7 @@ export default function ThemeEnginePage() {
 
   const handleExitPreview = async () => {
     try {
-      await unwrap(await fetch('/api/theme-engine/preview', { method: 'DELETE' }));
+      await unwrap(await fetch(apiUrl('/api/theme-engine/preview'), { method: 'DELETE' }));
       toast.success('Preview ended.');
       await refresh();
     } catch (e) {

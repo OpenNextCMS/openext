@@ -1,4 +1,5 @@
 'use client';
+import { apiUrl } from '@/lib/apiClient';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Loader2, Palette, ExternalLink, RefreshCw } from 'lucide-react';
@@ -93,7 +94,7 @@ export function ThemeEngineFrameBlock({ block, isEditing = true }: BlockRenderer
       draftTimer.current = setTimeout(async () => {
         try {
           const sectionBlocks = extractThemeSectionBlocks(blocks);
-          const res = await fetch('/api/theme-engine/preview-draft', {
+          const res = await fetch(apiUrl('/api/theme-engine/preview-draft'), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',

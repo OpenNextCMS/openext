@@ -1,26 +1,23 @@
+import { apiUrl } from '@/lib/apiClient';
 import renderFromJson from '@/components/ReusableComponents/RenderFromJson';
 import ActiveThemeScope from '@/components/theme-preview/ActiveThemeScope';
 import { BlockData, Page } from '@/types';
 import { useEffect, useState } from 'react';
-import { hasVerticalHeader } from '@/utils/headerLayout';
-
-const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
-
-const Default = () => {
+import { hasVerticalHeader } from '@/utils/headerLayout';const Default = () => {
   const [pageData, setPageData] = useState<BlockData[]>([]);
   const [headerData, setHeaderData] = useState<BlockData[]>([]);
   const [footerData, setFooterData] = useState<BlockData[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
-      let url = `${backendUrl}/api/pages/get-pages`;
+      let url = apiUrl(`/api/pages/get-pages`);
       let slug = '';
       try {
         // Checking if USER is logged in checking JWT token
-        const tokenRes = await fetch(`${backendUrl}/api/check-token`);
+        const tokenRes = await fetch(apiUrl(`/api/check-token`));
         if (!tokenRes.ok) {
           try {
-            const response = await fetch(`${backendUrl}/api/env-connection?key=DEFAULT_HOME_SLUG`);
+            const response = await fetch(apiUrl(`/api/env-connection?key=DEFAULT_HOME_SLUG`));
 
             if (!response.ok) {
               throw new Error('Failed to fetch default home slug');
@@ -39,7 +36,7 @@ const Default = () => {
           }
           // If USER is not Logged "allowMe" is user defined variable location below
           // src\app\api\pages\get-page\route.ts
-          url = `${backendUrl}/api/pages/get-page?name=${slug}&key=allowMe`;
+          url = apiUrl(`/api/pages/get-page?name=${slug}&key=allowMe`);
         }
       } catch (err) {
         console.error('Token check failed:', err);
@@ -52,8 +49,7 @@ const Default = () => {
         let container = data.page || data.pages?.find((page: Page) => page.isHome === true);
 
         if (!data.page && container?.slug) {
-          const layoutRes = await fetch(
-            `${backendUrl}/api/pages/get-page?name=${encodeURIComponent(container.slug)}&key=allowMe`,
+          const layoutRes = await fetch(apiUrl(`/api/pages/get-page?name=${encodeURIComponent(container.slug)}&key=allowMe`),
             { cache: 'no-store' }
           );
 

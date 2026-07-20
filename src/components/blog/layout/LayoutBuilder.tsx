@@ -1,4 +1,5 @@
 'use client';
+import { apiUrl } from '@/lib/apiClient';
 
 import { useEffect, useState } from 'react';
 import {
@@ -48,7 +49,7 @@ export default function LayoutBuilder() {
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
   useEffect(() => {
-    fetch('/api/layouts')
+    fetch(apiUrl('/api/layouts'))
       .then((r) => r.json())
       .then((res) => {
         const existing = Array.isArray(res?.data) ? res.data[0] : null;

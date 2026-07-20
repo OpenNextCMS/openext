@@ -1,4 +1,5 @@
 'use client';
+import { apiUrl } from '@/lib/apiClient';
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
@@ -23,7 +24,7 @@ export default function RelatedPosts({ data }: { data: RelatedPostsData }) {
     });
     if (data.categoryId) params.set('category', data.categoryId);
     let active = true;
-    fetch(`/api/blogs?${params.toString()}`)
+    fetch(apiUrl(`/api/blogs?${params.toString()}`))
       .then((r) => r.json())
       .then((res) => {
         if (active && Array.isArray(res?.data)) setPosts(res.data);

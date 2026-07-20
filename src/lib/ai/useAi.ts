@@ -1,4 +1,5 @@
 'use client';
+import { apiUrl } from '@/lib/apiClient';
 
 import { useState, useCallback } from 'react';
 import { toast } from 'sonner';
@@ -13,7 +14,7 @@ export function useAi() {
   const run = useCallback(async <T,>(endpoint: string, body: unknown): Promise<T | null> => {
     setLoading(endpoint);
     try {
-      const res = await fetch(`/api/ai/${endpoint}`, {
+      const res = await fetch(apiUrl(`/api/ai/${endpoint}`), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

@@ -1,4 +1,5 @@
 'use client';
+import { apiUrl } from '@/lib/apiClient';
 
 import type React from 'react';
 
@@ -103,11 +104,7 @@ export default function MongoDBSetup() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setIsLoading(true);
-
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
-
-    try {
+    setIsLoading(true);    try {
       // Construct payload based on connection type
       const payload = useUri
         ? { mongoDB: 'uri', uri } // For pasted URI
@@ -115,7 +112,7 @@ export default function MongoDBSetup() {
           ? { username, password, host, mongoDB, authMech, authSource } // For Compass
           : { username, password, host, cluster, mongoDB }; // For Atlas
 
-      const response = await fetch(`${backendUrl}/api/auth/verify-mongodb`, {
+      const response = await fetch(apiUrl(`/api/auth/verify-mongodb`), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

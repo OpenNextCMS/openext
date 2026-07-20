@@ -1,4 +1,5 @@
 'use client';
+import { apiUrl } from '@/lib/apiClient';
 
 import { useEffect, useState } from 'react';
 import { menuItemIdFor } from '@/lib/menu-redirect/menu-item-id';
@@ -26,7 +27,7 @@ export function useMergedMenu(headerId?: string) {
   useEffect(() => {
     const qs = headerId ? `?headerId=${encodeURIComponent(headerId)}` : '';
     let alive = true;
-    fetch(`/api/menu-redirect/public/merged${qs}`)
+    fetch(apiUrl(`/api/menu-redirect/public/merged${qs}`))
       .then((r) => r.json())
       .then((res) => {
         if (!alive) return;

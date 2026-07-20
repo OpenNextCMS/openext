@@ -1,16 +1,13 @@
 'use client'; // Ensure this runs only on the client side
+import { apiUrl } from '@/lib/apiClient';
 
 import { useEffect, useState } from 'react';
-import ThemeLoader from '@/components/ThemeLoader';
-
-const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
-
-/** Default (block-theme) home: resolves the active theme name and renders it. */
+import ThemeLoader from '@/components/ThemeLoader';/** Default (block-theme) home: resolves the active theme name and renders it. */
 export default function HomeClient() {
   const [themeName, setThemeName] = useState<string | null>(null);
   useEffect(() => {
     const checkDbStatus = async () => {
-      const res = await fetch('/api/env-connection?key=dbConnection');
+      const res = await fetch(apiUrl('/api/env-connection?key=dbConnection'));
       const data = await res.json();
       document.cookie = `dbConnection=${data.dbConnection}; path=/; expires=Fri, 31 Dec 9999 23:59:59 GMT`;
     };
@@ -21,7 +18,7 @@ export default function HomeClient() {
   useEffect(() => {
     const fetchTheme = async () => {
       try {
-        const response = await fetch(`${backendUrl}/api/themes/get-theme`);
+        const response = await fetch(apiUrl(`/api/themes/get-theme`));
         if (!response.ok) throw new Error('Failed to fetch theme');
         const { themeName } = await response.json();
         setThemeName(themeName);

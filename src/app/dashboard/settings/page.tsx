@@ -1,4 +1,5 @@
 'use client';
+import { apiUrl } from '@/lib/apiClient';
 
 import type React from 'react';
 
@@ -117,12 +118,10 @@ export default function SettingsPage() {
     setValue('enableDarkMode', theme === 'dark');
   }, [theme, setValue]);
 
-  useEffect(() => {
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
-    const fetchSettingsData = async () => {
+  useEffect(() => {    const fetchSettingsData = async () => {
       try {
         setIsLoading(true);
-        const response = await fetch(`${backendUrl}/api/dashboard/settings`, {
+        const response = await fetch(apiUrl(`/api/dashboard/settings`), {
           credentials: 'include',
         });
         const result = await response.json();
@@ -177,14 +176,12 @@ export default function SettingsPage() {
     fetchSettingsData();
   }, [setValue]);
 
-  const handleSiteIconChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
-    const file = e.target.files?.[0];
+  const handleSiteIconChange = async (e: React.ChangeEvent<HTMLInputElement>) => {    const file = e.target.files?.[0];
     if (!file) return;
     const formData = new FormData();
     formData.append('file', file);
     try {
-      const res = await fetch(`${backendUrl}/api/dashboard/settings/siteicon`, {
+      const res = await fetch(apiUrl(`/api/dashboard/settings/siteicon`), {
         method: 'POST',
         body: formData,
       });
@@ -215,10 +212,7 @@ export default function SettingsPage() {
   ];
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    setIsLoading(true);
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
-
-    try {
+    setIsLoading(true);    try {
       // Map imgSize to the correct structure for MongoDB
       interface ConfigItem {
         key: string;
@@ -232,7 +226,7 @@ export default function SettingsPage() {
         config: updatedConfig,
       };
 
-      const response = await fetch(`${backendUrl}/api/dashboard/settings`, {
+      const response = await fetch(apiUrl(`/api/dashboard/settings`), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

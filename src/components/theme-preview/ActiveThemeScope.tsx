@@ -1,4 +1,5 @@
 'use client';
+import { apiUrl } from '@/lib/apiClient';
 
 import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react';
 import { themeConfigToCssVars, mergeThemeConfig } from '@/lib/theme/cssVars.site';
@@ -47,7 +48,7 @@ export default function ActiveThemeScope({
       });
 
     // Theme Engine (Beta) active package stylesheet for editable-section parity.
-    fetch('/api/theme-engine/themes', { credentials: 'include' })
+    fetch(apiUrl('/api/theme-engine/themes'), { credentials: 'include' })
       .then(async (res) => {
         if (!res.ok) return null;
         const json = await res.json();
@@ -59,7 +60,9 @@ export default function ActiveThemeScope({
         setEngineSlug(slug);
         // Cache-bust lightly; AssetManager also appends hashes when served via ThemeLoader.
         setEngineStylesheetUrl(
-          `/theme-engine-assets/${encodeURIComponent(slug)}/assets/style.css?editor=1`
+          apiUrl(
+            `/theme-engine-assets/${encodeURIComponent(slug)}/assets/style.css?editor=1`
+          )
         );
       })
       .catch(() => {

@@ -1,3 +1,4 @@
+import { apiUrl } from '@/lib/apiClient';
 import type { ThemeDTO, ThemeConfig } from '@/types/theme';
 import type { ComponentVariants } from '@/types/component-variants';
 
@@ -31,17 +32,17 @@ export interface UpdateThemePayload {
 
 export const themeApi = {
   async list(): Promise<ThemeDTO[]> {
-    const res = await fetch('/api/themes', { credentials: 'include' });
+    const res = await fetch(apiUrl('/api/themes'), { credentials: 'include' });
     return unwrap<ThemeDTO[]>(res);
   },
 
   async get(id: string): Promise<ThemeDTO> {
-    const res = await fetch(`/api/themes/${id}`, { credentials: 'include' });
+    const res = await fetch(apiUrl(`/api/themes/${id}`), { credentials: 'include' });
     return unwrap<ThemeDTO>(res);
   },
 
   async create(payload: CreateThemePayload): Promise<ThemeDTO> {
-    const res = await fetch('/api/themes', {
+    const res = await fetch(apiUrl('/api/themes'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -51,7 +52,7 @@ export const themeApi = {
   },
 
   async update(id: string, payload: UpdateThemePayload): Promise<ThemeDTO> {
-    const res = await fetch(`/api/themes/${id}`, {
+    const res = await fetch(apiUrl(`/api/themes/${id}`), {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -61,7 +62,7 @@ export const themeApi = {
   },
 
   async duplicate(id: string, name?: string): Promise<ThemeDTO> {
-    const res = await fetch(`/api/themes/${id}/duplicate`, {
+    const res = await fetch(apiUrl(`/api/themes/${id}/duplicate`), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -71,7 +72,7 @@ export const themeApi = {
   },
 
   async remove(id: string): Promise<void> {
-    const res = await fetch(`/api/themes/${id}`, {
+    const res = await fetch(apiUrl(`/api/themes/${id}`), {
       method: 'DELETE',
       credentials: 'include',
     });
@@ -80,7 +81,7 @@ export const themeApi = {
 
   /** Import a theme from a parsed JSON token package. Created as an inactive custom theme. */
   async importTheme(pkg: unknown): Promise<ThemeDTO> {
-    const res = await fetch('/api/themes/import', {
+    const res = await fetch(apiUrl('/api/themes/import'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -97,7 +98,7 @@ export const themeApi = {
   async importFile(file: File): Promise<ThemeDTO> {
     const form = new FormData();
     form.append('file', file);
-    const res = await fetch('/api/themes/import', {
+    const res = await fetch(apiUrl('/api/themes/import'), {
       method: 'POST',
       credentials: 'include',
       body: form,
@@ -119,7 +120,7 @@ export const themeApi = {
       } | null;
     }
   > {
-    const res = await fetch('/api/themes/activate', {
+    const res = await fetch(apiUrl('/api/themes/activate'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -132,7 +133,7 @@ export const themeApi = {
   async uploadPackage(file: File): Promise<ThemeDTO> {
     const form = new FormData();
     form.append('file', file);
-    const res = await fetch('/api/themes/upload', {
+    const res = await fetch(apiUrl('/api/themes/upload'), {
       method: 'POST',
       credentials: 'include',
       body: form,
@@ -142,7 +143,7 @@ export const themeApi = {
 
   /** Finalize installation of an uploaded package theme. */
   async install(id: string): Promise<ThemeDTO> {
-    const res = await fetch(`/api/themes/${id}/install`, {
+    const res = await fetch(apiUrl(`/api/themes/${id}/install`), {
       method: 'POST',
       credentials: 'include',
     });
@@ -164,7 +165,7 @@ export const themeApi = {
     footer?: string;
     message?: string;
   }> {
-    const res = await fetch(`/api/themes/${id}/apply-layout`, {
+    const res = await fetch(apiUrl(`/api/themes/${id}/apply-layout`), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -175,7 +176,7 @@ export const themeApi = {
 
   /** Toggle “match homepage to this theme’s layout” without rewriting pages yet. */
   async setApplyPageLayout(id: string, applyPageLayout: boolean): Promise<ThemeDTO> {
-    const res = await fetch(`/api/themes/${id}/apply-layout`, {
+    const res = await fetch(apiUrl(`/api/themes/${id}/apply-layout`), {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -186,7 +187,7 @@ export const themeApi = {
 
   /** Download the theme as a portable ZIP (includes Theme Builder customizations). */
   async exportZip(id: string): Promise<Blob> {
-    const res = await fetch(`/api/themes/${id}/export`, { credentials: 'include' });
+    const res = await fetch(apiUrl(`/api/themes/${id}/export`), { credentials: 'include' });
     if (!res.ok) {
       const json = await res.json().catch(() => null);
       throw new Error(json?.error?.message || `Export failed (${res.status})`);

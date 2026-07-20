@@ -1,4 +1,5 @@
 'use client';
+import { apiUrl } from '@/lib/apiClient';
 
 import React, { useEffect, useState } from 'react';
 import { Input } from '@/components/ui/input';
@@ -352,7 +353,7 @@ function NewsletterEditor({ data, onChange }: EditorProps<NewsletterData>) {
 function AuthorBoxEditor({ data, onChange }: EditorProps<AuthorBoxData>) {
   const [authors, setAuthors] = useState<{ _id: string; name: string }[]>([]);
   useEffect(() => {
-    fetch('/api/authors')
+    fetch(apiUrl('/api/authors'))
       .then((r) => r.json())
       .then((res) => Array.isArray(res?.data) && setAuthors(res.data))
       .catch(() => {});
@@ -379,7 +380,7 @@ function AuthorBoxEditor({ data, onChange }: EditorProps<AuthorBoxData>) {
 function RelatedPostsEditor({ data, onChange }: EditorProps<RelatedPostsData>) {
   const [categories, setCategories] = useState<{ _id: string; name: string }[]>([]);
   useEffect(() => {
-    fetch('/api/categories')
+    fetch(apiUrl('/api/categories'))
       .then((r) => r.json())
       .then((res) => Array.isArray(res?.data) && setCategories(res.data))
       .catch(() => {});

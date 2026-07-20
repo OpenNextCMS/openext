@@ -1,4 +1,5 @@
 'use client';
+import { apiUrl } from '@/lib/apiClient';
 
 import { useEffect, useState } from 'react';
 import {
@@ -20,9 +21,7 @@ interface TagItem {
   slug: string;
 }
 
-export default function TagsPage() {
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
-  const [tags, setTags] = useState<TagItem[]>([]);
+export default function TagsPage() {  const [tags, setTags] = useState<TagItem[]>([]);
   const [name, setName] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -31,7 +30,7 @@ export default function TagsPage() {
   const fetchTags = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch(`${backendUrl}/api/tags`, { credentials: 'include' });
+      const res = await fetch(apiUrl(`/api/tags`), { credentials: 'include' });
       const result = await res.json();
       setTags(Array.isArray(result.data) ? result.data : []);
     } catch (error) {
@@ -52,7 +51,7 @@ export default function TagsPage() {
     if (!name.trim()) return;
     setIsSubmitting(true);
     try {
-      const res = await fetch(`${backendUrl}/api/tags`, {
+      const res = await fetch(apiUrl(`/api/tags`), {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -77,7 +76,7 @@ export default function TagsPage() {
   const handleDelete = async (id: string) => {
     setDeletingId(id);
     try {
-      const res = await fetch(`${backendUrl}/api/tags/${id}`, {
+      const res = await fetch(apiUrl(`/api/tags/${id}`), {
         method: 'DELETE',
         credentials: 'include',
       });
