@@ -1,18 +1,19 @@
 /**
- * Central API base for the UI-only CMS.
- * All HTTP calls to the backend must go through apiUrl().
+ * Central API base for the CMS UI.
+ * Set NEXT_PUBLIC_BACKEND_URL to use an external API; omit it for the embedded Next.js API.
  */
-export const API_BASE = (
-  process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3012'
-).replace(/\/$/, '');
+import { resolveBackendBaseUrl } from '@/lib/backendUrl';
 
-/** Build an absolute URL against the external API (path must start with /). */
+export const API_BASE = resolveBackendBaseUrl();
+
+/** Build a URL for an API path (path must start with /). */
 export function apiUrl(path: string): string {
   const p = path.startsWith('/') ? path : `/${path}`;
+  if (!API_BASE) return p;
   return `${API_BASE}${p}`;
 }
 
-/** Absolute URL for backend-hosted assets (plugins, theme files, uploads). */
+/** URL for backend-hosted assets (plugins, theme files, uploads). */
 export function assetUrl(path: string): string {
   return apiUrl(path);
 }

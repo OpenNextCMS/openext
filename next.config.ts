@@ -1,9 +1,7 @@
 import type { NextConfig } from 'next';
+import { resolveBackendBaseUrl } from './src/lib/backendUrl';
 
-const BACKEND = (process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3012').replace(
-  /\/$/,
-  ''
-);
+const backendBaseUrl = resolveBackendBaseUrl();
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
@@ -28,8 +26,14 @@ const nextConfig: NextConfig = {
   },
 
   async rewrites() {
+    // No NEXT_PUBLIC_BACKEND_URL → Next.js serves /api locally (no proxy).
+    if (!backendBaseUrl) {
+      return [];
+    }
+
+    const BACKEND = backendBaseUrl;
+
     return [
-      // Proxy backend-hosted assets so SSR/relative URLs keep working
       { source: '/theme-assets/:path*', destination: `${BACKEND}/theme-assets/:path*` },
       {
         source: '/theme-engine-assets/:path*',
@@ -38,7 +42,7 @@ const nextConfig: NextConfig = {
       { source: '/plugins/:path*', destination: `${BACKEND}/plugins/:path*` },
       { source: '/uploads/:path*', destination: `${BACKEND}/uploads/:path*` },
       { source: '/upload/:path*', destination: `${BACKEND}/upload/:path*` },
-      // Fallback: any leftover same-origin /api calls proxy to the Express backend
+      // Fallback: same-origin /api calls proxy to the external Express backend
       { source: '/api/:path*', destination: `${BACKEND}/api/:path*` },
     ];
   },

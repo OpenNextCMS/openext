@@ -310,6 +310,7 @@ Stored in `.env` (never committed). Managed partly at runtime via the setup wiza
 
 | Variable | Purpose |
 |---|---|
+| `NEXT_PUBLIC_BACKEND_URL` | External API URL (e.g. `http://localhost:3012`). **Omit** to use the embedded Next.js API |
 | `MONGODB` | Connection mode: `uri` \| `atlas` \| `compass` |
 | `MONGODB_URI` | MongoDB connection string |
 | `USER_DB_NAME` / `PAGE_DB_NAME` | User / page database names (default `users` / `pages`) |
