@@ -46,7 +46,6 @@ export default function CategoriesPage() {  const [categories, setCategories] =
 
   useEffect(() => {
     fetchCategories();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleCreate = async (e: React.FormEvent) => {

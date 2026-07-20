@@ -19,14 +19,14 @@ import {
   placeBlockAt,
   setCanvasState,
   setBlocks,
+  setLayoutBlocks,
   type BlockData as CanvasBlockData,
 } from '@/redux/canvasSlice';
 import { BlockDragData, Block } from '@/types/index';
 import { ROOT_CONTAINER } from '@/utils/blockContainers';
 import { safeStorageGet, safeStorageRemove, safeStorageSet } from '@/utils/safeStorage';
 import { pluginRegistry } from '@/lib/pluginRegistry';
-import { themeApi } from '@/components/theme-builder/api';
-import { buildPageBlocksFromTheme } from '@/modules/theme/utils/ThemeLayoutBuilder';
+import { normalizeBlocksForEditor } from '@/lib/editor/normalizePageBlocks';
 
 // Resizable sidebar constraints (in pixels)
 const SIDEBAR_MIN_WIDTH = 200;
@@ -115,7 +115,6 @@ const editableBlockTypes: EditableBlockType[] = [
   'ecommerce-info',
   'blog-feed',
   'form-block',
-  'theme-engine-frame',
 ];
 
 const getEditableBlockType = (type?: string): EditableBlockType => {
@@ -143,44 +142,6 @@ const hasInvalidOrDuplicateBlockIds = (blocks: Block[], seen = new Set<string>()
   return false;
 };
 
-function isHomepageTarget(pageName: string, page?: { isHome?: boolean; slug?: string | null } | null): boolean {
-  if (page?.isHome) return true;
-  const slug = String(page?.slug || pageName || '').trim().toLowerCase();
-  return slug === '' || slug === 'home' || slug === 'index';
-}
-
-async function buildHomepageThemeCanvasState(
-  pageName: string,
-  page?: { isHome?: boolean; slug?: string | null; component?: unknown[] } | null
-): Promise<{
-  blocks: CanvasBlockData[];
-  headerBlocks: CanvasBlockData[];
-  footerBlocks: CanvasBlockData[];
-} | null> {
-  if (!isHomepageTarget(pageName, page)) return null;
-
-  const existingBlocks = Array.isArray(page?.component) ? page.component : [];
-  if (existingBlocks.length > 0) return null;
-
-  try {
-    const themes = await themeApi.list();
-    const activeTheme = themes.find((theme) => theme.isActive);
-    if (!activeTheme) return null;
-
-    const { body, chrome } = buildPageBlocksFromTheme(activeTheme);
-    if (body.length === 0 && !chrome.navbar && !chrome.footer) return null;
-
-    return {
-      blocks: body as unknown as CanvasBlockData[],
-      headerBlocks: chrome.navbar ? ([chrome.navbar] as unknown as CanvasBlockData[]) : [],
-      footerBlocks: chrome.footer ? ([chrome.footer] as unknown as CanvasBlockData[]) : [],
-    };
-  } catch (error) {
-    console.error('Error building homepage theme canvas state:', error);
-    return null;
-  }
-}
-
 export default function Editor() {
   const [showLeftSidebar, setShowLeftSidebar] = useState(true);
   const [showRightSidebar, setShowRightSidebar] = useState(true);
@@ -191,7 +152,8 @@ export default function Editor() {
   const [showButton, setShowButton] = useState(true);
   const dispatch = useAppDispatch();
   const canvasBlocks = useAppSelector((state) => state.canvas.blocks);
-  const viewMode = useAppSelector((state) => state.canvas.viewMode);  useEffect(() => {
+  const viewMode = useAppSelector((state) => state.canvas.viewMode);
+  useEffect(() => {
     const getDBPageData = async () => {
       if (typeof window === 'undefined') return;
 
@@ -200,6 +162,7 @@ export default function Editor() {
       console.log('Current pageName:', pageName); // Log current page name
 
       const persistKey = `persist:root-${pageName}`;
+      const existing = safeStorageGet(persistKey);
 
       try {
         const response = await fetch(apiUrl(`/api/pages/get-page?name=${pageName}&key=allowMe`),
@@ -214,43 +177,16 @@ export default function Editor() {
         }
 
         const data = await response.json();
-        console.log('Fetched page data:', data); // Log fetched data
 
-        let headerBlocks = data?.header?.component || [];
-        let footerBlocks = data?.footer?.component || [];
-        console.log('Extracted headerBlocks:', headerBlocks); // Log extracted header blocks
-        console.log('Extracted footerBlocks:', footerBlocks); // Log extracted footer blocks
+        const headerBlocks = normalizeBlocksForEditor(data?.header?.component || []);
+        const footerBlocks = normalizeBlocksForEditor(data?.footer?.component || []);
+        const blocks = normalizeBlocksForEditor(data?.page?.component || []);
 
-        let blocks = data?.page?.component || [];
-        const homepageThemeState = await buildHomepageThemeCanvasState(pageName, data?.page);
-        if (homepageThemeState) {
-          blocks = homepageThemeState.blocks;
-          headerBlocks = homepageThemeState.headerBlocks.length
-            ? homepageThemeState.headerBlocks
-            : headerBlocks;
-          footerBlocks = homepageThemeState.footerBlocks.length
-            ? homepageThemeState.footerBlocks
-            : footerBlocks;
+        if (existing) {
+          dispatch(setLayoutBlocks({ headerBlocks, footerBlocks }));
         }
 
-        // Theme Engine frame already includes package Header/Footer — don't also
-        // paint global chrome around it on the canvas.
-        const isThemeEngineFrameOnly =
-          Array.isArray(blocks) &&
-          blocks.length >= 1 &&
-          (blocks[0] as { type?: string })?.type === 'theme-engine-frame';
-        if (isThemeEngineFrameOnly) {
-          headerBlocks = [];
-          footerBlocks = [];
-        }
-
-        console.log('Blocks for editor canvas:', blocks);
-
-        // Prefer the latest server / theme layout over a stale local draft so
-        // activating a theme shows on the homepage canvas immediately.
-        if (Array.isArray(blocks) && blocks.length > 0) {
-          safeStorageRemove(persistKey);
-        }
+        safeStorageRemove(persistKey);
 
         const newCanvasState = {
           blocks,
@@ -264,7 +200,6 @@ export default function Editor() {
         };
 
         dispatch(setCanvasState(newCanvasState));
-        // Redux-persist will now save this to localStorage
       } catch (error) {
         console.error('Error fetching canvas data:', error);
       }

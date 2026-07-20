@@ -3,7 +3,6 @@ import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import RenderBlock from './renderblock';
-import ActiveThemeScope from '@/components/theme-preview/ActiveThemeScope';
 import { DevicePreviewFrame } from './DevicePreviewFrame';
 import { GripVertical, LayoutGrid, PlusSquare, MousePointerClick, Trash2 } from 'lucide-react';
 import { useState } from 'react';
@@ -84,15 +83,6 @@ export default function Canvas({ canvasBlocks, viewMode }: CanvasProps) {
   const headerBlocks = useAppSelector((state) => state.canvas.headerBlocks);
   const footerBlocks = useAppSelector((state) => state.canvas.footerBlocks);
 
-  // Theme Engine packages include their own Header/Footer inside the frame —
-  // hide the separate canvas chrome so only the uploaded theme is shown.
-  // Section data blocks may sit after the frame for persistence; only the frame renders.
-  const isThemeEngineOnly =
-    canvasBlocks.length >= 1 && canvasBlocks[0]?.type === 'theme-engine-frame';
-  const themeEngineCanvasBlocks = isThemeEngineOnly
-    ? canvasBlocks.filter((b) => b.type === 'theme-engine-frame')
-    : canvasBlocks;
-
   // Tablet/mobile are shown in a true device-width iframe (see below) so real
   // CSS breakpoints fire; desktop stays the fully editable drag-and-drop canvas.
   const isPreview = viewMode !== 'desktop';
@@ -157,51 +147,35 @@ export default function Canvas({ canvasBlocks, viewMode }: CanvasProps) {
         {isPreview ? (
           <div className="mx-auto h-[calc(100vh-220px)] w-full">
             <DevicePreviewFrame width={deviceWidth}>
-              <ActiveThemeScope className="rendered-page">
-                {!isThemeEngineOnly &&
-                  headerBlocks.map((block, index) => (
-                    <RenderBlock
-                      key={`prev-h-${index}`}
-                      block={block as unknown as Block}
-                      isEditing={false}
-                    />
-                  ))}
-                {themeEngineCanvasBlocks.map((block, index) => (
+              <div className="rendered-page">
+                {headerBlocks.map((block, index) => (
+                  <RenderBlock
+                    key={`prev-h-${index}`}
+                    block={block as unknown as Block}
+                    isEditing={false}
+                  />
+                ))}
+                {canvasBlocks.map((block, index) => (
                   <RenderBlock key={`prev-b-${index}`} block={block} isEditing={false} />
                 ))}
-                {!isThemeEngineOnly &&
-                  footerBlocks.map((block, index) => (
-                    <RenderBlock
-                      key={`prev-f-${index}`}
-                      block={block as unknown as Block}
-                      isEditing={false}
-                    />
-                  ))}
-              </ActiveThemeScope>
+                {footerBlocks.map((block, index) => (
+                  <RenderBlock
+                    key={`prev-f-${index}`}
+                    block={block as unknown as Block}
+                    isEditing={false}
+                  />
+                ))}
+              </div>
             </DevicePreviewFrame>
           </div>
         ) : (
         <div
           className={`bg-background dark:bg-background w-full h-auto shadow-md p-4 rounded-lg border ${getWidthClass()} transition-all mx-auto rendered-page ${
             isOver ? 'border-primary border-dashed border-2' : 'border-border'
-          } ${isThemeEngineOnly ? '!p-0 overflow-hidden' : ''} `}
+          } `}
           style={{ transform: `scale(${zoom / 100})`, transformOrigin: 'top left' }}
         >
-          <ActiveThemeScope variablesOnly>
-          {isThemeEngineOnly ? (
-            <SortableContext
-              id="root"
-              items={themeEngineCanvasBlocks.map((block) => block.uniqueId || '')}
-              strategy={verticalListSortingStrategy}
-            >
-              {themeEngineCanvasBlocks.map((block, index) => (
-                <SortableCanvasBlock
-                  key={`${block.uniqueId || 'block'}-${index}`}
-                  block={block}
-                />
-              ))}
-            </SortableContext>
-          ) : hasVerticalHeader(headerBlocks as BlockData[]) ? (
+          {hasVerticalHeader(headerBlocks as BlockData[]) ? (
             <div className="flex min-h-[750px]">
               <aside className="w-64 flex-shrink-0">
                 <Box content="Header" blocks={headerBlocks} />
@@ -291,7 +265,6 @@ export default function Canvas({ canvasBlocks, viewMode }: CanvasProps) {
               <Box content="Footer" blocks={footerBlocks} />
             </>
           )}
-          </ActiveThemeScope>
         </div>
         )}
       </div>

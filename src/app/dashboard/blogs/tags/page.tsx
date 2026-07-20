@@ -43,7 +43,6 @@ export default function TagsPage() {  const [tags, setTags] = useState<TagItem[
 
   useEffect(() => {
     fetchTags();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleCreate = async (e: React.FormEvent) => {
