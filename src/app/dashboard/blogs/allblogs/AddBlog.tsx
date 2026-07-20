@@ -1,4 +1,5 @@
 'use client';
+import { apiUrl } from '@/lib/apiClient';
 
 import { useEffect, useRef, useState } from 'react';
 import { Provider } from 'react-redux';
@@ -17,9 +18,7 @@ interface Category {
   name: string;
 }
 
-export default function AddBlog() {
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
-  const [pageName, setPageName] = useState('');
+export default function AddBlog() {  const [pageName, setPageName] = useState('');
   const [slug, setSlug] = useState('');
   const [categories, setCategories] = useState<Category[]>([]);
   const [categoryId, setCategoryId] = useState('');
@@ -35,7 +34,7 @@ export default function AddBlog() {
     try {
       const formData = new FormData();
       formData.append('file', file);
-      const res = await fetch(`${backendUrl}/api/blogs/upload-image`, {
+      const res = await fetch(apiUrl(`/api/blogs/upload-image`), {
         method: 'POST',
         body: formData,
         credentials: 'include',
@@ -57,7 +56,7 @@ export default function AddBlog() {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const res = await fetch(`${backendUrl}/api/categories`, { credentials: 'include' });
+        const res = await fetch(apiUrl(`/api/categories`), { credentials: 'include' });
         const result = await res.json();
         if (Array.isArray(result.data)) setCategories(result.data);
       } catch (error) {
@@ -65,14 +64,14 @@ export default function AddBlog() {
       }
     };
     fetchCategories();
-  }, [backendUrl]);
+  }, []);
 
   // Default the author to the current user's profile display name (falls back
   // to the email's local part). The author remains editable.
   useEffect(() => {
     const fetchAuthor = async () => {
       try {
-        const res = await fetch(`${backendUrl}/api/dashboard/profile`, { credentials: 'include' });
+        const res = await fetch(apiUrl(`/api/dashboard/profile`), { credentials: 'include' });
         const result = await res.json();
         if (result.success && result.data) {
           const displayName = (result.data.displayName || '').trim();
@@ -85,7 +84,7 @@ export default function AddBlog() {
       }
     };
     fetchAuthor();
-  }, [backendUrl]);
+  }, []);
 
   const handlePageNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -104,7 +103,7 @@ export default function AddBlog() {
       const selectedCategory = categories.find((c) => c._id === categoryId);
 
       // Step 1: Create the blog post
-      const response = await fetch(`${backendUrl}/api/blogs`, {
+      const response = await fetch(apiUrl(`/api/blogs`), {
         method: 'POST',
         credentials: 'include',
         headers: {

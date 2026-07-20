@@ -1,4 +1,5 @@
 'use client';
+import { apiUrl } from '@/lib/apiClient';
 
 import { useEffect, useState } from 'react';
 import type { IAuthor } from '@/types/index';
@@ -11,7 +12,7 @@ export default function AuthorBox({ data }: { data: AuthorBoxData }) {
   useEffect(() => {
     if (!data.authorId) return;
     let active = true;
-    fetch(`/api/authors/${data.authorId}`)
+    fetch(apiUrl(`/api/authors/${data.authorId}`))
       .then((r) => r.json())
       .then((res) => {
         if (active && res?.data) setAuthor(res.data);

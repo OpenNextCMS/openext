@@ -1,4 +1,5 @@
 'use client';
+import { apiUrl } from '@/lib/apiClient';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
@@ -59,7 +60,7 @@ export default function OnboardingWizard({ initialDraft }: { initialDraft?: Part
       return;
     }
     const t = setTimeout(() => {
-      fetch('/api/onboarding/draft', {
+      fetch(apiUrl('/api/onboarding/draft'), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
@@ -105,7 +106,7 @@ export default function OnboardingWizard({ initialDraft }: { initialDraft?: Part
     submittingRef.current = true;
     setPhase('generating');
     try {
-      const res = await fetch('/api/onboarding/generate', {
+      const res = await fetch(apiUrl('/api/onboarding/generate'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),

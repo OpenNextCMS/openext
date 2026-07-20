@@ -1,4 +1,5 @@
 'use client';
+import { apiUrl } from '@/lib/apiClient';
 
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
@@ -26,11 +27,8 @@ export default function DynamicTitle() {
 
   useEffect(() => {
     async function fetchSiteSettings() {
-      try {
-        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
-        
-        // Only fetch if we have a valid URL or if it's a relative path
-        const res = await fetch(`${backendUrl}/api/dashboard/settings`, {
+      try {        // Only fetch if we have a valid URL or if it's a relative path
+        const res = await fetch(apiUrl(`/api/dashboard/settings`), {
           headers: { 'Accept': 'application/json' }
         });
 

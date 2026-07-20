@@ -1,4 +1,5 @@
 'use client';
+import { apiUrl } from '@/lib/apiClient';
 
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState, useCallback } from 'react';
@@ -20,13 +21,9 @@ export default function LeftSidebar() {
   const [pages, setPages] = useState<Page[]>([]);
   const [formData, setFormData] = useState<Page | null>(null);
   const [openPage, setOpenPage] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
-
-  const fetchPageById = useCallback(async () => {
+  const [isSaving, setIsSaving] = useState(false);  const fetchPageById = useCallback(async () => {
     try {
-      const response = await fetch(`${backendUrl}/api/pages/get-pages?key=allowMe`, {
+      const response = await fetch(apiUrl(`/api/pages/get-pages?key=allowMe`), {
         credentials: 'include',
       });
       if (!response.ok) throw new Error(`Failed to fetch pages: ${response.status}`);
@@ -67,7 +64,7 @@ export default function LeftSidebar() {
     } catch (error) {
       console.error('Error fetching pages:', error);
     }
-  }, [backendUrl, pageNameFromUrl]);
+  }, [pageNameFromUrl]);
 
   useEffect(() => {
     fetchPageById();
@@ -96,7 +93,7 @@ export default function LeftSidebar() {
     try {
       handleSwitchChange();
       setIsSaving(true);
-      const response = await fetch(`${backendUrl}/api/pages/update-page`, {
+      const response = await fetch(apiUrl(`/api/pages/update-page`), {
         method: 'PATCH',
         credentials: 'include',
         headers: {
@@ -121,7 +118,7 @@ export default function LeftSidebar() {
 
       // ✅ Update .env only if this page is marked as home
       if (formData.isHome) {
-        const updateEnv = await fetch(`${backendUrl}/api/env-connection`, {
+        const updateEnv = await fetch(apiUrl(`/api/env-connection`), {
           method: 'POST',
           credentials: 'include',
           headers: {

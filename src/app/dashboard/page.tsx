@@ -1,4 +1,5 @@
 'use client';
+import { apiUrl } from '@/lib/apiClient';
 
 import { useEffect, useState, useCallback } from 'react';
 import { translations } from '../../../public/locales/translations';
@@ -69,14 +70,11 @@ export default function DashboardPage() {
       handleError(null, message);
       Cookies.remove('message');
     }
-  }, []);
-
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
-
-  const clearAllCookies = useCallback(async () => {
+  }, []);  const clearAllCookies = useCallback(async () => {
     try {
-      const response = await fetch(`${backendUrl}/api/clear-cookies`, {
+      const response = await fetch(apiUrl('/api/clear-cookies'), {
         method: 'POST',
+        credentials: 'include',
       });
       if (!response.ok) {
         console.error('Failed to clear cookies');
@@ -84,15 +82,15 @@ export default function DashboardPage() {
     } catch (error) {
       console.error('Error clearing cookies:', error);
     }
-  }, [backendUrl]);
+  }, []);
 
   useEffect(() => {
     const checkDbAndRedirect = async () => {
       try {
         setLoading(true);
-        const apiUrl =
-          backendUrl === '' ? '/api/verify-connection' : '/api/api-sync';
-        const response = await fetch(apiUrl);
+        const response = await fetch(apiUrl('/api/verify-connection'), {
+          credentials: 'include',
+        });
 
         if (!response.ok) {
           const errorText = await response.text();
@@ -117,7 +115,7 @@ export default function DashboardPage() {
     };
 
     checkDbAndRedirect();
-  }, [router, backendUrl, clearAllCookies]);
+  }, [router, clearAllCookies]);
 
   if (loading) {
     return <DashboardSkeleton />;

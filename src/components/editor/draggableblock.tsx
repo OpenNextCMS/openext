@@ -2,75 +2,7 @@
 import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import { v4 as uuidv4 } from 'uuid';
-
-interface Block {
-  id?: string;
-  label?: string;
-  type:
-    | 'column'
-    | 'text'
-    | 'hero'
-    | 'stats'
-    | 'progress'
-    | 'countdown'
-    | 'button'
-    | 'row'
-    | 'icon'
-    | 'input'
-    | 'radio'
-    | 'checkbox'
-    | 'badge'
-    | 'alert'
-    | 'avatar'
-    | 'separator'
-    | 'skeleton'
-    | 'switch'
-    | 'textarea'
-    | 'table'
-    | 'tabs'
-    | 'image'
-    | 'card'
-    | 'shape-divider'
-    | 'slider'
-    | 'nav-bar'
-    | 'contact'
-    | 'contact-simple'
-    | 'statistics-main'
-    | 'statistics-side-image'
-    | 'statistics-boxed'
-    | 'testimonial-main'
-    | 'testimonial-single'
-    | 'testimonial-single-large'
-    | 'hero-main'
-    | 'hero-centered'
-    | 'content-features'
-    | 'content-gallery'
-    | 'content-icons'
-    | 'content-categories'
-    | 'content-detail'
-    | 'content-split'
-    | 'content-trio'
-    | 'blog-feed'
-    | 'feature-trio'
-    | 'feature-vertical'
-    | 'feature-side-image'
-    | 'feature-horizontal'
-    | 'feature-boxed'
-    | 'feature-zigzag'
-    | 'feature-checklist'
-    | 'feature-list'
-    | 'ecommerce-grid'
-    | 'ecommerce-detail'
-    | 'ecommerce-info'
-    | 'ecommerce-info-alt'
-    | 'form-block';
-    uniqueId: string;
-  content?: string;
-  icon?: React.ReactNode | string;
-  style?: React.CSSProperties;
-  description?: string;
-  children?: unknown[];
-}
+import type { Block } from '@/types/index';
 
 const DraggableBlock = ({ block }: { block: Block }) => {
   // Ensure a unique identifier is always present

@@ -1,4 +1,5 @@
 'use client';
+import { apiUrl } from '@/lib/apiClient';
 
 import { useState, useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -86,15 +87,11 @@ export default function ProfilePage() {
   useEffect(() => {
     const langFromCookie = Cookies.get('selectedLanguage') || 'en';
     setT(translations[langFromCookie as keyof typeof translations] as typeof translations.en);
-  }, []);
-
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
-
-  useEffect(() => {
+  }, []);  useEffect(() => {
     const fetchUserData = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch(`${backendUrl}/api/dashboard/profile`, {
+        const response = await fetch(apiUrl(`/api/dashboard/profile`), {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -131,12 +128,12 @@ export default function ProfilePage() {
     };
 
     fetchUserData();
-  }, [setValue, backendUrl, setAvatarUrl]);
+  }, [setValue, setAvatarUrl]);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
     try {
-      const response = await fetch(`${backendUrl}/api/dashboard/profile`, {
+      const response = await fetch(apiUrl(`/api/dashboard/profile`), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

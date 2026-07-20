@@ -1,4 +1,5 @@
 'use client';
+import { apiUrl } from '@/lib/apiClient';
 
 import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
@@ -22,9 +23,7 @@ export default function Navbar({ user }: { user: { username: string; email: stri
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { avatarUrl } = useAvatar();
-  const router = useRouter();
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
-  const avatarSrc = getAvatarSrc(avatarUrl);
+  const router = useRouter();  const avatarSrc = getAvatarSrc(avatarUrl);
 
   const navigateTo = (path: string) => {
     router.push(path);
@@ -47,7 +46,7 @@ export default function Navbar({ user }: { user: { username: string; email: stri
   const handleLogout = async () => {
     try {
       // Call API to remove the token
-      const response = await fetch(`${backendUrl}/api/auth/logout`, {
+      const response = await fetch(apiUrl(`/api/auth/logout`), {
         method: 'GET',
         credentials: 'include',
       });

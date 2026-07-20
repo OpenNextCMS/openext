@@ -77,6 +77,19 @@ export function setStyleAtPath(
   cur[leaf] = { ...prev, ...payload };
 }
 
+/**
+ * A pre-made section can "delete" (hide) one of its built-in elements — its
+ * Title, Description, or a Button — by listing that part in `content.hiddenParts`.
+ * Section components skip rendering a part that is hidden; the Style panel offers
+ * Delete/Restore for it. This never removes user-inserted blocks (those live in
+ * `children` slots and keep their own delete control).
+ */
+export function isPartHidden(contentObj: unknown, part: string | null | undefined): boolean {
+  if (!part || !contentObj || typeof contentObj !== 'object') return false;
+  const hidden = (contentObj as AnyObj).hiddenParts;
+  return Array.isArray(hidden) && hidden.includes(part);
+}
+
 const ELEMENT_LABELS: Record<string, string> = {
   cardStyle: 'Background',
   iconStyle: 'Icon',

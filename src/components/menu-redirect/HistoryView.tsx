@@ -1,4 +1,5 @@
 'use client';
+import { apiUrl } from '@/lib/apiClient';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Loader2, Undo2 } from 'lucide-react';
@@ -44,7 +45,7 @@ export default function HistoryView() {
         const qs = new URLSearchParams({ limit: '25' });
         if (menuItemId.trim()) qs.set('menuItemId', menuItemId.trim());
         if (!opts.reset && cursor) qs.set('cursor', cursor);
-        const res = await fetch(`/api/menu-redirect/history?${qs.toString()}`);
+        const res = await fetch(apiUrl(`/api/menu-redirect/history?${qs.toString()}`));
         const json = await res.json();
         const data: Entry[] = json?.data ?? [];
         setHasMore(!!json?.meta?.hasMore);
@@ -77,7 +78,7 @@ export default function HistoryView() {
 
   const undo = async (id: string) => {
     try {
-      const res = await fetch('/api/menu-redirect/history/undo', {
+      const res = await fetch(apiUrl('/api/menu-redirect/history/undo'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

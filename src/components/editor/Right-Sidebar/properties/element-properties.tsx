@@ -1,4 +1,5 @@
 'use client';
+import { apiUrl } from '@/lib/apiClient';
 
 import { useState } from 'react';
 import {
@@ -326,7 +327,7 @@ export default function ElementProperties() {
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await fetch('/api/editor/background-upload', {
+      const response = await fetch(apiUrl('/api/editor/background-upload'), {
         method: 'POST',
         body: formData,
       });

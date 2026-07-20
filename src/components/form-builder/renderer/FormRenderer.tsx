@@ -1,4 +1,5 @@
 'use client';
+import { apiUrl } from '@/lib/apiClient';
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Loader2, CheckCircle2 } from 'lucide-react';
@@ -41,7 +42,7 @@ export default function FormRenderer({ form: initialForm, formId }: Props) {
   useEffect(() => {
     if (initialForm || !formId) return;
     let active = true;
-    fetch(`/api/forms/render/${formId}`, { credentials: 'include' })
+    fetch(apiUrl(`/api/forms/render/${formId}`), { credentials: 'include' })
       .then((r) => r.json())
       .then((j) => {
         if (!active) return;
@@ -59,7 +60,7 @@ export default function FormRenderer({ form: initialForm, formId }: Props) {
   // Track a view once we have a form id.
   useEffect(() => {
     if (!id) return;
-    fetch(`/api/forms/${id}/track`, {
+    fetch(apiUrl(`/api/forms/${id}/track`), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ event: 'view' }),
@@ -89,7 +90,7 @@ export default function FormRenderer({ form: initialForm, formId }: Props) {
   const onChange = (fieldId: string, value: unknown) => {
     if (!startedRef.current && id) {
       startedRef.current = true;
-      fetch(`/api/forms/${id}/track`, {
+      fetch(apiUrl(`/api/forms/${id}/track`), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ event: 'start' }),
@@ -121,7 +122,7 @@ export default function FormRenderer({ form: initialForm, formId }: Props) {
     }
     setSubmitting(true);
     try {
-      const r = await fetch(`/api/forms/${id}/submit`, {
+      const r = await fetch(apiUrl(`/api/forms/${id}/submit`), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ data: values }),

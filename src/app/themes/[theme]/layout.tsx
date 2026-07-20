@@ -6,14 +6,16 @@ export default async function ThemeLayout({
   params,
 }: {
   children: React.ReactNode;
-  params: { theme: string };
+  params: Promise<{ theme: string }>;
 }) {
+  const { theme } = await params;
+
   // Initialize DB connection and check the theme status.
   await getUserDbConnection();
   const SettingsModel = getSettingsModel();
   const settings = await SettingsModel.findOne({});
   const activeTheme = settings?.themes.find(
-    (theme: { name: string; isActive: boolean }) => theme.isActive && theme.name === params.theme
+    (t: { name: string; isActive: boolean }) => t.isActive && t.name === theme
   );
 
   if (!activeTheme) {

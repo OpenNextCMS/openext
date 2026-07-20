@@ -1,4 +1,5 @@
 'use client';
+import { apiUrl } from '@/lib/apiClient';
 
 import React, { useState, useEffect, useMemo } from 'react';
 import {
@@ -96,11 +97,7 @@ export function BlogFeed({ block, isEditing = false }: BlogFeedProps) {
   const imageAspectRatio = content.imageAspectRatio || '16/9';
   const cardsPerRow = content.cardsPerRow || 3;
   const borderRadius = content.borderRadius || 'rounded-lg';
-  const paginationType = content.paginationType || 'pagination';
-
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
-
-  useEffect(() => {
+  const paginationType = content.paginationType || 'pagination';  useEffect(() => {
     if (isEditing) {
       const mockPosts = Array(8).fill(0).map((_, i) => ({
         _id: `mock-${i}`,
@@ -131,11 +128,11 @@ export function BlogFeed({ block, isEditing = false }: BlogFeedProps) {
     const fetchPosts = async () => {
       try {
         // Try public endpoint first
-        let response = await fetch(`${backendUrl}/api/public/blogs`);
+        let response = await fetch(apiUrl(`/api/public/blogs`));
         
         // Fallback to general pages endpoint if public one fails
         if (!response.ok) {
-          response = await fetch(`${backendUrl}/api/pages/get-pages`);
+          response = await fetch(apiUrl(`/api/pages/get-pages`));
         }
 
         if (response.ok) {
@@ -155,7 +152,7 @@ export function BlogFeed({ block, isEditing = false }: BlogFeedProps) {
     };
 
     fetchPosts();
-  }, [isEditing, backendUrl, postsPerPage]);
+  }, [isEditing, postsPerPage]);
 
   const filteredPosts = useMemo(() => {
     return posts.filter(post => {

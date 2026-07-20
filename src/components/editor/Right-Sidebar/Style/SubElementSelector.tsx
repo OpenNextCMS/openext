@@ -7,10 +7,21 @@ import SelectComp from '@/components/ReusableComponents/SelectComp';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { MousePointerClick, X } from 'lucide-react';
-import { prettyPartLabel } from '@/lib/editor/stylePath';
+import { MousePointerClick, Trash2, RotateCcw, X } from 'lucide-react';
+import { prettyPartLabel, isPartHidden } from '@/lib/editor/stylePath';
+
+// Section types whose components honor `content.hiddenParts` (they render-guard
+// their built-in elements). The Delete/Restore control only appears for these,
+// so it never records a hide that the section would silently ignore. Add a type
+// here once its component wraps its parts in `!isPartHidden(content, …)`.
+const DELETABLE_ELEMENT_TYPES = new Set(['hero-main', 'hero-centered']);
 
 const subElementMap: Record<string, { label: string; value: string; contentKey?: string }[]> = {
+  'nav-bar': [
+    { label: 'Entire Block', value: 'root' },
+    { label: 'Logo', value: 'logoStyle' },
+    { label: 'Menu Links', value: 'linkStyle' },
+  ],
   'contact': [
     { label: 'Entire Block', value: 'root' },
     { label: 'Title', value: 'titleStyle', contentKey: 'title' },
@@ -256,6 +267,30 @@ export default function SubElementSelector() {
     }
   };
 
+  // Delete/restore a built-in element (Title, Description, Button, …). Deleting
+  // records the part in `content.hiddenParts`; the section skips rendering it.
+  let parsedContent: unknown = null;
+  try {
+    parsedContent = JSON.parse(selectedBlock.content);
+  } catch {
+    parsedContent = null;
+  }
+  const partHidden = isPartHidden(parsedContent, selectedPart);
+
+  const setPartHidden = (hide: boolean) => {
+    if (!selectedPart) return;
+    try {
+      const content = JSON.parse(selectedBlock.content);
+      const set = new Set<string>(Array.isArray(content.hiddenParts) ? content.hiddenParts : []);
+      if (hide) set.add(selectedPart);
+      else set.delete(selectedPart);
+      content.hiddenParts = Array.from(set);
+      dispatch(updateBlockContent({ id: selectedBlock.uniqueId, content: JSON.stringify(content) }));
+    } catch (e) {
+      console.error('Failed to toggle element visibility:', e);
+    }
+  };
+
   return (
     <div className="space-y-3 pb-3 border-b mb-3">
       {/* Click-selected per-item element (card/icon/image/button) */}
@@ -297,8 +332,32 @@ export default function SubElementSelector() {
                   value={getContentValue()}
                   onChange={(e) => handleContentChange(e.target.value)}
                   placeholder="Enter text content..."
+                  disabled={partHidden}
                 />
               </div>
+            )}
+
+            {/* Delete / restore this built-in element. */}
+            {selectedPart && currentPart?.contentKey && DELETABLE_ELEMENT_TYPES.has(selectedBlock.type) && (
+              partHidden ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 w-full text-xs"
+                  onClick={() => setPartHidden(false)}
+                >
+                  <RotateCcw className="mr-1 h-3 w-3" /> Restore {currentPart.label.toLowerCase()}
+                </Button>
+              ) : (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 w-full text-xs text-red-600 hover:text-red-700"
+                  onClick={() => setPartHidden(true)}
+                >
+                  <Trash2 className="mr-1 h-3 w-3" /> Delete {currentPart.label.toLowerCase()}
+                </Button>
+              )
             )}
           </>
         )

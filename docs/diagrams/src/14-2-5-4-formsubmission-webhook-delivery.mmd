@@ -1,7 +1,0 @@
-stateDiagram-v2
-    [*] --> pending : submission stored
-    pending --> sent : webhook 2xx
-    pending --> failed : non-2xx / error
-    failed --> sent : retry succeeds (retryCount)
-    failed --> failed : retry fails
-    sent --> [*]

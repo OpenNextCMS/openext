@@ -1,3 +1,4 @@
+import { apiUrl } from '@/lib/apiClient';
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
 import { toast } from 'sonner';
 import type {
@@ -42,7 +43,7 @@ export function isPluginActive(s: PluginState): boolean {
 }
 
 export const loadPluginState = createAsyncThunk('menuRedirect/loadPluginState', async () => {
-  const res = await fetch('/api/menu-redirect/lifecycle/status');
+  const res = await fetch(apiUrl('/api/menu-redirect/lifecycle/status'));
   const json = await res.json();
   return (json?.data ?? { installed: false, enabled: false }) as PluginState;
 });
@@ -126,7 +127,7 @@ export const loadHeader =
     dispatch(setLoading(true));
     try {
       const qs = headerId ? `?headerId=${headerId}` : '';
-      const res = await fetch(`/api/menu-redirect/menu-items${qs}`);
+      const res = await fetch(apiUrl(`/api/menu-redirect/menu-items${qs}`));
       const json = await res.json();
       const data = json?.data;
       if (data?.headerId) {
@@ -168,7 +169,7 @@ export const loadMappings =
   (headerId: string) => async (dispatch: AppDispatch, getState: () => RootState) => {
     if (!isPluginActive(getState().menuRedirect.pluginState)) return;
     try {
-      const res = await fetch(`/api/menu-redirect/list?headerId=${headerId}`);
+      const res = await fetch(apiUrl(`/api/menu-redirect/list?headerId=${headerId}`));
       const json = await res.json();
       dispatch(setMappings(Array.isArray(json?.data) ? json.data : []));
     } catch {
@@ -182,7 +183,7 @@ export const createMapping =
     const prev = getState().menuRedirect.mappings[payload.menuItemId];
     dispatch(upsertMappingLocal(payload)); // optimistic
     try {
-      const res = await fetch('/api/menu-redirect/create', {
+      const res = await fetch(apiUrl('/api/menu-redirect/create'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -206,7 +207,7 @@ export const updateMapping =
     const prev = getState().menuRedirect.mappings[patch.menuItemId];
     if (prev) dispatch(upsertMappingLocal({ ...prev, ...patch })); // optimistic
     try {
-      const res = await fetch('/api/menu-redirect/update', {
+      const res = await fetch(apiUrl('/api/menu-redirect/update'), {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -228,7 +229,7 @@ export const deleteMapping =
     const prev = getState().menuRedirect.mappings[args.menuItemId];
     dispatch(removeMappingLocal(args.menuItemId)); // optimistic
     try {
-      const res = await fetch(`/api/menu-redirect/delete?id=${args.id}`, {
+      const res = await fetch(apiUrl(`/api/menu-redirect/delete?id=${args.id}`), {
         method: 'DELETE',
         credentials: 'include',
       });
@@ -248,7 +249,7 @@ export const bulkAutoMatch =
   async (dispatch: AppDispatch, getState: () => RootState) => {
     if (!isPluginActive(getState().menuRedirect.pluginState)) return;
     try {
-      const res = await fetch('/api/menu-redirect/bulk', {
+      const res = await fetch(apiUrl('/api/menu-redirect/bulk'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
