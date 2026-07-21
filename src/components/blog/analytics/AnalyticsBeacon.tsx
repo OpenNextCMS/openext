@@ -1,4 +1,5 @@
 'use client';
+import { apiUrl } from '@/lib/apiClient';
 
 import { useEffect, useRef } from 'react';
 
@@ -13,7 +14,7 @@ export default function AnalyticsBeacon({ blogId }: { blogId: string }) {
 
   useEffect(() => {
     // View event.
-    fetch('/api/analytics/track', {
+    fetch(apiUrl('/api/analytics/track'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ type: 'view', blogId }),
@@ -27,7 +28,7 @@ export default function AnalyticsBeacon({ blogId }: { blogId: string }) {
       if (navigator.sendBeacon) {
         navigator.sendBeacon('/api/analytics/track', new Blob([payload], { type: 'application/json' }));
       } else {
-        fetch('/api/analytics/track', {
+        fetch(apiUrl('/api/analytics/track'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: payload,

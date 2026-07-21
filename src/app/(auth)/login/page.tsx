@@ -1,4 +1,5 @@
 'use client';
+import { apiUrl } from '@/lib/apiClient';
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -12,7 +13,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     const checkDbStatus = async () => {
-      const res = await fetch('/api/env-connection?key=dbConnection');
+      const res = await fetch(apiUrl('/api/env-connection?key=dbConnection'));
       const data = await res.json();
       document.cookie = `dbConnection=${data.dbConnection}; path=/; expires=Fri, 31 Dec 9999 23:59:59 GMT`;
     };
@@ -42,21 +43,18 @@ export default function LoginPage() {
   }, []);
 
   const clearAllCookies = async () => {
-    const response = await fetch('/api/clear-cookies', {
+    const response = await fetch(apiUrl('/api/clear-cookies'), {
       method: 'POST',
     });
     if (!response.ok) {
       console.error('Failed to clear cookies');
     }
-  };
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
-
-  useEffect(() => {
+  };  useEffect(() => {
     const checkDbAndRedirect = async () => {
       try {
-        const apiUrl =
-          backendUrl === `${backendUrl}` ? '/api/verify-connection' : '/api/api-sync';
-        const response = await fetch(`${backendUrl}${apiUrl}`);
+        const response = await fetch(apiUrl('/api/verify-connection'), {
+          credentials: 'include',
+        });
         if (!response.ok) {
           const errorText = await response.text();
           throw new Error(`Failed to fetch database connection status: ${errorText}`);
@@ -65,18 +63,17 @@ export default function LoginPage() {
 
         if (!data.masterDbConnected || !data.userDbConnected || !data.pageDbConnected) {
           handleError(null, 'Database Connection not Established');
-          await clearAllCookies(); // Clear all cookies
-          router.push('/language'); // Redirect to /language
+          await clearAllCookies();
+          router.push('/language');
         }
-
       } catch (error) {
         handleError(error, 'Error checking database connections from login');
-        await clearAllCookies(); // Clear all cookies
-        router.push('/language'); // Redirect to /language
+        await clearAllCookies();
+        router.push('/language');
       }
     };
     checkDbAndRedirect();
-  }, [router, backendUrl]);
+  }, [router]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -96,7 +93,7 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`${backendUrl}/api/auth/login`, {
+      const response = await fetch(apiUrl(`/api/auth/login`), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

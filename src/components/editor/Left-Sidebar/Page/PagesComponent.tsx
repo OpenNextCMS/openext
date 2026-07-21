@@ -1,4 +1,5 @@
 'use client';
+import { apiUrl } from '@/lib/apiClient';
 
 import { useState } from 'react';
 import {
@@ -49,11 +50,8 @@ export default function PagesComponent({
       const slug = newPageSlug.trim() || generateSlug(newPageName);
       const pageName = newPageName.trim();
 
-      try {
-        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
-
-        // Step 1: Create the page via API
-        const response = await fetch(`${backendUrl}/api/pages/add-page`, {
+      try {        // Step 1: Create the page via API
+        const response = await fetch(apiUrl(`/api/pages/add-page`), {
           method: 'POST',
           credentials: 'include',
           headers: {

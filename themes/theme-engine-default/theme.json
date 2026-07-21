@@ -1,0 +1,11 @@
+{
+  "name": "Theme Engine Default",
+  "author": "System",
+  "version": "1.0.0",
+  "description": "Built-in safety-net theme. Installed automatically and only ever used when the active theme fails to render (spec section 4.13's fallback policy).",
+  "compatibleCmsVersion": "^2.0.0",
+  "templates": {
+    "index": "templates/Index.tsx"
+  },
+  "supportedFeatures": []
+}

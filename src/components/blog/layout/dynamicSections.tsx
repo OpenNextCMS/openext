@@ -1,4 +1,5 @@
 'use client';
+import { apiUrl } from '@/lib/apiClient';
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
@@ -21,7 +22,7 @@ function usePosts(params: Record<string, string>) {
   const key = JSON.stringify(params);
   useEffect(() => {
     const qs = new URLSearchParams({ status: 'published', ...params });
-    fetch(`/api/blogs?${qs.toString()}`)
+    fetch(apiUrl(`/api/blogs?${qs.toString()}`))
       .then((r) => r.json())
       .then((res) => Array.isArray(res?.data) && setPosts(res.data))
       .catch(() => {});
@@ -94,7 +95,7 @@ export function FeaturedPostSection({ settings }: { settings: Record<string, unk
 export function CategoriesSection({ settings }: { settings: Record<string, unknown> }) {
   const [categories, setCategories] = useState<Category[]>([]);
   useEffect(() => {
-    fetch('/api/categories')
+    fetch(apiUrl('/api/categories'))
       .then((r) => r.json())
       .then((res) => Array.isArray(res?.data) && setCategories(res.data))
       .catch(() => {});
@@ -123,7 +124,7 @@ export function SidebarSection({ settings }: { settings: Record<string, unknown>
   const [categories, setCategories] = useState<Category[]>([]);
   useEffect(() => {
     if (!settings.showCategories) return;
-    fetch('/api/categories')
+    fetch(apiUrl('/api/categories'))
       .then((r) => r.json())
       .then((res) => Array.isArray(res?.data) && setCategories(res.data))
       .catch(() => {});

@@ -1,5 +1,7 @@
-// components/ProfileUploader.tsx
 'use client';
+
+import { apiUrl } from '@/lib/apiClient';
+// components/ProfileUploader.tsx
 
 import { useState, useCallback } from 'react';
 import Image from 'next/image';
@@ -39,7 +41,7 @@ export function ProfileUploader({
         formData.append('userId', userId); // Include userId in the form data
 
         try {
-          const response = await fetch('/api/dashboard/profile/upload', {
+          const response = await fetch(apiUrl('/api/dashboard/profile/upload'), {
             method: 'POST',
             body: formData,
           });

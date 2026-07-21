@@ -1,4 +1,5 @@
 'use client';
+import { apiUrl } from '@/lib/apiClient';
 
 import { Trash2, Menu, X, MousePointer2, ChevronDown } from 'lucide-react';
 import { BlockRendererProps, BlockData } from '@/types/index';
@@ -25,6 +26,10 @@ interface NavbarContent {
   logoImage?: string;
   layout?: NavbarLayout;
   links?: NavbarLink[];
+  // Per-part styles set from the Style panel's "Edit Element" (Logo / Menu Links),
+  // so the logo and links can be sized/styled independently of the bar itself.
+  logoStyle?: React.CSSProperties;
+  linkStyle?: React.CSSProperties;
 }
 
 type NavbarLink = {
@@ -62,7 +67,7 @@ export const NavbarBlock = ({ block, isEditing = true }: BlockRendererProps) => 
 
   useEffect(() => {
     let alive = true;
-    fetch('/api/dashboard/settings')
+    fetch(apiUrl('/api/dashboard/settings'))
       .then((res) => res.json())
       .then((json) => {
         if (!alive) return;
@@ -171,7 +176,7 @@ export const NavbarBlock = ({ block, isEditing = true }: BlockRendererProps) => 
         rel={rel}
         onClick={(e) => handleNavClick(e, link, directive)}
         className={`${className} ${directive?.customClass ?? ''}`}
-        style={{ color: block.style?.color || 'var(--color-text, inherit)', ...(disabled ? { opacity: 0.5, cursor: 'not-allowed' } : {}) }}
+        style={{ color: block.style?.color || 'var(--color-text, inherit)', ...navbarData.linkStyle, ...(disabled ? { opacity: 0.5, cursor: 'not-allowed' } : {}) }}
         {...dataAttrs}
       >
         {link.label}
@@ -266,7 +271,7 @@ export const NavbarBlock = ({ block, isEditing = true }: BlockRendererProps) => 
           style={{ maxHeight: '40px', objectFit: 'contain' }}
         />
       ) : useWebsiteLogo ? (
-        <div className="text-xl font-bold outline-none" style={{ color: block.style?.color || 'var(--color-text, inherit)' }}>
+        <div className="text-xl font-bold outline-none" style={{ color: block.style?.color || 'var(--color-text, inherit)', ...navbarData.logoStyle }}>
           {siteTitle}
         </div>
       ) : (
@@ -282,7 +287,7 @@ export const NavbarBlock = ({ block, isEditing = true }: BlockRendererProps) => 
         suppressContentEditableWarning={true}
         onBlur={handleLogoBlur}
         className="text-xl font-bold outline-none"
-        style={{ color: block.style?.color || 'var(--color-text, inherit)' }}
+        style={{ color: block.style?.color || 'var(--color-text, inherit)', ...navbarData.logoStyle }}
       >
         {navbarData.logoSource === 'website' ? siteTitle : navbarData.logo || 'Brand'}
       </div>

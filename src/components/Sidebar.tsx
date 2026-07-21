@@ -16,7 +16,6 @@ import {
   ChevronLeft,
   Codesandbox,
   Wrench,
-  Paintbrush,
   ArrowUpToLine,
   ArrowDownToLine,
   BrainCircuit,
@@ -28,9 +27,10 @@ import {
   PlusSquare,
   Tag,
   Tags,
+  Puzzle,
   type LucideIcon,
 } from 'lucide-react';
-import { usePlugins } from '@/context/PluginContext';
+import { usePlugins, type PluginRecord } from '@/context/PluginContext';
 
 type NavSection = {
   label: string;
@@ -76,10 +76,8 @@ const navItems: NavSection[] = [
   {
     label: 'Themes',
     icon: Palette,
-    links: [
-      { label: 'All Themes', icon: Paintbrush, path: '/dashboard/themes/allthemes' },
-      { label: 'Create Theme', icon: PlusCircle, path: '/dashboard/themes/new' },
-    ],
+    path: '/dashboard/theme-engine',
+    links: [],
   },
   {
     label: 'Plugins',
@@ -147,6 +145,30 @@ function hasFormBuilder(plugins: { pluginId: string; name: string; type?: string
   });
 }
 
+const BUILTIN_SYSTEM_IDS = new Set(['menu-redirect', 'form-builder']);
+
+/** Uploaded system plugins get a dynamic sidebar section pointing at the runtime shell. */
+function uploadedSystemNavSections(plugins: PluginRecord[]): NavSection[] {
+  return plugins
+    .filter(
+      (p) =>
+        p.kind === 'system' &&
+        p.source === 'uploaded' &&
+        !BUILTIN_SYSTEM_IDS.has(p.pluginId)
+    )
+    .map((p) => ({
+      label: p.name || p.pluginId,
+      icon: Puzzle,
+      links: [
+        {
+          label: 'Open',
+          icon: Puzzle,
+          path: `/dashboard/plugins/runtime/${encodeURIComponent(p.pluginId)}`,
+        },
+      ],
+    }));
+}
+
 export default function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
@@ -162,6 +184,8 @@ export default function Sidebar() {
     let s = navItems;
     if (hasMenuRedirect(activePlugins)) s = [...s, menuRedirectNav];
     if (hasFormBuilder(activePlugins)) s = [...s, formBuilderNav];
+    const uploadedSystem = uploadedSystemNavSections(activePlugins);
+    if (uploadedSystem.length) s = [...s, ...uploadedSystem];
     return s;
   }, [activePlugins]);
 
@@ -212,6 +236,12 @@ export default function Sidebar() {
 
   return (
     <TooltipProvider>
+      <div
+        className={cn(
+          'relative shrink-0 transition-all duration-300 ease-in-out',
+          isMobile ? 'w-0' : isCollapsed ? 'w-[70px]' : 'w-64'
+        )}
+      >
       <MobileOverlay />
 
       {/* Mobile Toggle Button */}
@@ -394,15 +424,7 @@ export default function Sidebar() {
           </nav>
         </div>
       </div>
-
-      {/* Content margin to account for sidebar */}
-      <div
-        className={cn(
-          'transition-all duration-300 ease-in-out',
-          isCollapsed ? 'lg:ml-[70px]' : 'lg:ml-64',
-          isMobile ? 'ml-0' : ''
-        )}
-      />
+      </div>
     </TooltipProvider>
   );
 }

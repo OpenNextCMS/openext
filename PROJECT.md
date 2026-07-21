@@ -3,8 +3,9 @@
 **An AI-Assisted, Multi-Tenant Content Management & Website-Builder Platform**
 
 Build, style and publish complete websites from the browser — no code — with a visual
-drag-and-drop editor, an AI page generator, a blog engine, a form builder, a theme builder and
-role-based multi-user access. Built on **Next.js 15**, **React 19**, **TypeScript** and **MongoDB**.
+drag-and-drop editor, an AI page generator, a blog engine, a form builder, a theme builder /
+theme package manager, and role-based multi-user access. Built on **Next.js 15**, **React 19**,
+**TypeScript** and **MongoDB**.
 
 > Organization: **Aviral Trendz Private Limited** · Developer: **Khadija Mama** · Academic Year 2025–2026
 
@@ -58,6 +59,8 @@ data isolation.
 | 📝 **Blog Engine** | Posts, categories, tags, authors, comments, scheduled publishing, draft/published/archived states, SEO metadata + JSON-LD, reading-time, slug-history 301 redirects, per-visitor analytics. |
 | 🧩 **Form Builder** | Drag-and-drop builder with 20+ field types, conditional logic, validation rules, multi-step forms, spam protection (honeypot / Turnstile / throttle), submissions, webhooks, email notifications, version history and analytics. |
 | 🌈 **Theme Builder** | Config-driven design tokens (colors, typography, spacing, radius, shadows, layout) applied site-wide via CSS variables, with a live-preview builder and seeded system themes. |
+| 📦 **Theme Package Manager** | ZIP packages with tokens, layouts, templates, block/style presets, CSS, fonts and assets — upload / install / activate / export; assets served via `/theme-assets/:theme/*`. |
+| ⚙️ **Theme Engine (Beta)** | React/TSX theme packages with a `theme.ts` registration bootstrap (`defineTheme`), auto-discovery, runtime registry, editable homepage sections, and upload validation. See [`docs/theme-registration.md`](docs/theme-registration.md). |
 | 🧭 **Onboarding Wizard** | 6-step animated flow (business → website type → header → footer → theme → review) that scaffolds a starter website, with autosave. |
 | 👥 **Platform Services** | Role-based multi-user access (SuperAdmin/Admin/Editor/Author), plugin architecture, menu-redirect / URL-management plugin, analytics dashboard, and a 15-language localization layer with light/dark presentation. |
 
@@ -128,7 +131,7 @@ page-DB connection.
 
 **Key sequences**
 - *Generate Page*: Prompt Tab → `POST /api/ai/generate-page-json` → (Stage-1 structure → validate/retry → Stage-2 copy fill) → normalize to `BlockData[]` → `dispatch(setBlocks)` → canvas → optional Save.
-- *Publish & Serve*: Save → `isPublished=true` → `revalidatePath('/slug')` → visitor request → server fetch page + global header/footer → `SiteThemeProvider` injects theme CSS vars → blocks rendered from JSON → HTML (ISR, revalidate 30s).
+- *Publish & Serve*: Save → `isPublished=true` → `revalidatePath('/slug')` → visitor request → server fetch page + global header/footer → `SiteThemeProvider` injects theme CSS vars (and package CSS from `/theme-assets/…` when applicable) → blocks rendered from JSON → HTML (ISR, revalidate 30s).
 
 ---
 
@@ -150,7 +153,7 @@ Selected collections (representative fields; `*` = unique index). Full schemas i
 - **Category** — `name`, `slug*`, `parentCategory→Category` (self-ref) · **Tag** — `name`, `slug*` · **Author** — `name`, `email`, `bio`, `socialLinks{}`
 - **Comment** — `blogId→Page`, `name`, `email`, `comment`, `status`(pending/approved/spam)
 - **AnalyticsEvent** — `blogId`, `type`(view/read/search), `visitorId`, `durationSec`, `query` (append-only)
-- **Theme** — `name`, `slug*`, `isActive`, `isSystemTheme`, `theme{colors,typography,spacing,radius,shadows,layout}` · **ThemeSettings** — blog design tokens
+- **Theme** — `name`, `slug*`, `isActive`, `isSystemTheme`, `installed`, `isPackageTheme`, `author`, `packageVersion`, `previewImage`, `thumbnail`, `assetsPath`, `theme{colors,typography,spacing,radius,shadows,layout}`, `tokens`, `templates`, `layouts`, `presets`, `supports`, `componentVariants`, `meta` · **ThemeSettings** — blog design tokens
 - **Form** — `name`, `slug*`, `status`, `fields[]`, `settings{}`, `analytics{}`, `versions[]` · **FormSubmission** — `formId→Form`, `submissionData{}`, `webhookAttempts[]` · **FormVersion** — `formId`, `version`, `snapshot`
 - **WebsitePreferences** — `userId*`, `businessName`, `websiteType`, `header/footer/theme`, `onboardingCompleted`, `draft`
 - **MenuRedirectMapping / Analytics / History** — header menu-item → redirect target mappings, click counters and an append-only audit log
@@ -181,7 +184,7 @@ All endpoints are Next.js Route Handlers under `src/app/api/`. Auth is a JWT in 
 
 **Forms** — `GET|POST /api/forms`, `GET|PUT|DELETE /api/forms/[id]`, `POST /api/forms/[id]/submit` (public; spam checks + webhook + email + analytics), `GET /api/forms/[id]/submissions`, `GET /api/forms/[id]/analytics`, `POST /api/forms/[id]/track`, `POST /api/forms/[id]/duplicate`, `GET|POST /api/forms/[id]/versions`, `GET /api/forms/render/[idOrSlug]`, plus `POST /api/forms/ai/{generate,optimize,validation}`
 
-**Themes** — `GET|POST /api/themes`, `GET|PUT|DELETE /api/themes/[id]`, `POST /api/themes/[id]/duplicate`, `POST /api/themes/activate`, `GET /api/themes/get-theme`, `POST /api/themes/extract`, `GET|PUT /api/theme-settings`
+**Themes** — `GET|POST /api/themes`, `GET|PUT|DELETE /api/themes/[id]`, `PUT /api/themes/[id]/update`, `POST /api/themes/[id]/duplicate`, `POST /api/themes/[id]/install`, `POST /api/themes/[id]/activate`, `POST /api/themes/activate`, `POST /api/themes/import` (token JSON/ZIP), `POST /api/themes/upload` (full package ZIP), `GET /api/themes/[id]/export`, `GET /api/themes/[id]/assets/*`, public `GET /theme-assets/[theme]/[...file]`, `GET|PUT /api/theme-settings`. Legacy/dormant: `GET /api/themes/get-theme`, `POST /api/themes/extract`.
 
 **AI** — `POST /api/ai/generate-page-json` (flagship: prompt/image → full page block tree, two-pass generate+review), `POST /api/ai/{generate-blog,generate-faq,generate-meta-description,generate-seo-title,rewrite,summarize,expand}`, `POST /api/onboarding/generate`
 
@@ -260,11 +263,15 @@ nextcmsmains/
 │  ├─ redux/                   # canvasSlice, formBuilderSlice, themeBuilderSlice, store
 │  ├─ lib/                     # ai/, theme/, form-builder/, menu-redirect/, api/ helpers
 │  ├─ utils/                   # db.ts (multi-tenant connections), jwt, getPageData, …
-│  ├─ templates/ · types/ · providers/ · modules/auth/
+│  ├─ templates/ · types/ · providers/
+│  └─ modules/                 # auth/; theme/ (Package Manager); themeEngine/ (Beta — theme.ts registration)
+├─ storage/themes/             # extracted theme package assets (served via /theme-assets)
+├─ themes/                     # Theme Engine installed React/TSX themes
+├─ examples/business-theme/    # sample full theme package
 ├─ training/layout-planner/    # Stage-1 model: schema, validator, data pipeline, notebooks, eval
 ├─ public/locales/             # 15 language files
 ├─ scripts/                    # screenshots.mjs, test-v2-generate.mjs
-└─ docs/                       # report + screenshots
+└─ docs/                       # theme docs + screenshots (see docs/README.md; Theme Engine: docs/theme-registration.md)
 ```
 
 ---
@@ -305,6 +312,7 @@ Stored in `.env` (never committed). Managed partly at runtime via the setup wiza
 
 | Variable | Purpose |
 |---|---|
+| `NEXT_PUBLIC_BACKEND_URL` | External API URL (e.g. `http://localhost:3012`). **Omit** to use the embedded Next.js API |
 | `MONGODB` | Connection mode: `uri` \| `atlas` \| `compass` |
 | `MONGODB_URI` | MongoDB connection string |
 | `USER_DB_NAME` / `PAGE_DB_NAME` | User / page database names (default `users` / `pages`) |
@@ -332,7 +340,7 @@ Stored in `.env` (never committed). Managed partly at runtime via the setup wiza
 
 - **Functional:** login (valid/invalid), page CRUD + duplicate-slug handling, AI generate,
   Paste-JSON-to-Canvas, blog publish + slug-change 301, form submission (spam/valid), theme
-  activation, responsive preview, undo/redo, AI provider-failure fallback.
+  activation, theme package upload/install/export, responsive preview, undo/redo, AI provider-failure fallback.
 - **AI model evaluation:** `valid_json_rate`, `schema_pass_rate` (≥ 80% target — **100%** on the
   evaluated subset), `nav_footer_order_rate`; training converged cleanly (val loss 0.0215, no overfitting).
 - **Static checks:** ESLint + `tsc --noEmit` clean on modified modules; offline pipeline smoke tests.
@@ -341,6 +349,7 @@ Stored in `.env` (never committed). Managed partly at runtime via the setup wiza
 
 ## Future Enhancements
 
+- Marketplace / shared theme catalog across tenants.
 - Harden authentication (cryptographic JWT verification on every route + route-level RBAC).
 - Move media uploads from local filesystem to object storage (S3 / Cloudinary).
 - **Visual version control** for pages — Git-style branching, visual diff and time-travel restore.
@@ -362,5 +371,5 @@ Built with Next.js, React, MongoDB, Hugging Face Transformers, PEFT, Qwen and Op
 ---
 
 *This document describes the OpenNext CMS platform. For the Stage-1 AI model sub-project, see
-[`training/layout-planner/README.md`](training/layout-planner/README.md). For the formatted project
-report, see [`docs/`](docs/).*
+[`training/layout-planner/README.md`](training/layout-planner/README.md). Theme documentation:
+[`docs/README.md`](docs/README.md) (Package Manager, Builder, upload format).*

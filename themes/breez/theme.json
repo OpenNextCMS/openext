@@ -1,0 +1,71 @@
+{
+  "name": "Breez",
+  "slug": "breez",
+  "author": "OpenNext Demo",
+  "version": "1.0.1",
+  "description": "Mindfulness and meditation landing theme matching the Breez wellness design — pastel sections, framed photography, and editable homepage sections.",
+  "compatibleCmsVersion": "^2.0.0",
+  "templates": {
+    "index": "templates/Index.tsx"
+  },
+  "partials": {
+    "header": "partials/Header.tsx",
+    "footer": "partials/Footer.tsx"
+  },
+  "menus": [
+    {
+      "key": "primary",
+      "label": "Primary Navigation",
+      "maxDepth": 2
+    }
+  ],
+  "themeSettings": [
+    {
+      "key": "brandName",
+      "label": "Brand Name",
+      "type": "text",
+      "default": "BREEZ"
+    },
+    {
+      "key": "accentCoral",
+      "label": "Header CTA Color",
+      "type": "color",
+      "default": "#F07A64"
+    },
+    {
+      "key": "navy",
+      "label": "Navy Accent",
+      "type": "color",
+      "default": "#2B3142"
+    }
+  ],
+  "supportedFeatures": ["custom-logo", "menus", "block-editor"],
+  "blocks": [
+    {
+      "type": "breez-hero",
+      "rendererPath": "blocks/Hero/Renderer.tsx",
+      "schemaPath": "blocks/Hero/schema.ts"
+    },
+    {
+      "type": "breez-experience",
+      "rendererPath": "blocks/Experience/Renderer.tsx",
+      "schemaPath": "blocks/Experience/schema.ts"
+    },
+    {
+      "type": "breez-together",
+      "rendererPath": "blocks/Together/Renderer.tsx",
+      "schemaPath": "blocks/Together/schema.ts"
+    },
+    {
+      "type": "breez-plans",
+      "rendererPath": "blocks/Plans/Renderer.tsx",
+      "schemaPath": "blocks/Plans/schema.ts"
+    }
+  ],
+  "editableSections": [
+    { "id": "hero", "label": "Hero", "blockType": "breez-hero" },
+    { "id": "experience", "label": "The Breez Experience", "blockType": "breez-experience" },
+    { "id": "together", "label": "Meditate Together", "blockType": "breez-together" },
+    { "id": "plans", "label": "Our Plans", "blockType": "breez-plans" }
+  ]
+}

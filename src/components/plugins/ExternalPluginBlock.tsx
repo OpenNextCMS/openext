@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { BlockRendererProps } from '@/types/index';
+import { assetUrl } from '@/lib/apiClient';
 
 interface UploadedPluginMeta {
   pluginId: string;
@@ -32,39 +33,46 @@ const loadedScripts = new Set<string>();
 const loadedStyles = new Set<string>();
 const scriptPromises = new Map<string, Promise<void>>();
 
+function resolveAsset(path: string): string {
+  if (path.startsWith('http://') || path.startsWith('https://')) return path;
+  return assetUrl(path.startsWith('/') ? path : `/${path}`);
+}
+
 function loadStyle(href: string): Promise<void> {
-  if (loadedStyles.has(href)) return Promise.resolve();
+  const url = resolveAsset(href);
+  if (loadedStyles.has(url)) return Promise.resolve();
 
   return new Promise((resolve, reject) => {
     const link = document.createElement('link');
     link.rel = 'stylesheet';
-    link.href = href;
+    link.href = url;
     link.onload = () => {
-      loadedStyles.add(href);
+      loadedStyles.add(url);
       resolve();
     };
-    link.onerror = () => reject(new Error(`Failed to load plugin stylesheet: ${href}`));
+    link.onerror = () => reject(new Error(`Failed to load plugin stylesheet: ${url}`));
     document.head.appendChild(link);
   });
 }
 
 function loadScript(src: string): Promise<void> {
-  if (loadedScripts.has(src)) return Promise.resolve();
-  if (scriptPromises.has(src)) return scriptPromises.get(src)!;
+  const url = resolveAsset(src);
+  if (loadedScripts.has(url)) return Promise.resolve();
+  if (scriptPromises.has(url)) return scriptPromises.get(url)!;
 
   const promise = new Promise<void>((resolve, reject) => {
     const script = document.createElement('script');
-    script.src = src;
+    script.src = url;
     script.async = true;
     script.onload = () => {
-      loadedScripts.add(src);
+      loadedScripts.add(url);
       resolve();
     };
-    script.onerror = () => reject(new Error(`Failed to load plugin script: ${src}`));
+    script.onerror = () => reject(new Error(`Failed to load plugin script: ${url}`));
     document.body.appendChild(script);
   });
 
-  scriptPromises.set(src, promise);
+  scriptPromises.set(url, promise);
   return promise;
 }
 

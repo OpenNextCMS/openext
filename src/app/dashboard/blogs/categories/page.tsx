@@ -1,4 +1,5 @@
 'use client';
+import { apiUrl } from '@/lib/apiClient';
 
 import { useEffect, useState } from 'react';
 import {
@@ -23,7 +24,6 @@ interface Category {
 }
 
 export default function CategoriesPage() {
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
   const [categories, setCategories] = useState<Category[]>([]);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -34,7 +34,7 @@ export default function CategoriesPage() {
   const fetchCategories = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch(`${backendUrl}/api/categories`, { credentials: 'include' });
+      const res = await fetch(apiUrl(`/api/categories`), { credentials: 'include' });
       const result = await res.json();
       setCategories(Array.isArray(result.data) ? result.data : []);
     } catch (error) {
@@ -47,7 +47,6 @@ export default function CategoriesPage() {
 
   useEffect(() => {
     fetchCategories();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleCreate = async (e: React.FormEvent) => {
@@ -55,7 +54,7 @@ export default function CategoriesPage() {
     if (!name.trim()) return;
     setIsSubmitting(true);
     try {
-      const res = await fetch(`${backendUrl}/api/categories`, {
+      const res = await fetch(apiUrl(`/api/categories`), {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -83,7 +82,7 @@ export default function CategoriesPage() {
   const handleDelete = async (id: string) => {
     setDeletingId(id);
     try {
-      const res = await fetch(`${backendUrl}/api/categories/${id}`, {
+      const res = await fetch(apiUrl(`/api/categories/${id}`), {
         method: 'DELETE',
         credentials: 'include',
       });

@@ -1,4 +1,5 @@
 'use client';
+import { apiUrl } from '@/lib/apiClient';
 
 import { useEffect, useMemo, useState } from 'react';
 import { Loader2, Save, Monitor, Tablet, Smartphone, AlertTriangle } from 'lucide-react';
@@ -26,7 +27,7 @@ export default function DesignControls() {
   const [breakpoint, setBreakpoint] = useState<Breakpoint>('desktop');
 
   useEffect(() => {
-    fetch('/api/theme-settings')
+    fetch(apiUrl('/api/theme-settings'))
       .then((r) => r.json())
       .then((res) => res?.data && setTheme(mergeTheme(res.data)))
       .catch(() => {})
@@ -48,7 +49,7 @@ export default function DesignControls() {
   const save = async () => {
     setSaving(true);
     try {
-      const res = await fetch('/api/theme-settings', {
+      const res = await fetch(apiUrl('/api/theme-settings'), {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

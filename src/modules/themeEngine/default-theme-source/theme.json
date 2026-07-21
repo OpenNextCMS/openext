@@ -1,0 +1,13 @@
+{
+  "name": "Theme Engine Default",
+  "slug": "theme-engine-default",
+  "author": "System",
+  "version": "1.2.0",
+  "description": "Built-in safety-net theme. Installed automatically and only ever used when the active theme fails to render.",
+  "compatibleCmsVersion": "^2.0.0",
+  "entry": "theme.ts",
+  "supportedFeatures": ["block-editor"],
+  "editableSections": [
+    { "id": "hero", "label": "Hero", "blockType": "default-hero" }
+  ]
+}

@@ -5,6 +5,7 @@ import { PageSchema } from '@/models/Page';
 import { BlogPostSchema } from '@/models/BlogPost';
 import { roleSchema } from '@/models/Role';
 import { PluginSchema } from '@/models/Plugin';
+import { PluginDataSchema, type IPluginDataDocument } from '@/models/PluginData';
 import { CategorySchema } from '@/models/Category';
 import { TagSchema } from '@/models/Tag';
 import { AuthorSchema } from '@/models/Author';
@@ -121,6 +122,10 @@ export const getUserDbConnection = async () => {
 
       if (!userDb.models.Plugin) {
         userDb.model<IPluginDocument>('Plugin', PluginSchema);
+      }
+
+      if (!userDb.models.PluginData) {
+        userDb.model<IPluginDataDocument>('PluginData', PluginDataSchema);
       }
 
       const RoleModel = userDb.models.Role || userDb.model('Role', roleSchema);
@@ -490,6 +495,16 @@ export function getPluginModel(): mongoose.Model<IPluginDocument> {
   return (
     (userDb.models.Plugin as mongoose.Model<IPluginDocument>) ||
     userDb.model<IPluginDocument>('Plugin', PluginSchema)
+  );
+}
+
+export function getPluginDataModel(): mongoose.Model<IPluginDataDocument> {
+  if (!userDb) {
+    throw new Error('User database connection not initialized');
+  }
+  return (
+    (userDb.models.PluginData as mongoose.Model<IPluginDataDocument>) ||
+    userDb.model<IPluginDataDocument>('PluginData', PluginDataSchema)
   );
 }
 

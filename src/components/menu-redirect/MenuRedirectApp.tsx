@@ -26,6 +26,7 @@ import LeftPanel from './LeftPanel';
 import CenterPanel from './CenterPanel';
 import AutoConnectModal from './AutoConnectModal';
 import RightPanel from './RightPanel';
+import { DashboardPluginShell } from '@/components/dashboard/DashboardPluginShell';
 
 export default function MenuRedirectApp() {
   const dispatch = useAppDispatch();
@@ -72,8 +73,9 @@ export default function MenuRedirectApp() {
   };
 
   return (
-    <div className="flex h-[calc(100vh-1rem)] flex-col">
-      <div className="flex items-center justify-between border-b px-4 py-3">
+    <DashboardPluginShell>
+      <div className="flex min-h-0 flex-1 flex-col bg-background">
+      <div className="flex shrink-0 items-center justify-between border-b px-4 py-3">
         <div>
           <h1 className="text-lg font-bold">Menu Redirect</h1>
           <p className="text-xs text-muted-foreground">
@@ -96,14 +98,21 @@ export default function MenuRedirectApp() {
       </div>
 
       <DndContext sensors={sensors} collisionDetection={pointerWithin} onDragEnd={onDragEnd}>
-        <div className="grid flex-1 grid-cols-[280px_1fr_340px] overflow-hidden">
-          <LeftPanel canEdit={canEdit} />
-          <CenterPanel canEdit={canEdit} onAutoConnect={() => setAutoOpen(true)} />
-          <RightPanel canEdit={canEdit} />
+        <div className="grid min-h-0 flex-1 grid-cols-[280px_1fr_340px] overflow-hidden">
+          <div className="min-h-0 overflow-hidden">
+            <LeftPanel canEdit={canEdit} />
+          </div>
+          <div className="min-h-0 overflow-hidden">
+            <CenterPanel canEdit={canEdit} onAutoConnect={() => setAutoOpen(true)} />
+          </div>
+          <div className="min-h-0 overflow-hidden">
+            <RightPanel canEdit={canEdit} />
+          </div>
         </div>
       </DndContext>
 
       <AutoConnectModal open={autoOpen} onClose={() => setAutoOpen(false)} />
-    </div>
+      </div>
+    </DashboardPluginShell>
   );
 }

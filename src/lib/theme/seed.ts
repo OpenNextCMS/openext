@@ -32,6 +32,8 @@ export async function seedSystemThemes(pageDb: Connection): Promise<void> {
           description: def.description,
           isSystemTheme: true,
           isDefault,
+          installed: true,
+          isPackageTheme: false,
           previewImage: def.previewImage,
           version: '1.0.0',
           theme: def.theme,

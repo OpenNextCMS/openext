@@ -16,6 +16,7 @@ export interface BlockData {
     | 'hero'
     | 'hero-main'
     | 'hero-centered'
+    | 'hero-split'
     | 'statistics-main'
     | 'statistics-side-image'
     | 'statistics-boxed'
@@ -65,8 +66,13 @@ export interface BlockData {
     | 'feature-zigzag'
     | 'feature-checklist'
     | 'feature-list'
+    | 'feature-bento'
+    | 'pricing-table'
+    | 'cta-section'
+    | 'footer-section'
     | 'blog-feed'
-    | 'form-block';
+    | 'form-block'
+    | 'theme-engine-frame';
   children?: BlockData[][];
   style?: React.CSSProperties;
   hoverStyle?: React.CSSProperties;

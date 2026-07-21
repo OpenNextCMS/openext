@@ -1,3 +1,4 @@
+import { apiUrl } from '@/lib/apiClient';
 /**
  * Fire-and-forget click beacon for a tracked menu mapping. Uses sendBeacon so
  * the event survives the navigation that follows. Used by the runtime navbar
@@ -10,7 +11,7 @@ export function trackMenuClick(mappingId: string): void {
     if (typeof navigator !== 'undefined' && navigator.sendBeacon) {
       navigator.sendBeacon('/api/menu-redirect/track', new Blob([payload], { type: 'application/json' }));
     } else {
-      fetch('/api/menu-redirect/track', {
+      fetch(apiUrl('/api/menu-redirect/track'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: payload,

@@ -47,10 +47,13 @@ export async function POST(req: NextRequest) {
         version: extracted.manifest.version,
         description: extracted.manifest.description || 'Custom plugin uploaded by user',
         author: extracted.manifest.author || 'Unknown',
-        type: extracted.manifest.type || 'block',
+        type: extracted.manifest.type || extracted.kind,
+        kind: extracted.kind,
         isActive: true,
         icon: extracted.manifest.icon || '🧩',
         entryPoint: extracted.entryPoint,
+        adminEntry: extracted.adminEntry,
+        blockEntry: extracted.blockEntry,
         customElement: extracted.manifest.customElement,
         styles: extracted.styles,
         source: 'uploaded',
@@ -61,17 +64,27 @@ export async function POST(req: NextRequest) {
       throw dbError;
     }
 
+    const kindLabel = extracted.kind === 'system' ? 'system (dashboard)' : 'block (editor)';
     return NextResponse.json(
       {
         plugin: newPlugin,
-        message: 'Plugin extracted, installed, and registered successfully',
+        kind: extracted.kind,
+        message: `Plugin extracted and installed as a ${kindLabel} plugin`,
       },
       { status: 201 }
     );
   } catch (error) {
     console.error('Plugin upload error:', error);
     const message = error instanceof Error ? error.message : 'Internal server error';
-    const status = message.includes('manifest.json') || message.includes('package') ? 400 : 500;
+    const status =
+      message.includes('manifest.json') ||
+      message.includes('package') ||
+      message.includes('System plugin') ||
+      message.includes('Block plugin') ||
+      message.includes('entryPoint') ||
+      message.includes('admin')
+        ? 400
+        : 500;
     return NextResponse.json({ message }, { status });
   }
 }

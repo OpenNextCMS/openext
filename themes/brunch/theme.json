@@ -1,0 +1,28 @@
+{
+  "name": "Brunch",
+  "slug": "brunch",
+  "author": "OpenNext CMS",
+  "version": "1.0.0",
+  "description": "Elegant Indian restaurant theme — spice hero, menu highlights, reservation form, and food gallery.",
+  "compatibleCmsVersion": "^2.0.0",
+  "entry": "theme.ts",
+  "supportedFeatures": ["custom-logo", "menus", "block-editor"],
+  "blocks": [
+    { "type": "brunch-hero", "rendererPath": "blocks/Hero/Renderer.tsx", "schemaPath": "blocks/Hero/schema.ts" },
+    { "type": "brunch-intro", "rendererPath": "blocks/Intro/Renderer.tsx", "schemaPath": "blocks/Intro/schema.ts" },
+    { "type": "brunch-features", "rendererPath": "blocks/Features/Renderer.tsx", "schemaPath": "blocks/Features/schema.ts" },
+    { "type": "brunch-menu", "rendererPath": "blocks/Menu/Renderer.tsx", "schemaPath": "blocks/Menu/schema.ts" },
+    { "type": "brunch-visual", "rendererPath": "blocks/Visual/Renderer.tsx", "schemaPath": "blocks/Visual/schema.ts" },
+    { "type": "brunch-booking", "rendererPath": "blocks/Booking/Renderer.tsx", "schemaPath": "blocks/Booking/schema.ts" },
+    { "type": "brunch-gallery", "rendererPath": "blocks/Gallery/Renderer.tsx", "schemaPath": "blocks/Gallery/schema.ts" }
+  ],
+  "editableSections": [
+    { "id": "hero", "label": "Hero", "blockType": "brunch-hero" },
+    { "id": "intro", "label": "Introduction", "blockType": "brunch-intro" },
+    { "id": "features", "label": "Features", "blockType": "brunch-features" },
+    { "id": "menu", "label": "Menu Highlights", "blockType": "brunch-menu" },
+    { "id": "visual", "label": "Visual Break", "blockType": "brunch-visual" },
+    { "id": "booking", "label": "Reservations", "blockType": "brunch-booking" },
+    { "id": "gallery", "label": "Gallery", "blockType": "brunch-gallery" }
+  ]
+}

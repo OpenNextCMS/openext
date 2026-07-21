@@ -1,4 +1,5 @@
 'use client';
+import { apiUrl } from '@/lib/apiClient';
 
 import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
@@ -22,9 +23,7 @@ export default function Navbar({ user }: { user: { username: string; email: stri
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { avatarUrl } = useAvatar();
-  const router = useRouter();
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
-  const avatarSrc = getAvatarSrc(avatarUrl);
+  const router = useRouter();  const avatarSrc = getAvatarSrc(avatarUrl);
 
   const navigateTo = (path: string) => {
     router.push(path);
@@ -47,7 +46,7 @@ export default function Navbar({ user }: { user: { username: string; email: stri
   const handleLogout = async () => {
     try {
       // Call API to remove the token
-      const response = await fetch(`${backendUrl}/api/auth/logout`, {
+      const response = await fetch(apiUrl(`/api/auth/logout`), {
         method: 'GET',
         credentials: 'include',
       });
@@ -64,8 +63,8 @@ export default function Navbar({ user }: { user: { username: string; email: stri
   };
 
   return (
-    <nav className="bg-background border-b shadow-sm fixed top-0 right-0 w-full z-10">
-      <div className="flex items-center justify-end px-6 h-16">
+    <nav className="sticky top-0 z-10 shrink-0 border-b bg-background shadow-sm">
+      <div className="flex h-16 items-center justify-end px-6">
         <div className="flex items-center gap-4">
           <ThemeToggle />
           <span className="text-foreground font-medium">{user?.username}</span>

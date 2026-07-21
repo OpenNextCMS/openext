@@ -1,4 +1,5 @@
 'use client';
+import { apiUrl } from '@/lib/apiClient';
 
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { redoCanvas, undoCanvas, clearCanvas, removeBlock, clearSelectedLabel } from '@/redux/canvasSlice';
@@ -70,11 +71,7 @@ export default function Toolbar({ toggleSidebar, onViewChange }: ToolbarProps) {
   const historyFuture = useAppSelector((state) => state.canvas.historyFuture) || [];
   
   const canUndo = historyPast.length > 0;
-  const canRedo = historyFuture.length > 0;
-  
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
-
-  useEffect(() => {
+  const canRedo = historyFuture.length > 0;  useEffect(() => {
     if (slug) {
       setPageMetadata((prev) => ({ ...prev, slug, pageName: slug }));
     }
@@ -83,7 +80,7 @@ export default function Toolbar({ toggleSidebar, onViewChange }: ToolbarProps) {
   const handleSave = async () => {
     console.log('Toolbar: Saving page...');
     try {
-      const res = await fetch(`${backendUrl}/api/pages/update-page`, {
+      const res = await fetch(apiUrl(`/api/pages/update-page`), {
         method: 'PATCH',
         credentials: 'include',
         headers: {

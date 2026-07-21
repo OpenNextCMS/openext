@@ -18,6 +18,7 @@ import { ShapeDividerBlock } from './blocks/ShapeDividerBlock';
 import { NavbarBlock } from './blocks/NavbarBlock';
 import { GenericUiBlock } from './blocks/GenericUiBlock';
 import { pluginRegistry } from '@/lib/pluginRegistry';
+import { ThemeEngineFrameBlock } from './blocks/ThemeEngineFrameBlock';
 import { ContactUI } from '@/components/ui/ContactUI';
 import { ContactSimple } from '@/components/ui/ContactSimple';
 import { StatisticsMain } from '@/components/ui/StatisticsMain';
@@ -29,6 +30,7 @@ import { TestimonialSingleLarge } from '@/components/ui/TestimonialSingleLarge';
 import { HeroMain } from '@/components/ui/HeroMain';
 
 import { HeroCentered } from '@/components/ui/HeroCentered';
+import { HeroSplit } from '@/components/ui/HeroSplit';
 import { ContentFeatures } from '@/components/ui/ContentFeatures';
 import { ContentGallery } from '@/components/ui/ContentGallery';
 import { ContentIcons } from '@/components/ui/ContentIcons';
@@ -44,10 +46,14 @@ import { FeatureBoxed } from '@/components/ui/FeatureBoxed';
 import { FeatureZigzag } from '@/components/ui/FeatureZigzag';
 import { FeatureChecklist } from '@/components/ui/FeatureChecklist';
 import { FeatureList } from '@/components/ui/FeatureList';
+import { FeatureBento } from '@/components/ui/FeatureBento';
 import { BlogFeed } from '@/components/ui/BlogFeed';
 import { EcommerceGrid } from '@/components/ui/EcommerceGrid';
 import { EcommerceDetail } from '@/components/ui/EcommerceDetail';
 import { EcommerceInfo } from '@/components/ui/EcommerceInfo';
+import { PricingTable } from '@/components/ui/PricingTable';
+import { CTASection } from '@/components/ui/CTASection';
+import { FooterSection } from '@/components/ui/FooterSection';
 import { FormBlock } from '@/components/form-builder/blocks/FormBlock';
 
 const blockComponents: Record<string, React.ComponentType<BlockRendererProps>> = {
@@ -78,6 +84,7 @@ const genericUiBlocks: Record<string, { component: React.ComponentType<BlockRend
   'testimonial-single-large': { component: TestimonialSingleLarge, label: 'Testimonial Large' },
   'hero-main': { component: HeroMain, label: 'Hero Main' },
   'hero-centered': { component: HeroCentered, label: 'Hero Centered' },
+  'hero-split': { component: HeroSplit, label: 'Hero Split' },
   'content-features': { component: ContentFeatures, label: 'Content Features' },
   'content-gallery': { component: ContentGallery, label: 'Content Gallery' },
   'content-icons': { component: ContentIcons, label: 'Content Icons' },
@@ -93,6 +100,10 @@ const genericUiBlocks: Record<string, { component: React.ComponentType<BlockRend
   'feature-zigzag': { component: FeatureZigzag, label: 'Feature Zigzag' },
   'feature-checklist': { component: FeatureChecklist, label: 'Feature Checklist' },
   'feature-list': { component: FeatureList, label: 'Feature List' },
+  'feature-bento': { component: FeatureBento, label: 'Feature Bento' },
+  'pricing-table': { component: PricingTable, label: 'Pricing' },
+  'cta-section': { component: CTASection, label: 'Call To Action' },
+  'footer-section': { component: FooterSection, label: 'Footer' },
   'blog-feed': { component: BlogFeed, label: 'Blog Feed' },
   'ecommerce-grid': { component: EcommerceGrid, label: 'Product Grid' },
   'ecommerce-detail': { component: EcommerceDetail, label: 'Ecommerce Detail' },
@@ -102,6 +113,11 @@ const genericUiBlocks: Record<string, { component: React.ComponentType<BlockRend
 const reusableUiTypes = ['radio', 'checkbox', 'avatar', 'separator', 'skeleton', 'switch', 'textarea', 'table', 'tabs'];
 
 const RenderBlock = ({ block, isEditing = true }: BlockRendererProps) => {
+  // 0. Theme Engine exact canvas iframe
+  if (block.type === 'theme-engine-frame') {
+    return <ThemeEngineFrameBlock block={block} isEditing={isEditing} />;
+  }
+
   // 1. Check if it's a plugin-provided block
   const pluginExtension = pluginRegistry.getExtension(block.type);
   if (pluginExtension) {
@@ -138,7 +154,7 @@ const RenderBlock = ({ block, isEditing = true }: BlockRendererProps) => {
     return <Component block={block} isEditing={isEditing} />;
   }
 
-  return null; // Unknown block type
+  return null;
 };
 
 export default RenderBlock;

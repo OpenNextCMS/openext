@@ -1,4 +1,5 @@
 'use client';
+import { apiUrl } from '@/lib/apiClient';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowDown, ArrowUp, Check, Link as LinkIcon, Loader2, Plus, Trash2 } from 'lucide-react';
@@ -295,7 +296,7 @@ export default function MenuLinksEditor({ canEdit }: { canEdit: boolean }) {
     setLoading(true);
     setHasLoaded(false);
     setSaveStatus('idle');
-    fetch(`/api/menu-redirect/menu-links?headerId=${activeHeaderId}`)
+    fetch(apiUrl(`/api/menu-redirect/menu-links?headerId=${activeHeaderId}`))
       .then((res) => res.json())
       .then((json) => {
         if (!alive) return;
@@ -331,7 +332,7 @@ export default function MenuLinksEditor({ canEdit }: { canEdit: boolean }) {
     const timeout = window.setTimeout(async () => {
       setSaveStatus('saving');
       try {
-        const res = await fetch('/api/menu-redirect/menu-links', {
+        const res = await fetch(apiUrl('/api/menu-redirect/menu-links'), {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
@@ -385,7 +386,7 @@ export default function MenuLinksEditor({ canEdit }: { canEdit: boolean }) {
   }
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full min-h-0 flex-col overflow-hidden">
       <div className="border-b p-4">
         <div className="flex items-start justify-between gap-3">
           <div>
@@ -411,7 +412,7 @@ export default function MenuLinksEditor({ canEdit }: { canEdit: boolean }) {
         </div>
       </div>
 
-      <div className="flex-1 space-y-3 overflow-y-auto p-4">
+      <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-4">
         {loading ? (
           <p className="py-8 text-center text-sm text-muted-foreground">Loading links...</p>
         ) : links.length === 0 ? (

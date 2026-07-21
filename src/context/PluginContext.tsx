@@ -1,4 +1,5 @@
 'use client';
+import { apiUrl } from '@/lib/apiClient';
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { pluginRegistry } from '@/lib/pluginRegistry';
@@ -6,15 +7,19 @@ import * as Library from '@/components/plugins/PluginComponents';
 import { ContactUI } from '@/components/ui/ContactUI';
 import { sliderDefaultContentString } from '@/components/plugins/sliderSchema';
 import { ExternalPluginBlock } from '@/components/plugins/ExternalPluginBlock';
+import type { PluginKind } from '@/types/index';
 
-interface PluginRecord {
+export interface PluginRecord {
   pluginId: string;
   name: string;
   description?: string;
   icon?: string;
   type?: string;
+  kind?: PluginKind;
   isActive?: boolean;
   entryPoint?: string;
+  adminEntry?: string;
+  blockEntry?: string;
   customElement?: string;
   styles?: string[];
   source?: string;
@@ -28,13 +33,35 @@ interface PluginContextType {
 
 const PluginContext = createContext<PluginContextType | undefined>(undefined);
 
+function resolveKind(plugin: PluginRecord): PluginKind {
+  if (plugin.kind === 'system' || plugin.kind === 'block') return plugin.kind;
+  // Legacy uploaded rows without kind: treat as block if they have an entryPoint.
+  return 'block';
+}
+
+function isBuiltinSystemPlugin(plugin: PluginRecord): boolean {
+  const pluginType = (plugin.type || '').toLowerCase();
+  const pluginName = (plugin.name || '').toLowerCase();
+
+  const isMenuRedirect =
+    plugin.pluginId === 'menu-redirect' ||
+    (pluginName.includes('menu') && pluginName.includes('redirect'));
+  if (isMenuRedirect) return true;
+
+  const isFormBuilder =
+    plugin.pluginId === 'form-builder' ||
+    pluginType === 'form' ||
+    (pluginName.includes('form') && pluginName.includes('builder'));
+  return isFormBuilder;
+}
+
 export const PluginProvider = ({ children }: { children: ReactNode }) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [activePlugins, setActivePlugins] = useState<PluginRecord[]>([]);
 
   const loadPlugins = async () => {
     try {
-      const response = await fetch('/api/dashboard/plugins/get-plugins');
+      const response = await fetch(apiUrl('/api/dashboard/plugins/get-plugins'));
       const data = await response.json();
 
       if (response.ok) {
@@ -45,8 +72,11 @@ export const PluginProvider = ({ children }: { children: ReactNode }) => {
         pluginRegistry.clear();
 
         for (const plugin of activeOnes as PluginRecord[]) {
+          const kind = resolveKind(plugin);
           const isUploadedPlugin =
-            plugin.source === 'uploaded' || plugin.entryPoint?.startsWith('/plugins/');
+            plugin.source === 'uploaded' ||
+            plugin.entryPoint?.startsWith('/plugins/') ||
+            plugin.blockEntry?.startsWith('/plugins/');
 
           const pluginType = (plugin.type || '').toLowerCase();
           const pluginName = plugin.name.toLowerCase();
@@ -55,27 +85,18 @@ export const PluginProvider = ({ children }: { children: ReactNode }) => {
             pluginName.includes('slider') ||
             pluginName.includes('casarole');
 
-          // Menu Redirect is a dashboard *system* (accessed via the sidebar),
-          // not a placeable block. Skip registering it in the block registry so
-          // it never appears in the editor's add-blocks panel. It stays in
-          // `activePlugins`, which the dashboard sidebar uses to surface its nav.
-          const isMenuRedirect =
-            plugin.pluginId === 'menu-redirect' ||
-            (pluginName.includes('menu') && pluginName.includes('redirect'));
-          if (isMenuRedirect) continue;
+          // First-party dashboard systems: stay in activePlugins for sidebar,
+          // never register a generic palette stub.
+          if (isBuiltinSystemPlugin(plugin)) continue;
 
-          // Form Builder is likewise a dashboard *system* (sidebar nav + a
-          // dedicated 'form-block' palette block). Skip the legacy mock-form
-          // block registration so it isn't double-listed in the editor.
-          const isFormBuilder =
-            plugin.pluginId === 'form-builder' ||
-            pluginType === 'form' ||
-            (pluginName.includes('form') && pluginName.includes('builder'));
-          if (isFormBuilder) continue;
+          // Uploaded system plugins without a placeable block: sidebar only.
+          const blockScript = plugin.blockEntry || plugin.entryPoint;
+          if (kind === 'system' && !blockScript) continue;
 
-          let Component: React.ComponentType<Record<string, unknown>> = Library.GenericPlugin as unknown as React.ComponentType<Record<string, unknown>>;
+          let Component: React.ComponentType<Record<string, unknown>> =
+            Library.GenericPlugin as unknown as React.ComponentType<Record<string, unknown>>;
 
-          if (isUploadedPlugin) {
+          if (isUploadedPlugin && blockScript) {
             Component = ExternalPluginBlock as unknown as React.ComponentType<Record<string, unknown>>;
           } else if (
             pluginType === 'chart' ||
@@ -99,11 +120,19 @@ export const PluginProvider = ({ children }: { children: ReactNode }) => {
             Component = Library.SeoPlugin as unknown as React.ComponentType<Record<string, unknown>>;
           }
 
+          const registryPlugin =
+            isUploadedPlugin && blockScript
+              ? {
+                  ...plugin,
+                  entryPoint: blockScript,
+                }
+              : plugin;
+
           pluginRegistry.register({
             id: plugin.pluginId,
             name: isSliderPlugin ? 'Slider' : plugin.name,
             type: 'block',
-            component: (props) => <Component {...props} plugin={plugin} />,
+            component: (props) => <Component {...props} plugin={registryPlugin} />,
             metadata: {
               icon: plugin.icon,
               description: isSliderPlugin

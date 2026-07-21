@@ -132,7 +132,7 @@ export async function POST(req: NextRequest) {
     if (mongoDB === 'uri') {
       envContent = `
       # NEXT CMS UNCOMMENT BELOW FOR EXTERNAL BACKEND USE (External APIs only)
-      # NEXT_PUBLIC_BACKEND_URL=http://localhost:5000
+      # NEXT_PUBLIC_BACKEND_URL=http://localhost:3012
       JWT_SECRET=${jwtSecret}
       MONGODB_URI=${uri}
       MONGODB=${mongoDB}
@@ -147,7 +147,7 @@ export async function POST(req: NextRequest) {
     } else if (mongoDB === 'atlas') {
       envContent = `
       # NEXT CMS UNCOMMENT BELOW FOR EXTERNAL BACKEND USE (External APIs only)
-      # NEXT_PUBLIC_BACKEND_URL=http://localhost:5000
+      # NEXT_PUBLIC_BACKEND_URL=http://localhost:3012
       JWT_SECRET=${jwtSecret}
       MONGODB_USERNAME=${username}
       MONGODB_PASSWORD=${password}
@@ -165,7 +165,7 @@ export async function POST(req: NextRequest) {
     } else if (mongoDB === 'compass') {
       envContent = `
       # NEXT CMS UNCOMMENT BELOW FOR EXTERNAL BACKEND USE (External APIs only)
-      # NEXT_PUBLIC_BACKEND_URL=http://localhost:5000
+      # NEXT_PUBLIC_BACKEND_URL=http://localhost:3012
       JWT_SECRET=${jwtSecret}
       MONGODB_USERNAME=${username}
       MONGODB_PASSWORD=${password}

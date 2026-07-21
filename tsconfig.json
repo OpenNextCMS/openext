@@ -20,7 +20,8 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@cms/theme": ["./src/modules/themeEngine/sdk/index.ts"]
     }
   },
   "include": [

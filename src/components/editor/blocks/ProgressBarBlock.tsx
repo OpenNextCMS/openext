@@ -105,7 +105,7 @@ export const ProgressBarBlock = ({ block, isEditing = true }: BlockRendererProps
             suppressContentEditableWarning={true}
             onBlur={(e) => handleTextBlur('percentage', e.currentTarget.textContent || '')}
             style={{ 
-              color: block.style?.color || '#ffffff',
+              color: block.style?.color || 'var(--color-text, #ffffff)',
               fontSize: block.style?.fontSize,
               fontWeight: block.style?.fontWeight
             }}

@@ -5,7 +5,9 @@ import {
   hasBlockedExtension,
   isSafeRelativePath,
   parsePluginManifest,
+  resolvePluginKind,
   type ParsedPluginManifest,
+  type PluginKind,
 } from '@/lib/plugins/manifest';
 import {
   ensurePluginsDirectory,
@@ -14,9 +16,15 @@ import {
   toPublicPluginPath,
 } from '@/lib/plugins/storage';
 
-interface ExtractedPlugin {
-  manifest: ParsedPluginManifest;
-  entryPoint: string;
+export interface ExtractedPlugin {
+  manifest: ParsedPluginManifest & { kind: PluginKind; type: string };
+  kind: PluginKind;
+  /** Public URL for canvas block entry (block plugins, or system with block/). */
+  entryPoint?: string;
+  /** Public URL for dashboard admin HTML. */
+  adminEntry?: string;
+  /** Public URL for optional system placeable block. */
+  blockEntry?: string;
   styles: string[];
 }
 
@@ -52,7 +60,9 @@ function findManifestRelativePath(filePaths: string[], rootPrefix: string): stri
   const exact = candidates.find((filePath) => filePath === 'manifest.json');
   if (exact) return exact;
 
-  const shallow = candidates.find((filePath) => !filePath.slice(0, -'manifest.json'.length).includes('/'));
+  const shallow = candidates.find(
+    (filePath) => !filePath.slice(0, -'manifest.json'.length).includes('/')
+  );
   if (shallow) return shallow;
 
   if (candidates.length > 0) return candidates[0];
@@ -75,6 +85,14 @@ async function readManifest(zip: JSZip, manifestPath: string): Promise<ParsedPlu
   }
 
   return parsePluginManifest(parsed);
+}
+
+async function assertFileExists(absolutePath: string, label: string): Promise<void> {
+  try {
+    await fs.access(absolutePath);
+  } catch {
+    throw new Error(`${label} was not found in the package`);
+  }
 }
 
 export async function extractPluginZip(
@@ -109,6 +127,7 @@ export async function extractPluginZip(
   await fs.mkdir(pluginDir, { recursive: true });
 
   const manifestDirPrefix = pluginRootInZip ? `${pluginRootInZip}/` : '';
+  const extractedRelativePaths: string[] = [];
 
   for (const [filePath, zipEntry] of fileEntries) {
     const normalized = normalizeZipPath(filePath);
@@ -123,6 +142,8 @@ export async function extractPluginZip(
       continue;
     }
 
+    extractedRelativePaths.push(relativePath);
+
     const outputPath = path.join(pluginDir, relativePath);
     const outputDir = path.dirname(outputPath);
     await fs.mkdir(outputDir, { recursive: true });
@@ -131,26 +152,86 @@ export async function extractPluginZip(
     await fs.writeFile(outputPath, content);
   }
 
-  const entryRelativePath = manifest.entryPoint;
-  const entryAbsolutePath = path.join(pluginDir, entryRelativePath);
+  // Also write manifest into the plugin dir for runtime inspection
+  await fs.writeFile(
+    path.join(pluginDir, 'manifest.json'),
+    JSON.stringify(
+      {
+        id: pluginId,
+        name: manifest.name,
+        version: manifest.version,
+        description: manifest.description,
+        author: manifest.author,
+        type: manifest.type,
+        kind: manifest.kind,
+        icon: manifest.icon,
+        entryPoint: manifest.entryPoint,
+        adminEntry: manifest.adminEntry,
+        blockEntry: manifest.blockEntry,
+        styles: manifest.styles,
+        customElement: manifest.customElement,
+      },
+      null,
+      2
+    ),
+    'utf8'
+  );
 
-  try {
-    await fs.access(entryAbsolutePath);
-  } catch {
-    throw new Error(`manifest.json entryPoint "${manifest.entryPoint}" was not found in the package`);
-  }
+  const resolved = resolvePluginKind(manifest, extractedRelativePaths);
 
-  for (const stylePath of manifest.styles) {
-    try {
-      await fs.access(path.join(pluginDir, stylePath));
-    } catch {
-      throw new Error(`manifest.json styles entry "${stylePath}" was not found in the package`);
+  if (resolved.kind === 'block') {
+    if (!resolved.entryPoint) {
+      throw new Error('Block plugin requires an entryPoint');
+    }
+    await assertFileExists(
+      path.join(pluginDir, resolved.entryPoint),
+      `manifest.json entryPoint "${resolved.entryPoint}"`
+    );
+  } else {
+    if (!resolved.adminEntry) {
+      throw new Error('System plugin requires an adminEntry');
+    }
+    await assertFileExists(
+      path.join(pluginDir, resolved.adminEntry),
+      `System plugin admin entry "${resolved.adminEntry}"`
+    );
+    if (resolved.blockEntry) {
+      await assertFileExists(
+        path.join(pluginDir, resolved.blockEntry),
+        `System plugin block entry "${resolved.blockEntry}"`
+      );
     }
   }
 
+  for (const stylePath of resolved.styles) {
+    await assertFileExists(path.join(pluginDir, stylePath), `manifest.json styles entry "${stylePath}"`);
+  }
+
+  const publicEntry = resolved.entryPoint
+    ? toPublicPluginPath(pluginId, resolved.entryPoint)
+    : undefined;
+  const publicAdmin = resolved.adminEntry
+    ? toPublicPluginPath(pluginId, resolved.adminEntry)
+    : undefined;
+  const publicBlock = resolved.blockEntry
+    ? toPublicPluginPath(pluginId, resolved.blockEntry)
+    : undefined;
+
   return {
-    manifest: { ...manifest, pluginId },
-    entryPoint: toPublicPluginPath(pluginId, entryRelativePath),
-    styles: manifest.styles.map((stylePath) => toPublicPluginPath(pluginId, stylePath)),
+    manifest: {
+      ...manifest,
+      pluginId,
+      kind: resolved.kind,
+      type: resolved.type,
+      entryPoint: resolved.entryPoint,
+      adminEntry: resolved.adminEntry,
+      blockEntry: resolved.blockEntry,
+      styles: resolved.styles,
+    },
+    kind: resolved.kind,
+    entryPoint: publicEntry,
+    adminEntry: publicAdmin,
+    blockEntry: publicBlock,
+    styles: resolved.styles.map((stylePath) => toPublicPluginPath(pluginId, stylePath)),
   };
 }

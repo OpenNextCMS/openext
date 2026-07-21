@@ -1,4 +1,5 @@
 'use client';
+import { apiUrl } from '@/lib/apiClient';
 
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -20,7 +21,7 @@ export default function CommentsSection({ blogId }: { blogId: string }) {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    fetch(`/api/comments?blogId=${blogId}`)
+    fetch(apiUrl(`/api/comments?blogId=${blogId}`))
       .then((r) => r.json())
       .then((res) => Array.isArray(res?.data) && setComments(res.data))
       .catch(() => {});
@@ -34,7 +35,7 @@ export default function CommentsSection({ blogId }: { blogId: string }) {
     }
     setSubmitting(true);
     try {
-      const res = await fetch('/api/comments', {
+      const res = await fetch(apiUrl('/api/comments'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...form, blogId }),

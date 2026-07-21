@@ -7,6 +7,12 @@ import { Loader2, Save, ArrowLeft, Check, Lock, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { loadTheme, setName, setDraft, markSaved } from '@/redux/themeBuilderSlice';
 import { mergeThemeConfig, DEFAULT_THEME_CONFIG } from '@/lib/theme/cssVars.site';
@@ -41,6 +47,9 @@ export function ThemeBuilder({ themeId }: { themeId: string }) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [activating, setActivating] = useState(false);
+  const [showActivateDialog, setShowActivateDialog] = useState(false);
+  const [applyToEditor, setApplyToEditor] = useState(true);
+  const [openEditorAfter, setOpenEditorAfter] = useState(true);
   const [meta, setMeta] = useState<{ isSystemTheme: boolean; isActive: boolean }>({
     isSystemTheme: false,
     isActive: false,
@@ -102,9 +111,29 @@ export function ThemeBuilder({ themeId }: { themeId: string }) {
   const activate = async () => {
     setActivating(true);
     try {
-      await themeApi.activate(themeId);
+      const result = await themeApi.activate(themeId, { applyToEditor });
       setMeta((m) => ({ ...m, isActive: true }));
-      toast.success('Theme activated');
+      setShowActivateDialog(false);
+      if (applyToEditor) {
+        toast.success(
+          result.appliedToEditor?.blockCount
+            ? `Activated — ${result.appliedToEditor.blockCount} sections loaded into the page editor`
+            : 'Theme activated — layout loaded into the page editor'
+        );
+        if (openEditorAfter && result.appliedToEditor?.slug) {
+          window.open(
+            `/Editor?pagename=${encodeURIComponent(result.appliedToEditor.slug)}${
+              result.appliedToEditor.pageId
+                ? `&pageId=${encodeURIComponent(result.appliedToEditor.pageId)}`
+                : ''
+            }&pageType=page`,
+            '_blank',
+            'noopener'
+          );
+        }
+      } else {
+        toast.success('Theme activated — live site updated (page editor unchanged)');
+      }
     } catch (e) {
       toast.error((e as Error).message);
     } finally {
@@ -161,7 +190,15 @@ export function ThemeBuilder({ themeId }: { themeId: string }) {
         </div>
         <div className="flex items-center gap-2">
           {!meta.isActive ? (
-            <Button variant="outline" onClick={activate} disabled={activating}>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setApplyToEditor(true);
+                setOpenEditorAfter(true);
+                setShowActivateDialog(true);
+              }}
+              disabled={activating}
+            >
               {activating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
               Activate
             </Button>
@@ -203,6 +240,57 @@ export function ThemeBuilder({ themeId }: { themeId: string }) {
 
         <ThemePreview />
       </div>
+
+      <Dialog open={showActivateDialog} onOpenChange={setShowActivateDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Activate “{name || 'theme'}”</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 text-sm">
+            <p className="text-muted-foreground">
+              Make this the live site theme.
+            </p>
+            <label className="flex cursor-pointer items-start gap-3 rounded-lg border bg-muted/30 p-3">
+              <input
+                type="checkbox"
+                className="mt-1"
+                checked={applyToEditor}
+                onChange={(e) => setApplyToEditor(e.target.checked)}
+              />
+              <span>
+                <span className="font-medium text-foreground">
+                  Also load this theme into the page editor
+                </span>
+                <span className="mt-0.5 block text-muted-foreground">
+                  Replace the homepage with this theme’s sections so you can edit them freely.
+                </span>
+              </span>
+            </label>
+            {applyToEditor ? (
+              <label className="flex cursor-pointer items-start gap-3 rounded-lg border bg-muted/30 p-3">
+                <input
+                  type="checkbox"
+                  className="mt-1"
+                  checked={openEditorAfter}
+                  onChange={(e) => setOpenEditorAfter(e.target.checked)}
+                />
+                <span>
+                  <span className="font-medium text-foreground">Open the page editor after activating</span>
+                </span>
+              </label>
+            ) : null}
+            <div className="flex justify-end gap-2 border-t pt-4">
+              <Button variant="outline" onClick={() => setShowActivateDialog(false)}>
+                Cancel
+              </Button>
+              <Button disabled={activating} onClick={activate}>
+                {activating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                Activate{applyToEditor ? ' & load editor' : ''}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

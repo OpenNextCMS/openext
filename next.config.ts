@@ -1,7 +1,15 @@
 import type { NextConfig } from 'next';
+import { resolveBackendBaseUrl } from './src/lib/backendUrl';
+
+const backendBaseUrl = resolveBackendBaseUrl();
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+
+  // Windows: limit static-generation workers to reduce flaky child_process spawns.
+  experimental: {
+    cpus: 1,
+  },
 
   images: {
     domains: ['localhost'],
@@ -18,20 +26,24 @@ const nextConfig: NextConfig = {
   },
 
   async rewrites() {
+    // No NEXT_PUBLIC_BACKEND_URL → Next.js serves /api locally (no proxy).
+    if (!backendBaseUrl) {
+      return [];
+    }
+
+    const BACKEND = backendBaseUrl;
+
     return [
+      { source: '/theme-assets/:path*', destination: `${BACKEND}/theme-assets/:path*` },
       {
-        source: '/uploads/:path*',
-        destination: '/public/uploads/:path*',
+        source: '/theme-engine-assets/:path*',
+        destination: `${BACKEND}/theme-engine-assets/:path*`,
       },
-      // Editor image uploads are written to public/upload/backgrounds at runtime.
-      // Next.js won't serve files added to public/ after startup, so serve them
-      // through a dynamic route instead. As an `afterFiles` rewrite this only
-      // takes effect when the static file isn't served (i.e. the 404 case), so
-      // the one asset that existed at boot keeps being served statically.
-      {
-        source: '/upload/backgrounds/:file',
-        destination: '/api/editor/uploads/:file',
-      },
+      { source: '/plugins/:path*', destination: `${BACKEND}/plugins/:path*` },
+      { source: '/uploads/:path*', destination: `${BACKEND}/uploads/:path*` },
+      { source: '/upload/:path*', destination: `${BACKEND}/upload/:path*` },
+      // Fallback: same-origin /api calls proxy to the external Express backend
+      { source: '/api/:path*', destination: `${BACKEND}/api/:path*` },
     ];
   },
 };

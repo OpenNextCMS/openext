@@ -1,4 +1,5 @@
 'use client';
+import { apiUrl } from '@/lib/apiClient';
 
 import { useState, useEffect } from 'react';
 import { ZodError } from 'zod';
@@ -109,9 +110,7 @@ const NewRegisterForm = () => {
       const userDbName = safeStorageGet('USER_DB_NAME');
       const pageDbName = safeStorageGet('PAGE_DB_NAME');
 
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || ''; // Use external backend URL if it exists
-
-      const setupResponse = await fetch(`${backendUrl}/api/auth/setup-databases`, {
+      const setupResponse = await fetch(apiUrl(`/api/auth/setup-databases`), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userDbName, pageDbName, mongodbCredentials }),
@@ -123,7 +122,7 @@ const NewRegisterForm = () => {
       }
 
       if (setupData.success) {
-        fetch(`${backendUrl}/api/auth/admin`, {
+        fetch(apiUrl(`/api/auth/admin`), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

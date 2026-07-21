@@ -42,6 +42,7 @@ import { FieldLibrary, LIB_PREFIX } from './FieldLibrary';
 import { FormCanvas, CANVAS_DROPPABLE_ID } from './FormCanvas';
 import { PropertiesPanel } from './PropertiesPanel';
 import { FormSettingsDrawer } from './FormSettingsDrawer';
+import { DashboardPluginShell } from '@/components/dashboard/DashboardPluginShell';
 
 const AUTOSAVE_DEBOUNCE_MS = 1500;
 
@@ -176,9 +177,10 @@ export default function FormBuilder({ formId }: { formId: string }) {
   }
 
   return (
-    <div className="flex h-[calc(100vh-7rem)] flex-col">
+    <DashboardPluginShell>
+      <div className="flex min-h-0 flex-1 flex-col bg-background">
       {/* Toolbar */}
-      <div className="flex items-center justify-between gap-2 border-b bg-background px-4 py-2">
+      <div className="flex shrink-0 items-center justify-between gap-2 border-b bg-background px-4 py-2">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           {isSaving ? (
             <span className="flex items-center gap-1">
@@ -215,10 +217,16 @@ export default function FormBuilder({ formId }: { formId: string }) {
 
       {/* 3-column builder */}
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
-        <div className="grid flex-1 grid-cols-[260px_1fr_320px] overflow-hidden">
-          <FieldLibrary onAdd={(type) => dispatch(addField({ field: createField(type, fields.length) }))} />
-          <FormCanvas />
-          <PropertiesPanel />
+        <div className="grid min-h-0 flex-1 grid-cols-[260px_1fr_320px] overflow-hidden">
+          <div className="min-h-0 overflow-hidden">
+            <FieldLibrary onAdd={(type) => dispatch(addField({ field: createField(type, fields.length) }))} />
+          </div>
+          <div className="min-h-0 overflow-hidden">
+            <FormCanvas />
+          </div>
+          <div className="min-h-0 overflow-hidden">
+            <PropertiesPanel />
+          </div>
         </div>
       </DndContext>
 
@@ -252,6 +260,7 @@ export default function FormBuilder({ formId }: { formId: string }) {
           )}
         </DialogContent>
       </Dialog>
-    </div>
+      </div>
+    </DashboardPluginShell>
   );
 }

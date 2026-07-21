@@ -1,4 +1,5 @@
 'use client';
+import { apiUrl } from '@/lib/apiClient';
 
 import { useState, useEffect, useCallback } from 'react';
 import type React from 'react';
@@ -89,16 +90,12 @@ export default function UserManagementDashboard() {
     role: 0,
   });
   const [activeTab, setActiveTab] = useState('user-list');
-  const [filteredUsers, setFilteredUsers] = useState<UserData[]>([]);
-
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
-
-  // Fetch roles for both components
+  const [filteredUsers, setFilteredUsers] = useState<UserData[]>([]);  // Fetch roles for both components
   useEffect(() => {
     const fetchRoles = async () => {
       setIsLoading(true);
       try {
-        const res = await fetch(`${backendUrl}/api/get-role`, { credentials: 'include' });
+        const res = await fetch(apiUrl(`/api/get-role`), { credentials: 'include' });
         if (res.ok) {
           const data = await res.json();
           setRoles(data.roles || []);
@@ -111,12 +108,12 @@ export default function UserManagementDashboard() {
       }
     };
     fetchRoles();
-  }, [backendUrl]);
+  }, []);
 
   const fetchUsers = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(`${backendUrl}/api/sub-users/get-users`);
+      const response = await fetch(apiUrl(`/api/sub-users/get-users`));
       if (!response.ok) throw new Error('Failed to fetch users');
       const data = await response.json();
       setUsers(data.users || []);
@@ -127,7 +124,7 @@ export default function UserManagementDashboard() {
     } finally {
       setIsLoading(false);
     }
-  }, [backendUrl]); // Depend only on `backendUrl`
+  }, []); // run once on mount
 
   useEffect(() => {
     fetchUsers();
@@ -159,7 +156,7 @@ export default function UserManagementDashboard() {
     try {
       const { _id, ...dataToSubmit } = userData;
       console.log(_id);
-      const res = await fetch(`${backendUrl}/api/sub-users/add-users`, {
+      const res = await fetch(apiUrl(`/api/sub-users/add-users`), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(dataToSubmit),
@@ -194,7 +191,7 @@ export default function UserManagementDashboard() {
   // User List Handlers
   const handleUserUpdate = async (userId: string, updates: { role?: number; active?: boolean }) => {
     try {
-      const response = await fetch(`${backendUrl}/api/sub-users/update-users/${userId}`, {
+      const response = await fetch(apiUrl(`/api/sub-users/update-users/${userId}`), {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -228,7 +225,7 @@ export default function UserManagementDashboard() {
     if (!selectedUser) return;
 
     try {
-      const response = await fetch(`${backendUrl}/api/sub-users/update-users/${selectedUser._id}`, {
+      const response = await fetch(apiUrl(`/api/sub-users/update-users/${selectedUser._id}`), {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

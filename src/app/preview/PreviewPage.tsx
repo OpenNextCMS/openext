@@ -1,15 +1,20 @@
-// app/preview/PreviewPage.tsx
 'use client';
+
+import { apiUrl } from '@/lib/apiClient';
+// app/preview/PreviewPage.tsx
 
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import renderFromJson from '@/components/ReusableComponents/RenderFromJson';
 import { safeStorageGet } from '@/utils/safeStorage';
 import SiteChromeLayout from '@/components/layout/SiteChromeLayout';
+import ActiveThemeScope from '@/components/theme-preview/ActiveThemeScope';
 
 import PageClientWrapper from '@/components/PageClientWrapper';
 
 import type { BlockData, Page } from '@/types';
+import { isThemeEngineCanvas } from '@/modules/themeEngine/bridges/pageBridge';
+import { visibleCanvasBlocks } from '@/lib/editor/normalizePageBlocks';
 
 export default function PreviewPage() {
   const searchParams = useSearchParams();
@@ -23,8 +28,6 @@ export default function PreviewPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
-
     const loadDraftData = () => {
       const draft = safeStorageGet(`preview:draft-${pagename}`);
       if (draft) {
@@ -59,8 +62,7 @@ export default function PreviewPage() {
         const loadLayoutBlocks = async () => {
           if (!pagename) return;
 
-          const layoutRes = await fetch(
-            `${backendUrl}/api/pages/get-page?name=${encodeURIComponent(pagename)}&key=allowMe`,
+          const layoutRes = await fetch(apiUrl(`/api/pages/get-page?name=${encodeURIComponent(pagename)}&key=allowMe`),
             {
               cache: 'no-store',
               credentials: 'include',
@@ -81,8 +83,8 @@ export default function PreviewPage() {
         }
 
         const url = pagename
-          ? `${backendUrl}/api/pages/get-page?name=${encodeURIComponent(pagename)}&key=allowMe`
-          : `${backendUrl}/api/pages/get-pages`;
+          ? apiUrl(`/api/pages/get-page?name=${encodeURIComponent(pagename)}&key=allowMe`)
+          : apiUrl(`/api/pages/get-pages`);
 
         const res = await fetch(url, {
           cache: 'no-store',
@@ -120,18 +122,29 @@ export default function PreviewPage() {
 
   if (loading) return <div className="p-6">Loading preview...</div>;
 
+  const themeEnginePage = isThemeEngineCanvas(blocks);
+  const previewBlocks = visibleCanvasBlocks(blocks);
+  const previewHeader = themeEnginePage ? [] : headerBlocks;
+  const previewFooter = themeEnginePage ? [] : footerBlocks;
+
   const pageContent =
-    blocks.length > 0 ? (
-      blocks.map((block) => renderFromJson(block))
+    previewBlocks.length > 0 ? (
+      previewBlocks.map((block) => renderFromJson(block))
     ) : (
       <div className="p-6 text-center text-muted-foreground">No blocks to preview</div>
     );
 
   return (
     <PageClientWrapper>
-      <SiteChromeLayout headerBlocks={headerBlocks} footerBlocks={footerBlocks}>
-        {pageContent}
-      </SiteChromeLayout>
+      {themeEnginePage ? (
+        <div className="rendered-page">{pageContent}</div>
+      ) : (
+      <ActiveThemeScope>
+        <SiteChromeLayout headerBlocks={previewHeader} footerBlocks={previewFooter}>
+          {pageContent}
+        </SiteChromeLayout>
+      </ActiveThemeScope>
+      )}
     </PageClientWrapper>
   );
 }

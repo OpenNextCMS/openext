@@ -47,7 +47,7 @@ export function FieldLibrary({ onAdd }: { onAdd: (type: FieldLibraryItem['type']
   }, [query]);
 
   return (
-    <aside className="flex h-full flex-col border-r bg-background">
+    <aside className="flex h-full min-h-0 flex-col overflow-hidden border-r bg-background">
       <div className="border-b p-3">
         <h2 className="mb-2 text-sm font-semibold">Fields</h2>
         <div className="relative">
@@ -61,7 +61,7 @@ export function FieldLibrary({ onAdd }: { onAdd: (type: FieldLibraryItem['type']
           />
         </div>
       </div>
-      <div className="flex-1 space-y-4 overflow-y-auto p-3">
+      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-3">
         {grouped.map((g) => (
           <div key={g.cat}>
             <div className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">

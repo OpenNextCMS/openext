@@ -1,4 +1,5 @@
 'use client';
+import { apiUrl } from '@/lib/apiClient';
 
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -31,15 +32,11 @@ const defaultForm: AiSettingsForm = {
 export default function AiSettingsPage() {
   const [form, setForm] = useState<AiSettingsForm>(defaultForm);
   const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
-
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
-
-  useEffect(() => {
+  const [isSaving, setIsSaving] = useState(false);  useEffect(() => {
     const loadSettings = async () => {
       try {
         setIsLoading(true);
-        const response = await fetch(`${backendUrl}/api/dashboard/ai-settings`, {
+        const response = await fetch(apiUrl(`/api/dashboard/ai-settings`), {
           credentials: 'include',
         });
         const result = await response.json();
@@ -60,7 +57,7 @@ export default function AiSettingsPage() {
     };
 
     loadSettings();
-  }, [backendUrl]);
+  }, []);
 
   const updateField = <K extends keyof AiSettingsForm>(field: K, value: AiSettingsForm[K]) => {
     setForm((current) => ({ ...current, [field]: value }));
@@ -69,7 +66,7 @@ export default function AiSettingsPage() {
   const saveSettings = async () => {
     try {
       setIsSaving(true);
-      const response = await fetch(`${backendUrl}/api/dashboard/ai-settings`, {
+      const response = await fetch(apiUrl(`/api/dashboard/ai-settings`), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

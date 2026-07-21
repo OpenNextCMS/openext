@@ -56,7 +56,7 @@ export default function LeftPanel({ canEdit }: { canEdit: boolean }) {
   const items: ContentItem[] = contentTab ? filtered : typed[tab as 'anchors' | 'external'];
 
   return (
-    <div className="flex h-full flex-col border-r">
+    <div className="flex h-full min-h-0 flex-col overflow-hidden border-r">
       {/* Tabs */}
       <div className="flex flex-wrap gap-1 border-b p-2">
         {TABS.map((t) => (
@@ -106,7 +106,7 @@ export default function LeftPanel({ canEdit }: { canEdit: boolean }) {
       </div>
 
       {/* Cards */}
-      <div className="flex-1 space-y-2 overflow-y-auto p-2">
+      <div className="min-h-0 flex-1 space-y-2 overflow-y-auto p-2">
         {items.length === 0 ? (
           <p className="px-1 py-6 text-center text-xs text-muted-foreground">
             {contentTab ? 'No items.' : `Type a ${tab === 'anchors' ? 'anchor' : 'URL'} above to create a draggable card.`}

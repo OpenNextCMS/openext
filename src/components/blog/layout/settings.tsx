@@ -1,4 +1,5 @@
 'use client';
+import { apiUrl } from '@/lib/apiClient';
 
 import React, { useEffect, useState } from 'react';
 import { Input } from '@/components/ui/input';
@@ -73,7 +74,7 @@ function LatestPostsPanel(p: PanelProps) {
 function FeaturedPostPanel(p: PanelProps) {
   const [posts, setPosts] = useState<{ _id: string; pageName: string }[]>([]);
   useEffect(() => {
-    fetch('/api/blogs?status=published&limit=50')
+    fetch(apiUrl('/api/blogs?status=published&limit=50'))
       .then((r) => r.json())
       .then((res) => Array.isArray(res?.data) && setPosts(res.data))
       .catch(() => {});
@@ -103,7 +104,7 @@ function FeaturedPostPanel(p: PanelProps) {
 function AuthorPanel(p: PanelProps) {
   const [authors, setAuthors] = useState<{ _id: string; name: string }[]>([]);
   useEffect(() => {
-    fetch('/api/authors')
+    fetch(apiUrl('/api/authors'))
       .then((r) => r.json())
       .then((res) => Array.isArray(res?.data) && setAuthors(res.data))
       .catch(() => {});

@@ -126,6 +126,20 @@ export const ThemeService = {
     if (data.componentVariants !== undefined) {
       existing.componentVariants = data.componentVariants;
     }
+
+    // Keep package tokens in sync so Theme Builder edits remain exportable.
+    if (data.theme !== undefined && existing.isPackageTheme) {
+      existing.tokens = {
+        ...(existing.tokens || {}),
+        colors: existing.theme.colors,
+        typography: existing.theme.typography,
+        spacing: existing.theme.spacing,
+        radius: existing.theme.radius,
+        shadows: existing.theme.shadows,
+        layout: existing.theme.layout,
+      };
+    }
+
     await existing.save();
 
     // If the edited theme is the active one, drop the cached copy.
@@ -134,32 +148,22 @@ export const ThemeService = {
   },
 
   async delete(id: string): Promise<void> {
-    const pageDb = await getPageDbConnection();
-    const Theme = getThemeModel(pageDb);
-    const existing = await Theme.findById(id).exec();
-    if (!existing) throw new ApiError('Theme not found', 404);
-    if (existing.isSystemTheme) {
-      throw new ApiError('System themes cannot be deleted.', 403);
-    }
-    if (existing.isActive) {
-      throw new ApiError('Cannot delete the active theme. Activate another theme first.', 409);
-    }
-    await existing.deleteOne();
+    // Package-aware delete (cleans storage/themes/{slug} for ZIP themes).
+    const { ThemeRegistry } = await import('@/modules/theme/services/ThemeRegistry');
+    await ThemeRegistry.delete(id);
   },
 
   /** Make exactly one theme active (unsets all others), then bust the cache. */
-  async activate(id: string): Promise<ITheme & { _id: string }> {
-    const pageDb = await getPageDbConnection();
-    const Theme = getThemeModel(pageDb);
-    const target = await Theme.findById(id).exec();
-    if (!target) throw new ApiError('Theme not found', 404);
-
-    await Theme.updateMany({ _id: { $ne: target._id } }, { $set: { isActive: false } });
-    target.isActive = true;
-    await target.save();
-
-    invalidateActiveThemeCache();
-    return toPlain(target.toObject());
+  async activate(
+    id: string,
+    opts?: { applyToEditor?: boolean }
+  ): Promise<ITheme & { _id: string }> {
+    // Package-aware activation (WebsitePreferences, header/footer, ISR, cache).
+    const { ThemeActivationService } = await import(
+      '@/modules/theme/services/ThemeActivationService'
+    );
+    const result = await ThemeActivationService.activate(id, opts);
+    return result.theme;
   },
 
   /** Activate a theme by its slug (e.g. a system theme like 'startup' or 'dark'). */

@@ -1,4 +1,5 @@
 'use client';
+import { apiUrl } from '@/lib/apiClient';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
@@ -57,9 +58,9 @@ export default function BlogEditor({ id }: { id: string }) {
   // ---- Load options + existing post ----
   useEffect(() => {
     Promise.all([
-      fetch('/api/authors').then((r) => r.json()),
-      fetch('/api/categories').then((r) => r.json()),
-      fetch('/api/tags').then((r) => r.json()),
+      fetch(apiUrl('/api/authors')).then((r) => r.json()),
+      fetch(apiUrl('/api/categories')).then((r) => r.json()),
+      fetch(apiUrl('/api/tags')).then((r) => r.json()),
     ])
       .then(([a, c, t]) =>
         setOptions({
@@ -74,7 +75,7 @@ export default function BlogEditor({ id }: { id: string }) {
   useEffect(() => {
     if (isNew) return;
     setLoading(true);
-    fetch(`/api/blogs/${id}`)
+    fetch(apiUrl(`/api/blogs/${id}`))
       .then((r) => r.json())
       .then((res) => {
         const b = res?.data;

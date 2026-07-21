@@ -1,4 +1,5 @@
 'use client';
+import { apiUrl } from '@/lib/apiClient';
 
 import type React from 'react';
 
@@ -64,6 +65,9 @@ interface PluginRecord {
   isActive?: boolean;
   hasUpdate?: boolean;
   icon: string;
+  kind?: 'block' | 'system';
+  source?: string;
+  adminEntry?: string;
 }
 
 interface MarketplacePlugin {
@@ -167,7 +171,7 @@ export default function PluginManagementPage() {
   // Fetch installed plugins on mount
   const fetchPlugins = async () => {
     try {
-      const response = await fetch('/api/dashboard/plugins/get-plugins');
+      const response = await fetch(apiUrl('/api/dashboard/plugins/get-plugins'));
       const data = await response.json();
       if (response.ok) {
         setInstalledPluginsList(data.plugins || []);
@@ -234,7 +238,7 @@ export default function PluginManagementPage() {
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await fetch('/api/dashboard/plugins/upload-plugin', {
+      const response = await fetch(apiUrl('/api/dashboard/plugins/upload-plugin'), {
         method: 'POST',
         body: formData,
       });
@@ -280,7 +284,7 @@ export default function PluginManagementPage() {
   const togglePluginStatus = async (pluginId: string) => {
     const newStatus = !activePlugins[pluginId];
     try {
-      const response = await fetch('/api/dashboard/plugins/toggle-plugin', {
+      const response = await fetch(apiUrl('/api/dashboard/plugins/toggle-plugin'), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ pluginId, isActive: newStatus }),
@@ -301,7 +305,7 @@ export default function PluginManagementPage() {
 
   const deletePlugin = async (pluginId: string) => {
     try {
-      const response = await fetch(`/api/dashboard/plugins/remove-plugin?pluginId=${pluginId}`, {
+      const response = await fetch(apiUrl(`/api/dashboard/plugins/remove-plugin?pluginId=${pluginId}`), {
         method: 'DELETE',
       });
 
@@ -326,7 +330,7 @@ export default function PluginManagementPage() {
     }
 
     try {
-      const response = await fetch('/api/dashboard/plugins/install-plugin', {
+      const response = await fetch(apiUrl('/api/dashboard/plugins/install-plugin'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -379,7 +383,7 @@ export default function PluginManagementPage() {
 
     const installedEdit = editingPlugin as PluginRecord;
     try {
-      const response = await fetch('/api/dashboard/plugins/update-plugin', {
+      const response = await fetch(apiUrl('/api/dashboard/plugins/update-plugin'), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -509,6 +513,12 @@ export default function PluginManagementPage() {
                                     <Badge variant={activePlugins[pId] ? 'default' : 'outline'}>
                                       {activePlugins[pId] ? 'Active' : 'Inactive'}
                                     </Badge>
+                                    {plugin.kind === 'system' && (
+                                      <Badge variant="secondary">System</Badge>
+                                    )}
+                                    {plugin.kind === 'block' && plugin.source === 'uploaded' && (
+                                      <Badge variant="outline">Block</Badge>
+                                    )}
                                     {plugin.hasUpdate && (
                                       <Badge variant="secondary">Update Available</Badge>
                                     )}
@@ -533,6 +543,14 @@ export default function PluginManagementPage() {
                               </Label>
                             </div>
                             <div className="flex gap-2">
+                              {plugin.kind === 'system' && plugin.source === 'uploaded' && (
+                                <Button variant="default" size="sm" asChild>
+                                  <a href={`/dashboard/plugins/runtime/${encodeURIComponent(pId)}`}>
+                                    <Settings className="w-4 h-4 mr-2" />
+                                    Open
+                                  </a>
+                                </Button>
+                              )}
                               <Button
                                 variant="outline"
                                 size="sm"
@@ -654,7 +672,10 @@ export default function PluginManagementPage() {
                     Plugin Upload
                   </CardTitle>
                   <CardDescription>
-                    Upload a .zip file containing manifest.json, your plugin assets, and an entry script.
+                    Upload a .zip with <code className="text-xs">manifest.json</code>. The CMS
+                    detects whether it is an editor <strong>block</strong> or a dashboard{' '}
+                    <strong>system</strong> plugin from <code className="text-xs">kind</code> or
+                    folders (<code className="text-xs">admin/</code>).
                   </CardDescription>
                 </CardHeader>
 
@@ -840,18 +861,48 @@ export default function PluginManagementPage() {
                       ))}
                     </ul>
 
-                    <div className="pt-4 space-y-3">
+                    <div className="pt-4 space-y-4">
                       <p className="text-sm font-medium">
-                        Your zip must include a root-level <code className="text-xs bg-muted px-1 py-0.5 rounded">manifest.json</code> with at least <code className="text-xs bg-muted px-1 py-0.5 rounded">name</code> and <code className="text-xs bg-muted px-1 py-0.5 rounded">version</code>, plus the files referenced by <code className="text-xs bg-muted px-1 py-0.5 rounded">entryPoint</code>.
+                        Include a root-level{' '}
+                        <code className="text-xs bg-muted px-1 py-0.5 rounded">manifest.json</code>{' '}
+                        with at least <code className="text-xs bg-muted px-1 py-0.5 rounded">name</code>{' '}
+                        and <code className="text-xs bg-muted px-1 py-0.5 rounded">version</code>.
                       </p>
-                      <pre className="text-xs bg-background/80 border rounded-lg p-3 overflow-x-auto">{`{
-  "id": "my-plugin",
-  "name": "My Plugin",
+
+                      <div className="space-y-2">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                          Block plugin (drag onto editor canvas)
+                        </p>
+                        <pre className="text-xs bg-background/80 border rounded-lg p-3 overflow-x-auto">{`{
+  "id": "my-widget",
+  "name": "My Widget",
   "version": "1.0.0",
+  "kind": "block",
   "entryPoint": "index.js",
   "styles": ["styles.css"],
-  "customElement": "my-plugin-block"
+  "customElement": "my-widget-block"
 }`}</pre>
+                      </div>
+
+                      <div className="space-y-2">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                          System plugin (sidebar dashboard app)
+                        </p>
+                        <pre className="text-xs bg-background/80 border rounded-lg p-3 overflow-x-auto">{`{
+  "id": "my-crm",
+  "name": "My CRM",
+  "version": "1.0.0",
+  "kind": "system",
+  "adminEntry": "admin/index.html"
+}`}</pre>
+                        <p className="text-xs text-muted-foreground">
+                          Or omit <code className="bg-muted px-1 rounded">kind</code> and include an{' '}
+                          <code className="bg-muted px-1 rounded">admin/</code> folder — auto-detected as
+                          system. Optional <code className="bg-muted px-1 rounded">block/</code> adds a
+                          placeable canvas block too. Persist data via{' '}
+                          <code className="bg-muted px-1 rounded">/api/plugins/&lt;id&gt;/data</code>.
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </CardContent>

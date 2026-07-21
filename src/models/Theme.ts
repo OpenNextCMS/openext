@@ -30,11 +30,30 @@ const ThemeSchema = new Schema<IThemeDocument>(
     name: { type: String, required: true, trim: true },
     slug: { type: String, required: true, trim: true, lowercase: true },
     description: { type: String, default: '' },
+    author: { type: String, default: '' },
     isDefault: { type: Boolean, default: false },
     isSystemTheme: { type: Boolean, default: false },
     isActive: { type: Boolean, default: false, index: true },
+    /** Package ingested and assets on disk (Theme Package Manager). */
+    installed: { type: Boolean, default: false, index: true },
+    /** Originated from a ZIP theme package (vs. in-app create / system seed). */
+    isPackageTheme: { type: Boolean, default: false, index: true },
     version: { type: String, default: '1.0.0' },
+    packageVersion: { type: String, default: '' },
     previewImage: { type: String, default: '' },
+    thumbnail: { type: String, default: '' },
+    /** Server-side storage directory for extracted package files (never expose to clients). */
+    assetsPath: { type: String, default: '' },
+    templates: { type: Schema.Types.Mixed, default: {} },
+    layouts: { type: Schema.Types.Mixed, default: {} },
+    presets: { type: Schema.Types.Mixed, default: {} },
+    tokens: { type: Schema.Types.Mixed, default: {} },
+    supports: { type: [String], default: [] },
+    /**
+     * When true, activating this theme also rewrites the homepage body
+     * (and optional header/footer chrome) to match layouts/default + variants.
+     */
+    applyPageLayout: { type: Boolean, default: false },
     createdBy: { type: String },
     theme: { type: ThemeConfigSchema, default: () => ({}) },
     componentVariants: { type: Schema.Types.Mixed, default: {} },

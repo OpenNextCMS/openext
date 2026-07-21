@@ -11,6 +11,8 @@ import Box from './blocks/Box';
 import { useAppSelector, useAppDispatch } from '@/redux/hooks';
 import { hasVerticalHeader } from '@/utils/headerLayout';
 import { removeBlock } from '@/redux/canvasSlice';
+import { visibleCanvasBlocks } from '@/lib/editor/normalizePageBlocks';
+import { isThemeEngineCanvas } from '@/modules/themeEngine/bridges/pageBridge';
 
 interface CanvasProps {
   canvasBlocks: Block[];
@@ -82,6 +84,8 @@ export default function Canvas({ canvasBlocks, viewMode }: CanvasProps) {
   const [zoom, setZoom] = useState(100);
   const headerBlocks = useAppSelector((state) => state.canvas.headerBlocks);
   const footerBlocks = useAppSelector((state) => state.canvas.footerBlocks);
+  const themeEnginePage = isThemeEngineCanvas(canvasBlocks as BlockData[]);
+  const displayBlocks = visibleCanvasBlocks(canvasBlocks as BlockData[]);
 
   // Tablet/mobile are shown in a true device-width iframe (see below) so real
   // CSS breakpoints fire; desktop stays the fully editable drag-and-drop canvas.
@@ -123,7 +127,9 @@ export default function Canvas({ canvasBlocks, viewMode }: CanvasProps) {
 
           <div className="flex items-center gap-4">
             <div className="text-sm text-muted-foreground">
-              {canvasBlocks.length} {canvasBlocks.length === 1 ? 'block' : 'blocks'} added
+              {themeEnginePage
+                ? 'Theme Engine · exact render'
+                : `${canvasBlocks.length} ${canvasBlocks.length === 1 ? 'block' : 'blocks'} added`}
             </div>
             <div className="flex items-center gap-2">
               <button
@@ -146,6 +152,13 @@ export default function Canvas({ canvasBlocks, viewMode }: CanvasProps) {
         </div>
         {isPreview ? (
           <div className="mx-auto h-[calc(100vh-220px)] w-full">
+            {themeEnginePage ? (
+              <div className="rendered-page h-full min-h-[900px]">
+                {displayBlocks.map((block, index) => (
+                  <RenderBlock key={`prev-te-${index}`} block={block} isEditing={false} />
+                ))}
+              </div>
+            ) : (
             <DevicePreviewFrame width={deviceWidth}>
               <div className="rendered-page">
                 {headerBlocks.map((block, index) => (
@@ -155,7 +168,7 @@ export default function Canvas({ canvasBlocks, viewMode }: CanvasProps) {
                     isEditing={false}
                   />
                 ))}
-                {canvasBlocks.map((block, index) => (
+                {displayBlocks.map((block, index) => (
                   <RenderBlock key={`prev-b-${index}`} block={block} isEditing={false} />
                 ))}
                 {footerBlocks.map((block, index) => (
@@ -167,7 +180,18 @@ export default function Canvas({ canvasBlocks, viewMode }: CanvasProps) {
                 ))}
               </div>
             </DevicePreviewFrame>
+            )}
           </div>
+        ) : themeEnginePage ? (
+        <div
+          className={`w-full transition-all mx-auto rendered-page ${
+            isOver ? 'border-primary border-dashed border-2' : ''
+          }`}
+        >
+          {displayBlocks.map((block, index) => (
+            <RenderBlock key={`${block.uniqueId || 'theme'}-${index}`} block={block} isEditing={true} />
+          ))}
+        </div>
         ) : (
         <div
           className={`bg-background dark:bg-background w-full h-auto shadow-md p-4 rounded-lg border ${getWidthClass()} transition-all mx-auto rendered-page ${
@@ -188,7 +212,7 @@ export default function Canvas({ canvasBlocks, viewMode }: CanvasProps) {
                       items={canvasBlocks.map((block) => block.uniqueId || '')}
                       strategy={verticalListSortingStrategy}
                     >
-                      {canvasBlocks.map((block, index) => (
+                      {displayBlocks.map((block, index) => (
                         <SortableCanvasBlock
                           key={`${block.uniqueId || 'block'}-${index}`}
                           block={block}
@@ -228,7 +252,7 @@ export default function Canvas({ canvasBlocks, viewMode }: CanvasProps) {
                   items={canvasBlocks.map((block) => block.uniqueId || '')}
                   strategy={verticalListSortingStrategy}
                 >
-                  {canvasBlocks.map((block, index) => (
+                  {displayBlocks.map((block, index) => (
                     <SortableCanvasBlock
                       key={`${block.uniqueId || 'block'}-${index}`}
                       block={block}

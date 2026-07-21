@@ -1,4 +1,5 @@
 'use client';
+import { apiUrl } from '@/lib/apiClient';
 
 import { useState, useEffect, useCallback } from 'react';
 import { DndContext, DragEndEvent, closestCorners } from '@dnd-kit/core';
@@ -23,8 +24,10 @@ import {
 } from '@/redux/canvasSlice';
 import { BlockDragData, Block } from '@/types/index';
 import { ROOT_CONTAINER } from '@/utils/blockContainers';
-import { safeStorageGet, safeStorageSet } from '@/utils/safeStorage';
+import { safeStorageGet, safeStorageRemove, safeStorageSet } from '@/utils/safeStorage';
 import { pluginRegistry } from '@/lib/pluginRegistry';
+import { normalizeBlocksForEditor, visibleCanvasBlocks } from '@/lib/editor/normalizePageBlocks';
+import { isThemeEngineCanvas } from '@/modules/themeEngine/bridges/pageBridge';
 
 // Resizable sidebar constraints (in pixels)
 const SIDEBAR_MIN_WIDTH = 200;
@@ -113,6 +116,7 @@ const editableBlockTypes: EditableBlockType[] = [
   'ecommerce-info',
   'blog-feed',
   'form-block',
+  'theme-engine-frame',
 ];
 
 const getEditableBlockType = (type?: string): EditableBlockType => {
@@ -151,8 +155,6 @@ export default function Editor() {
   const dispatch = useAppDispatch();
   const canvasBlocks = useAppSelector((state) => state.canvas.blocks);
   const viewMode = useAppSelector((state) => state.canvas.viewMode);
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
-
   useEffect(() => {
     const getDBPageData = async () => {
       if (typeof window === 'undefined') return;
@@ -163,11 +165,9 @@ export default function Editor() {
 
       const persistKey = `persist:root-${pageName}`;
       const existing = safeStorageGet(persistKey);
-      console.log('Persisted data found:', !!existing); // Log if persisted data exists
 
       try {
-        const response = await fetch(
-          `${backendUrl}/api/pages/get-page?name=${pageName}&key=allowMe`,
+        const response = await fetch(apiUrl(`/api/pages/get-page?name=${pageName}&key=allowMe`),
           {
             cache: 'no-store',
             credentials: 'include',
@@ -179,22 +179,23 @@ export default function Editor() {
         }
 
         const data = await response.json();
-        console.log('Fetched page data:', data); // Log fetched data
 
-        const headerBlocks = data?.header?.component || [];
-        const footerBlocks = data?.footer?.component || [];
-        console.log('Extracted headerBlocks:', headerBlocks); // Log extracted header blocks
-        console.log('Extracted footerBlocks:', footerBlocks); // Log extracted footer blocks
+        const pageBlocks = normalizeBlocksForEditor(data?.page?.component || []);
+        const themeEnginePage = isThemeEngineCanvas(pageBlocks);
+
+        const headerBlocks = themeEnginePage
+          ? []
+          : normalizeBlocksForEditor(data?.header?.component || []);
+        const footerBlocks = themeEnginePage
+          ? []
+          : normalizeBlocksForEditor(data?.footer?.component || []);
+        const blocks = pageBlocks;
 
         if (existing) {
-          // If already persisted, just update the layout blocks (header/footer)
-          // so the user sees the latest global layout parts
           dispatch(setLayoutBlocks({ headerBlocks, footerBlocks }));
-          // Removed 'return;' here to allow fetching and setting main blocks
         }
 
-        const blocks = data?.page?.component || [];
-        console.log('Blocks from fetched data (if no existing data):', blocks); // Log blocks if no existing data
+        safeStorageRemove(persistKey);
 
         const newCanvasState = {
           blocks,
@@ -208,14 +209,13 @@ export default function Editor() {
         };
 
         dispatch(setCanvasState(newCanvasState));
-        // Redux-persist will now save this to localStorage
       } catch (error) {
         console.error('Error fetching canvas data:', error);
       }
     };
 
     getDBPageData();
-  }, [dispatch, backendUrl]);
+  }, [dispatch]);
 
   useEffect(() => {
     document.body.style.overflow = 'hidden';

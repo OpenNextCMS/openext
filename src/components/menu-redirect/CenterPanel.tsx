@@ -132,7 +132,7 @@ export default function CenterPanel({
   }
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full min-h-0 flex-col overflow-hidden">
       <div className="flex items-center justify-between border-b p-3">
         <div>
           <p className="text-xs uppercase tracking-wider text-muted-foreground">Header</p>
@@ -145,7 +145,7 @@ export default function CenterPanel({
         ) : null}
       </div>
 
-      <div className="flex-1 space-y-2 overflow-y-auto p-3">
+      <div className="min-h-0 flex-1 space-y-2 overflow-y-auto p-3">
         {menuItems.length === 0 ? (
           <p className="py-8 text-center text-sm text-muted-foreground">
             This header has no menu items.
