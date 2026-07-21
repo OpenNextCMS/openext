@@ -167,7 +167,7 @@ export default function HeaderCanvas({
   const totalCount = countItems(menuItems);
 
   return (
-    <div className="flex h-full flex-col bg-muted/30">
+    <div className="flex h-full min-h-0 flex-col overflow-hidden bg-muted/30">
       {/* Toolbar */}
       <div className="flex items-center justify-between border-b bg-background p-3">
         <div>
@@ -187,7 +187,7 @@ export default function HeaderCanvas({
       </div>
 
       {/* Canvas */}
-      <div className="flex flex-1 flex-col items-center overflow-y-auto p-6">
+      <div className="flex min-h-0 flex-1 flex-col items-center overflow-y-auto p-6">
         <p className="mb-4 flex items-center gap-1.5 text-xs text-muted-foreground">
           <MousePointerClick className="h-3.5 w-3.5" />
           Drag a page or blog from the left onto a menu item to set its redirect.

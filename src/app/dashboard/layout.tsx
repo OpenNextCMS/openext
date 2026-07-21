@@ -45,12 +45,14 @@ export default async function DashboardLayout({ children }: { children: React.Re
     <ThemeProvider>
       <AvatarProvider>
         <SonnerToaster position="top-right" richColors closeButton />
-        <div className="flex min-h-screen bg-background text-foreground">
+        <div className="flex h-dvh overflow-hidden bg-background text-foreground">
           <Sidebar />
 
-          <div className="flex-1">
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
             <Navbar user={user} />
-            <main className="bg-muted/40 m-5 mt-[5.25rem]">{children}</main>
+            <main className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-y-contain bg-muted/40 p-5">
+              {children}
+            </main>
           </div>
         </div>
       </AvatarProvider>

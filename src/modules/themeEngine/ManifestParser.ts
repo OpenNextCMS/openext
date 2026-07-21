@@ -25,6 +25,7 @@ const KNOWN_TOP_LEVEL_KEYS = new Set([
   'version',
   'description',
   'compatibleCmsVersion',
+  'entry',
   'templates',
   'partials',
   'menus',
@@ -84,7 +85,7 @@ const tsPath = z
  * template. `catchall` applies the same `.tsx` + traversal rules to custom keys.
  */
 const templatesSchema = z
-  .object({ index: tsxPath })
+  .object({ index: tsxPath.optional() })
   .catchall(tsxPath.optional());
 
 const partialsSchema = z
@@ -161,7 +162,17 @@ const manifestSchema = z
         ctx.addIssue({ code: z.ZodIssueCode.custom, message: `"${v}" is not a valid semver range (e.g. ^2.0.0)` });
       }
     }),
-    templates: templatesSchema,
+    entry: z
+      .string()
+      .superRefine((value, ctx) => {
+        const issue = pathIssues(value);
+        if (issue) ctx.addIssue({ code: z.ZodIssueCode.custom, message: issue });
+        else if (!value.endsWith('.ts')) {
+          ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'must end in ".ts"' });
+        }
+      })
+      .optional(),
+    templates: templatesSchema.optional(),
     partials: partialsSchema.optional(),
     menus: z.array(menuSchema).optional(),
     widgetAreas: z.array(widgetAreaSchema).optional(),
@@ -175,11 +186,22 @@ const manifestSchema = z
   // Forward compatibility: unknown top-level keys are dropped, not rejected.
   .strip()
   .superRefine((data, ctx) => {
+    const hasEntry = typeof data.entry === 'string' && data.entry.length > 0;
+    const hasIndex = typeof data.templates?.index === 'string';
+    if (!hasEntry && !hasIndex) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['templates', 'index'],
+        message: 'is required when "entry" is not declared — provide templates.index or entry (e.g. theme.ts).',
+      });
+    }
+
     const sections = data.editableSections ?? [];
     if (sections.length === 0) return;
 
     const blockTypes = new Set((data.blocks ?? []).map((b) => b.type));
     const seenIds = new Set<string>();
+    const deferBlockCheck = hasEntry;
 
     sections.forEach((section, i) => {
       if (seenIds.has(section.id)) {
@@ -191,7 +213,7 @@ const manifestSchema = z
       }
       seenIds.add(section.id);
 
-      if (!blockTypes.has(section.blockType)) {
+      if (!deferBlockCheck && !blockTypes.has(section.blockType)) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ['editableSections', i, 'blockType'],
@@ -255,20 +277,12 @@ export class ManifestParser {
 
     const parsed = result.data;
 
-    // `templates.index` is mandatory — Zod enforces presence, but an explicit
-    // `undefined` from a catchall key could slip through, so assert it here too.
-    if (!parsed.templates || typeof parsed.templates.index !== 'string') {
-      throw new ManifestValidationError([
-        { path: 'templates.index', message: 'is required — a theme must declare an index template.' },
-      ]);
-    }
-
-    // Drop any custom template key whose value came through as undefined so the
-    // resulting record contains only real string paths.
-    const templates: ThemeManifest['templates'] = { index: parsed.templates.index };
-    for (const [key, value] of Object.entries(parsed.templates)) {
-      if (key === 'index') continue;
-      if (typeof value === 'string') templates[key] = value;
+    const templates: ThemeManifest['templates'] = { index: parsed.templates?.index ?? '' };
+    if (parsed.templates) {
+      for (const [key, value] of Object.entries(parsed.templates)) {
+        if (key === 'index') continue;
+        if (typeof value === 'string') templates[key] = value;
+      }
     }
 
     const slug = parsed.slug ?? deriveSlug(parsed.name);
@@ -292,6 +306,7 @@ export class ManifestParser {
       version: parsed.version,
       description: parsed.description,
       compatibleCmsVersion: parsed.compatibleCmsVersion,
+      ...(parsed.entry ? { entry: parsed.entry } : {}),
       templates,
       partials: parsed.partials ?? {},
       menus: parsed.menus ?? [],

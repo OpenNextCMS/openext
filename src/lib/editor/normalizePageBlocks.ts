@@ -1,4 +1,5 @@
 import type { BlockData } from '@/redux/canvasSlice';
+import { isThemeEngineCanvas } from '@/modules/themeEngine/bridges/pageBridge';
 import { parseThemeSectionContent } from '@/modules/themeEngine/sectionSchema';
 
 type EditorBlockType = BlockData['type'];
@@ -29,20 +30,25 @@ function cmsTypeForThemeBlock(sectionId: string, blockType: string): EditorBlock
 }
 
 /**
- * Prepare DB blocks for the classic block editor:
- * - drop theme-engine-frame (iframe wrapper)
- * - convert Theme Engine section blocks into normal CMS blocks
+ * Prepare DB blocks for the classic block editor.
+ *
+ * Theme Engine pages (leading `theme-engine-frame` block) are kept intact so the
+ * canvas can iframe the exact theme via ThemeEngineFrameBlock. Section blocks
+ * after the frame hold editable schema data — they must not be converted to
+ * generic CMS block types.
  */
 export function normalizeBlocksForEditor(raw: unknown): BlockData[] {
   if (!Array.isArray(raw)) return [];
+
+  if (isThemeEngineCanvas(raw)) {
+    return raw.filter((item) => item && typeof item === 'object').map((item) => item as BlockData);
+  }
 
   const out: BlockData[] = [];
 
   for (const item of raw) {
     if (!item || typeof item !== 'object') continue;
     const block = item as BlockData & { type?: string; content?: unknown };
-
-    if (block.type === 'theme-engine-frame') continue;
 
     const parsed = parseThemeSectionContent(block.content);
     if (parsed) {
@@ -59,4 +65,10 @@ export function normalizeBlocksForEditor(raw: unknown): BlockData[] {
   }
 
   return out;
+}
+
+/** Blocks that should render on the editor/preview surface (excludes theme section data rows). */
+export function visibleCanvasBlocks(blocks: BlockData[]): BlockData[] {
+  if (!isThemeEngineCanvas(blocks)) return blocks;
+  return blocks.filter((b) => b.type === 'theme-engine-frame');
 }

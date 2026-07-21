@@ -8,9 +8,11 @@ import {
   ALLOWED_EXTENSIONS,
   BLOCKS_DIR,
   CMS_VERSION,
+  isAllowedTsPath,
   MANIFEST_FILENAME,
   MAX_UNPACKED_BYTES,
 } from './config';
+import { themeBootstrap } from './registration/ThemeBootstrap';
 import type { ThemeManifest, ThemeValidationIssue, ThemeValidationResult } from './types';
 
 /**
@@ -55,6 +57,7 @@ export const ValidationCode = {
   EDITABLE_SECTION_UNKNOWN_BLOCK: 'EDITABLE_SECTION_UNKNOWN_BLOCK',
   EDITABLE_SECTION_DUPLICATE_ID: 'EDITABLE_SECTION_DUPLICATE_ID',
   EDITABLE_SECTION_MISSING_SCHEMA: 'EDITABLE_SECTION_MISSING_SCHEMA',
+  REGISTRATION_INVALID: 'REGISTRATION_INVALID',
 } as const;
 
 interface WalkedFile {
@@ -147,14 +150,17 @@ export class ThemeValidator {
           });
         }
       } else if (ext === '.ts') {
-        if (!f.rel.startsWith(`${BLOCKS_DIR}/`)) {
+        if (!isAllowedTsPath(f.rel)) {
           errors.push({
             code: ValidationCode.DISALLOWED_TS_LOCATION,
-            message: `.ts is only allowed for block schema files under "${BLOCKS_DIR}/".`,
+            message: `.ts is only allowed for theme.ts, block schemas (under "${BLOCKS_DIR}/"), editor/, hooks/, middleware/, or providers/.`,
             file: f.rel,
           });
         }
       } else if (!ALLOWED_EXTENSIONS.has(ext)) {
+        if (ext === '.md' && (f.rel === 'README.md' || f.rel.endsWith('/README.md'))) {
+          continue;
+        }
         errors.push({
           code: ValidationCode.DISALLOWED_EXTENSION,
           message: `File type "${ext || '(none)'}" is not allowed in a theme package.`,
@@ -191,35 +197,45 @@ export class ThemeValidator {
     }
 
     // ---- manifest-dependent checks (2, 3, 4) --------------------------------
+    let resolvedManifest: ThemeManifest | undefined = manifest ?? undefined;
     if (manifest) {
+      // Registration bootstrap validation (auto-discovery + entry file checks)
+      const bootstrap = await themeBootstrap.validateOnly(root, manifest);
+      resolvedManifest = bootstrap.manifest;
+      for (const e of bootstrap.errors) errors.push({ ...e, code: e.code ?? ValidationCode.REGISTRATION_INVALID });
+      for (const w of bootstrap.warnings) warnings.push({ ...w, code: w.code ?? ValidationCode.REGISTRATION_INVALID });
+      const effectiveManifest = bootstrap.manifest;
+
       // 2. CMS compatibility
-      if (!semver.satisfies(this.currentCmsVersion, manifest.compatibleCmsVersion, { includePrerelease: true })) {
+      if (!semver.satisfies(this.currentCmsVersion, effectiveManifest.compatibleCmsVersion, { includePrerelease: true })) {
         errors.push({
           code: ValidationCode.CMS_INCOMPATIBLE,
-          message: `Theme requires CMS "${manifest.compatibleCmsVersion}" but this CMS is ${this.currentCmsVersion}.`,
+          message: `Theme requires CMS "${effectiveManifest.compatibleCmsVersion}" but this CMS is ${this.currentCmsVersion}.`,
           file: MANIFEST_FILENAME,
         });
       }
 
       // 3 + 4. every declared path exists on disk (index called out explicitly)
       const declared: { field: string; rel: string; required: boolean }[] = [];
-      declared.push({ field: 'templates.index', rel: manifest.templates.index, required: true });
-      for (const [key, value] of Object.entries(manifest.templates)) {
+      if (effectiveManifest.templates.index) {
+        declared.push({ field: 'templates.index', rel: effectiveManifest.templates.index, required: true });
+      }
+      for (const [key, value] of Object.entries(effectiveManifest.templates)) {
         if (key === 'index' || typeof value !== 'string') continue;
         declared.push({ field: `templates.${key}`, rel: value, required: false });
       }
-      for (const [key, value] of Object.entries(manifest.partials)) {
+      for (const [key, value] of Object.entries(effectiveManifest.partials)) {
         if (typeof value === 'string') declared.push({ field: `partials.${key}`, rel: value, required: false });
       }
-      (manifest.blocks ?? []).forEach((b, i) => {
+      (effectiveManifest.blocks ?? []).forEach((b, i) => {
         declared.push({ field: `blocks[${i}].rendererPath`, rel: b.rendererPath, required: false });
         if (b.schemaPath) declared.push({ field: `blocks[${i}].schemaPath`, rel: b.schemaPath, required: false });
       });
 
       // Editable-section cross-checks (parser already validates shape + block refs).
-      const blockByType = new Map((manifest.blocks ?? []).map((b) => [b.type, b]));
+      const blockByType = new Map((effectiveManifest.blocks ?? []).map((b) => [b.type, b]));
       const seenSectionIds = new Set<string>();
-      (manifest.editableSections ?? []).forEach((section, i) => {
+      (effectiveManifest.editableSections ?? []).forEach((section, i) => {
         if (seenSectionIds.has(section.id)) {
           errors.push({
             code: ValidationCode.EDITABLE_SECTION_DUPLICATE_ID,
@@ -268,7 +284,7 @@ export class ThemeValidator {
       }
     }
 
-    return { valid: errors.length === 0, manifest: manifest ?? undefined, errors, warnings };
+    return { valid: errors.length === 0, manifest: resolvedManifest, errors, warnings };
   }
 
   /** Read + parse theme.json, pushing every manifest issue as a validation error. */

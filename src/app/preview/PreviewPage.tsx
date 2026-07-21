@@ -13,6 +13,8 @@ import ActiveThemeScope from '@/components/theme-preview/ActiveThemeScope';
 import PageClientWrapper from '@/components/PageClientWrapper';
 
 import type { BlockData, Page } from '@/types';
+import { isThemeEngineCanvas } from '@/modules/themeEngine/bridges/pageBridge';
+import { visibleCanvasBlocks } from '@/lib/editor/normalizePageBlocks';
 
 export default function PreviewPage() {
   const searchParams = useSearchParams();
@@ -25,7 +27,8 @@ export default function PreviewPage() {
   const [footerBlocks, setFooterBlocks] = useState<BlockData[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {    const loadDraftData = () => {
+  useEffect(() => {
+    const loadDraftData = () => {
       const draft = safeStorageGet(`preview:draft-${pagename}`);
       if (draft) {
         const parsedDraft = JSON.parse(draft) as BlockData[];
@@ -119,20 +122,29 @@ export default function PreviewPage() {
 
   if (loading) return <div className="p-6">Loading preview...</div>;
 
+  const themeEnginePage = isThemeEngineCanvas(blocks);
+  const previewBlocks = visibleCanvasBlocks(blocks);
+  const previewHeader = themeEnginePage ? [] : headerBlocks;
+  const previewFooter = themeEnginePage ? [] : footerBlocks;
+
   const pageContent =
-    blocks.length > 0 ? (
-      blocks.map((block) => renderFromJson(block))
+    previewBlocks.length > 0 ? (
+      previewBlocks.map((block) => renderFromJson(block))
     ) : (
       <div className="p-6 text-center text-muted-foreground">No blocks to preview</div>
     );
 
   return (
     <PageClientWrapper>
+      {themeEnginePage ? (
+        <div className="rendered-page">{pageContent}</div>
+      ) : (
       <ActiveThemeScope>
-        <SiteChromeLayout headerBlocks={headerBlocks} footerBlocks={footerBlocks}>
+        <SiteChromeLayout headerBlocks={previewHeader} footerBlocks={previewFooter}>
           {pageContent}
         </SiteChromeLayout>
       </ActiveThemeScope>
+      )}
     </PageClientWrapper>
   );
 }

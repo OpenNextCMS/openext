@@ -26,7 +26,8 @@ import { BlockDragData, Block } from '@/types/index';
 import { ROOT_CONTAINER } from '@/utils/blockContainers';
 import { safeStorageGet, safeStorageRemove, safeStorageSet } from '@/utils/safeStorage';
 import { pluginRegistry } from '@/lib/pluginRegistry';
-import { normalizeBlocksForEditor } from '@/lib/editor/normalizePageBlocks';
+import { normalizeBlocksForEditor, visibleCanvasBlocks } from '@/lib/editor/normalizePageBlocks';
+import { isThemeEngineCanvas } from '@/modules/themeEngine/bridges/pageBridge';
 
 // Resizable sidebar constraints (in pixels)
 const SIDEBAR_MIN_WIDTH = 200;
@@ -115,6 +116,7 @@ const editableBlockTypes: EditableBlockType[] = [
   'ecommerce-info',
   'blog-feed',
   'form-block',
+  'theme-engine-frame',
 ];
 
 const getEditableBlockType = (type?: string): EditableBlockType => {
@@ -178,9 +180,16 @@ export default function Editor() {
 
         const data = await response.json();
 
-        const headerBlocks = normalizeBlocksForEditor(data?.header?.component || []);
-        const footerBlocks = normalizeBlocksForEditor(data?.footer?.component || []);
-        const blocks = normalizeBlocksForEditor(data?.page?.component || []);
+        const pageBlocks = normalizeBlocksForEditor(data?.page?.component || []);
+        const themeEnginePage = isThemeEngineCanvas(pageBlocks);
+
+        const headerBlocks = themeEnginePage
+          ? []
+          : normalizeBlocksForEditor(data?.header?.component || []);
+        const footerBlocks = themeEnginePage
+          ? []
+          : normalizeBlocksForEditor(data?.footer?.component || []);
+        const blocks = pageBlocks;
 
         if (existing) {
           dispatch(setLayoutBlocks({ headerBlocks, footerBlocks }));

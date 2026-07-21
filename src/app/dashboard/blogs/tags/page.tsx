@@ -21,7 +21,8 @@ interface TagItem {
   slug: string;
 }
 
-export default function TagsPage() {  const [tags, setTags] = useState<TagItem[]>([]);
+export default function TagsPage() {
+  const [tags, setTags] = useState<TagItem[]>([]);
   const [name, setName] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);

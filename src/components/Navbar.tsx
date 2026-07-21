@@ -63,8 +63,8 @@ export default function Navbar({ user }: { user: { username: string; email: stri
   };
 
   return (
-    <nav className="bg-background border-b shadow-sm fixed top-0 right-0 w-full z-10">
-      <div className="flex items-center justify-end px-6 h-16">
+    <nav className="sticky top-0 z-10 shrink-0 border-b bg-background shadow-sm">
+      <div className="flex h-16 items-center justify-end px-6">
         <div className="flex items-center gap-4">
           <ThemeToggle />
           <span className="text-foreground font-medium">{user?.username}</span>

@@ -14,6 +14,7 @@ import {
   serializeThemeSectionContent,
 } from '@/modules/themeEngine/sectionSchema';
 import type { ThemeSectionFieldSchema } from '@/modules/themeEngine/types';
+import ThemeImageFieldEditor from './ThemeImageFieldEditor';
 
 type SectionMeta = {
   id: string;
@@ -277,6 +278,11 @@ export default function ThemeSectionInspector({
                       value={Array.isArray(value) ? (value as Record<string, unknown>[]) : []}
                       onChange={(next) => updateSelectedData(field.key, next)}
                     />
+                  ) : field.type === 'image' ? (
+                    <ThemeImageFieldEditor
+                      value={String(value ?? '')}
+                      onChange={(next) => updateSelectedData(field.key, next)}
+                    />
                   ) : (
                     <Input
                       type={field.type === 'number' ? 'number' : field.type === 'color' ? 'color' : 'text'}
@@ -331,20 +337,42 @@ function ListFieldEditor({
               Remove
             </button>
           </div>
-          {fields.map((field) => (
-            <Input
-              key={field.key}
-              className="h-7 border-white/10 bg-neutral-950 text-xs text-white"
-              placeholder={field.label}
-              value={String(item[field.key] ?? '')}
-              onChange={(e) => {
-                const next = value.map((row, i) =>
-                  i === index ? { ...row, [field.key]: e.target.value } : row
-                );
-                onChange(next);
-              }}
-            />
-          ))}
+          {fields.map((field) =>
+            field.type === 'image' ? (
+              <ThemeImageFieldEditor
+                key={field.key}
+                label={field.label}
+                value={String(item[field.key] ?? '')}
+                compact
+                onChange={(next) => {
+                  const nextRows = value.map((row, i) =>
+                    i === index ? { ...row, [field.key]: next } : row
+                  );
+                  onChange(nextRows);
+                }}
+              />
+            ) : (
+              <Input
+                key={field.key}
+                className="h-7 border-white/10 bg-neutral-950 text-xs text-white"
+                placeholder={field.label}
+                type={field.type === 'number' ? 'number' : field.type === 'url' ? 'url' : 'text'}
+                value={String(item[field.key] ?? '')}
+                onChange={(e) => {
+                  const next = value.map((row, i) =>
+                    i === index
+                      ? {
+                          ...row,
+                          [field.key]:
+                            field.type === 'number' ? Number(e.target.value) : e.target.value,
+                        }
+                      : row
+                  );
+                  onChange(next);
+                }}
+              />
+            )
+          )}
         </div>
       ))}
       <Button

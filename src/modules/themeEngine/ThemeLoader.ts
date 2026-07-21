@@ -7,7 +7,7 @@ import { ThemeCache, themeCache } from './ThemeCache';
 import { assetManager, type AssetManager } from './AssetManager';
 import { ThemeLoadError } from './errors';
 import { COMPILED_ROOT, THEMES_ROOT } from './config';
-import { readDiskManifest } from './readDiskManifest';
+import { themeBootstrap } from './registration/ThemeBootstrap';
 import type { LoadedTheme, LoadedThemeBlock, ThemeComponent } from './types';
 
 /**
@@ -41,12 +41,26 @@ export class ThemeLoader {
       throw new ThemeLoadError(slug, `theme is not installed (status: ${doc?.status ?? 'not found'}).`);
     }
 
-    // Prefer on-disk theme.json so package updates (new editableSections/blocks)
-    // apply without a full re-upload when the Mongo manifest is stale.
-    const diskManifest = await readDiskManifest(slug);
-    const manifest = diskManifest ?? doc.manifest;
-    const version = diskManifest?.version ?? doc.version;
     const root = path.join(THEMES_ROOT, slug);
+
+    const bootstrap = await themeBootstrap.bootstrap(root, {
+      executeEntry: true,
+      slug,
+      version: doc.version,
+    });
+
+    const manifest =
+      bootstrap.manifest.templates.index || (bootstrap.manifest.blocks?.length ?? 0) > 0
+        ? bootstrap.manifest
+        : doc.manifest;
+    const version = manifest.version ?? doc.version;
+    const registry = bootstrap.registry;
+
+    if (bootstrap.errors.length > 0) {
+      for (const err of bootstrap.errors) {
+        this.warn(slug, err.file ?? 'theme.ts', err.message);
+      }
+    }
 
     // Seed AssetManager's sync lookup cache (spec §4.9) — the ONLY place the
     // already-computed hashes move from the DB doc into that pure-lookup cache.
@@ -70,14 +84,22 @@ export class ThemeLoader {
 
     const blocks: Record<string, LoadedThemeBlock> = {};
     for (const b of manifest.blocks ?? []) {
+      const regBlock = registry.blocks[b.type];
+      if (regBlock?.renderer) {
+        blocks[b.type] = {
+          Renderer: regBlock.renderer,
+          schema: regBlock.schema ?? (b.schemaPath ? await this.loadExport(slug, version, root, b.schemaPath) : undefined),
+        };
+        continue;
+      }
       const renderer = await this.loadComponent(slug, version, root, b.rendererPath);
-      if (!renderer) continue; // logged already; this block type is simply absent.
+      if (!renderer) continue;
       let schema: unknown;
       if (b.schemaPath) schema = await this.loadExport(slug, version, root, b.schemaPath);
       blocks[b.type] = { Renderer: renderer, schema };
     }
 
-    return { manifest, templates, partials, blocks };
+    return { manifest, templates, partials, blocks, registry };
   }
 
   /** Load a file and require its default export to be a component (function/class). */

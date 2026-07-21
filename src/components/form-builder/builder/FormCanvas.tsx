@@ -36,7 +36,7 @@ export function FormCanvas() {
   const visibleFields = multiStep ? fields.filter((f) => (f.step ?? 1) === activeStep) : fields;
 
   return (
-    <div className="flex h-full flex-col bg-muted/30">
+    <div className="flex h-full min-h-0 flex-col overflow-hidden bg-muted/30">
       {multiStep ? (
         <div className="flex gap-1 border-b bg-background p-2">
           {steps.map((s) => (
@@ -54,7 +54,7 @@ export function FormCanvas() {
         </div>
       ) : null}
 
-      <div className="flex-1 overflow-y-auto p-6">
+      <div className="min-h-0 flex-1 overflow-y-auto p-6">
         <div
           ref={setNodeRef}
           className={`mx-auto max-w-2xl space-y-3 rounded-xl border-2 border-dashed p-4 transition-colors ${

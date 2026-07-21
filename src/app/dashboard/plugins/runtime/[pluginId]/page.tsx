@@ -8,6 +8,7 @@ import { usePlugins } from '@/context/PluginContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { assetUrl } from '@/lib/apiClient';
+import { DashboardPluginShell } from '@/components/dashboard/DashboardPluginShell';
 
 /**
  * Runtime shell for uploaded system plugins.
@@ -113,8 +114,9 @@ export default function UploadedSystemPluginRuntimePage() {
   }
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] flex-col">
-      <div className="flex items-center gap-3 border-b bg-background px-4 py-2">
+    <DashboardPluginShell>
+      <div className="flex min-h-0 flex-1 flex-col bg-background">
+      <div className="flex shrink-0 items-center gap-3 border-b px-4 py-2">
         <Puzzle className="h-4 w-4 text-muted-foreground" />
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold">{plugin.name}</p>
@@ -142,6 +144,7 @@ export default function UploadedSystemPluginRuntimePage() {
           onLoad={() => setIframeLoaded(true)}
         />
       </div>
-    </div>
+      </div>
+    </DashboardPluginShell>
   );
 }

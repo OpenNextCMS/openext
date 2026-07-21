@@ -386,7 +386,7 @@ export default function MenuLinksEditor({ canEdit }: { canEdit: boolean }) {
   }
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full min-h-0 flex-col overflow-hidden">
       <div className="border-b p-4">
         <div className="flex items-start justify-between gap-3">
           <div>
@@ -412,7 +412,7 @@ export default function MenuLinksEditor({ canEdit }: { canEdit: boolean }) {
         </div>
       </div>
 
-      <div className="flex-1 space-y-3 overflow-y-auto p-4">
+      <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-4">
         {loading ? (
           <p className="py-8 text-center text-sm text-muted-foreground">Loading links...</p>
         ) : links.length === 0 ? (

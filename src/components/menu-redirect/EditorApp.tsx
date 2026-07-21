@@ -27,6 +27,7 @@ import LeftPanel from './LeftPanel';
 import HeaderCanvas from './HeaderCanvas';
 import AutoConnectModal from './AutoConnectModal';
 import RightPanel from './RightPanel';
+import { DashboardPluginShell } from '@/components/dashboard/DashboardPluginShell';
 
 /**
  * Dedicated visual editor for the Menu Redirect plugin. Renders the active
@@ -86,8 +87,9 @@ export default function EditorApp() {
   };
 
   return (
-    <div className="flex h-[calc(100vh-1rem)] flex-col">
-      <div className="flex items-center justify-between border-b px-4 py-3">
+    <DashboardPluginShell>
+      <div className="flex min-h-0 flex-1 flex-col bg-background">
+      <div className="flex shrink-0 items-center justify-between border-b px-4 py-3">
         <div>
           <h1 className="text-lg font-bold">Menu Redirect — Visual Editor</h1>
           <p className="text-xs text-muted-foreground">
@@ -107,10 +109,16 @@ export default function EditorApp() {
         onDragStart={onDragStart}
         onDragEnd={onDragEnd}
       >
-        <div className="grid flex-1 grid-cols-[280px_1fr_340px] overflow-hidden">
-          <LeftPanel canEdit={canEdit} />
-          <HeaderCanvas canEdit={canEdit} onAutoConnect={() => setAutoOpen(true)} />
-          <RightPanel canEdit={canEdit} />
+        <div className="grid min-h-0 flex-1 grid-cols-[280px_1fr_340px] overflow-hidden">
+          <div className="min-h-0 overflow-hidden">
+            <LeftPanel canEdit={canEdit} />
+          </div>
+          <div className="min-h-0 overflow-hidden">
+            <HeaderCanvas canEdit={canEdit} onAutoConnect={() => setAutoOpen(true)} />
+          </div>
+          <div className="min-h-0 overflow-hidden">
+            <RightPanel canEdit={canEdit} />
+          </div>
         </div>
 
         <DragOverlay>
@@ -123,6 +131,7 @@ export default function EditorApp() {
       </DndContext>
 
       <AutoConnectModal open={autoOpen} onClose={() => setAutoOpen(false)} />
-    </div>
+      </div>
+    </DashboardPluginShell>
   );
 }

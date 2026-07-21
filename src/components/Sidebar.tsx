@@ -236,6 +236,12 @@ export default function Sidebar() {
 
   return (
     <TooltipProvider>
+      <div
+        className={cn(
+          'relative shrink-0 transition-all duration-300 ease-in-out',
+          isMobile ? 'w-0' : isCollapsed ? 'w-[70px]' : 'w-64'
+        )}
+      >
       <MobileOverlay />
 
       {/* Mobile Toggle Button */}
@@ -418,15 +424,7 @@ export default function Sidebar() {
           </nav>
         </div>
       </div>
-
-      {/* Content margin to account for sidebar */}
-      <div
-        className={cn(
-          'transition-all duration-300 ease-in-out',
-          isCollapsed ? 'lg:ml-[70px]' : 'lg:ml-64',
-          isMobile ? 'ml-0' : ''
-        )}
-      />
+      </div>
     </TooltipProvider>
   );
 }

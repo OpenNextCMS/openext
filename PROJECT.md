@@ -60,6 +60,7 @@ data isolation.
 | 🧩 **Form Builder** | Drag-and-drop builder with 20+ field types, conditional logic, validation rules, multi-step forms, spam protection (honeypot / Turnstile / throttle), submissions, webhooks, email notifications, version history and analytics. |
 | 🌈 **Theme Builder** | Config-driven design tokens (colors, typography, spacing, radius, shadows, layout) applied site-wide via CSS variables, with a live-preview builder and seeded system themes. |
 | 📦 **Theme Package Manager** | ZIP packages with tokens, layouts, templates, block/style presets, CSS, fonts and assets — upload / install / activate / export; assets served via `/theme-assets/:theme/*`. |
+| ⚙️ **Theme Engine (Beta)** | React/TSX theme packages with a `theme.ts` registration bootstrap (`defineTheme`), auto-discovery, runtime registry, editable homepage sections, and upload validation. See [`docs/theme-registration.md`](docs/theme-registration.md). |
 | 🧭 **Onboarding Wizard** | 6-step animated flow (business → website type → header → footer → theme → review) that scaffolds a starter website, with autosave. |
 | 👥 **Platform Services** | Role-based multi-user access (SuperAdmin/Admin/Editor/Author), plugin architecture, menu-redirect / URL-management plugin, analytics dashboard, and a 15-language localization layer with light/dark presentation. |
 
@@ -263,13 +264,14 @@ nextcmsmains/
 │  ├─ lib/                     # ai/, theme/, form-builder/, menu-redirect/, api/ helpers
 │  ├─ utils/                   # db.ts (multi-tenant connections), jwt, getPageData, …
 │  ├─ templates/ · types/ · providers/
-│  └─ modules/                 # auth/; theme/ (Theme Package Manager)
+│  └─ modules/                 # auth/; theme/ (Package Manager); themeEngine/ (Beta — theme.ts registration)
 ├─ storage/themes/             # extracted theme package assets (served via /theme-assets)
+├─ themes/                     # Theme Engine installed React/TSX themes
 ├─ examples/business-theme/    # sample full theme package
 ├─ training/layout-planner/    # Stage-1 model: schema, validator, data pipeline, notebooks, eval
 ├─ public/locales/             # 15 language files
 ├─ scripts/                    # screenshots.mjs, test-v2-generate.mjs
-└─ docs/                       # theme docs + screenshots (see docs/README.md)
+└─ docs/                       # theme docs + screenshots (see docs/README.md; Theme Engine: docs/theme-registration.md)
 ```
 
 ---

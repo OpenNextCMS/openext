@@ -168,6 +168,8 @@ export interface ThemeManifest {
   version: string;
   description?: string;
   compatibleCmsVersion: string;
+  /** Registration entry point relative to theme root (default: theme.ts). */
+  entry?: string;
   templates: ThemeManifestTemplates;
   partials: ThemeManifestPartials;
   menus: ThemeManifestMenu[];
@@ -287,6 +289,8 @@ export interface LoadedTheme {
     Sidebar?: ThemeComponent;
   };
   blocks: Record<string, LoadedThemeBlock>;
+  /** Populated when theme.ts bootstrap runs (commands, hooks, editor extensions, etc.). */
+  registry?: import('./registration/types').ThemeRuntimeRegistry;
 }
 
 /** §4.7 */

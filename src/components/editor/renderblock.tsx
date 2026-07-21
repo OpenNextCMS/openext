@@ -18,6 +18,7 @@ import { ShapeDividerBlock } from './blocks/ShapeDividerBlock';
 import { NavbarBlock } from './blocks/NavbarBlock';
 import { GenericUiBlock } from './blocks/GenericUiBlock';
 import { pluginRegistry } from '@/lib/pluginRegistry';
+import { ThemeEngineFrameBlock } from './blocks/ThemeEngineFrameBlock';
 import { ContactUI } from '@/components/ui/ContactUI';
 import { ContactSimple } from '@/components/ui/ContactSimple';
 import { StatisticsMain } from '@/components/ui/StatisticsMain';
@@ -112,6 +113,11 @@ const genericUiBlocks: Record<string, { component: React.ComponentType<BlockRend
 const reusableUiTypes = ['radio', 'checkbox', 'avatar', 'separator', 'skeleton', 'switch', 'textarea', 'table', 'tabs'];
 
 const RenderBlock = ({ block, isEditing = true }: BlockRendererProps) => {
+  // 0. Theme Engine exact canvas iframe
+  if (block.type === 'theme-engine-frame') {
+    return <ThemeEngineFrameBlock block={block} isEditing={isEditing} />;
+  }
+
   // 1. Check if it's a plugin-provided block
   const pluginExtension = pluginRegistry.getExtension(block.type);
   if (pluginExtension) {

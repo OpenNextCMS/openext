@@ -124,7 +124,7 @@ function RedirectSettings({ canEdit }: { canEdit: boolean }) {
   );
 
   return (
-    <div className="h-full space-y-5 overflow-y-auto p-4">
+    <div className="min-h-0 flex-1 space-y-5 overflow-y-auto p-4">
       <div>
         <h3 className="font-semibold">{menuItem?.label}</h3>
         <p className="text-xs text-muted-foreground">Redirect configuration</p>
@@ -203,18 +203,24 @@ function RedirectSettings({ canEdit }: { canEdit: boolean }) {
 
 export default function RightPanel({ canEdit }: { canEdit: boolean }) {
   return (
-    <div className="h-full overflow-hidden border-l">
-      <Tabs defaultValue="redirect" className="flex h-full flex-col">
-        <div className="border-b p-3">
+    <div className="flex h-full min-h-0 flex-col overflow-hidden border-l">
+      <Tabs defaultValue="redirect" className="flex h-full min-h-0 flex-col">
+        <div className="shrink-0 border-b p-3">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="redirect">Redirect</TabsTrigger>
             <TabsTrigger value="links">Menu Links</TabsTrigger>
           </TabsList>
         </div>
-        <TabsContent value="redirect" className="m-0 min-h-0 flex-1 overflow-hidden">
+        <TabsContent
+          value="redirect"
+          className="mt-0 flex min-h-0 flex-1 flex-col overflow-hidden data-[state=inactive]:hidden"
+        >
           <RedirectSettings canEdit={canEdit} />
         </TabsContent>
-        <TabsContent value="links" className="m-0 min-h-0 flex-1 overflow-hidden">
+        <TabsContent
+          value="links"
+          className="mt-0 flex min-h-0 flex-1 flex-col overflow-hidden data-[state=inactive]:hidden"
+        >
           <MenuLinksEditor canEdit={canEdit} />
         </TabsContent>
       </Tabs>

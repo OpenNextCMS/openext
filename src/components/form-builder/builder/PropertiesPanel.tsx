@@ -26,19 +26,19 @@ export function PropertiesPanel() {
   }
 
   return (
-    <aside className="flex h-full flex-col border-l bg-background">
-      <div className="border-b p-3">
+    <aside className="flex h-full min-h-0 flex-col overflow-hidden border-l bg-background">
+      <div className="shrink-0 border-b p-3">
         <h2 className="text-sm font-semibold">{field.label || 'Field'}</h2>
         <p className="text-xs text-muted-foreground">{fieldTypeLabel(field.type)}</p>
       </div>
-      <Tabs defaultValue="settings" className="flex flex-1 flex-col overflow-hidden">
-        <TabsList className="m-2 grid grid-cols-4">
+      <Tabs defaultValue="settings" className="flex min-h-0 flex-1 flex-col overflow-hidden">
+        <TabsList className="m-2 grid shrink-0 grid-cols-4">
           <TabsTrigger value="settings">Settings</TabsTrigger>
           <TabsTrigger value="validation">Rules</TabsTrigger>
           <TabsTrigger value="logic">Logic</TabsTrigger>
           <TabsTrigger value="advanced">More</TabsTrigger>
         </TabsList>
-        <div className="flex-1 overflow-y-auto p-3">
+        <div className="min-h-0 flex-1 overflow-y-auto p-3">
           <TabsContent value="settings">
             <FieldSettingsForm field={field} />
           </TabsContent>

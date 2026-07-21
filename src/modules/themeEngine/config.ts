@@ -110,3 +110,22 @@ export const ALLOWED_EXTENSIONS: ReadonlySet<string> = new Set([
 
 /** Directory that block schema `.ts` files must live under (spec §3). */
 export const BLOCKS_DIR = 'blocks';
+
+/** The registration bootstrap filename (spec: theme.ts entry point). */
+export const THEME_ENTRY_FILENAME = 'theme.ts';
+
+/** Directories that may contain `.ts` registration / schema files. */
+export const ALLOWED_TS_PREFIXES = [
+  BLOCKS_DIR,
+  'editor',
+  'hooks',
+  'middleware',
+  'providers',
+] as const;
+
+/** Returns true when a `.ts` file path is permitted in a theme package. */
+export function isAllowedTsPath(rel: string): boolean {
+  const normalized = rel.replace(/\\/g, '/');
+  if (normalized === THEME_ENTRY_FILENAME) return true;
+  return ALLOWED_TS_PREFIXES.some((prefix) => normalized.startsWith(`${prefix}/`));
+}

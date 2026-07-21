@@ -23,7 +23,8 @@ interface Category {
   description?: string;
 }
 
-export default function CategoriesPage() {  const [categories, setCategories] = useState<Category[]>([]);
+export default function CategoriesPage() {
+  const [categories, setCategories] = useState<Category[]>([]);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [isLoading, setIsLoading] = useState(true);
