@@ -26,7 +26,7 @@ import { BlockDragData, Block } from '@/types/index';
 import { ROOT_CONTAINER } from '@/utils/blockContainers';
 import { safeStorageGet, safeStorageRemove, safeStorageSet } from '@/utils/safeStorage';
 import { pluginRegistry } from '@/lib/pluginRegistry';
-import { normalizeBlocksForEditor, visibleCanvasBlocks } from '@/lib/editor/normalizePageBlocks';
+import { normalizeBlocksForEditor } from '@/lib/editor/normalizePageBlocks';
 import { isThemeEngineCanvas } from '@/modules/themeEngine/bridges/pageBridge';
 
 // Resizable sidebar constraints (in pixels)

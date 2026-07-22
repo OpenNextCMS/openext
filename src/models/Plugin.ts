@@ -19,6 +19,15 @@ const PluginSchema = new Schema<IPluginDocument>(
     styles: { type: [String], default: [] },
     source: { type: String, enum: ['uploaded', 'marketplace', 'builtin'], default: 'marketplace' },
     hasUpdate: { type: Boolean, default: false },
+    hasBackend: { type: Boolean, default: false },
+    serverEntry: { type: String },
+    apiPrefix: { type: String },
+    permissions: { type: [String], default: [] },
+    dependencies: { type: [String], default: [] },
+    installHook: { type: String },
+    uninstallHook: { type: String },
+    loadedAt: { type: Date },
+    loadError: { type: String },
   },
   { timestamps: true }
 );

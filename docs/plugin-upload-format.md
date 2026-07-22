@@ -6,15 +6,43 @@ This document defines the plugin package format accepted by:
 Dashboard → Plugins → Upload Plugin
 ```
 
-Uploaded plugins are static browser packages. The CMS supports:
+Plugins are installed from a single ZIP and can include:
+
+1. **Frontend only** — static browser assets (block, system, or hybrid plugins).
+2. **Full-stack** — frontend assets plus optional backend server code (`server/`), REST APIs, database models, and migrations.
+
+The CMS supports these frontend plugin kinds:
 
 1. **Block plugins** — components placed on the visual page-editor canvas.
 2. **System plugins** — dashboard applications such as CRM, analytics, or administration tools.
 3. **Hybrid system plugins** — a dashboard application with an optional editor block.
 
-## Important runtime limitation
+For backend APIs, migrations, lifecycle hooks, and the CMS SDK, see [Plugin Backend Architecture](./plugin-backend-architecture.md).
 
-The ZIP installer does not execute a plugin backend.
+---
+
+## Package types at a glance
+
+| Type | Contains | Backend APIs | Example use |
+|------|----------|--------------|-------------|
+| **Frontend-only block** | `manifest.json` + `index.js` | No | Testimonial block |
+| **Frontend-only system** | `manifest.json` + `admin/` | No (uses plugin-data API) | Simple CRM dashboard |
+| **Full-stack system** | `admin/` + `server/` | Yes — `/api/plugins/{id}/*` | CRM with database |
+
+### Where files are stored after upload
+
+| Content | Install path | Publicly served? |
+|---------|--------------|------------------|
+| Frontend assets (`admin/`, `block/`, `assets/`) | `public/plugins/{pluginId}/` | Yes |
+| Backend code (`server/`, `package.json`) | `plugins/{pluginId}/` | **Never** |
+
+Backend code is loaded by the CMS at startup and on enable. It is never executed from `public/`.
+
+---
+
+## Runtime capabilities
+
+### Frontend-only plugins (no `server/` folder)
 
 Supported:
 
@@ -22,21 +50,38 @@ Supported:
 - Images, fonts, icons, and JSON assets.
 - Dashboard applications rendered in a sandboxed iframe.
 - Page-editor blocks mounted through JavaScript.
-- Authenticated JSON storage through the CMS plugin-data API.
+- Authenticated JSON storage through the CMS [plugin-data API](#6-plugin-data-api).
 
-Not supported directly from a ZIP:
+Not supported without a `server/` folder:
 
-- Node.js, PHP, Python, Java, or other server processes.
-- TypeScript, JSX, React, or Vue source that has not been built.
-- Custom API route installation.
-- Database migrations or custom database models.
+- Custom REST API routes.
+- Database migrations or custom Mongoose models.
+- Install/uninstall lifecycle hooks.
 - npm dependency installation at upload time.
-- Executable or shell files.
+
+### Full-stack plugins (with `server/` folder)
+
+Additionally supported:
+
+- Backend REST APIs under `/api/plugins/{pluginId}/*`.
+- Mongoose models and migrations.
+- Install and uninstall hooks.
+- Manifest permission registration.
+- Optional `package.json` dependencies (install requires `PLUGIN_ALLOW_NATIVE_DEPS=true`).
+
+Still required:
+
+- Build frontend source (React, Vue, TypeScript, etc.) before upload.
+- Use plain JavaScript for `server/` entry points and route files (no uncompiled TS/JSX in ZIP).
+
+Not allowed in any ZIP:
+
+- Executable or shell files (`.exe`, `.dll`, `.bat`, `.cmd`, `.sh`, `.ps1`, etc.).
+- `.env`, `node_modules/`, `.git/`.
 
 Build frontend source before creating the ZIP.
 
 ---
-
 ## 1. System plugin structure
 
 Use a system plugin for a CRM, analytics dashboard, inventory manager, or other dashboard application.
@@ -341,7 +386,107 @@ block/index.js
 
 ---
 
-## 5. Manifest reference
+## 5. Full-stack plugin structure (optional backend)
+
+Add a `server/` folder when the plugin needs REST APIs, database tables, or install hooks. Frontend folders remain the same as a system or hybrid plugin.
+
+```text
+crm-plugin/
+├── manifest.json
+├── admin/
+│   └── index.html
+├── block/                         Optional editor block
+│   └── index.js
+├── assets/
+├── package.json                   Optional plugin dependencies
+└── server/
+    ├── index.js                   Required (or set manifest.serverEntry)
+    ├── routes/
+    │   └── customers.js
+    ├── services/
+    │   └── CustomerService.js
+    ├── models/
+    │   └── Customer.js
+    ├── migrations/
+    │   └── 001_create_customers.js
+    └── hooks/
+        ├── install.js
+        └── uninstall.js
+```
+
+### Full-stack manifest example
+
+```json
+{
+  "id": "crm-plugin",
+  "name": "CRM",
+  "version": "1.0.0",
+  "kind": "system",
+  "type": "crm",
+  "icon": "👥",
+  "adminEntry": "admin/index.html",
+  "blockEntry": "block/index.js",
+  "serverEntry": "server/index.js",
+  "migrations": ["server/migrations"],
+  "models": ["server/models"],
+  "permissions": ["crm.read", "crm.write"],
+  "installHook": "server/hooks/install.js",
+  "uninstallHook": "server/hooks/uninstall.js",
+  "dependencies": []
+}
+```
+
+### Backend manifest fields
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `serverEntry` | When using backend | Main server module. Defaults to `server/index.js` if present. |
+| `migrations` | No | Migration directories. Defaults to `server/migrations/` when present. |
+| `models` | No | Model directories. Defaults to `server/models/` when present. |
+| `permissions` | No | Permission strings registered in CMS settings. |
+| `installHook` | No | Script run after migrations during install. |
+| `uninstallHook` | No | Script run during uninstall. |
+| `dependencies` | No | npm package names (requires `PLUGIN_ALLOW_NATIVE_DEPS=true` to install). |
+
+If `serverEntry` is omitted but `server/index.js` exists in the ZIP, the installer uses it automatically.
+
+### Plugin API namespace
+
+Every backend plugin receives a dedicated API prefix:
+
+```text
+/api/plugins/{pluginId}/*
+```
+
+Example routes for `crm-plugin`:
+
+```text
+GET    /api/plugins/crm-plugin/customers
+POST   /api/plugins/crm-plugin/customers
+PUT    /api/plugins/crm-plugin/customers/:id
+DELETE /api/plugins/crm-plugin/customers/:id
+```
+
+Plugins must define routes relative to their namespace (e.g. `/customers`, not `/api/plugins/crm-plugin/customers`). The CMS mounts them automatically.
+
+Plugin APIs inherit CMS authentication. Route handlers receive `req.user`, `req.permissions`, and `req.cms` (the plugin SDK). See [Plugin Backend Architecture](./plugin-backend-architecture.md) for the server module contract, migrations, and SDK reference.
+
+### Calling plugin APIs from admin UI
+
+```js
+const response = await fetch('/api/plugins/crm-plugin/customers', {
+  credentials: 'include',
+});
+const payload = await response.json();
+```
+
+The user must be logged in (JWT `token` cookie). Unauthenticated requests receive `401`.
+
+A complete reference implementation lives at [`examples/crm-plugin/`](../examples/crm-plugin/).
+
+---
+
+## 6. Manifest reference
 
 ```json
 {
@@ -357,11 +502,18 @@ block/index.js
   "adminEntry": "admin/index.html",
   "blockEntry": "block/index.js",
   "styles": ["style.css"],
-  "customElement": "vendor-plugin-name"
+  "customElement": "vendor-plugin-name",
+  "serverEntry": "server/index.js",
+  "migrations": ["server/migrations"],
+  "models": ["server/models"],
+  "permissions": ["plugin.read", "plugin.write"],
+  "installHook": "server/hooks/install.js",
+  "uninstallHook": "server/hooks/uninstall.js",
+  "dependencies": []
 }
 ```
 
-### Fields
+### Frontend fields
 
 - `id`: recommended; stable plugin identifier.
 - `name`: required, non-empty.
@@ -376,6 +528,16 @@ block/index.js
 - `blockEntry`: optional block JavaScript for a system plugin.
 - `styles`: array of CSS files loaded for editor blocks.
 - `customElement`: optional web-component tag name.
+
+### Backend fields (optional)
+
+- `serverEntry`: main server module path (relative to package root).
+- `migrations`: array of migration directory paths.
+- `models`: array of model directory paths.
+- `permissions`: permission strings to register on install.
+- `installHook`: path to install hook script.
+- `uninstallHook`: path to uninstall hook script.
+- `dependencies`: npm dependencies for optional install.
 
 If `id` is omitted, it is generated from `name`.
 
@@ -404,7 +566,7 @@ All declared file paths:
 
 ---
 
-## 6. Plugin data API
+## 7. Plugin data API
 
 Uploaded and enabled plugins can store authenticated JSON data.
 
@@ -467,11 +629,13 @@ Data API rules:
 - Each saved payload is limited to 256 KB.
 - Plugin data is namespaced by `pluginId`.
 
-For a large CRM, create dedicated first-party backend APIs and normalized database models. The generic plugin-data API is intended for small-to-medium configuration/data payloads, not high-volume relational CRM records.
+For a large CRM or data-heavy plugin, prefer a **full-stack plugin** with dedicated routes under `/api/plugins/{pluginId}/*` and Mongoose models. The generic plugin-data API is intended for small-to-medium configuration payloads, not high-volume relational records.
+
+> **Note:** The path segment `data` is reserved for this CMS API. Backend plugin routes must not register handlers at `/data/*`.
 
 ---
 
-## 7. Building frontend frameworks
+## 8. Building frontend frameworks
 
 React, Vue, Svelte, or TypeScript plugin source must be compiled before upload.
 
@@ -513,7 +677,9 @@ export default defineConfig({
 
 Add `manifest.json` beside `admin/` after the build.
 
-Do not include:
+For backend plugins, compile any TypeScript server code to JavaScript before zipping. The `server/` folder must contain runnable `.js` files — the uploader does not compile TypeScript.
+
+Do not include in the ZIP:
 
 ```text
 node_modules/
@@ -528,7 +694,7 @@ credentials
 
 ---
 
-## 8. Assets and URLs
+## 9. Assets and URLs
 
 Installed files are available at:
 
@@ -562,7 +728,7 @@ Unknown non-blocked files may be served as `application/octet-stream`, but relyi
 
 ---
 
-## 9. Security and package limits
+## 10. Security and package limits
 
 Default upload limits:
 
@@ -575,15 +741,29 @@ Blocked file extensions:
 .exe, .dll, .bat, .cmd, .sh, .ps1, .msi, .com, .scr
 ```
 
+Blocked path segments (never extracted):
+
+```text
+.env, node_modules, .git
+```
+
+Allowed top-level folders in a ZIP:
+
+```text
+admin/, block/, assets/, fonts/, dashboard/, server/
+```
+
 The extractor:
 
 - Ignores unsafe relative paths.
 - Prevents `..` traversal.
 - Rejects unsafe declared entry paths.
 - Requires declared entry and stylesheet files to exist.
-- Writes installed package files into a plugin-specific public directory.
+- Writes **frontend** files to `public/plugins/{pluginId}/`.
+- Writes **backend** files (`server/`, `package.json`) to `plugins/{pluginId}/` — never under `public/`.
+- Validates backend manifest paths (`serverEntry`, hooks, migrations) point to files in the package.
 
-Plugin JavaScript runs in the browser and should be treated as trusted code. Only install packages from trusted authors.
+Plugin JavaScript runs in the browser and should be treated as trusted code. Backend plugin code runs server-side with CMS SDK access — only install packages from trusted authors.
 
 Recommended plugin practices:
 
@@ -597,7 +777,7 @@ Recommended plugin practices:
 
 ---
 
-## 10. Creating the ZIP
+## 11. Creating the ZIP
 
 PowerShell:
 
@@ -639,12 +819,34 @@ Confirm that:
 - `name` and `version` are present.
 - The plugin ID is valid.
 - `adminEntry`, `entryPoint`, `blockEntry`, and styles exist.
-- Built JavaScript uses browser-compatible code.
+- If using backend: `server/index.js` (or declared `serverEntry`) exists.
+- Built JavaScript uses browser-compatible code in `admin/` and `block/`.
+- Server files use plain JavaScript (compiled/bundled if originally TypeScript).
 - HTML asset paths are relative.
 
 ---
 
-## 11. Upload, enable, and open
+## 12. Upload, enable, disable, and uninstall
+
+### Upload flow
+
+```text
+Upload ZIP
+  → Validate size and file count
+  → Read and validate manifest.json
+  → Extract frontend → public/plugins/{pluginId}/
+  → Extract backend  → plugins/{pluginId}/     (if server/ present)
+  → Run pending database migrations            (if backend)
+  → Run install hook                           (if backend)
+  → Register manifest permissions              (if backend)
+  → Load server module and routes              (if backend)
+  → Save plugin metadata in MongoDB
+  → Enable plugin
+```
+
+On failure, extracted files and partial database rows are rolled back.
+
+### After upload
 
 1. Open **Dashboard → Plugins**.
 2. Select or drag the `.zip` file.
@@ -653,15 +855,38 @@ Confirm that:
 5. For a system plugin, open its dashboard/runtime page.
 6. For a block plugin, add it from the page-editor plugin palette.
 
-Installed package files are stored at:
+### Storage locations
 
-```text
-public/plugins/{pluginId}/
-```
+| Asset | Path |
+|-------|------|
+| Frontend files | `public/plugins/{pluginId}/` |
+| Backend files | `plugins/{pluginId}/` |
+| Plugin metadata | MongoDB `Plugin` collection |
+| Plugin JSON data | MongoDB `PluginData` collection (plugin-data API) |
+| Migration history | MongoDB `plugin_migrations` collection (backend plugins) |
 
-Plugin metadata is stored in MongoDB. Plugin data is stored separately and namespaced by plugin ID.
+### Enable and disable
 
-## Updating an installed plugin
+Use **Dashboard → Plugins** to toggle a plugin on or off.
+
+| Action | Frontend | Backend |
+|--------|----------|---------|
+| **Disable** | Hidden from editor/sidebar; assets remain on disk | Routes unloaded; database data kept |
+| **Enable** | Visible again | Server module and routes reloaded |
+
+### Uninstall
+
+Removing a plugin from **Dashboard → Plugins**:
+
+1. Runs the uninstall hook (if declared).
+2. Unloads backend routes.
+3. Removes frontend files from `public/plugins/{pluginId}/`.
+4. Removes backend files from `plugins/{pluginId}/`.
+5. Deletes plugin metadata and plugin-data records.
+
+Migration history is kept by default so reinstalling does not re-run migrations. Hooks may optionally clean up plugin-owned collections.
+
+### Updating an installed plugin
 
 The current uploader does not support a `replace` flag.
 
@@ -672,11 +897,13 @@ To update safely:
 3. Increase the package version.
 4. Upload the new ZIP with the same stable ID.
 
-Removing an uploaded plugin also removes its installed files and plugin-data records. Back up data first.
+Removing an uploaded plugin also removes its installed frontend and backend files and plugin-data records. Back up data first.
+
+For backend plugins, export any plugin-owned database data before uninstall if the uninstall hook does not drop collections.
 
 ---
 
-## 12. Common errors
+## 13. Common errors
 
 ### `manifest.json was not found`
 
@@ -767,9 +994,62 @@ window.__NEXTCMS_PLUGINS__['your-plugin-id']
 
 with a `mount()` function, or declare and register a matching `customElement`.
 
+### Backend plugin requires server/index.js
+
+Cause:
+
+- ZIP contains `server/` but no `serverEntry` and no `server/index.js`.
+
+Fix:
+
+- Add `server/index.js`, or set `"serverEntry": "server/index.js"` in the manifest.
+
+### `manifest.serverEntry "…" was not found in the package`
+
+Cause:
+
+- Declared `serverEntry` path does not exist in the ZIP.
+
+Fix:
+
+- Ensure the file path matches exactly (use `/`, relative to package root).
+
+### Plugin API returns `401 Unauthorized`
+
+Cause:
+
+- Request missing authentication cookie.
+
+Fix:
+
+- Call plugin APIs with `credentials: 'include'` while the user is logged into the CMS dashboard.
+
+### Plugin API returns `503` / "Plugin backend is not loaded"
+
+Cause:
+
+- Plugin disabled, server failed to load, or CMS restarted before bootstrap completed.
+
+Fix:
+
+- Enable the plugin in **Dashboard → Plugins**.
+- Check server logs for load errors (`loadError` on the plugin record).
+- Restart the CMS dev server after manual changes to `plugins/{pluginId}/`.
+
+### Migration or install hook failed during upload
+
+Cause:
+
+- Error in `server/migrations/*.js` or `server/hooks/install.js`.
+
+Fix:
+
+- Test migration `up()` logic locally.
+- Upload rolls back on failure — fix the script and re-upload after removing any partial install.
+
 ---
 
-## 13. Recommended CRM package
+## 14. Recommended CRM package (full-stack)
 
 ```text
 crm-plugin/
@@ -781,9 +1061,22 @@ crm-plugin/
 ├── block/
 │   ├── index.js
 │   └── style.css
-└── assets/
-    ├── logo.svg
-    └── empty-state.webp
+├── assets/
+│   ├── logo.svg
+│   └── empty-state.webp
+└── server/
+    ├── index.js
+    ├── routes/
+    │   └── customers.js
+    ├── services/
+    │   └── CustomerService.js
+    ├── models/
+    │   └── Customer.js
+    ├── migrations/
+    │   └── 001_create_customers.js
+    └── hooks/
+        ├── install.js
+        └── uninstall.js
 ```
 
 ```json
@@ -798,8 +1091,25 @@ crm-plugin/
   "icon": "👥",
   "adminEntry": "admin/index.html",
   "blockEntry": "block/index.js",
-  "styles": ["block/style.css"]
+  "styles": ["block/style.css"],
+  "serverEntry": "server/index.js",
+  "migrations": ["server/migrations"],
+  "models": ["server/models"],
+  "permissions": ["crm.read", "crm.write"],
+  "installHook": "server/hooks/install.js",
+  "uninstallHook": "server/hooks/uninstall.js"
 }
 ```
 
-Use the admin application for contact management and the optional editor block for a lead-capture or contact-summary component.
+Use the admin application for contact management, plugin APIs for CRUD operations, and the optional editor block for a lead-capture or contact-summary component.
+
+Reference source: [`examples/crm-plugin/`](../examples/crm-plugin/).
+
+---
+
+## Related documentation
+
+| Doc | Description |
+| --- | --- |
+| [Plugin Backend Architecture](./plugin-backend-architecture.md) | Server module contract, SDK, migrations, route registration, security |
+| [`examples/crm-plugin/README.md`](../examples/crm-plugin/README.md) | Example plugin install and API usage |

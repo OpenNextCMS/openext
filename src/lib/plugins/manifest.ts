@@ -18,6 +18,17 @@ export interface PluginManifest {
   blockEntry?: string;
   styles?: string[];
   customElement?: string;
+  /** Backend plugin entry (relative to plugins/{id}/). */
+  serverEntry?: string;
+  /** Migration directories relative to plugin root. */
+  migrations?: string[];
+  /** Model directories relative to plugin root. */
+  models?: string[];
+  /** Permissions declared by the plugin manifest. */
+  permissions?: string[];
+  installHook?: string;
+  uninstallHook?: string;
+  dependencies?: string[];
 }
 
 export interface ParsedPluginManifest extends PluginManifest {
@@ -262,5 +273,29 @@ export function parsePluginManifest(raw: unknown): ParsedPluginManifest {
     blockEntry,
     styles,
     customElement: manifest.customElement?.trim() || undefined,
+    serverEntry:
+      typeof manifest.serverEntry === 'string' && manifest.serverEntry.trim()
+        ? manifest.serverEntry.trim()
+        : undefined,
+    migrations: Array.isArray(manifest.migrations)
+      ? manifest.migrations.filter((m): m is string => typeof m === 'string')
+      : undefined,
+    models: Array.isArray(manifest.models)
+      ? manifest.models.filter((m): m is string => typeof m === 'string')
+      : undefined,
+    permissions: Array.isArray(manifest.permissions)
+      ? manifest.permissions.filter((p): p is string => typeof p === 'string')
+      : undefined,
+    installHook:
+      typeof manifest.installHook === 'string' && manifest.installHook.trim()
+        ? manifest.installHook.trim()
+        : undefined,
+    uninstallHook:
+      typeof manifest.uninstallHook === 'string' && manifest.uninstallHook.trim()
+        ? manifest.uninstallHook.trim()
+        : undefined,
+    dependencies: Array.isArray(manifest.dependencies)
+      ? manifest.dependencies.filter((d): d is string => typeof d === 'string')
+      : undefined,
   };
 }
