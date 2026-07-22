@@ -11,6 +11,23 @@ const nextConfig: NextConfig = {
     cpus: 1,
   },
 
+  // Plugin backend loader reads uploaded files from plugins/{id}/ at runtime.
+  // Webpack cannot statically analyze those paths — suppress the expected warning.
+  serverExternalPackages: ['mongoose'],
+
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      config.ignoreWarnings = [
+        ...(config.ignoreWarnings ?? []),
+        {
+          module: /[\\/]src[\\/]lib[\\/]plugins[\\/]server[\\/]/,
+          message: /Critical dependency: the request of a dependency is an expression/,
+        },
+      ];
+    }
+    return config;
+  },
+
   images: {
     domains: ['localhost'],
     remotePatterns: [

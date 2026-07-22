@@ -253,6 +253,7 @@ export default function PluginManagementPage() {
         handleSuccess(true, null, data.message || 'Plugin uploaded successfully');
         await fetchPlugins();
         await refreshPlugins();
+        setActiveTab('installed');
         setTimeout(() => {
           setFile(null);
           setUploadProgress(0);
@@ -414,7 +415,7 @@ export default function PluginManagementPage() {
   const filteredInstalledPlugins = installedPluginsList.filter(
     (plugin) =>
       plugin.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      plugin.description.toLowerCase().includes(searchTerm.toLowerCase())
+      (plugin.description || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const filteredMarketplacePlugins = marketplacePluginsList.filter(

@@ -490,6 +490,16 @@ export interface IPlugin {
   styles?: string[];
   source?: 'uploaded' | 'marketplace' | 'builtin';
   hasUpdate?: boolean;
+  /** Whether this plugin ships backend server code. */
+  hasBackend?: boolean;
+  serverEntry?: string;
+  apiPrefix?: string;
+  permissions?: string[];
+  dependencies?: string[];
+  installHook?: string;
+  uninstallHook?: string;
+  loadedAt?: Date;
+  loadError?: string;
 }
 
 export interface IPluginDocument extends IPlugin, Document {}

@@ -15,6 +15,15 @@ import {
   MAX_PLUGIN_FILES,
   toPublicPluginPath,
 } from '@/lib/plugins/storage';
+import {
+  ensureBackendPluginsDirectory,
+  getBackendPluginDirectory,
+} from '@/lib/plugins/server/storage';
+import {
+  shouldExtractToBackend,
+  shouldExtractToFrontend,
+  validateBackendManifest,
+} from '@/lib/plugins/server/validation';
 
 export interface ExtractedPlugin {
   manifest: ParsedPluginManifest & { kind: PluginKind; type: string };
@@ -26,6 +35,14 @@ export interface ExtractedPlugin {
   /** Public URL for optional system placeable block. */
   blockEntry?: string;
   styles: string[];
+  hasBackend: boolean;
+  serverEntry?: string;
+  migrations: string[];
+  models: string[];
+  permissions: string[];
+  installHook?: string;
+  uninstallHook?: string;
+  dependencies: string[];
 }
 
 function normalizeZipPath(filePath: string): string {
@@ -120,11 +137,15 @@ export async function extractPluginZip(
     manifestDir === '.'
       ? rootPrefix.replace(/\/$/, '')
       : `${rootPrefix}${manifestDir}`.replace(/\/$/, '');
-  const pluginDir = getPluginDirectory(pluginId);
+  const publicPluginDir = getPluginDirectory(pluginId);
+  const backendPluginDir = getBackendPluginDirectory(pluginId);
 
   await ensurePluginsDirectory();
-  await fs.rm(pluginDir, { recursive: true, force: true });
-  await fs.mkdir(pluginDir, { recursive: true });
+  await ensureBackendPluginsDirectory();
+  await fs.rm(publicPluginDir, { recursive: true, force: true });
+  await fs.rm(backendPluginDir, { recursive: true, force: true });
+  await fs.mkdir(publicPluginDir, { recursive: true });
+  await fs.mkdir(backendPluginDir, { recursive: true });
 
   const manifestDirPrefix = pluginRootInZip ? `${pluginRootInZip}/` : '';
   const extractedRelativePaths: string[] = [];
@@ -143,48 +164,69 @@ export async function extractPluginZip(
     }
 
     extractedRelativePaths.push(relativePath);
-
-    const outputPath = path.join(pluginDir, relativePath);
-    const outputDir = path.dirname(outputPath);
-    await fs.mkdir(outputDir, { recursive: true });
-
     const content = await zipEntry.async('nodebuffer');
-    await fs.writeFile(outputPath, content);
+
+    if (shouldExtractToBackend(relativePath)) {
+      const outputPath = path.join(backendPluginDir, relativePath);
+      await fs.mkdir(path.dirname(outputPath), { recursive: true });
+      await fs.writeFile(outputPath, content);
+    }
+
+    if (shouldExtractToFrontend(relativePath)) {
+      const outputPath = path.join(publicPluginDir, relativePath);
+      await fs.mkdir(path.dirname(outputPath), { recursive: true });
+      await fs.writeFile(outputPath, content);
+    }
   }
 
-  // Also write manifest into the plugin dir for runtime inspection
+  const backendMeta = validateBackendManifest(manifest, extractedRelativePaths);
+
+  const manifestPayload = {
+    id: pluginId,
+    name: manifest.name,
+    version: manifest.version,
+    description: manifest.description,
+    author: manifest.author,
+    type: manifest.type,
+    kind: manifest.kind,
+    icon: manifest.icon,
+    entryPoint: manifest.entryPoint,
+    adminEntry: manifest.adminEntry,
+    blockEntry: manifest.blockEntry,
+    styles: manifest.styles,
+    customElement: manifest.customElement,
+    serverEntry: backendMeta.serverEntry,
+    migrations: backendMeta.migrations,
+    models: backendMeta.models,
+    permissions: backendMeta.permissions,
+    installHook: backendMeta.installHook,
+    uninstallHook: backendMeta.uninstallHook,
+    dependencies: backendMeta.dependencies,
+  };
+
   await fs.writeFile(
-    path.join(pluginDir, 'manifest.json'),
-    JSON.stringify(
-      {
-        id: pluginId,
-        name: manifest.name,
-        version: manifest.version,
-        description: manifest.description,
-        author: manifest.author,
-        type: manifest.type,
-        kind: manifest.kind,
-        icon: manifest.icon,
-        entryPoint: manifest.entryPoint,
-        adminEntry: manifest.adminEntry,
-        blockEntry: manifest.blockEntry,
-        styles: manifest.styles,
-        customElement: manifest.customElement,
-      },
-      null,
-      2
-    ),
+    path.join(publicPluginDir, 'manifest.json'),
+    JSON.stringify(manifestPayload, null, 2),
     'utf8'
   );
 
-  const resolved = resolvePluginKind(manifest, extractedRelativePaths);
+  if (backendMeta.hasBackend) {
+    await fs.writeFile(
+      path.join(backendPluginDir, 'manifest.json'),
+      JSON.stringify(manifestPayload, null, 2),
+      'utf8'
+    );
+  }
+
+  const frontendPaths = extractedRelativePaths.filter(shouldExtractToFrontend);
+  const resolved = resolvePluginKind(manifest, frontendPaths);
 
   if (resolved.kind === 'block') {
     if (!resolved.entryPoint) {
       throw new Error('Block plugin requires an entryPoint');
     }
     await assertFileExists(
-      path.join(pluginDir, resolved.entryPoint),
+      path.join(publicPluginDir, resolved.entryPoint),
       `manifest.json entryPoint "${resolved.entryPoint}"`
     );
   } else {
@@ -192,19 +234,22 @@ export async function extractPluginZip(
       throw new Error('System plugin requires an adminEntry');
     }
     await assertFileExists(
-      path.join(pluginDir, resolved.adminEntry),
+      path.join(publicPluginDir, resolved.adminEntry),
       `System plugin admin entry "${resolved.adminEntry}"`
     );
     if (resolved.blockEntry) {
       await assertFileExists(
-        path.join(pluginDir, resolved.blockEntry),
+        path.join(publicPluginDir, resolved.blockEntry),
         `System plugin block entry "${resolved.blockEntry}"`
       );
     }
   }
 
   for (const stylePath of resolved.styles) {
-    await assertFileExists(path.join(pluginDir, stylePath), `manifest.json styles entry "${stylePath}"`);
+    await assertFileExists(
+      path.join(publicPluginDir, stylePath),
+      `manifest.json styles entry "${stylePath}"`
+    );
   }
 
   const publicEntry = resolved.entryPoint
@@ -233,5 +278,13 @@ export async function extractPluginZip(
     adminEntry: publicAdmin,
     blockEntry: publicBlock,
     styles: resolved.styles.map((stylePath) => toPublicPluginPath(pluginId, stylePath)),
+    hasBackend: backendMeta.hasBackend,
+    serverEntry: backendMeta.serverEntry,
+    migrations: backendMeta.migrations,
+    models: backendMeta.models,
+    permissions: backendMeta.permissions,
+    installHook: backendMeta.installHook,
+    uninstallHook: backendMeta.uninstallHook,
+    dependencies: backendMeta.dependencies,
   };
 }

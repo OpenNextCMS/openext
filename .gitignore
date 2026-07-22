@@ -44,6 +44,10 @@ next-env.d.ts
 /public/plugins/*
 !/public/plugins/.gitkeep
 
+# Backend plugin code extracted from ZIP uploads
+/plugins/*
+!/plugins/.gitkeep
+
 # Theme Package Manager — extracted ZIPs (keep directory via .gitkeep)
 /storage/themes/*
 

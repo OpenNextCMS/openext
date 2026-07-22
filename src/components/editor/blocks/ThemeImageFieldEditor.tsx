@@ -146,7 +146,6 @@ export default function ThemeImageFieldEditor({
 
       {previewSrc ? (
         <div className="overflow-hidden rounded border border-white/10 bg-black/40">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={previewSrc}
             alt="Preview"
