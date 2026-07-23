@@ -56,7 +56,7 @@ export default function NewThemePage() {
   return (
     <div className="space-y-6 p-6">
       <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" onClick={() => router.push('/dashboard/themes/allthemes')}>
+        <Button variant="ghost" size="icon" onClick={() => router.push('/dashboard/theme-engine')}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div>

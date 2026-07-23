@@ -8,14 +8,12 @@
 export * from './constants';
 export * from './types';
 
-export { ThemeUploadController } from './controllers/ThemeUploadController';
 export { ThemeInstallController } from './controllers/ThemeInstallController';
 export { ThemeActivationController } from './controllers/ThemeActivationController';
 export { ThemeExportController } from './controllers/ThemeExportController';
 export { ThemeCrudController } from './controllers/ThemeCrudController';
 export { ThemeAssetController } from './controllers/ThemeAssetController';
 
-export { ThemeUploadService } from './services/ThemeUploadService';
 export { ThemeInstaller } from './services/ThemeInstaller';
 export { ThemeExporter } from './services/ThemeExporter';
 export { ThemeActivationService } from './services/ThemeActivationService';

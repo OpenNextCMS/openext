@@ -162,7 +162,7 @@ export function ThemeBuilder({ themeId }: { themeId: string }) {
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => router.push('/dashboard/themes/allthemes')}>
+          <Button variant="ghost" size="icon" onClick={() => router.push('/dashboard/theme-engine')}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <Input
