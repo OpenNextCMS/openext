@@ -170,7 +170,7 @@ function buildRoutes(d) {
   add('pages', 'pages-footers', '/dashboard/pages/footers', { waitMs: 2500 });
 
   // --- Themes feature ---
-  add('themes', 'themes-all', '/dashboard/themes/allthemes', { waitMs: 2500 });
+  add('themes', 'themes-all', '/dashboard/theme-engine', { waitMs: 2500 });
   add('themes', 'theme-builder-new', '/dashboard/themes/new', { waitMs: 3500 });
   add('themes', 'theme-add', '/dashboard/themes/addtheme', { waitMs: 2500 });
   add('themes', 'theme-detail', d.themeId ? `/dashboard/themes/${d.themeId}` : null, { waitMs: 3000 });

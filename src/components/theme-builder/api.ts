@@ -79,33 +79,6 @@ export const themeApi = {
     await unwrap(res);
   },
 
-  /** Import a theme from a parsed JSON token package. Created as an inactive custom theme. */
-  async importTheme(pkg: unknown): Promise<ThemeDTO> {
-    const res = await fetch(apiUrl('/api/themes/import'), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify(pkg),
-    });
-    return unwrap<ThemeDTO>(res);
-  },
-
-  /**
-   * Import a theme from an uploaded file — a `.json` token package or a `.zip`
-   * bundle (theme.json + optional preview). The server unpacks and validates it.
-   * Sent as multipart; the browser sets the Content-Type boundary itself.
-   */
-  async importFile(file: File): Promise<ThemeDTO> {
-    const form = new FormData();
-    form.append('file', file);
-    const res = await fetch(apiUrl('/api/themes/import'), {
-      method: 'POST',
-      credentials: 'include',
-      body: form,
-    });
-    return unwrap<ThemeDTO>(res);
-  },
-
   async activate(
     id: string,
     opts?: { applyToEditor?: boolean }
@@ -127,18 +100,6 @@ export const themeApi = {
       body: JSON.stringify({ id, applyToEditor: opts?.applyToEditor }),
     });
     return unwrap(res);
-  },
-
-  /** Upload a full theme package ZIP (Theme Package Manager). */
-  async uploadPackage(file: File): Promise<ThemeDTO> {
-    const form = new FormData();
-    form.append('file', file);
-    const res = await fetch(apiUrl('/api/themes/upload'), {
-      method: 'POST',
-      credentials: 'include',
-      body: form,
-    });
-    return unwrap<ThemeDTO>(res);
   },
 
   /** Finalize installation of an uploaded package theme. */

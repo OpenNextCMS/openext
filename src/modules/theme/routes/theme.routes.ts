@@ -3,7 +3,6 @@
  *
  * | Method | Path                              | Controller                |
  * |--------|-----------------------------------|---------------------------|
- * | POST   | /api/themes/upload                | ThemeUploadController     |
  * | GET    | /api/themes                       | ThemeCrudController       |
  * | GET    | /api/themes/:id                   | ThemeCrudController       |
  * | POST   | /api/themes/:id/install           | ThemeInstallController    |
@@ -20,7 +19,6 @@
  */
 
 export const THEME_PACKAGE_ROUTES = {
-  upload: 'POST /api/themes/upload',
   list: 'GET /api/themes',
   get: 'GET /api/themes/:id',
   install: 'POST /api/themes/:id/install',
