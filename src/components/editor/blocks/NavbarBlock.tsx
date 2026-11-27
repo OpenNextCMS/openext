@@ -16,6 +16,7 @@ import { resolveRedirectUrl, useBlockEvents } from '@/hooks/useBlockEvents';
 import { useMergedMenu, type MenuDirective } from '@/components/menu-redirect/useMergedMenu';
 import { trackMenuClick } from '@/lib/menu-redirect/track-client';
 import { menuItemIdFor } from '@/lib/menu-redirect/menu-item-id';
+import { resolveSiteIconUrl } from '@/lib/media/siteIcon';
 
 type NavbarLayout = 'horizontal' | 'vertical' | 'hamburger' | 'two-line';
 
@@ -74,7 +75,7 @@ export const NavbarBlock = ({ block, isEditing = true }: BlockRendererProps) => 
         const settings = json?.data?.settings;
         if (!settings) return;
         setSiteTitle(settings.siteTitle || 'Brand');
-        setSiteIcon(settings.siteIcon ? `/siteicon/${settings.siteIcon}` : null);
+        setSiteIcon(resolveSiteIconUrl(settings.siteIcon));
       })
       .catch(() => {});
     return () => {

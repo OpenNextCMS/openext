@@ -40,6 +40,7 @@ import { useAvailableContent } from '@/hooks/useAvailableContent';
 import { CustomBlockProperties } from './CustomBlockProperties';
 import { MenuPluginProperties } from './MenuPluginProperties';
 import { SliderPluginProperties } from './SliderPluginProperties';
+import { SocialPluginProperties } from './SocialPluginProperties';
 import { NavbarProperties } from './NavbarProperties';
 import { TextBlockProperties } from './standard/TextBlockProperties';
 import { ImageBlockProperties } from './standard/ImageBlockProperties';
@@ -1049,6 +1050,19 @@ export default function ElementProperties() {
                     content={content}
                     availablePages={availablePages}
                     availableBlogs={availableBlogs}
+                    handleJsonContentChange={handleJsonContentChange}
+                  />
+                );
+              }
+
+              if (
+                pluginName.includes('social') ||
+                String(selectedBlock!.type) === 'social-media' ||
+                String(selectedBlock!.type) === 'market-4'
+              ) {
+                return (
+                  <SocialPluginProperties
+                    content={content}
                     handleJsonContentChange={handleJsonContentChange}
                   />
                 );

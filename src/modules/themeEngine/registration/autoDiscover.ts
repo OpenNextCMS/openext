@@ -1,15 +1,13 @@
 import fs from 'fs/promises';
 import path from 'path';
 import type { ThemeManifestPartials } from '../types';
+import { FILE_KEY_MAP } from '../templateMetadata';
 import { createEmptyRegistry } from './createEmptyRegistry';
 import type { ThemeRuntimeRegistry } from './types';
 
 const TEMPLATE_NAME_MAP: Record<string, string> = {
+  ...FILE_KEY_MAP,
   index: 'index',
-  home: 'home',
-  page: 'page',
-  post: 'post',
-  archive: 'archive',
 };
 
 const PARTIAL_NAME_MAP: Record<string, keyof ThemeManifestPartials> = {
@@ -34,7 +32,7 @@ export async function autoDiscover(root: string): Promise<ThemeRuntimeRegistry> 
 }
 
 async function discoverTemplates(root: string, registry: ThemeRuntimeRegistry): Promise<void> {
-  const dir = path.join(root, 'templates');
+  const dir = path.join(/*turbopackIgnore: true*/ root, 'templates');
   const files = await listTsx(dir);
   for (const rel of files) {
     const base = path.basename(rel, '.tsx');
@@ -46,19 +44,19 @@ async function discoverTemplates(root: string, registry: ThemeRuntimeRegistry): 
 }
 
 async function discoverPartials(root: string, registry: ThemeRuntimeRegistry): Promise<void> {
-  const dir = path.join(root, 'partials');
+  const dir = path.join(/*turbopackIgnore: true*/ root, 'partials');
   const files = await listTsx(dir);
   for (const rel of files) {
     const base = path.basename(rel, '.tsx');
-    const key = PARTIAL_NAME_MAP[base.toLowerCase()];
-    if (key && !registry.partials[key]) {
+    const key = PARTIAL_NAME_MAP[base.toLowerCase()] ?? base.toLowerCase();
+    if (!registry.partials[key]) {
       registry.partials[key] = { key, path: rel };
     }
   }
 }
 
 async function discoverBlocks(root: string, registry: ThemeRuntimeRegistry): Promise<void> {
-  const dir = path.join(root, 'blocks');
+  const dir = path.join(/*turbopackIgnore: true*/ root, 'blocks');
   let entries: string[];
   try {
     entries = await fs.readdir(dir);
@@ -67,6 +65,20 @@ async function discoverBlocks(root: string, registry: ThemeRuntimeRegistry): Pro
   }
 
   for (const name of entries) {
+    // Flat blocks/Hero.tsx
+    if (name.endsWith('.tsx')) {
+      const type = kebabCase(path.basename(name, '.tsx'));
+      const rendererRel = `blocks/${name}`;
+      if (!registry.blocks[type]) {
+        registry.blocks[type] = {
+          type,
+          label: path.basename(name, '.tsx'),
+          rendererPath: rendererRel,
+        };
+      }
+      continue;
+    }
+
     const blockDir = path.join(dir, name);
     let st;
     try {
@@ -80,10 +92,10 @@ async function discoverBlocks(root: string, registry: ThemeRuntimeRegistry): Pro
     const schemaRel = `blocks/${name}/schema.ts`;
     const type = kebabCase(name);
 
-    const hasRenderer = await fileExists(path.join(root, rendererRel));
+    const hasRenderer = await fileExists(path.join(/*turbopackIgnore: true*/ root, rendererRel));
     if (!hasRenderer) continue;
 
-    const hasSchema = await fileExists(path.join(root, schemaRel));
+    const hasSchema = await fileExists(path.join(/*turbopackIgnore: true*/ root, schemaRel));
     registry.blocks[type] = {
       type,
       label: name,
@@ -94,16 +106,23 @@ async function discoverBlocks(root: string, registry: ThemeRuntimeRegistry): Pro
 }
 
 async function discoverAssets(root: string, registry: ThemeRuntimeRegistry): Promise<void> {
-  const stylePath = path.join(root, 'assets', 'style.css');
-  const scriptPath = path.join(root, 'assets', 'theme.js');
-  if (await fileExists(stylePath)) {
-    registry.assets.push({ kind: 'style', path: 'assets/style.css' });
+  const styleCandidates = ['styles/style.css', 'assets/style.css'];
+  const scriptCandidates = ['scripts/theme.js', 'assets/theme.js'];
+
+  for (const rel of styleCandidates) {
+    if (await fileExists(path.join(/*turbopackIgnore: true*/ root, rel))) {
+      registry.assets.push({ kind: 'style', path: rel });
+      break;
+    }
   }
-  if (await fileExists(scriptPath)) {
-    registry.assets.push({ kind: 'script', path: 'assets/theme.js' });
+  for (const rel of scriptCandidates) {
+    if (await fileExists(path.join(/*turbopackIgnore: true*/ root, rel))) {
+      registry.assets.push({ kind: 'script', path: rel });
+      break;
+    }
   }
 
-  const fontsDir = path.join(root, 'assets', 'fonts');
+  const fontsDir = path.join(/*turbopackIgnore: true*/ root, 'assets', 'fonts');
   try {
     const fonts = await fs.readdir(fontsDir);
     for (const f of fonts) {

@@ -1,8 +1,14 @@
 {
   "compilerOptions": {
     "target": "ES2017",
-    "types": ["node"],
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "types": [
+      "node"
+    ],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -12,7 +18,7 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     "incremental": true,
     "plugins": [
       {
@@ -20,8 +26,12 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"],
-      "@cms/theme": ["./src/modules/themeEngine/sdk/index.ts"]
+      "@/*": [
+        "./src/*"
+      ],
+      "@cms/theme": [
+        "./src/modules/themeEngine/sdk/index.ts"
+      ]
     }
   },
   "include": [
@@ -29,7 +39,14 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "src/components/editor/Left-Sidebar/Layers"
+    "src/components/editor/Left-Sidebar/Layers",
+    ".next/dev/types/**/*.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules",
+    "src/themes/[slug]",
+    "src/plugins",
+    "src/app/api/plugins/**/api/**",
+    "src/app/api/plugins/**/server/**"
+  ]
 }

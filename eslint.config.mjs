@@ -10,6 +10,15 @@ const compat = new FlatCompat({
 });
 
 const eslintConfig = [
+  {
+    ignores: [
+      // User-uploaded plugin packages (CommonJS backend + static frontend).
+      // Avoid bracket globs like [pluginId] — they are treated as character classes.
+      'src/plugins/**',
+      'src/app/api/plugins/**/api/**',
+      'src/app/api/plugins/**/server/**',
+    ],
+  },
   ...compat.extends('next/core-web-vitals', 'next/typescript'),
   {
     rules: {

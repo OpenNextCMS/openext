@@ -37,7 +37,15 @@ const InstallLogEntrySchema = new Schema<ThemeInstallLogEntry>(
   { _id: false }
 );
 
-const THEME_STATUSES: ThemeStatus[] = ['installed', 'installing', 'failed', 'disabled'];
+const THEME_STATUSES: ThemeStatus[] = [
+  'installed',
+  'installing',
+  'failed',
+  'disabled',
+  'active',
+  'update_available',
+  'invalid',
+];
 
 const ThemeSchema = new Schema<IThemeEngineThemeDocument>(
   {
@@ -59,6 +67,16 @@ const ThemeSchema = new Schema<IThemeEngineThemeDocument>(
     assetHashes: {
       stylesheet: { type: String },
       script: { type: String },
+    },
+    assetPaths: {
+      stylesheet: { type: String },
+      script: { type: String },
+    },
+    templates: { type: [Schema.Types.Mixed], default: [] },
+    partials: { type: Schema.Types.Mixed, default: {} },
+    assets: {
+      css: { type: String },
+      js: { type: String },
     },
   },
   { timestamps: { createdAt: false, updatedAt: true }, collection: 'theme_engine_themes' }

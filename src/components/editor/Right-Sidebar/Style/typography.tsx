@@ -11,6 +11,11 @@ import { useAppSelector, useAppDispatch } from '@/redux/hooks';
 import { updateSelectedBlockStyles } from '@/redux/canvasSlice';
 import { getStyleAtPath } from '@/lib/editor/stylePath';
 import { Input } from '@/components/ui/input';
+import {
+  EDITOR_FONT_SELECT_OPTIONS,
+  getEditorFontStackById,
+  matchEditorFontId,
+} from '@/lib/editor/fontFamilies';
 
 // ✅ RGB to HEX utility for syncing color pickers
 function rgbToHex(rgb: string) {
@@ -44,7 +49,7 @@ export default function Typography() {
 
   const selectedBlock = useAppSelector((state) => state.canvas.selectedBlock);
   const selectedPart = useAppSelector((state) => state.canvas.selectedPart);
-  const [fontFamily, setFontFamily] = useState('Arial');
+  const [fontFamily, setFontFamily] = useState('arial');
   const [fontSize, setFontSize] = useState('16');
   const [lineHeight, setLineHeight] = useState('1.5');
   const [fontWeight, setFontWeight] = useState('400');
@@ -72,7 +77,7 @@ export default function Typography() {
       }
     }
 
-    setFontFamily(String(style.fontFamily || 'Arial').replace(/['"]/g, ''));
+    setFontFamily(matchEditorFontId(String(style.fontFamily || 'Arial')));
     setFontSize(String(style.fontSize || '16').replace(/[^0-9.]/g, ''));
     setLineHeight(String(style.lineHeight || '1.5').replace(/[^0-9.]/g, ''));
     setFontWeight(String(style.fontWeight || '400'));
@@ -133,14 +138,10 @@ export default function Typography() {
             value={fontFamily}
             onValueChange={(val) => {
               setFontFamily(val);
-              handleStyleChange('fontFamily', val);
+              handleStyleChange('fontFamily', getEditorFontStackById(val));
             }}
-            options={[
-              { label: 'Arial', value: 'Arial' },
-              { label: 'Helvetica', value: 'Helvetica' },
-              { label: 'Times New Roman', value: 'Times New Roman' },
-              { label: 'Courier New', value: 'Courier New' },
-            ]}
+            previewFonts
+            options={EDITOR_FONT_SELECT_OPTIONS}
           />
 
           <div className="flex items-center gap-2">

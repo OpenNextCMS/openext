@@ -23,27 +23,41 @@ import type { ThemeDocument } from './types';
  */
 export class AssetManager {
   private readonly hashes = new Map<string, ThemeDocument['assetHashes']>();
+  private readonly paths = new Map<string, NonNullable<ThemeDocument['assetPaths']>>();
 
   private static key(slug: string, version: string): string {
     return `${slug}@${version}`;
   }
 
-  /** Seed (or refresh) the known asset hashes for one (slug, version). No I/O — the caller already has this data (e.g. from a `ThemeDocument`). */
+  registerThemeAssets(
+    slug: string,
+    version: string,
+    data: {
+      hashes?: ThemeDocument['assetHashes'];
+      paths?: ThemeDocument['assetPaths'];
+    }
+  ): void {
+    this.registerAssetHashes(slug, version, data.hashes);
+    this.paths.set(AssetManager.key(slug, version), data.paths ?? {});
+  }
+
+  /** @deprecated Prefer registerThemeAssets — kept for compatibility. */
   registerAssetHashes(slug: string, version: string, hashes: ThemeDocument['assetHashes'] | undefined): void {
     this.hashes.set(AssetManager.key(slug, version), hashes ?? {});
   }
 
-  /** True once a (slug, version) pair has had its hashes registered. */
   isRegistered(slug: string, version: string): boolean {
     return this.hashes.has(AssetManager.key(slug, version));
   }
 
   getStylesheetUrl(slug: string, version: string): string {
-    return this.buildUrl(slug, 'assets/style.css', this.lookup(slug, version)?.stylesheet);
+    const rel = this.lookupPaths(slug, version)?.stylesheet ?? 'assets/style.css';
+    return this.buildUrl(slug, rel, this.lookup(slug, version)?.stylesheet);
   }
 
   getScriptUrl(slug: string, version: string): string {
-    return this.buildUrl(slug, 'assets/theme.js', this.lookup(slug, version)?.script);
+    const rel = this.lookupPaths(slug, version)?.script ?? 'assets/theme.js';
+    return this.buildUrl(slug, rel, this.lookup(slug, version)?.script);
   }
 
   /** Fonts/images under `/public` in the package — no per-file hash is tracked in v1 (only `style.css`/`theme.js`, per `ThemeDocument.assetHashes`'s shape), so no cache-busting query is appended here. */
@@ -56,10 +70,14 @@ export class AssetManager {
     const found = this.hashes.get(key);
     if (found === undefined) {
       throw new Error(
-        `AssetManager: no asset hashes registered for "${key}" — call registerAssetHashes() (done automatically by ThemeLoader.loadTheme()) before requesting asset URLs.`
+        `AssetManager: no asset hashes registered for "${key}" — call registerThemeAssets() before requesting asset URLs.`
       );
     }
     return found;
+  }
+
+  private lookupPaths(slug: string, version: string): ThemeDocument['assetPaths'] {
+    return this.paths.get(AssetManager.key(slug, version)) ?? {};
   }
 
   private buildUrl(slug: string, relativePath: string, hash?: string): string {

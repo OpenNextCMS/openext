@@ -1,5 +1,6 @@
 import { getUserDbConnection } from '@/utils/db';
 import { getSettingsModel } from '@/utils/db';
+import { resolvePluginPermissionsForRole } from '@/lib/rbac/pluginPermissions';
 
 interface PluginPermissionsStore {
   [pluginId: string]: string[];
@@ -60,8 +61,5 @@ export function resolveUserPermissions(
   pluginPermissions: string[],
   role?: number | string
 ): string[] {
-  if (typeof role === 'number' && role <= 1) {
-    return [...pluginPermissions];
-  }
-  return [];
+  return resolvePluginPermissionsForRole(pluginPermissions, role, pluginId);
 }

@@ -4,8 +4,15 @@ import { apiUrl } from '@/lib/apiClient';
 import { useState } from 'react';
 
 /** Shown on the public site only while a Theme Engine preview cookie is active — never for the real active theme. */
-export default function PreviewBanner({ slug }: { slug: string }) {
+export default function PreviewBanner({
+  slug,
+  themeName,
+}: {
+  slug: string;
+  themeName?: string;
+}) {
   const [ending, setEnding] = useState(false);
+  const [activating, setActivating] = useState(false);
 
   const exitPreview = async () => {
     setEnding(true);
@@ -16,6 +23,23 @@ export default function PreviewBanner({ slug }: { slug: string }) {
     }
   };
 
+  const activateTheme = async () => {
+    setActivating(true);
+    try {
+      await fetch(apiUrl(`/api/theme-engine/themes/${encodeURIComponent(slug)}/activate`), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ applyToEditor: false }),
+      });
+      await fetch(apiUrl('/api/theme-engine/preview'), { method: 'DELETE' });
+      window.location.reload();
+    } catch {
+      setActivating(false);
+    }
+  };
+
+  const label = themeName || slug;
+
   return (
     <div
       style={{
@@ -24,9 +48,10 @@ export default function PreviewBanner({ slug }: { slug: string }) {
         zIndex: 9999,
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'center',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
         gap: 12,
-        padding: '8px 16px',
+        padding: '10px 16px',
         background: '#111827',
         color: '#fff',
         fontSize: 13,
@@ -34,24 +59,42 @@ export default function PreviewBanner({ slug }: { slug: string }) {
       }}
     >
       <span>
-        Previewing theme <strong>{slug}</strong> — this is not what visitors currently see.
+        Previewing: <strong>{label}</strong> — visitors still see the active theme.
       </span>
-      <button
-        onClick={exitPreview}
-        disabled={ending}
-        style={{
-          background: '#fff',
-          color: '#111827',
-          border: 'none',
-          borderRadius: 6,
-          padding: '4px 12px',
-          fontSize: 12,
-          fontWeight: 600,
-          cursor: ending ? 'default' : 'pointer',
-        }}
-      >
-        {ending ? 'Exiting…' : 'Exit Preview'}
-      </button>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        <button
+          onClick={activateTheme}
+          disabled={activating || ending}
+          style={{
+            background: '#10b981',
+            color: '#fff',
+            border: 'none',
+            borderRadius: 6,
+            padding: '6px 14px',
+            fontSize: 12,
+            fontWeight: 600,
+            cursor: activating || ending ? 'default' : 'pointer',
+          }}
+        >
+          {activating ? 'Activating…' : 'Activate Theme'}
+        </button>
+        <button
+          onClick={exitPreview}
+          disabled={ending || activating}
+          style={{
+            background: '#fff',
+            color: '#111827',
+            border: 'none',
+            borderRadius: 6,
+            padding: '6px 14px',
+            fontSize: 12,
+            fontWeight: 600,
+            cursor: ending || activating ? 'default' : 'pointer',
+          }}
+        >
+          {ending ? 'Exiting…' : 'Exit Preview'}
+        </button>
+      </div>
     </div>
   );
 }

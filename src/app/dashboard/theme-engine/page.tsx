@@ -20,6 +20,9 @@ import {
   Tablet,
   Smartphone,
   Trash2,
+  RotateCcw,
+  Layers,
+  Settings2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -48,13 +51,23 @@ interface EngineThemeRow {
   author: string;
   version: string;
   description?: string;
-  status: 'installed' | 'installing' | 'failed' | 'disabled';
+  status: 'installed' | 'installing' | 'failed' | 'disabled' | 'active' | 'update_available' | 'invalid';
   installedAt: string;
   updatedAt?: string;
+  templateCount?: number;
+  blockCount?: number;
+  partialCount?: number;
+  screenshotUrl?: string;
+  isActive?: boolean;
 }
+
+type SortKey = 'updated' | 'oldest' | 'name' | 'nameDesc' | 'status';
+type FilterKey = 'all' | 'installed' | 'active';
 
 interface ListResponse {
   activeSlug: string | null;
+  previousThemeSlug?: string | null;
+  homepageTemplateKey?: string | null;
   themes: EngineThemeRow[];
 }
 
@@ -62,8 +75,6 @@ interface PreviewStatus {
   active: boolean;
   slug: string | null;
 }
-
-type SortKey = 'updated' | 'name' | 'status';
 
 async function unwrap<T>(res: Response): Promise<T> {
   const json = await res.json();
@@ -95,25 +106,75 @@ function paletteFromSlug(slug: string) {
   };
 }
 
+/** Theme card thumbnail — screenshot when available, otherwise live iframe preview. */
+function ThemeCardThumbnail({
+  slug,
+  name,
+  status,
+  screenshotUrl,
+  tall = false,
+  templateKey,
+}: {
+  slug: string;
+  name: string;
+  status: EngineThemeRow['status'];
+  screenshotUrl?: string;
+  tall?: boolean;
+  templateKey?: string;
+}) {
+  const [shotFailed, setShotFailed] = useState(false);
+  const useScreenshot = Boolean(screenshotUrl) && !shotFailed && status === 'installed';
+
+  if (useScreenshot && screenshotUrl) {
+    const heightClass = tall ? 'h-[min(70vh,720px)]' : 'h-44';
+    return (
+      <div className={`relative ${heightClass} w-full overflow-hidden bg-muted/30`}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={screenshotUrl}
+          alt={`${name} screenshot`}
+          className="h-full w-full object-cover object-top"
+          loading="lazy"
+          onError={() => setShotFailed(true)}
+        />
+        {!tall && (
+          <div className="pointer-events-none absolute inset-0 flex items-end justify-center bg-gradient-to-t from-black/50 to-transparent pb-3 opacity-0 transition group-hover:opacity-100">
+            <span className="rounded-full bg-white/90 px-3 py-1 text-xs font-medium text-gray-900">
+              Live Preview
+            </span>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <ThemeCardLivePreview slug={slug} name={name} status={status} tall={tall} templateKey={templateKey} />
+  );
+}
+
 /** Live scaled iframe of the real theme render (not a schematic mockup). */
 function ThemeCardLivePreview({
   slug,
   name,
   status,
   tall = false,
+  templateKey,
 }: {
   slug: string;
   name: string;
   status: EngineThemeRow['status'];
   tall?: boolean;
+  templateKey?: string;
 }) {
   const [loaded, setLoaded] = useState(false);
   const [failed, setFailed] = useState(false);
-  const heightClass = tall ? 'h-[420px]' : 'h-44';
-  // Gallery cards use compose=1 so header + footer stay pinned in the frame.
-  const previewSrc = `/theme-engine-card-preview/${encodeURIComponent(slug)}${
-    tall ? '' : '?compose=1'
-  }`;
+  const heightClass = tall ? 'h-[min(70vh,720px)]' : 'h-44';
+  const params = new URLSearchParams();
+  if (!tall) params.set('compose', '1');
+  if (templateKey) params.set('template', templateKey);
+  const query = params.toString();
+  const previewSrc = `/theme-engine-card-preview/${encodeURIComponent(slug)}${query ? `?${query}` : ''}`;
 
   if (status !== 'installed' || failed) {
     return (
@@ -126,22 +187,20 @@ function ThemeCardLivePreview({
   }
 
   return (
-    <div className={`relative ${heightClass} w-full overflow-hidden bg-neutral-900`}>
+    <div className={`relative ${heightClass} w-full ${tall ? 'overflow-auto' : 'overflow-hidden'} bg-neutral-900`}>
       {!loaded && (
         <div className="absolute inset-0 z-10 flex items-center justify-center bg-muted/30">
           <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
         </div>
       )}
       <iframe
+        key={previewSrc}
         src={previewSrc}
         title={`${name} preview`}
-        className="pointer-events-none absolute left-0 top-0 border-0"
+        className={tall ? 'h-full w-full border-0' : 'pointer-events-none absolute left-0 top-0 border-0'}
         style={
           tall
-            ? {
-                width: '100%',
-                height: '100%',
-              }
+            ? undefined
             : {
                 width: '400%',
                 height: '400%',
@@ -150,7 +209,7 @@ function ThemeCardLivePreview({
               }
         }
         loading="lazy"
-        sandbox="allow-same-origin allow-scripts"
+        sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox"
         onLoad={() => setLoaded(true)}
         onError={() => setFailed(true)}
       />
@@ -190,6 +249,7 @@ export default function ThemeEnginePage() {
   const [busySlug, setBusySlug] = useState<string | null>(null);
   const [query, setQuery] = useState('');
   const [sort, setSort] = useState<SortKey>('updated');
+  const [filter, setFilter] = useState<FilterKey>('all');
   const [expanded, setExpanded] = useState<string | null>(null);
 
   const [activateTarget, setActivateTarget] = useState<EngineThemeRow | null>(null);
@@ -206,6 +266,10 @@ export default function ThemeEnginePage() {
   const [previewSlug, setPreviewSlug] = useState<string | null>(null);
   const [device, setDevice] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
   const [previewing, setPreviewing] = useState(false);
+  const [previewTemplateKey, setPreviewTemplateKey] = useState<string>('');
+  const [previewTemplates, setPreviewTemplates] = useState<{ key: string; name: string }[]>([]);
+  const [homepageTemplates, setHomepageTemplates] = useState<{ key: string; name: string }[]>([]);
+  const [homepageTemplateKey, setHomepageTemplateKey] = useState<string>('');
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -216,6 +280,19 @@ export default function ThemeEnginePage() {
       ]);
       setList(themes);
       setPreviewStatus(preview);
+      setHomepageTemplateKey(themes.homepageTemplateKey || '');
+      if (themes.activeSlug) {
+        try {
+          const tpl = await unwrap<{ templates: { key: string; name: string }[] }>(
+            await fetch(apiUrl('/api/theme-engine/templates'))
+          );
+          setHomepageTemplates(tpl.templates ?? []);
+        } catch {
+          setHomepageTemplates([]);
+        }
+      } else {
+        setHomepageTemplates([]);
+      }
     } catch (e) {
       toast.error((e as Error).message);
     } finally {
@@ -227,6 +304,30 @@ export default function ThemeEnginePage() {
     refresh();
   }, [refresh]);
 
+  useEffect(() => {
+    if (!previewSlug) {
+      setPreviewTemplates([]);
+      setPreviewTemplateKey('');
+      return;
+    }
+    fetch(apiUrl(`/api/theme-engine/themes/${encodeURIComponent(previewSlug)}/templates`))
+      .then((r) => r.json())
+      .then((json) => {
+        const list = (json?.data?.templates ?? []) as { key: string; name: string }[];
+        setPreviewTemplates(list);
+        const preferred =
+          list.find((t) => t.key === 'home')?.key ??
+          list.find((t) => t.key === 'index')?.key ??
+          list[0]?.key ??
+          '';
+        setPreviewTemplateKey(preferred);
+      })
+      .catch(() => {
+        setPreviewTemplates([]);
+        setPreviewTemplateKey('');
+      });
+  }, [previewSlug]);
+
   const themes = useMemo(() => list?.themes ?? [], [list?.themes]);
   const active = themes.find((t) => t.slug === list?.activeSlug);
 
@@ -235,7 +336,7 @@ export default function ThemeEnginePage() {
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
-    const filtered = themes.filter(
+    let filtered = themes.filter(
       (t) =>
         !q ||
         t.name.toLowerCase().includes(q) ||
@@ -243,17 +344,26 @@ export default function ThemeEnginePage() {
         (t.description || '').toLowerCase().includes(q) ||
         t.author.toLowerCase().includes(q)
     );
+    if (filter === 'installed') {
+      filtered = filtered.filter((t) => t.status === 'installed' || t.isActive);
+    } else if (filter === 'active') {
+      filtered = filtered.filter((t) => t.slug === list?.activeSlug);
+    }
     const rank = (t: EngineThemeRow) =>
       t.slug === list?.activeSlug ? 0 : t.status === 'failed' ? 3 : t.status === 'installed' ? 1 : 2;
     const sorters: Record<SortKey, (a: EngineThemeRow, b: EngineThemeRow) => number> = {
       name: (a, b) => a.name.localeCompare(b.name),
+      nameDesc: (a, b) => b.name.localeCompare(a.name),
       updated: (a, b) =>
         new Date(b.updatedAt || b.installedAt || 0).getTime() -
         new Date(a.updatedAt || a.installedAt || 0).getTime(),
+      oldest: (a, b) =>
+        new Date(a.updatedAt || a.installedAt || 0).getTime() -
+        new Date(b.updatedAt || b.installedAt || 0).getTime(),
       status: (a, b) => rank(a) - rank(b),
     };
     return [...filtered].sort(sorters[sort]);
-  }, [themes, query, sort, list?.activeSlug]);
+  }, [themes, query, sort, filter, list?.activeSlug]);
 
   const onUploadFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -388,16 +498,10 @@ export default function ThemeEnginePage() {
   const openPreviewSession = async (slug: string) => {
     setPreviewing(true);
     try {
-      // Start a preview session (banner on public pages) and open a theme-only
-      // snapshot — no CMS homepage blocks mixed into the package design.
       await unwrap(await fetch(apiUrl(`/api/theme-engine/themes/${slug}/preview`), { method: 'POST' }));
       await refresh();
-      window.open(
-        `/theme-engine-card-preview/${encodeURIComponent(slug)}`,
-        '_blank',
-        'noopener'
-      );
-      toast.success(`Previewing “${slug}” (theme only)`);
+      window.open('/', '_blank', 'noopener');
+      toast.success(`Previewing “${slug}” — browse your site with this theme.`);
     } catch (e) {
       toast.error((e as Error).message);
     } finally {
@@ -412,6 +516,28 @@ export default function ThemeEnginePage() {
       await refresh();
     } catch (e) {
       toast.error((e as Error).message);
+    }
+  };
+
+  const handleRollback = async () => {
+    const prev = list?.previousThemeSlug;
+    if (!prev) {
+      toast.error('No previous theme to roll back to.');
+      return;
+    }
+    setBusySlug(prev);
+    try {
+      await unwrap(
+        await fetch(apiUrl(`/api/theme-engine/themes/${encodeURIComponent(prev)}/rollback`), {
+          method: 'POST',
+        })
+      );
+      toast.success(`Rolled back to “${prev}”.`);
+      await refresh();
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setBusySlug(null);
     }
   };
 
@@ -435,6 +561,11 @@ export default function ThemeEnginePage() {
           </p>
         </div>
         <div className="flex gap-2">
+          {list?.previousThemeSlug && (
+            <Button variant="outline" disabled={!!busySlug} onClick={handleRollback}>
+              <RotateCcw className="mr-2 h-4 w-4" /> Rollback to {list.previousThemeSlug}
+            </Button>
+          )}
           <Button
             variant="outline"
             disabled={!active}
@@ -474,6 +605,46 @@ export default function ThemeEnginePage() {
           </Button>
         </div>
       </div>
+
+      {active && homepageTemplates.length > 0 && (
+        <div className="flex flex-wrap items-center gap-3 rounded-xl border bg-card p-4">
+          <div className="min-w-[140px]">
+            <p className="text-sm font-medium">Homepage template</p>
+            <p className="text-xs text-muted-foreground">Active theme: {active.name}</p>
+          </div>
+          <Select
+            value={homepageTemplateKey || '__default__'}
+            onValueChange={async (v) => {
+              const key = v === '__default__' ? '' : v;
+              setHomepageTemplateKey(key);
+              try {
+                await unwrap(
+                  await fetch(apiUrl('/api/theme-engine/templates'), {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ homepageTemplateKey: key || null }),
+                  })
+                );
+                toast.success('Homepage template updated.');
+              } catch (e) {
+                toast.error((e as Error).message);
+              }
+            }}
+          >
+            <SelectTrigger className="w-[240px]">
+              <SelectValue placeholder="Default (auto)" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__default__">Default (auto)</SelectItem>
+              {homepageTemplates.map((t) => (
+                <SelectItem key={t.key} value={t.key}>
+                  {t.name} ({t.key})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
 
       {/* Overview stats */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
@@ -548,6 +719,15 @@ export default function ThemeEnginePage() {
               >
                 <Eye className="mr-1.5 h-4 w-4" /> Preview
               </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => {
+                  window.location.href = `/dashboard/theme-engine/customize/${encodeURIComponent(active.slug)}`;
+                }}
+              >
+                <Settings2 className="mr-1.5 h-4 w-4" /> Customize
+              </Button>
             </div>
           </div>
         </div>
@@ -555,6 +735,20 @@ export default function ThemeEnginePage() {
 
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-3">
+        <div className="flex rounded-lg border bg-muted/40 p-0.5">
+          {(['all', 'installed', 'active'] as const).map((f) => (
+            <button
+              key={f}
+              type="button"
+              onClick={() => setFilter(f)}
+              className={`rounded-md px-3 py-1.5 text-xs font-medium capitalize transition ${
+                filter === f ? 'bg-background shadow-sm' : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {f}
+            </button>
+          ))}
+        </div>
         <div className="relative min-w-[220px] flex-1">
           <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
@@ -569,8 +763,10 @@ export default function ThemeEnginePage() {
             <SelectValue placeholder="Sort" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="updated">Recently updated</SelectItem>
+            <SelectItem value="updated">Newest</SelectItem>
+            <SelectItem value="oldest">Oldest</SelectItem>
             <SelectItem value="name">Name (A–Z)</SelectItem>
+            <SelectItem value="nameDesc">Name (Z–A)</SelectItem>
             <SelectItem value="status">Status</SelectItem>
           </SelectContent>
         </Select>
@@ -601,17 +797,19 @@ export default function ThemeEnginePage() {
             const isOpen = expanded === t.slug;
             const swatches = paletteFromSlug(t.slug);
             return (
-              <div key={t.slug} className="flex flex-col overflow-hidden rounded-xl border bg-card">
+              <div key={t.slug} className={`group flex flex-col overflow-hidden rounded-xl border bg-card ${isActive ? 'ring-2 ring-emerald-500 ring-offset-2' : ''}`}>
                 <button
                   type="button"
                   className="block text-left"
-                  onClick={() => {
-                    setPreviewSlug(t.slug);
-                    setDevice('desktop');
-                  }}
+                  onClick={() => openPreviewSession(t.slug)}
                   title="Open live preview"
                 >
-                  <ThemeCardLivePreview slug={t.slug} name={t.name} status={t.status} />
+                  <ThemeCardThumbnail
+                    slug={t.slug}
+                    name={t.name}
+                    status={t.status}
+                    screenshotUrl={t.screenshotUrl}
+                  />
                 </button>
                 <div className="flex flex-1 flex-col gap-2 p-4">
                   <div className="flex flex-wrap items-center gap-2">
@@ -640,8 +838,12 @@ export default function ThemeEnginePage() {
                   )}
                   <p className="mt-auto text-xs text-muted-foreground">
                     v{t.version}
-                    {t.installedAt
-                      ? ` · Installed ${new Date(t.installedAt).toLocaleDateString()}`
+                    {typeof t.templateCount === 'number' ? ` · ${t.templateCount} template${t.templateCount === 1 ? '' : 's'}` : ''}
+                    {typeof t.blockCount === 'number' && t.blockCount > 0
+                      ? ` · ${t.blockCount} block${t.blockCount === 1 ? '' : 's'}`
+                      : ''}
+                    {typeof t.partialCount === 'number' && t.partialCount > 0
+                      ? ` · ${t.partialCount} partial${t.partialCount === 1 ? '' : 's'}`
                       : ''}
                   </p>
 
@@ -661,12 +863,39 @@ export default function ThemeEnginePage() {
                       size="sm"
                       variant="ghost"
                       disabled={t.status !== 'installed'}
-                      onClick={() => {
-                        setPreviewSlug(t.slug);
-                        setDevice('desktop');
-                      }}
+                      onClick={() => openPreviewSession(t.slug)}
                     >
                       <Eye className="mr-1 h-3.5 w-3.5" /> Preview
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      disabled={t.status !== 'installed'}
+                      onClick={() => {
+                        window.location.href = `/dashboard/theme-engine/customize/${encodeURIComponent(t.slug)}`;
+                      }}
+                    >
+                      <Palette className="mr-1 h-3.5 w-3.5" /> Customize
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      disabled={t.status !== 'installed'}
+                      onClick={() => {
+                        window.location.href = `/dashboard/theme-engine/${encodeURIComponent(t.slug)}`;
+                      }}
+                    >
+                      <Settings2 className="mr-1 h-3.5 w-3.5" /> Details
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      disabled={t.status !== 'installed'}
+                      onClick={() => {
+                        window.location.href = `/dashboard/theme-engine/${encodeURIComponent(t.slug)}/templates`;
+                      }}
+                    >
+                      <Layers className="mr-1 h-3.5 w-3.5" /> Templates
                     </Button>
                     <Button
                       size="sm"
@@ -900,6 +1129,20 @@ export default function ThemeEnginePage() {
                   </SelectContent>
                 </Select>
               )}
+              {previewTemplates.length > 1 && (
+                <Select value={previewTemplateKey} onValueChange={setPreviewTemplateKey}>
+                  <SelectTrigger className="h-8 w-[200px]">
+                    <SelectValue placeholder="Template" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {previewTemplates.map((t) => (
+                      <SelectItem key={t.key} value={t.key}>
+                        {t.name} ({t.key})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
               <div className="ml-auto flex items-center gap-1 rounded-lg border p-1">
                 {(['desktop', 'tablet', 'mobile'] as const).map((d) => {
                   const Icon = d === 'desktop' ? Monitor : d === 'tablet' ? Tablet : Smartphone;
@@ -923,7 +1166,9 @@ export default function ThemeEnginePage() {
             <div className="space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <p className="text-sm text-muted-foreground">
-                  Shows only this uploaded theme — no other page blocks.
+                  {previewTemplates.length > 1
+                    ? `Previewing template “${previewTemplates.find((t) => t.key === previewTemplateKey)?.name ?? previewTemplateKey}” — switch templates above.`
+                    : 'Shows only this uploaded theme — no other page blocks.'}
                 </p>
                 <Button
                   disabled={previewing || previewTheme.status !== 'installed'}
@@ -952,6 +1197,7 @@ export default function ThemeEnginePage() {
                       slug={previewTheme.slug}
                       name={previewTheme.name}
                       status={previewTheme.status}
+                      templateKey={previewTemplateKey || undefined}
                       tall
                     />
                   </div>

@@ -57,3 +57,39 @@ export const safeStorageClear = () => {
 
   memoryStore.clear();
 };
+
+/** Clear MySQL install draft keys when the user picks another engine. */
+export const clearMysqlSetupStorage = () => {
+  for (const key of ['MYSQL_HOST', 'MYSQL_PORT', 'MYSQL_USER', 'MYSQL_PASSWORD', 'MYSQL_DATABASE']) {
+    safeStorageRemove(key);
+  }
+};
+
+/** Clear PostgreSQL install draft keys when the user picks another engine. */
+export const clearPostgresSetupStorage = () => {
+  for (const key of [
+    'POSTGRES_HOST',
+    'POSTGRES_PORT',
+    'POSTGRES_USER',
+    'POSTGRES_PASSWORD',
+    'POSTGRES_DATABASE',
+  ]) {
+    safeStorageRemove(key);
+  }
+};
+
+/** Clear MongoDB install draft keys when the user picks MySQL/Postgres instead. */
+export const clearMongodbSetupStorage = () => {
+  for (const key of [
+    'MONGODB',
+    'MONGODB_URI',
+    'MONGODB_USERNAME',
+    'MONGODB_PASSWORD',
+    'MONGODB_HOST',
+    'MONGODB_CLUSTER',
+    'MONGODB_AUTH_MECH',
+    'MONGODB_AUTH_SOURCE',
+  ]) {
+    safeStorageRemove(key);
+  }
+};

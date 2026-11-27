@@ -28,14 +28,23 @@ import {
   Tag,
   Tags,
   Puzzle,
+  Share2,
+  Link2,
   type LucideIcon,
 } from 'lucide-react';
 import { usePlugins, type PluginRecord } from '@/context/PluginContext';
+import { runtimePluginPath } from '@/lib/plugins/adminNav';
+import { extensionNavLinks, type ExtensionHostPage } from '@/lib/extensions/hostPages';
+import { useExtensionHostPages } from '@/hooks/useExtensionHostPages';
+import { resolveNavIcon } from '@/lib/plugins/navIcons';
+import { useRbac } from '@/hooks/useRbac';
+import type { NavSectionId } from '@/lib/rbac/capabilityDefinitions';
 
 type NavSection = {
   label: string;
   icon: LucideIcon;
   path?: string;
+  navSection?: NavSectionId;
   links: { label: string; icon: LucideIcon; path: string }[];
 };
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -52,11 +61,13 @@ const navItems: NavSection[] = [
     label: 'Dashboard',
     icon: LayoutDashboard,
     path: '/dashboard',
+    navSection: 'dashboard',
     links: [],
   },
   {
     label: 'Blogs',
     icon: Codesandbox,
+    navSection: 'blogs',
     links: [
       { label: 'All Blogs', icon: List, path: '/dashboard/blogs/allblogs' },
       { label: 'Add New Blog', icon: PlusCircle, path: '/dashboard/blogs/new' },
@@ -67,6 +78,7 @@ const navItems: NavSection[] = [
   {
     label: 'Pages',
     icon: FileText,
+    navSection: 'pages',
     links: [
       { label: 'Headers', icon: ArrowUpToLine, path: '/dashboard/pages/headers' },
       { label: 'Footers', icon: ArrowDownToLine, path: '/dashboard/pages/footers' },
@@ -77,24 +89,35 @@ const navItems: NavSection[] = [
     label: 'Themes',
     icon: Palette,
     path: '/dashboard/theme-engine',
+    navSection: 'themes',
     links: [],
   },
   {
     label: 'Plugins',
     icon: Wrench,
     path: '/dashboard/plugins',
+    navSection: 'plugins',
+    links: [],
+  },
+  {
+    label: 'Extensions',
+    icon: Puzzle,
+    path: '/dashboard/extensions',
+    navSection: 'plugins',
     links: [],
   },
   {
     label: 'AI Settings',
     icon: BrainCircuit,
     path: '/dashboard/ai-settings',
+    navSection: 'ai-settings',
     links: [],
   },
   {
     label: 'User',
     icon: User,
     path: '/dashboard/users',
+    navSection: 'users',
     links: [],
   },
 ];
@@ -105,6 +128,7 @@ const navItems: NavSection[] = [
 const menuRedirectNav: NavSection = {
   label: 'Menu Redirect',
   icon: Route,
+  navSection: 'menu-redirect',
   links: [
     { label: 'Mappings', icon: List, path: '/dashboard/plugins/menu-redirect' },
     { label: 'Visual Editor', icon: LayoutTemplate, path: '/dashboard/plugins/menu-redirect/editor' },
@@ -113,9 +137,11 @@ const menuRedirectNav: NavSection = {
   ],
 };
 
-/** True when the active marketplace plugins include the Menu Redirect system. */
-function hasMenuRedirect(plugins: { pluginId: string; name: string }[]): boolean {
-  return plugins.some((p) => {
+/** The active marketplace plugin matching the Menu Redirect system, if any. */
+function findMenuRedirectPlugin<T extends { pluginId: string; name: string }>(
+  plugins: T[]
+): T | undefined {
+  return plugins.find((p) => {
     const name = (p.name || '').toLowerCase();
     return p.pluginId === 'menu-redirect' || (name.includes('menu') && name.includes('redirect'));
   });
@@ -127,15 +153,18 @@ function hasMenuRedirect(plugins: { pluginId: string; name: string }[]): boolean
 const formBuilderNav: NavSection = {
   label: 'Form Builder',
   icon: FileInput,
+  navSection: 'form-builder',
   links: [
     { label: 'All Forms', icon: List, path: '/dashboard/plugins/form-builder' },
     { label: 'New Form', icon: PlusSquare, path: '/dashboard/plugins/form-builder/new' },
   ],
 };
 
-/** True when the active marketplace plugins include the Form Builder. */
-function hasFormBuilder(plugins: { pluginId: string; name: string; type?: string }[]): boolean {
-  return plugins.some((p) => {
+/** The active marketplace plugin matching the Form Builder, if any. */
+function findFormBuilderPlugin<T extends { pluginId: string; name: string; type?: string }>(
+  plugins: T[]
+): T | undefined {
+  return plugins.find((p) => {
     const name = (p.name || '').toLowerCase();
     return (
       p.pluginId === 'form-builder' ||
@@ -145,10 +174,40 @@ function hasFormBuilder(plugins: { pluginId: string; name: string; type?: string
   });
 }
 
-const BUILTIN_SYSTEM_IDS = new Set(['menu-redirect', 'form-builder']);
+const socialMediaNav: NavSection = {
+  label: 'Social Media',
+  icon: Share2,
+  navSection: 'social-media',
+  links: [
+    { label: 'Overview', icon: Share2, path: '/dashboard/plugins/social-media' },
+    { label: 'Connections', icon: Link2, path: '/dashboard/plugins/social-media/connections' },
+    { label: 'Share settings', icon: Settings, path: '/dashboard/plugins/social-media/share' },
+    { label: 'Post queue', icon: List, path: '/dashboard/plugins/social-media/posts' },
+  ],
+};
 
-/** Uploaded system plugins get a dynamic sidebar section pointing at the runtime shell. */
-function uploadedSystemNavSections(plugins: PluginRecord[]): NavSection[] {
+function findSocialMediaPlugin<T extends { pluginId: string; name: string; type?: string }>(
+  plugins: T[]
+): T | undefined {
+  return plugins.find((p) => {
+    const name = (p.name || '').toLowerCase();
+    return (
+      p.pluginId === 'social-media' ||
+      p.pluginId === 'market-4' ||
+      p.type === 'social' ||
+      name.includes('social media')
+    );
+  });
+}
+
+const BUILTIN_SYSTEM_IDS = new Set(['menu-redirect', 'form-builder', 'social-media']);
+
+/** Uploaded system plugins: single-page opens on name click; multi-page uses collapsible nav. */
+function uploadedSystemNavSections(
+  plugins: PluginRecord[],
+  pageAccessByPlugin?: Map<string, Array<{ id: string; features: string[] | '*' }>>,
+  extensionPages: ExtensionHostPage[] = []
+): NavSection[] {
   return plugins
     .filter(
       (p) =>
@@ -156,17 +215,86 @@ function uploadedSystemNavSections(plugins: PluginRecord[]): NavSection[] {
         p.source === 'uploaded' &&
         !BUILTIN_SYSTEM_IDS.has(p.pluginId)
     )
-    .map((p) => ({
-      label: p.name || p.pluginId,
-      icon: Puzzle,
-      links: [
+    .flatMap((p): NavSection[] => {
+      let navPages = p.adminNav?.length ? p.adminNav : [];
+      const access = pageAccessByPlugin?.get(p.pluginId);
+      if (access && !access.some((item) => item.id === '*')) {
+        const allowed = new Set(access.map((item) => item.id));
+        navPages = navPages.filter((item) => allowed.has(item.id));
+      }
+
+      // No allowed pages for this plugin role → hide the section entirely.
+      if (access && !access.some((item) => item.id === '*') && navPages.length === 0) {
+        return [];
+      }
+
+      const pluginLinks = navPages.map((item) => ({
+        label: item.label,
+        icon: resolveNavIcon(item.icon),
+        path: runtimePluginPath(p.pluginId, item.id),
+      }));
+      const extensionLinks = extensionNavLinks(p.pluginId, extensionPages).map((item) => ({
+        label: item.label,
+        icon: FileText,
+        path: item.path,
+      }));
+      const links =
+        pluginLinks.length === 0 && extensionLinks.length > 0
+          ? [
+              {
+                label: 'Home',
+                icon: LayoutDashboard,
+                path: runtimePluginPath(p.pluginId),
+              },
+              ...extensionLinks,
+            ]
+          : [...pluginLinks, ...extensionLinks];
+
+      if (links.length > 1) {
+        return [
+          {
+            label: p.name || p.pluginId,
+            icon: Puzzle,
+            navSection: 'uploaded-plugins' as NavSectionId,
+            links,
+          },
+        ];
+      }
+
+      const singlePath = links[0]?.path ?? runtimePluginPath(p.pluginId);
+
+      return [
         {
-          label: 'Open',
+          label: p.name || p.pluginId,
           icon: Puzzle,
-          path: `/dashboard/plugins/runtime/${encodeURIComponent(p.pluginId)}`,
+          navSection: 'uploaded-plugins' as NavSectionId,
+          path: singlePath,
+          links: [],
         },
-      ],
-    }));
+      ];
+    });
+}
+
+function withExtensionPageLinks(section: NavSection, extra: Array<{ label: string; path: string }>): NavSection {
+  if (extra.length === 0) return section;
+  const base =
+    section.links.length > 0
+      ? section.links
+      : section.path
+        ? [{ label: 'Home', icon: section.icon, path: section.path }]
+        : [];
+  return {
+    ...section,
+    path: undefined,
+    links: [
+      ...base,
+      ...extra.map((item) => ({
+        label: item.label,
+        icon: FileText,
+        path: item.path,
+      })),
+    ],
+  };
 }
 
 export default function Sidebar() {
@@ -178,16 +306,95 @@ export default function Sidebar() {
 
   const { theme } = useTheme();
   const { activePlugins } = usePlugins();
+  const { pages: extensionPages } = useExtensionHostPages();
+  const { canNav, can, canUsePlugin, access, loading: rbacLoading } = useRbac();
 
-  // Append plugin system navs only while their plugin is active (installed + enabled).
+  // Append plugin system navs only while their plugin is active (installed + enabled)
+  // AND the current role's per-plugin allowlist permits it.
   const sections = useMemo(() => {
-    let s = navItems;
-    if (hasMenuRedirect(activePlugins)) s = [...s, menuRedirectNav];
-    if (hasFormBuilder(activePlugins)) s = [...s, formBuilderNav];
-    const uploadedSystem = uploadedSystemNavSections(activePlugins);
-    if (uploadedSystem.length) s = [...s, ...uploadedSystem];
+    const showSection = (section: NavSection) => {
+      if (rbacLoading || !section.navSection) return true;
+      return canNav(section.navSection);
+    };
+
+    let s = navItems.filter(showSection).map((item) => {
+      if (item.label !== 'Blogs' || rbacLoading || can('taxonomies.manage')) return item;
+      return {
+        ...item,
+        links: item.links.filter(
+          (link) =>
+            !link.path.includes('/categories') && !link.path.includes('/tags')
+        ),
+      };
+    });
+
+    const menuRedirectPlugin = findMenuRedirectPlugin(activePlugins);
+    if (
+      menuRedirectPlugin &&
+      canNav('menu-redirect') &&
+      (rbacLoading || canUsePlugin(menuRedirectPlugin.pluginId))
+    ) {
+      s = [
+        ...s,
+        withExtensionPageLinks(menuRedirectNav, extensionNavLinks(menuRedirectPlugin.pluginId, extensionPages)),
+      ];
+    }
+
+    const formBuilderPlugin = findFormBuilderPlugin(activePlugins);
+    if (
+      formBuilderPlugin &&
+      canNav('form-builder') &&
+      (rbacLoading || canUsePlugin(formBuilderPlugin.pluginId))
+    ) {
+      s = [
+        ...s,
+        withExtensionPageLinks(formBuilderNav, extensionNavLinks(formBuilderPlugin.pluginId, extensionPages)),
+      ];
+    }
+
+    const socialMediaPlugin = findSocialMediaPlugin(activePlugins);
+    if (
+      socialMediaPlugin &&
+      canNav('social-media') &&
+      (rbacLoading || canUsePlugin(socialMediaPlugin.pluginId))
+    ) {
+      s = [
+        ...s,
+        withExtensionPageLinks(socialMediaNav, extensionNavLinks(socialMediaPlugin.pluginId, extensionPages)),
+      ];
+    }
+
+    const scopedPlugins = access?.pluginUserType?.pluginId
+      ? activePlugins.filter((p) => p.pluginId === access.pluginUserType?.pluginId)
+      : activePlugins;
+    const allowedPlugins = rbacLoading
+      ? scopedPlugins
+      : scopedPlugins.filter((p) => canUsePlugin(p.pluginId));
+
+    const pageAccessByPlugin = new Map<string, Array<{ id: string; features: string[] | '*' }>>();
+    const accessMap = access?.pluginAccessByPlugin;
+    if (accessMap) {
+      for (const [pluginId, entry] of Object.entries(accessMap)) {
+        if (entry?.pages) pageAccessByPlugin.set(pluginId, entry.pages);
+      }
+    } else if (access?.pluginUserType?.pluginId && access.pluginUserType.pageAccess) {
+      pageAccessByPlugin.set(access.pluginUserType.pluginId, access.pluginUserType.pageAccess);
+    }
+
+    const uploadedSystem = uploadedSystemNavSections(allowedPlugins, pageAccessByPlugin, extensionPages);
+    if (uploadedSystem.length && canNav('uploaded-plugins')) s = [...s, ...uploadedSystem];
     return s;
-  }, [activePlugins]);
+  }, [
+    activePlugins,
+    canNav,
+    can,
+    canUsePlugin,
+    rbacLoading,
+    access?.pluginUserType?.pluginId,
+    access?.pluginUserType?.pageAccess,
+    access?.pluginAccessByPlugin,
+    extensionPages,
+  ]);
 
   useEffect(() => {
     // Check if we're on mobile and set initial state
@@ -391,7 +598,8 @@ export default function Sidebar() {
                   </div>
                 ))}
 
-                {/* Settings */}
+                {/* Settings — admin only */}
+                {(rbacLoading || canNav('settings')) && (
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
@@ -419,6 +627,7 @@ export default function Sidebar() {
                   </TooltipTrigger>
                   {isCollapsed && <TooltipContent side="right">Settings</TooltipContent>}
                 </Tooltip>
+                )}
               </TooltipProvider>
             </div>
           </nav>

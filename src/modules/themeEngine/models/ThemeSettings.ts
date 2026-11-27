@@ -20,6 +20,7 @@ export interface IThemeEngineSettingsDocument extends Omit<Document, '_id'> {
   activatedBy: Types.ObjectId | null;
   /** slug -> theme-defined settings values. */
   perThemeSettings: Record<string, Record<string, unknown>>;
+  homepageTemplateKey?: string | null;
 }
 
 export const SINGLETON_ID = 'singleton';
@@ -32,6 +33,7 @@ const ThemeSettingsSchema = new Schema<IThemeEngineSettingsDocument>(
     activatedAt: { type: Date, default: null },
     activatedBy: { type: Schema.Types.ObjectId, default: null },
     perThemeSettings: { type: Schema.Types.Mixed, default: {} },
+    homepageTemplateKey: { type: String, default: null },
   },
   { collection: 'theme_engine_settings' }
 );

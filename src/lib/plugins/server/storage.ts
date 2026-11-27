@@ -1,15 +1,30 @@
 import fs from 'fs/promises';
 import path from 'path';
+import {
+  UPLOADED_PLUGINS_BACKEND_ROOT,
+  assertUploadPathNotInPublic,
+} from '@/lib/dynamicContent';
+import { PLUGIN_API_DIR, PLUGIN_UI_DIR } from '@/lib/plugins/pluginLayout';
 
-/** Backend plugin code lives outside public/ — never served as static assets. */
-export const PLUGINS_BACKEND_DIR = path.join(process.cwd(), 'plugins');
+/** Backend plugin storage — under `src/app/api/plugins/[pluginId]/`, never `public/`. */
+export const PLUGINS_BACKEND_DIR = process.env.PLUGINS_BACKEND_DIR
+  ? path.resolve(process.env.PLUGINS_BACKEND_DIR)
+  : UPLOADED_PLUGINS_BACKEND_ROOT;
+
+function resolveBackendRoot(): string {
+  const root = PLUGINS_BACKEND_DIR;
+  assertUploadPathNotInPublic(root, 'PLUGINS_BACKEND_DIR');
+  return root;
+}
 
 export function getBackendPluginDirectory(pluginId: string): string {
-  return path.join(PLUGINS_BACKEND_DIR, pluginId);
+  const dir = path.join(resolveBackendRoot(), pluginId);
+  assertUploadPathNotInPublic(dir, 'Plugin backend directory');
+  return dir;
 }
 
 export async function ensureBackendPluginsDirectory(): Promise<void> {
-  await fs.mkdir(PLUGINS_BACKEND_DIR, { recursive: true });
+  await fs.mkdir(resolveBackendRoot(), { recursive: true });
 }
 
 export async function backendPluginDirectoryExists(pluginId: string): Promise<boolean> {
@@ -35,8 +50,10 @@ export function getPluginApiPrefix(pluginId: string): string {
   return `/api/plugins/${pluginId}`;
 }
 
-/** Allowed top-level folders inside a plugin ZIP (frontend + backend). */
+/** Allowed top-level folders inside a plugin package (ui/api layout + legacy). */
 export const ALLOWED_PLUGIN_TOP_LEVEL = new Set([
+  PLUGIN_UI_DIR,
+  PLUGIN_API_DIR,
   'admin',
   'block',
   'assets',
@@ -57,11 +74,14 @@ export const BLOCKED_PLUGIN_PATH_SEGMENTS = new Set([
 export function isFrontendRelativePath(relativePath: string): boolean {
   if (!relativePath || relativePath === 'manifest.json') return true;
   if (relativePath === 'package.json') return false;
+  if (relativePath === PLUGIN_UI_DIR || relativePath.startsWith(`${PLUGIN_UI_DIR}/`)) return true;
   if (relativePath.startsWith('server/') || relativePath === 'server') return false;
+  if (relativePath === PLUGIN_API_DIR || relativePath.startsWith(`${PLUGIN_API_DIR}/`)) return false;
   return true;
 }
 
 export function isBackendRelativePath(relativePath: string): boolean {
   if (relativePath === 'package.json') return true;
+  if (relativePath === PLUGIN_API_DIR || relativePath.startsWith(`${PLUGIN_API_DIR}/`)) return true;
   return relativePath.startsWith('server/') || relativePath === 'server';
 }

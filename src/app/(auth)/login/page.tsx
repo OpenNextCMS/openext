@@ -49,7 +49,8 @@ export default function LoginPage() {
     if (!response.ok) {
       console.error('Failed to clear cookies');
     }
-  };  useEffect(() => {
+  };
+  useEffect(() => {
     const checkDbAndRedirect = async () => {
       try {
         const response = await fetch(apiUrl('/api/verify-connection'), {

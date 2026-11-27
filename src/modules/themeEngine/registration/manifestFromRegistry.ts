@@ -4,6 +4,7 @@ import type {
   ThemeManifestPartials,
   ThemeManifestTemplates,
 } from '../types';
+import { ensureIndexTemplate } from '../ManifestParser';
 import type { RegistryManifestPaths, ThemeRuntimeRegistry } from './types';
 
 /**
@@ -20,6 +21,7 @@ export function manifestFromRegistry(
   if (!templates.index && paths.templates.index) {
     templates.index = paths.templates.index;
   }
+  ensureIndexTemplate(templates);
 
   const partials: ThemeManifestPartials = { ...base.partials, ...paths.partials };
 

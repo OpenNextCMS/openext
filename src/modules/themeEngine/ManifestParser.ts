@@ -1,7 +1,8 @@
 import { z, type ZodIssue } from 'zod';
 import semver from 'semver';
 import { ManifestValidationError } from './errors';
-import type { ManifestIssue, ManifestParseResult, ThemeManifest } from './types';
+import type { ManifestIssue, ManifestParseResult, ThemeManifest, ThemeManifestBlock, ThemeTemplateMeta, ThemeTemplateType } from './types';
+import { humanizeKey, inferType } from './templateMetadata';
 
 /**
  * §4.1 ManifestParser — turn raw `theme.json` bytes (already JSON-parsed into a
@@ -34,6 +35,10 @@ const KNOWN_TOP_LEVEL_KEYS = new Set([
   'supportedFeatures',
   'blocks',
   'editableSections',
+  'screenshot',
+  'defaults',
+  'supports',
+  'settings',
 ]);
 
 const SECTION_ID_RE = /^[a-z][a-z0-9-]{1,63}$/;
@@ -80,13 +85,55 @@ const tsPath = z
     }
   });
 
+/** Rich template entry in theme.json (WordPress/Shopify-style). */
+const templateMetaSchema = z.object({
+  name: z.string().min(1),
+  file: tsxPath,
+  type: z
+    .enum(['home', 'page', 'single', 'archive', 'search', 'error', 'custom'])
+    .optional(),
+});
+
+const templateEntrySchema = z.union([tsxPath, templateMetaSchema]);
+
+/** Extract a `.tsx` path from a string or rich template entry. */
+export function resolveTemplateEntryPath(entry: unknown): string | null {
+  if (typeof entry === 'string' && entry.trim()) return entry.trim();
+  if (entry && typeof entry === 'object' && 'file' in entry) {
+    const file = (entry as { file?: unknown }).file;
+    if (typeof file === 'string' && file.trim()) return file.trim();
+  }
+  return null;
+}
+
+/** Ensure `templates.index` exists — derive from `home` or the first declared template. */
+export function ensureIndexTemplate(templates: ThemeManifest['templates']): void {
+  if (resolveTemplateEntryPath(templates.index)) return;
+  if (templates.home) {
+    templates.index = templates.home;
+    return;
+  }
+  for (const [key, value] of Object.entries(templates)) {
+    if (key === 'index') continue;
+    if (typeof value === 'string' && value.trim()) {
+      templates.index = value;
+      return;
+    }
+  }
+}
+
+function hasDeclaredTemplates(templates: Record<string, unknown> | undefined): boolean {
+  if (!templates) return false;
+  return Object.values(templates).some((entry) => resolveTemplateEntryPath(entry) !== null);
+}
+
 /**
- * `templates` — `index` is mandatory; every other entry is a theme-defined named
- * template. `catchall` applies the same `.tsx` + traversal rules to custom keys.
+ * `templates` — `index` is mandatory (or supplied via `entry` + theme.ts);
+ * values may be a path string or `{ name, file, type }` object.
  */
 const templatesSchema = z
-  .object({ index: tsxPath.optional() })
-  .catchall(tsxPath.optional());
+  .object({ index: templateEntrySchema.optional() })
+  .catchall(templateEntrySchema.optional());
 
 const partialsSchema = z
   .object({
@@ -133,6 +180,77 @@ const blockSchema = z.object({
   schemaPath: tsPath.optional(),
 });
 
+/** Rich block entry in theme.json object map: `{ "hero": { "file": "blocks/Hero.tsx" } }`. */
+const blockRichSchema = z
+  .object({
+    name: z.string().optional(),
+    file: tsxPath.optional(),
+    rendererPath: tsxPath.optional(),
+    schemaPath: tsPath.optional(),
+    type: z.string().min(1).optional(),
+  })
+  .superRefine((value, ctx) => {
+    if (!value.file && !value.rendererPath) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'must include "file" or "rendererPath"',
+      });
+    }
+  });
+
+/** Blocks may be an array OR an object map (same ergonomics as `partials`). */
+const blocksMapSchema = z.record(
+  z.string().min(1),
+  z.union([tsxPath, blockRichSchema, blockSchema])
+);
+
+/** Normalize array or object-map blocks into the canonical array format. */
+export function normalizeManifestBlocks(
+  blocks: z.infer<typeof blockSchema>[] | z.infer<typeof blocksMapSchema>
+): ThemeManifestBlock[] {
+  if (Array.isArray(blocks)) return blocks;
+
+  return Object.entries(blocks).map(([key, value]) => {
+    if (typeof value === 'string') {
+      return { type: key, rendererPath: value };
+    }
+    if ('type' in value && 'rendererPath' in value && typeof value.rendererPath === 'string') {
+      return {
+        type: value.type || key,
+        rendererPath: value.rendererPath,
+        schemaPath: value.schemaPath,
+      };
+    }
+    const rich = value as z.infer<typeof blockRichSchema>;
+    const rendererPath = rich.file ?? rich.rendererPath;
+    return {
+      type: rich.type ?? key,
+      rendererPath: rendererPath as string,
+      schemaPath: rich.schemaPath,
+    };
+  });
+}
+
+const blocksFieldSchema = z
+  .union([z.array(blockSchema), blocksMapSchema])
+  .optional()
+  .transform((val) => (val === undefined ? undefined : normalizeManifestBlocks(val)));
+
+/** Author may be a plain string or `{ name, url? }` (WordPress/Shopify-style manifest). */
+const authorObjectSchema = z.object({
+  name: z.string().min(1, 'name is required when author is an object'),
+  url: z.string().optional(),
+});
+
+export function normalizeManifestAuthor(author: string | z.infer<typeof authorObjectSchema>): string {
+  if (typeof author === 'string') return author.trim();
+  return author.name.trim();
+}
+
+const authorFieldSchema = z
+  .union([z.string().min(1, 'is required'), authorObjectSchema])
+  .transform((val) => normalizeManifestAuthor(val));
+
 const editableSectionSchema = z.object({
   id: z
     .string()
@@ -150,7 +268,7 @@ const manifestSchema = z
       .string()
       .regex(SLUG_RE, 'must be kebab-case (lowercase letters, numbers and single hyphens)')
       .optional(),
-    author: z.string().min(1, 'is required'),
+    author: authorFieldSchema,
     version: z.string().superRefine((v, ctx) => {
       if (!semver.valid(v)) {
         ctx.addIssue({ code: z.ZodIssueCode.custom, message: `"${v}" is not a valid semver version (e.g. 1.2.0)` });
@@ -158,8 +276,11 @@ const manifestSchema = z
     }),
     description: z.string().max(500, 'must be at most 500 characters').optional(),
     compatibleCmsVersion: z.string().superRefine((v, ctx) => {
-      if (!semver.validRange(v)) {
-        ctx.addIssue({ code: z.ZodIssueCode.custom, message: `"${v}" is not a valid semver range (e.g. ^2.0.0)` });
+      if (!semver.valid(v.trim()) && !semver.validRange(v.trim())) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `"${v}" is not a valid semver version or range (e.g. 1.0.0 or ^2.0.0)`,
+        });
       }
     }),
     entry: z
@@ -180,19 +301,36 @@ const manifestSchema = z
     supportedFeatures: z
       .array(z.enum(['dark-mode', 'rtl', 'custom-logo', 'post-thumbnails', 'widgets', 'menus', 'block-editor']))
       .optional(),
-    blocks: z.array(blockSchema).optional(),
+    blocks: blocksFieldSchema,
     editableSections: z.array(editableSectionSchema).optional(),
+    screenshot: z
+      .string()
+      .superRefine((value, ctx) => {
+        const issue = pathIssues(value);
+        if (issue) ctx.addIssue({ code: z.ZodIssueCode.custom, message: issue });
+        else if (!/\.(png|jpe?g|webp|gif)$/i.test(value)) {
+          ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'must end in .png, .jpg, .jpeg, .webp, or .gif' });
+        }
+      })
+      .optional(),
+    defaults: z.record(z.string(), z.string()).optional(),
+    supports: z.record(z.string(), z.boolean()).optional(),
+    settings: z.record(z.string(), z.unknown()).optional(),
   })
   // Forward compatibility: unknown top-level keys are dropped, not rejected.
   .strip()
   .superRefine((data, ctx) => {
     const hasEntry = typeof data.entry === 'string' && data.entry.length > 0;
-    const hasIndex = typeof data.templates?.index === 'string';
-    if (!hasEntry && !hasIndex) {
+    const hasTemplates = hasDeclaredTemplates(data.templates as Record<string, unknown> | undefined);
+    const templatesOmitted = data.templates === undefined;
+
+    // Require entry, at least one declared template, OR omit templates (auto-discovered from disk).
+    if (!hasEntry && !hasTemplates && !templatesOmitted) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        path: ['templates', 'index'],
-        message: 'is required when "entry" is not declared — provide templates.index or entry (e.g. theme.ts).',
+        path: ['templates'],
+        message:
+          'must declare at least one template (e.g. home, page, index), provide entry (theme.ts), or omit templates to auto-discover from templates/*.tsx on disk.',
       });
     }
 
@@ -222,6 +360,13 @@ const manifestSchema = z
       }
     });
   });
+
+/** Bare semver (e.g. "1.0.0") means minimum CMS version; ranges are used as-is. */
+export function normalizeCompatibleCmsVersion(v: string): string {
+  const trimmed = v.trim();
+  if (semver.valid(trimmed)) return `>=${trimmed}`;
+  return trimmed;
+}
 
 /** Derive a kebab-case slug from the theme name (spec §1.1 / §2). */
 export function deriveSlug(name: string): string {
@@ -277,13 +422,37 @@ export class ManifestParser {
 
     const parsed = result.data;
 
-    const templates: ThemeManifest['templates'] = { index: parsed.templates?.index ?? '' };
+    const templates: ThemeManifest['templates'] = { index: '' };
+    const templateRegistry: ThemeTemplateMeta[] = [];
+
+    const addTemplate = (key: string, entry: unknown) => {
+      if (typeof entry === 'string') {
+        templates[key] = entry;
+        templateRegistry.push({
+          key,
+          name: humanizeKey(key),
+          file: entry,
+          type: inferType(key),
+        });
+      } else if (entry && typeof entry === 'object' && 'file' in entry) {
+        const meta = entry as z.infer<typeof templateMetaSchema>;
+        templates[key] = meta.file;
+        templateRegistry.push({
+          key,
+          name: meta.name,
+          file: meta.file,
+          type: inferType(key, meta.type as ThemeTemplateType | undefined),
+        });
+      }
+    };
+
     if (parsed.templates) {
       for (const [key, value] of Object.entries(parsed.templates)) {
-        if (key === 'index') continue;
-        if (typeof value === 'string') templates[key] = value;
+        if (value === undefined) continue;
+        addTemplate(key, value);
       }
     }
+    ensureIndexTemplate(templates);
 
     const slug = parsed.slug ?? deriveSlug(parsed.name);
     // deriveSlug can produce an empty string for pathological names (e.g. "___"),
@@ -305,7 +474,7 @@ export class ManifestParser {
       author: parsed.author,
       version: parsed.version,
       description: parsed.description,
-      compatibleCmsVersion: parsed.compatibleCmsVersion,
+      compatibleCmsVersion: normalizeCompatibleCmsVersion(parsed.compatibleCmsVersion),
       ...(parsed.entry ? { entry: parsed.entry } : {}),
       templates,
       partials: parsed.partials ?? {},
@@ -315,6 +484,11 @@ export class ManifestParser {
       supportedFeatures: parsed.supportedFeatures ?? [],
       ...(parsed.blocks ? { blocks: parsed.blocks } : {}),
       ...(parsed.editableSections ? { editableSections: parsed.editableSections } : {}),
+      ...(templateRegistry.length > 0 ? { templateRegistry } : {}),
+      ...(parsed.screenshot ? { screenshot: parsed.screenshot } : {}),
+      ...(parsed.defaults ? { defaults: parsed.defaults } : {}),
+      ...(parsed.supports ? { supports: parsed.supports } : {}),
+      ...(parsed.settings ? { settings: parsed.settings } : {}),
     };
 
     return { manifest, warnings };

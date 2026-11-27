@@ -19,7 +19,13 @@ interface ThemeImageFieldEditorProps {
 function resolvePreviewSrc(value: string): string {
   const trimmed = value.trim();
   if (!trimmed) return '';
-  if (/^https?:\/\//i.test(trimmed) || trimmed.startsWith('//')) return trimmed;
+  if (/^https?:\/\//i.test(trimmed) || trimmed.startsWith('//') || trimmed.startsWith('data:')) {
+    return trimmed;
+  }
+  const bgMatch = trimmed.match(/^\/upload\/backgrounds\/([^/?#]+)/i);
+  if (bgMatch) {
+    return `/api/editor/uploads/${encodeURIComponent(bgMatch[1])}`;
+  }
   if (trimmed.startsWith('/')) return trimmed;
   return trimmed;
 }

@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUserDbConnection, getPluginModel } from '@/utils/db';
+import { handleApiError } from '@/lib/api/response';
+import { requireCapability } from '@/lib/rbac';
 
 export async function PATCH(req: NextRequest) {
   try {
+    await requireCapability('plugins.manage');
     const { pluginId, name, description, version, icon } = await req.json();
-    
+
     if (!pluginId) {
       return NextResponse.json({ message: 'Plugin ID is required' }, { status: 400 });
     }
@@ -22,12 +25,11 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ message: 'Plugin not found' }, { status: 404 });
     }
 
-    return NextResponse.json({ 
-      plugin: updatedPlugin, 
-      message: 'Plugin updated successfully' 
-    }, { status: 200 });
+    return NextResponse.json({
+      plugin: updatedPlugin,
+      message: 'Plugin updated successfully',
+    });
   } catch (error) {
-    console.error('API error:', error);
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
+    return handleApiError(error);
   }
 }

@@ -25,7 +25,8 @@ export default function HomeClient() {
       <div className="space-y-2">
         <h1 className="text-3xl font-semibold tracking-tight">OpenNext CMS</h1>
         <p className="max-w-md text-muted-foreground">
-          Theme rendering on the home page is temporarily disabled.
+          No homepage is set yet. Open a page in the editor, enable{' '}
+          <strong>Set as homepage</strong>, save, then visit this URL again.
         </p>
       </div>
       <div className="flex flex-wrap items-center justify-center gap-3">

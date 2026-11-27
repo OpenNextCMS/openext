@@ -44,6 +44,17 @@ export interface PluginServerModule {
   register?: (ctx: PluginRegisterContext) => void | Promise<void>;
   boot?: (ctx: PluginRegisterContext) => void | Promise<void>;
   shutdown?: () => void | Promise<void>;
+  /**
+   * Optional. Plugins that omit this keep working and simply cannot host extensions.
+   * Shape: `{ pluginId, sdkVersion, capabilities, registerExtension, unregisterExtension }`.
+   */
+  extensionHost?: {
+    pluginId: string;
+    sdkVersion: string;
+    capabilities: string[];
+    registerExtension: (registration: unknown) => void | Promise<void>;
+    unregisterExtension: (extensionId: string) => void | Promise<void>;
+  };
 }
 
 export interface PluginRegisterContext {

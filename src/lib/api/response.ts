@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { ZodError } from 'zod';
+import { CmsDependencyError } from '@/lib/cmsDependencies';
 import { ApiError, zodErrorToFields } from './errors';
 
 // Consistent response envelope used by every blog-system route handler:
@@ -45,6 +46,15 @@ export function handleApiError(err: unknown): NextResponse {
     return apiError(
       { message: err.message, ...(err.fields ? { fields: err.fields } : {}) },
       err.status
+    );
+  }
+  if (err instanceof CmsDependencyError) {
+    return NextResponse.json(
+      {
+        data: null,
+        error: { message: err.message, code: 'CMS_DEPENDENCY_MISSING', pendingDependencies: err.missing },
+      },
+      { status: 400 }
     );
   }
   // Surface Mongo duplicate-key errors as a clean 409.

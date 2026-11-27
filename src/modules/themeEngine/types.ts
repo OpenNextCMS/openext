@@ -18,11 +18,25 @@ import type React from 'react';
  * ------------------------------------------------------------------ */
 
 /** A page document from the existing CMS. Opaque to the Theme Engine. */
+export type PageContentType =
+  | 'home'
+  | 'page'
+  | 'post'
+  | 'archive'
+  | 'custom'
+  | 'product'
+  | 'products'
+  | 'category'
+  | 'blog'
+  | 'blogPost'
+  | 'search'
+  | 'error';
+
 export interface CmsPage {
   id: string;
   slug: string;
   title: string;
-  type: 'home' | 'page' | 'post' | 'archive' | 'custom';
+  type: PageContentType;
   /** Optional theme-defined template key (drives TemplateHierarchy §4.7). */
   templateKey?: string;
   [key: string]: unknown;
@@ -77,6 +91,16 @@ export type ThemeSupportedFeature =
   | 'widgets'
   | 'menus'
   | 'block-editor';
+
+export type ThemeTemplateType = 'home' | 'page' | 'single' | 'archive' | 'search' | 'error' | 'custom';
+
+/** Rich template metadata (stored in DB + returned by APIs). */
+export interface ThemeTemplateMeta {
+  key: string;
+  name: string;
+  file: string;
+  type: ThemeTemplateType;
+}
 
 export interface ThemeManifestTemplates {
   home?: string;
@@ -184,13 +208,30 @@ export interface ThemeManifest {
    * but structural section editing is unavailable.
    */
   editableSections?: ThemeEditableSection[];
+  /** Normalized template metadata (populated at parse/install time). */
+  templateRegistry?: ThemeTemplateMeta[];
+  /** Optional theme screenshot relative path (default: screenshot.png). */
+  screenshot?: string;
+  /** Content-type → default template key overrides. */
+  defaults?: Record<string, string>;
+  /** Feature flags declared by the theme author. */
+  supports?: Record<string, boolean>;
+  /** Object-style customizer schema (WordPress-style nested settings). */
+  settings?: Record<string, unknown>;
 }
 
 /* ------------------------------------------------------------------ *
  * §1 MongoDB documents
  * ------------------------------------------------------------------ */
 
-export type ThemeStatus = 'installed' | 'installing' | 'failed' | 'disabled';
+export type ThemeStatus =
+  | 'installed'
+  | 'installing'
+  | 'failed'
+  | 'disabled'
+  | 'active'
+  | 'update_available'
+  | 'invalid';
 
 export interface ThemeInstallLogEntry {
   step: string;
@@ -218,6 +259,12 @@ export interface ThemeDocument {
   installLog: ThemeInstallLogEntry[];
   /** Content hashes computed once at install (spec §4.9 — never per-request). */
   assetHashes?: { stylesheet?: string; script?: string };
+  /** Relative paths discovered at install (styles/ or assets/, scripts/ or assets/). */
+  assetPaths?: { stylesheet?: string; script?: string };
+  /** Denormalized template list for gallery/API (computed at install). */
+  templates?: ThemeTemplateMeta[];
+  partials?: Record<string, string>;
+  assets?: { css?: string; js?: string };
 }
 
 /** §1.2 `theme_settings` — exactly one document, `_id: "singleton"`. */
@@ -230,6 +277,8 @@ export interface ThemeSettingsDocument {
   activatedBy: ObjectId | null;
   /** slug -> theme-defined settings values. */
   perThemeSettings: Record<string, Record<string, unknown>>;
+  /** Homepage template key from the active theme (optional override). */
+  homepageTemplateKey?: string | null;
 }
 
 /** §1.3 `theme_preview_sessions` — TTL-expired by Mongo on `expiresAt`. */
@@ -295,7 +344,7 @@ export interface LoadedTheme {
 
 /** §4.7 */
 export interface PageRenderContext {
-  pageType: 'home' | 'page' | 'post' | 'archive' | 'custom';
+  pageType: PageContentType;
   customTemplateKey?: string;
 }
 
@@ -310,6 +359,12 @@ export interface RenderInput {
   /** Read-only current user, if any (surfaced via ThemeAPI.currentUser()). */
   currentUser?: CmsUserSummary | null;
   /**
+   * When true, empty CMS blocks synthesize editableSection defaults (card /
+   * marketplace gallery preview). Must stay false for real published pages so
+   * removing a theme from the editor does not flash the default Welcome hero.
+   */
+  allowSectionDefaults?: boolean;
+  /**
    * When true, theme.blocks() wraps each section with selection markers for the
    * exact editor iframe (non-layout-changing data attributes only).
    */
@@ -322,6 +377,8 @@ export interface RenderResult {
   element: React.ReactElement;
   stylesheetUrl: string;
   scriptUrl: string;
+  /** Optional client scripts that must load before assets/theme.js. */
+  companionScriptUrls?: string[];
   /** True when the default theme or default header/footer was substituted. */
   usedFallback: boolean;
 }

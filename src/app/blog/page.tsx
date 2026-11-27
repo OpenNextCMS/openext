@@ -6,6 +6,7 @@ import { getGlobalLayoutBlocks } from '@/utils/getPageData';
 import SiteThemeProvider from '@/providers/SiteThemeProvider';
 import type { BlockData, LayoutSection } from '@/types/index';
 import SiteChromeLayout from '@/components/layout/SiteChromeLayout';
+import { resolveRequestLocale } from '@/lib/i18n/siteLocale';
 
 export const revalidate = 60;
 
@@ -26,9 +27,10 @@ export default async function BlogIndexPage({
   searchParams: Promise<{ category?: string }>;
 }) {
   const { category } = await searchParams;
+  const locale = await resolveRequestLocale();
   const [layout, { headerBlocks, footerBlocks }] = await Promise.all([
     getActiveLayout(),
-    getGlobalLayoutBlocks(),
+    getGlobalLayoutBlocks(locale),
   ]);
 
   const blogContent = (

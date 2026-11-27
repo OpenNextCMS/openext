@@ -62,8 +62,8 @@ export const ThemeAssetService = {
     const urls: string[] = [];
     for (const dir of ['css', 'assets']) {
       try {
-        const abs = path.join(getThemeDirectory(slug), dir);
-        const files = await fs.readdir(abs);
+        const abs = path.join(/*turbopackIgnore: true*/ getThemeDirectory(slug), dir);
+        const files = await fs.readdir(/*turbopackIgnore: true*/ abs);
         for (const f of files) {
           if (f.toLowerCase().endsWith('.css')) {
             urls.push(`/theme-assets/${slug}/${dir}/${f}`);

@@ -41,15 +41,35 @@ next-env.d.ts
 
 /public/upload
 /public/siteicon
-/public/plugins/*
-!/public/plugins/.gitkeep
+# Uploaded Theme Engine packages: src/themes/[slug]/{slug}/
+/src/themes/[[]slug[]]/*
+!/src/themes/[[]slug[]]/.gitkeep
+!/src/themes/[[]slug[]]/README.md
 
-# Backend plugin code extracted from ZIP uploads
+# Extension packages uploaded at runtime (not CMS source)
+/src/extension-packages/*
+!/src/extension-packages/.gitkeep
+
+# Uploaded plugin frontend: src/plugins/{pluginId}/
+/src/plugins/*
+!/src/plugins/.gitkeep
+!/src/plugins/README.md
+
+# Uploaded plugin backend: src/app/api/plugins/[pluginId]/{pluginId}/
+/src/app/api/plugins/[[]pluginId[]]/*
+!/src/app/api/plugins/[[]pluginId[]]/[[][[[]...path[]][]]]/
+!/src/app/api/plugins/[[]pluginId[]]/data/
+!/src/app/api/plugins/[[]pluginId[]]/.gitkeep
+
+# Legacy upload locations at project root (no longer used — uploads go under src/)
 /plugins/*
 !/plugins/.gitkeep
+/themes/*
+!/themes/.gitkeep
 
-# Theme Package Manager — extracted ZIPs (keep directory via .gitkeep)
-/storage/themes/*
+# Legacy — uploads must not use public/; kept only if old files remain on disk
+/public/plugins/*
+!/public/plugins/.gitkeep
 
 # Layout planner training artifacts (schema + scripts + fixtures + briefs stay tracked)
 training/data/raw/
@@ -60,3 +80,4 @@ training/layout-planner/outputs/
 training/**/__pycache__/
 *.pyc
 
+"python_api/api_keys.txt" 

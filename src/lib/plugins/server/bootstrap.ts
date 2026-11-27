@@ -1,6 +1,7 @@
 import { getUserDbConnection, getPluginModel } from '@/utils/db';
-import { enableBackendPlugin } from '@/lib/plugins/server/lifecycle';
+import { activateBackendPlugin } from '@/lib/plugins/server/lifecycle';
 import { backendPluginDirectoryExists } from '@/lib/plugins/server/storage';
+import { syncPluginUserTypesFromStore } from '@/lib/rbac/pluginUserTypes';
 
 let bootstrapPromise: Promise<void> | null = null;
 
@@ -9,6 +10,7 @@ export async function bootstrapBackendPlugins(): Promise<void> {
 
   bootstrapPromise = (async () => {
     try {
+      await syncPluginUserTypesFromStore();
       await getUserDbConnection();
       const PluginModel = getPluginModel();
 
@@ -31,10 +33,15 @@ export async function bootstrapBackendPlugins(): Promise<void> {
         }
 
         try {
-          await enableBackendPlugin({
+          await activateBackendPlugin({
             pluginId: plugin.pluginId,
             serverEntry: plugin.serverEntry,
             permissions: plugin.permissions || [],
+            dependencies: plugin.dependencies || [],
+            migrations: plugin.migrations || [],
+            installHook: plugin.installHook,
+            uninstallHook: plugin.uninstallHook,
+            loadedAt: plugin.loadedAt,
           });
           console.log(`[plugins] Loaded backend plugin "${plugin.pluginId}"`);
         } catch (error) {

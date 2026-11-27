@@ -14,6 +14,7 @@ import {
   XCircle,
   Edit,
   UserCog,
+  Shield,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -46,6 +47,22 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Switch } from '@/components/ui/switch';
+import RolesManagement from '@/components/dashboard/RolesManagement';
+
+/** Both `{error: string}` (manual route guards) and `{data:null, error:{message}}`
+ *  (handleApiError envelope) show up from these endpoints — normalize to one string. */
+async function extractErrorMessage(response: Response, fallback: string): Promise<string> {
+  try {
+    const payload = await response.json();
+    if (typeof payload?.error === 'string') return payload.error;
+    if (typeof payload?.error?.message === 'string') return payload.error.message;
+    if (typeof payload?.message === 'string') return payload.message;
+  } catch {
+    // response wasn't JSON — fall through to the generic message
+  }
+  return fallback;
+}
 
 interface UserData {
   _id: string;
@@ -60,6 +77,17 @@ interface UserData {
 interface Role {
   name: string;
   value: number;
+  type?: string;
+  pluginId?: string;
+  baseRole?: number;
+  permissions?: string[];
+}
+
+function formatRoleLabel(role: Role): string {
+  if (role.type === 'plugin' && role.pluginId) {
+    return `${role.name} (${role.pluginId})`;
+  }
+  return role.name;
 }
 
 export default function UserManagementDashboard() {
@@ -71,7 +99,7 @@ export default function UserManagementDashboard() {
     password: '',
     role: '',
     phoneNumber: '',
-    active: false,
+    active: true,
   });
 
   // User List State
@@ -90,30 +118,34 @@ export default function UserManagementDashboard() {
     role: 0,
   });
   const [activeTab, setActiveTab] = useState('user-list');
-  const [filteredUsers, setFilteredUsers] = useState<UserData[]>([]);  // Fetch roles for both components
-  useEffect(() => {
-    const fetchRoles = async () => {
-      setIsLoading(true);
-      try {
-        const res = await fetch(apiUrl(`/api/get-role`), { credentials: 'include' });
-        if (res.ok) {
-          const data = await res.json();
-          setRoles(data.roles || []);
-        }
-      } catch (error) {
-        console.error('Failed to fetch roles:', error);
-        toast.error('Failed to load roles');
-      } finally {
-        setIsLoading(false);
+  const [filteredUsers, setFilteredUsers] = useState<UserData[]>([]);
+  // Fetch roles for both components
+  const fetchRoles = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const res = await fetch(apiUrl(`/api/get-role`), { credentials: 'include' });
+      if (res.ok) {
+        const data = await res.json();
+        setRoles(data.roles || []);
       }
-    };
-    fetchRoles();
+    } catch (error) {
+      console.error('Failed to fetch roles:', error);
+      toast.error('Failed to load roles');
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchRoles();
+  }, [fetchRoles]);
 
   const fetchUsers = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(apiUrl(`/api/sub-users/get-users`));
+      const response = await fetch(apiUrl(`/api/sub-users/get-users`), {
+        credentials: 'include',
+      });
       if (!response.ok) throw new Error('Failed to fetch users');
       const data = await response.json();
       setUsers(data.users || []);
@@ -159,6 +191,7 @@ export default function UserManagementDashboard() {
       const res = await fetch(apiUrl(`/api/sub-users/add-users`), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(dataToSubmit),
       });
       if (res.ok) {
@@ -170,15 +203,16 @@ export default function UserManagementDashboard() {
           password: '',
           role: '',
           phoneNumber: '',
-          active: false,
+          active: true,
         });
         toast.success('User added successfully');
         // Switch to user list tab and refresh the list
         setActiveTab('user-list');
         fetchUsers();
       } else {
-        console.error('Failed to add user');
-        toast.error('Failed to add user');
+        const message = await extractErrorMessage(res, 'Failed to add user');
+        console.error('Failed to add user:', message);
+        toast.error(message);
       }
     } catch (error) {
       console.error('Error adding user:', error);
@@ -196,16 +230,21 @@ export default function UserManagementDashboard() {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify(updates),
       });
 
-      if (!response.ok) throw new Error('Failed to update user');
+      if (!response.ok) {
+        const message = await extractErrorMessage(response, 'Failed to update user');
+        throw new Error(message);
+      }
 
       toast.success('User updated successfully');
       fetchUsers();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update user');
-      toast.error('Failed to update user');
+      const message = err instanceof Error ? err.message : 'Failed to update user';
+      setError(message);
+      toast.error(message);
     }
   };
 
@@ -230,6 +269,7 @@ export default function UserManagementDashboard() {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify(editForm),
       });
 
@@ -276,9 +316,17 @@ export default function UserManagementDashboard() {
           <Button
             variant={activeTab === 'user-list' ? 'default' : 'outline'}
             onClick={() => setActiveTab('user-list')}
+            className="mr-2"
           >
             <Users className="mr-2 h-4 w-4" />
             User List
+          </Button>
+          <Button
+            variant={activeTab === 'roles' ? 'default' : 'outline'}
+            onClick={() => setActiveTab('roles')}
+          >
+            <Shield className="mr-2 h-4 w-4" />
+            Roles
           </Button>
         </div>
       </div>
@@ -368,7 +416,7 @@ export default function UserManagementDashboard() {
                       <SelectContent>
                         {roles.map((role) => (
                           <SelectItem key={role.value} value={role.value.toString()}>
-                            {role.name}
+                            {formatRoleLabel(role)}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -379,6 +427,22 @@ export default function UserManagementDashboard() {
                         Loading roles...
                       </div>
                     )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="active">Account status</Label>
+                    <div className="flex items-center gap-2 h-9">
+                      <Switch
+                        id="active"
+                        checked={userData.active}
+                        onCheckedChange={(checked) =>
+                          setUserData((prev) => ({ ...prev, active: checked }))
+                        }
+                      />
+                      <span className="text-sm text-muted-foreground">
+                        {userData.active ? 'Active — can log in immediately' : 'Inactive — blocked from logging in'}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
@@ -577,6 +641,10 @@ export default function UserManagementDashboard() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        <TabsContent value="roles" className="mt-0">
+          <RolesManagement onRolesChanged={fetchRoles} />
+        </TabsContent>
       </Tabs>
 
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
@@ -629,7 +697,7 @@ export default function UserManagementDashboard() {
                   <SelectContent>
                     {roles.map((role) => (
                       <SelectItem key={role.value} value={role.value.toString()}>
-                        {role.name}
+                        {formatRoleLabel(role)}
                       </SelectItem>
                     ))}
                   </SelectContent>

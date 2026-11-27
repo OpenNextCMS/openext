@@ -2,12 +2,23 @@
 import { apiUrl } from '@/lib/apiClient';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Loader2, Palette, ExternalLink, RefreshCw } from 'lucide-react';
+import { Loader2, Palette, ExternalLink, RefreshCw, Trash2 } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import type { BlockRendererProps } from '@/types/index';
 import type { BlockData } from '@/redux/canvasSlice';
-import { useAppSelector } from '@/redux/hooks';
+import { useAppDispatch, useAppSelector } from '@/redux/hooks';
+import { setBlocks, setLayoutBlocks } from '@/redux/canvasSlice';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { normalizeBlocksForEditor } from '@/lib/editor/normalizePageBlocks';
 import ThemeSectionInspector from './ThemeSectionInspector';
 import { extractThemeSectionBlocks } from '@/modules/themeEngine/bridges/pageBridge';
 
@@ -43,6 +54,10 @@ function parseFrameContent(content: unknown): {
  * with an edit-aware bridge and schema-driven section inspector.
  */
 export function ThemeEngineFrameBlock({ block, isEditing = true }: BlockRendererProps) {
+  const dispatch = useAppDispatch();
+  const searchParams = useSearchParams();
+  const pageId = searchParams.get('pageId') || undefined;
+  const editorPageSlug = searchParams.get('pagename') || undefined;
   const { slug, name, pageSlug, hasEditableSections } = useMemo(
     () => parseFrameContent(block.content),
     [block.content]
@@ -52,6 +67,8 @@ export function ThemeEngineFrameBlock({ block, isEditing = true }: BlockRenderer
   const [frameKey, setFrameKey] = useState(0);
   const [draftKey, setDraftKey] = useState<string | null>(null);
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
+  const [removeOpen, setRemoveOpen] = useState(false);
+  const [removing, setRemoving] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const draftTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -119,6 +136,45 @@ export function ThemeEngineFrameBlock({ block, isEditing = true }: BlockRenderer
     [slug, pageSlug]
   );
 
+  const handleRemoveTheme = useCallback(async () => {
+    if (!pageId && !editorPageSlug) {
+      toast.error('Page context is missing. Reload the editor and try again.');
+      return;
+    }
+
+    setRemoving(true);
+    try {
+      const res = await fetch(apiUrl('/api/theme-engine/editor/remove'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          ...(pageId ? { pageId } : {}),
+          ...(editorPageSlug ? { pageSlug: editorPageSlug } : {}),
+        }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || json.error) {
+        throw new Error(json?.error?.message || json?.message || 'Failed to remove theme');
+      }
+
+      const data = json.data ?? json;
+      dispatch(setBlocks(normalizeBlocksForEditor(data.blocks || [])));
+      dispatch(
+        setLayoutBlocks({
+          headerBlocks: normalizeBlocksForEditor(data.headerBlocks || []),
+          footerBlocks: normalizeBlocksForEditor(data.footerBlocks || []),
+        })
+      );
+      setRemoveOpen(false);
+      toast.success('Theme removed from the editor. You can now edit this page with standard blocks.');
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setRemoving(false);
+    }
+  }, [dispatch, editorPageSlug, pageId]);
+
   if (!slug) {
     return (
       <div className="flex min-h-[240px] items-center justify-center border border-dashed bg-muted/30 p-6 text-sm text-muted-foreground">
@@ -141,6 +197,16 @@ export function ThemeEngineFrameBlock({ block, isEditing = true }: BlockRenderer
               : 'Exact theme render'}
           </span>
           <div className="ml-auto flex flex-wrap items-center gap-1.5">
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              className="h-7 px-2 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive"
+              onClick={() => setRemoveOpen(true)}
+            >
+              <Trash2 className="mr-1 h-3 w-3" />
+              Remove theme
+            </Button>
             <Button
               type="button"
               size="sm"
@@ -198,6 +264,38 @@ export function ThemeEngineFrameBlock({ block, isEditing = true }: BlockRenderer
           onDraftPreview={onDraftPreview}
         />
       ) : null}
+
+      <Dialog open={removeOpen} onOpenChange={(open) => !removing && setRemoveOpen(open)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <Trash2 className="h-5 w-5" />
+              Remove theme from editor?
+            </DialogTitle>
+            <DialogDescription asChild>
+              <div className="space-y-2 pt-1 text-sm text-muted-foreground">
+                <p>
+                  This removes <strong className="text-foreground">{name}</strong> from this page&apos;s
+                  editor canvas and switches back to the standard block editor.
+                </p>
+                <p>
+                  The theme package stays installed in Theme Engine — only this page is affected.
+                  Editable section content is converted to CMS blocks where possible.
+                </p>
+              </div>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" disabled={removing} onClick={() => setRemoveOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" disabled={removing} onClick={handleRemoveTheme}>
+              {removing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              Remove theme
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

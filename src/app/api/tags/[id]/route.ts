@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { getPageDbConnection, getTagModel } from '@/utils/db';
-import { requireAuth } from '@/lib/api/auth';
+import { requireCapability } from '@/lib/rbac';
 import { apiOk, apiError, handleApiError } from '@/lib/api/response';
 import { generateUniqueSlug } from '@/lib/api/slug';
 import { updateTagSchema } from '@/lib/validation/taxonomy';
@@ -20,7 +20,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    await requireAuth();
+    await requireCapability('taxonomies.manage');
     const { id } = await params;
     const body = updateTagSchema.parse(await req.json());
     const pageDb = await getPageDbConnection();
@@ -43,7 +43,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
 export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    await requireAuth();
+    await requireCapability('taxonomies.manage');
     const { id } = await params;
     const pageDb = await getPageDbConnection();
     const Tag = getTagModel(pageDb);

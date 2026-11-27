@@ -18,13 +18,19 @@ export default function DatabaseSetup() {
     const langFromCookie = Cookies.get('selectedLanguage') || 'en';
     setT(translations[langFromCookie as keyof typeof translations] as typeof translations.en);
 
+    const dbType = safeStorageGet('DB_TYPE');
+    if (dbType !== 'mongodb' && dbType !== 'mysql') {
+      router.replace('/database-choice');
+      return;
+    }
+
     // Load database names from localStorage if they exist
     const savedUserDbName = safeStorageGet('USER_DB_NAME');
     const savedPageDbName = safeStorageGet('PAGE_DB_NAME');
 
     if (savedUserDbName) setUserDbName(savedUserDbName);
     if (savedPageDbName) setPageDbName(savedPageDbName);
-  }, []);
+  }, [router]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -77,6 +83,8 @@ export default function DatabaseSetup() {
                 name="userDbName"
                 type="text"
                 required
+                pattern="[A-Za-z0-9_]+"
+                title="Use only letters, numbers, and underscores"
                 value={userDbName}
                 onChange={(e) => setUserDbName(e.target.value)}
                 placeholder={t.databaseSetup.enterUserDatabaseName}
@@ -92,6 +100,8 @@ export default function DatabaseSetup() {
                 name="pageDbName"
                 type="text"
                 required
+                pattern="[A-Za-z0-9_]+"
+                title="Use only letters, numbers, and underscores"
                 value={pageDbName}
                 onChange={(e) => setPageDbName(e.target.value)}
                 placeholder={t.databaseSetup.enterPageDatabaseName}

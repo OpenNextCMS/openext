@@ -12,14 +12,28 @@ import {
 } from '@/components/ui/dropdown-menu';
 import type { BlogBlockType } from '@/types/index';
 import { BLOCK_META, BLOCK_TYPES } from '@/components/blog/blocks/types';
+import { useRbac } from '@/hooks/useRbac';
 
 export default function AddBlockMenu({ onAdd }: { onAdd: (type: BlogBlockType) => void }) {
-  // Group block types by their declared group for a tidy menu.
-  const groups = BLOCK_TYPES.reduce<Record<string, BlogBlockType[]>>((acc, type) => {
+  const { canUseEditorComponent, loading } = useRbac();
+
+  const allowedTypes = BLOCK_TYPES.filter((type) =>
+    loading ? true : canUseEditorComponent(type)
+  );
+
+  const groups = allowedTypes.reduce<Record<string, BlogBlockType[]>>((acc, type) => {
     const g = BLOCK_META[type].group;
     (acc[g] ||= []).push(type);
     return acc;
   }, {});
+
+  if (!loading && allowedTypes.length === 0) {
+    return (
+      <Button variant="outline" className="w-full" disabled>
+        No blocks available for your role
+      </Button>
+    );
+  }
 
   return (
     <DropdownMenu>

@@ -6,6 +6,7 @@ export {
   disableBackendPlugin,
   uninstallBackendPlugin,
   rollbackPluginInstall,
+  activateBackendPlugin,
 } from '@/lib/plugins/server/lifecycle';
 export { runPluginMigrations, getPluginMigrationHistory } from '@/lib/plugins/server/migrations';
 export { PluginApp } from '@/lib/plugins/server/router';

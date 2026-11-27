@@ -1,16 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPageDbConnection, getPageModel } from '@/utils/db';
-import { cookies } from 'next/headers';
+import { handleApiError } from '@/lib/api/response';
+import { requireRbac, assertResourceOwnership } from '@/lib/rbac';
 
 export async function DELETE(req: NextRequest) {
-  const cookieStore = await cookies();
-  const token = cookieStore.get('token')?.value;
-
-  if (!token) {
-    return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
-  }
-
   try {
+    const ctx = await requireRbac();
     const { searchParams } = new URL(req.url);
     const id = searchParams.get('id');
 
@@ -21,15 +16,23 @@ export async function DELETE(req: NextRequest) {
     const pageDb = await getPageDbConnection();
     const PageModel = getPageModel(pageDb);
 
-    const deletedPage = await PageModel.findByIdAndDelete(id);
-
-    if (!deletedPage) {
+    const page = await PageModel.findById(id).lean();
+    if (!page) {
       return NextResponse.json({ success: false, message: 'Page not found' }, { status: 404 });
     }
 
+    assertResourceOwnership({
+      role: ctx.role,
+      ownerId: page.createdBy,
+      userId: ctx.user.userId,
+      editAllCap: 'pages.delete.all',
+      editOwnCap: 'pages.delete.own',
+    });
+
+    await PageModel.findByIdAndDelete(id);
+
     return NextResponse.json({ success: true, message: 'Page deleted successfully' }, { status: 200 });
   } catch (error) {
-    console.error('Error deleting page:', error);
-    return NextResponse.json({ success: false, message: 'Internal Server Error' }, { status: 500 });
+    return handleApiError(error);
   }
 }

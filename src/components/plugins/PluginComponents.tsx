@@ -2,6 +2,11 @@
 import { Menu, X } from 'lucide-react';
 import { resolveRedirectUrl, triggerBlockEvent } from '@/hooks/useBlockEvents';
 import type { BlockRendererProps } from '@/types/index';
+import { buildShareUrls } from '@/lib/social-media/shareUrls';
+import { SOCIAL_PLATFORM_LABELS } from '@/lib/social-media/constants';
+import type { SocialPlatformId } from '@/types/social-media';
+import { apiUrl } from '@/lib/apiClient';
+import { SocialPlatformIcon } from '@/components/social-media/SocialPlatformIcon';
 export { SliderPlugin } from './SliderPlugin';
 
 interface PluginBlockProps {
@@ -81,32 +86,181 @@ export const SeoPlugin: React.FC<PluginBlockProps> = () => (
   </div>
 );
 
-// 4. Social Integration Component (for Social Media plugins)
-export const SocialPlugin: React.FC<PluginBlockProps> = () => (
-  <div className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-2xl">
-    <div className="flex gap-4 justify-center py-2">
-      {['Facebook', 'Twitter', 'LinkedIn', 'Instagram'].map((platform) => (
-        <button
-          key={platform}
-          className="p-3 bg-white rounded-full shadow-md hover:scale-110 transition-transform"
-        >
-          <span className="text-xl">
-            {platform === 'Facebook'
-              ? '📘'
-              : platform === 'Twitter'
-                ? '🐦'
-                : platform === 'LinkedIn'
-                  ? '💼'
-                  : '📸'}
-          </span>
-        </button>
-      ))}
+// 4. Social Integration — share / connected profile buttons
+export const SocialPlugin: React.FC<PluginBlockProps> = ({ block, isEditing = true }) => {
+  const content = React.useMemo(() => {
+    try {
+      const raw = typeof block.content === 'string' ? block.content : '';
+      if (raw.startsWith('{')) {
+        return JSON.parse(raw) as {
+          url?: string;
+          title?: string;
+          platforms?: SocialPlatformId[];
+          style?: 'icon' | 'icon-label' | 'label';
+          useConnectedPlatforms?: boolean;
+          /** When true (default), follow dashboard Share settings button style. */
+          useGlobalButtonStyle?: boolean;
+        };
+      }
+    } catch {
+      /* ignore */
+    }
+    return {};
+  }, [block.content]);
+
+  const [connected, setConnected] = React.useState<
+    Array<{ id: SocialPlatformId; label: string; profileUrl: string; shareEnabled: boolean }>
+  >([]);
+  const [globalStyle, setGlobalStyle] = React.useState<'icon' | 'icon-label' | 'label'>(
+    'icon-label'
+  );
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    let active = true;
+    fetch(apiUrl('/api/social-media/public-config'), { credentials: 'include' })
+      .then(async (res) => {
+        const json = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(json?.error?.message || 'unavailable');
+        return json.data as {
+          platforms: Array<{
+            id: SocialPlatformId;
+            label: string;
+            profileUrl: string;
+            shareEnabled: boolean;
+          }>;
+          buttonStyle?: 'icon' | 'icon-label' | 'label';
+        };
+      })
+      .then((data) => {
+        if (!active) return;
+        setConnected(Array.isArray(data.platforms) ? data.platforms : []);
+        if (
+          data.buttonStyle === 'icon' ||
+          data.buttonStyle === 'icon-label' ||
+          data.buttonStyle === 'label'
+        ) {
+          setGlobalStyle(data.buttonStyle);
+        }
+      })
+      .catch(() => {
+        if (active) setConnected([]);
+      })
+      .finally(() => active && setLoading(false));
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const url =
+    (typeof content.url === 'string' && content.url) ||
+    (typeof window !== 'undefined' ? window.location.href : 'https://example.com');
+  const title =
+    (typeof content.title === 'string' && content.title) ||
+    block.label ||
+    'Share this page';
+
+  const useConnected = content.useConnectedPlatforms !== false;
+  const platforms: SocialPlatformId[] = (() => {
+    if (useConnected) return connected.map((p) => p.id);
+    if (Array.isArray(content.platforms) && content.platforms.length) {
+      return content.platforms;
+    }
+    return connected.map((p) => p.id);
+  })();
+
+  // Prefer an explicit block style when the user set one (useGlobalButtonStyle: false).
+  // New drops set useGlobalButtonStyle: true so Share settings buttonStyle applies.
+  const explicitStyle =
+    content.style === 'icon' || content.style === 'icon-label' || content.style === 'label'
+      ? content.style
+      : null;
+  const useGlobal =
+    content.useGlobalButtonStyle === true
+      ? true
+      : content.useGlobalButtonStyle === false
+        ? false
+        : explicitStyle === null;
+  const style: 'icon' | 'icon-label' | 'label' = useGlobal
+    ? globalStyle
+    : explicitStyle || globalStyle;
+
+  const items = platforms
+    .map((platform) => {
+      const profile = connected.find((p) => p.id === platform);
+      const share = buildShareUrls({
+        url,
+        title,
+        platforms: [platform],
+      })[0];
+      const href = profile?.profileUrl?.trim() || share?.href || '';
+      if (!href) return null;
+      return {
+        platform,
+        label: SOCIAL_PLATFORM_LABELS[platform] || profile?.label || platform,
+        href,
+      };
+    })
+    .filter(Boolean) as Array<{ platform: SocialPlatformId; label: string; href: string }>;
+
+  const showIcon = style === 'icon' || style === 'icon-label';
+  const showLabel = style === 'label' || style === 'icon-label';
+
+  const buttonClass =
+    style === 'icon'
+      ? 'inline-flex h-10 w-10 items-center justify-center rounded-full bg-transparent text-sm transition-transform hover:scale-110 hover:opacity-80'
+      : 'inline-flex items-center gap-2 rounded-full bg-transparent px-2 py-1.5 text-sm transition-transform hover:scale-105 hover:opacity-80';
+
+  return (
+    <div className="rounded-2xl border border-transparent bg-transparent p-2">
+      {style !== 'icon' && (
+        <div className="mb-2 text-center text-sm font-medium text-blue-800">
+          {isEditing ? 'Social Media' : title}
+        </div>
+      )}
+      <div className="flex flex-wrap justify-center gap-3 py-1">
+        {loading && isEditing ? (
+          <p className="text-xs text-blue-600">Loading connected platforms…</p>
+        ) : (
+          items.map((item) => (
+            <a
+              key={item.platform}
+              href={isEditing ? undefined : item.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => {
+                if (isEditing) e.preventDefault();
+              }}
+              className={buttonClass}
+              title={item.label}
+              aria-label={item.label}
+            >
+              {showIcon && (
+                <SocialPlatformIcon platform={item.platform} size={style === 'icon' ? 22 : 18} />
+              )}
+              {showLabel && (
+                <span className="font-medium text-slate-700">{item.label}</span>
+              )}
+            </a>
+          ))
+        )}
+        {!loading && items.length === 0 && (
+          <p className="text-xs text-blue-600">
+            {isEditing
+              ? 'Connect platforms in Social Media settings, or pick them in the right sidebar'
+              : 'No social links available'}
+          </p>
+        )}
+      </div>
+      {isEditing && !loading && (
+        <p className="mt-2 text-center text-[10px] text-blue-600/80">
+          Display: {style === 'icon' ? 'Icons only' : style === 'label' ? 'Labels only' : 'Icons + labels'}
+          {useGlobal ? ' (from Share settings)' : ''}
+        </p>
+      )}
     </div>
-    <p className="text-center text-xs text-blue-600 mt-2 font-medium italic">
-      Click to connect your accounts
-    </p>
-  </div>
-);
+  );
+};
 
 // 5. Form Builder Component (for Form plugins)
 export const FormPlugin: React.FC<PluginBlockProps> = () => (

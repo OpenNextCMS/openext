@@ -4,7 +4,8 @@ import { themeLoader, type ThemeLoader } from './ThemeLoader';
 import { templateResolver, type TemplateResolver } from './TemplateResolver';
 import { assetManager, type AssetManager } from './AssetManager';
 import { ThemeApiImpl } from './ThemeAPI';
-import { resolveThemeSettingValues } from './bridges/settingsBridge';
+import { resolveCompanionScriptUrls } from './companionScripts';
+import { resolveThemeSettingValues, resolveHomepageTemplateKey } from './bridges/settingsBridge';
 import { ThemeEngineError, ThemeRenderError } from './errors';
 import type { PageRenderContext, RenderInput, RenderResult } from './types';
 
@@ -44,11 +45,17 @@ export class ThemeRenderer {
 
       const loaded = await this.loader.loadTheme(slug);
 
+      const homepageTemplateKey = await resolveHomepageTemplateKey();
+
       const context: PageRenderContext = {
         pageType: input.page.type,
         customTemplateKey: input.page.templateKey as string | undefined,
       };
-      const Template = this.resolver.resolve(loaded, context); // throws TemplateResolutionError, propagated as-is
+      const Template = this.resolver.resolve(loaded, context, {
+        manifest: loaded.manifest,
+        pageSlug: input.page.slug,
+        homepageTemplateKey,
+      });
 
       const themeSettingValues = await resolveThemeSettingValues(loaded.manifest.slug);
       const api = new ThemeApiImpl({ input, loadedTheme: loaded, themeSettingValues, assets: this.assets });
@@ -62,10 +69,14 @@ export class ThemeRenderer {
         api.footer()
       );
 
+      const scriptUrl = this.assets.getScriptUrl(loaded.manifest.slug, loaded.manifest.version);
+      const companionScriptUrls = await resolveCompanionScriptUrls(loaded.manifest.slug, scriptUrl);
+
       return {
         element,
         stylesheetUrl: this.assets.getStylesheetUrl(loaded.manifest.slug, loaded.manifest.version),
-        scriptUrl: this.assets.getScriptUrl(loaded.manifest.slug, loaded.manifest.version),
+        scriptUrl,
+        companionScriptUrls,
         usedFallback: false,
       };
     } catch (err) {

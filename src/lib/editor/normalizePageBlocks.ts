@@ -67,6 +67,38 @@ export function normalizeBlocksForEditor(raw: unknown): BlockData[] {
   return out;
 }
 
+/**
+ * Strip the Theme Engine frame and convert theme section blocks into standard CMS
+ * blocks so the page can use the classic block editor again.
+ */
+export function convertThemeEngineCanvasToEditorBlocks(raw: unknown): BlockData[] {
+  if (!Array.isArray(raw)) return [];
+
+  const out: BlockData[] = [];
+
+  for (const item of raw) {
+    if (!item || typeof item !== 'object') continue;
+    const block = item as BlockData & { type?: string; content?: unknown };
+
+    if (block.type === 'theme-engine-frame') continue;
+
+    const parsed = parseThemeSectionContent(block.content);
+    if (parsed) {
+      out.push({
+        ...block,
+        type: cmsTypeForThemeBlock(parsed.sectionId, block.type || ''),
+        label: block.label || parsed.sectionId,
+        content: JSON.stringify(parsed.data ?? {}),
+      });
+      continue;
+    }
+
+    out.push(block as BlockData);
+  }
+
+  return out;
+}
+
 /** Blocks that should render on the editor/preview surface (excludes theme section data rows). */
 export function visibleCanvasBlocks(blocks: BlockData[]): BlockData[] {
   if (!isThemeEngineCanvas(blocks)) return blocks;

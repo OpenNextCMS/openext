@@ -1,6 +1,9 @@
 import { getUserDbConnection, getSettingsModel } from '@/utils/db';
 import { getSiteUrl } from '@/lib/seo/url';
+import { resolveSiteIconUrl } from '@/lib/media/siteIcon';
+import { getOrLoadCached, settingsCacheTtlMs } from '@/lib/cache/settingsCache';
 import { themeRepository } from '../repositories/ThemeRepository';
+import { themeCustomizationRepository } from '../repositories/ThemeCustomizationRepository';
 import type { CmsSiteSettings } from '../types';
 
 /**
@@ -12,25 +15,41 @@ import type { CmsSiteSettings } from '../types';
  *
  * Field mapping (the real `Settings` model does not match `CmsSiteSettings`
  * 1:1): `siteTitle -> name`, `tagline -> description`, `siteIcon -> logo`
- * (resolved to the existing `/siteicon/{filename}` route — reused as-is, no
- * new route), `getSiteUrl() -> url` (there is no `url` field on `Settings`).
+ * (local filename → `/siteicon/{filename}`, or absolute/S3 URL as-is),
+ * `getSiteUrl() -> url` (there is no `url` field on `Settings`).
  */
 export async function resolveSiteSettings(): Promise<CmsSiteSettings> {
-  await getUserDbConnection(); // Settings lives on the global user DB, not per-tenant.
-  const SettingsModel = getSettingsModel();
-  const doc = await SettingsModel.findOne({}).lean().exec();
+  return getOrLoadCached('cms-site-settings', settingsCacheTtlMs(), async () => {
+    await getUserDbConnection(); // Settings lives on the global user DB, not per-tenant.
+    const SettingsModel = getSettingsModel();
+    const doc = await SettingsModel.findOne({})
+      .select('siteTitle tagline siteIcon')
+      .lean()
+      .exec();
 
-  return {
-    name: doc?.siteTitle || 'Untitled Site',
-    url: getSiteUrl(),
-    description: doc?.tagline || '',
-    logo: doc?.siteIcon ? `/siteicon/${doc.siteIcon}` : null,
-  };
+    return {
+      name: doc?.siteTitle || 'Untitled Site',
+      url: getSiteUrl(),
+      description: doc?.tagline || '',
+      logo: resolveSiteIconUrl(doc?.siteIcon),
+    };
+  });
 }
 
-/** This theme's saved settings VALUES (`theme_settings.perThemeSettings[slug]`) — defaults are layered in by `ThemeAPI.settings()` from the manifest, not here. */
+/** Saved customizer values for a theme slug (theme_engine_customizations + legacy perThemeSettings). */
 export async function resolveThemeSettingValues(activeSlug: string | null): Promise<Record<string, unknown>> {
   if (!activeSlug) return {};
+  const [customizations, settingsDoc] = await Promise.all([
+    themeCustomizationRepository.get(activeSlug),
+    themeRepository.getSettings(),
+  ]);
+  const legacy = settingsDoc.perThemeSettings?.[activeSlug] ?? {};
+  return { ...legacy, ...customizations };
+}
+
+/** Site-wide homepage template override from theme_engine_settings. */
+export async function resolveHomepageTemplateKey(): Promise<string | null> {
   const settingsDoc = await themeRepository.getSettings();
-  return settingsDoc.perThemeSettings?.[activeSlug] ?? {};
+  const key = settingsDoc.homepageTemplateKey;
+  return typeof key === 'string' && key.trim() ? key.trim() : null;
 }

@@ -1,5 +1,4 @@
 # Contributor Covenant Code of Conduct
-
 ## Our Pledge
 
 We as members, contributors, and leaders of OpenNext CMS project pledge to make participation in our community a harassment-free experience for everyone, regardless of age, body size, visible or invisible disability, ethnicity, gender identity, level of experience, nationality, personal appearance, race, religion, or sexual identity.

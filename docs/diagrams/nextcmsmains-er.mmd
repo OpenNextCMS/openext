@@ -1,0 +1,250 @@
+erDiagram
+    direction LR
+
+    MASTERDB["MasterDb"] {
+        string id PK
+        string userDbName
+        string pageDbName
+        string userDbUri
+        string pageDbUri
+    }
+
+    USER["User"] {
+        ObjectId id PK
+        string username UK
+        string email UK
+        number role "matches Role.value"
+        bool active
+    }
+
+    ROLE["Role"] {
+        ObjectId id PK
+        string name UK
+        number value UK
+        string type "system custom plugin"
+        string pluginId
+    }
+
+    SETTINGS["Settings"] {
+        ObjectId id PK
+        string siteTitle
+        bool multilingualEnabled
+        json pluginPermissions
+    }
+
+    PLUGIN["Plugin"] {
+        ObjectId id PK
+        string pluginId UK
+        string name
+        string kind "block or system"
+        bool isActive
+    }
+
+    PLUGINDATA["PluginData"] {
+        ObjectId id PK
+        string pluginId FK
+        string key
+        json data
+    }
+
+    PLUGINMIGRATION["PluginMigration"] {
+        ObjectId id PK
+        string plugin FK
+        string migration
+        datetime executedAt
+    }
+
+    PAGE["Page"] {
+        ObjectId id PK
+        ObjectId createdBy FK
+        string pageType "page header footer"
+        string slug
+        string locale
+        bool isPublished
+        bool isHome
+    }
+
+    WEBSITEPREFS["WebsitePreferences"] {
+        ObjectId id PK
+        ObjectId userId FK
+        string businessName
+        string theme
+        bool onboardingCompleted
+    }
+
+    LAYOUT["Layout"] {
+        ObjectId id PK
+        string name
+        bool isActive
+        json sections
+    }
+
+    BLOGPOST["BlogPost"] {
+        ObjectId id PK
+        ObjectId createdBy FK
+        ObjectId authorId FK
+        string slug
+        string locale
+        string status
+    }
+
+    CATEGORY["Category"] {
+        ObjectId id PK
+        string name
+        string slug UK
+        ObjectId parentCategory FK
+    }
+
+    TAG["Tag"] {
+        ObjectId id PK
+        string name
+        string slug UK
+    }
+
+    AUTHOR["Author"] {
+        ObjectId id PK
+        string name
+        string email
+    }
+
+    COMMENT["Comment"] {
+        ObjectId id PK
+        ObjectId blogId FK
+        string status "pending approved spam"
+    }
+
+    THEMESETTINGS["ThemeSettings"] {
+        ObjectId id PK
+        json typography
+        json colors
+        json layout
+    }
+
+    FORM["Form"] {
+        ObjectId id PK
+        string name
+        string slug UK
+        ObjectId createdBy FK
+        string status
+    }
+
+    FORMVERSION["FormVersion"] {
+        ObjectId id PK
+        ObjectId formId FK
+        number version
+        ObjectId createdBy FK
+    }
+
+    FORMSUBMISSION["FormSubmission"] {
+        ObjectId id PK
+        ObjectId formId FK
+        json submissionData
+        datetime createdAt
+    }
+
+    THEME["Theme"] {
+        ObjectId id PK
+        string name
+        string slug UK
+        bool isActive
+        bool isDefault
+    }
+
+    TETHEME["ThemeEngineTheme"] {
+        ObjectId id PK
+        string slug UK
+        string name
+        string status
+        ObjectId installedBy
+    }
+
+    TECUSTOM["ThemeEngineCustomization"] {
+        ObjectId id PK
+        string themeSlug FK
+        json values
+        ObjectId updatedBy
+    }
+
+    TESETTINGS["ThemeEngineSettings"] {
+        string id PK "singleton"
+        string activeThemeSlug FK
+        ObjectId activatedBy
+    }
+
+    TEPREVIEW["ThemeEnginePreviewSession"] {
+        ObjectId id PK
+        string token UK
+        string themeSlug FK
+        ObjectId createdBy
+        datetime expiresAt
+    }
+
+    ANALYTICSEVENT["AnalyticsEvent"] {
+        ObjectId id PK
+        ObjectId blogId FK
+        string type "view read search"
+        string visitorId
+    }
+
+    MENUREDIRECT["MenuRedirectMapping"] {
+        ObjectId id PK
+        string headerId
+        string menuItemId
+        string targetType
+        bool enabled
+    }
+
+    MENUREDIRECTANALYTICS["MenuRedirectAnalytics"] {
+        ObjectId id PK
+        ObjectId mappingId FK
+        number clicks
+    }
+
+    MENUREDIRECTHISTORY["MenuRedirectHistory"] {
+        ObjectId id PK
+        ObjectId userId FK
+        string action
+        string menuItemId
+    }
+
+    SOCIALSETTINGS["SocialMediaSettings"] {
+        ObjectId id PK
+        json platforms
+        json openGraph
+    }
+
+    SOCIALPOST["SocialMediaPost"] {
+        ObjectId id PK
+        string title
+        string url
+        string status
+    }
+
+    USER }o..|| ROLE : "role equals value"
+    USER ||--o{ PAGE : creates
+    USER ||--o| WEBSITEPREFS : has
+    USER ||--o{ BLOGPOST : creates
+    USER ||--o{ FORM : creates
+    USER ||--o{ FORMVERSION : creates
+    USER ||--o{ MENUREDIRECTHISTORY : audits
+
+    PAGE ||--o{ COMMENT : receives
+    PAGE ||--o{ ANALYTICSEVENT : tracks
+    PAGE ||..o{ MENUREDIRECT : "headerId soft"
+
+    AUTHOR ||--o{ BLOGPOST : writes
+    CATEGORY ||--o{ BLOGPOST : categorizes
+    CATEGORY ||--o| CATEGORY : parent_of
+    TAG ||--o{ BLOGPOST : tags
+
+    FORM ||--o{ FORMVERSION : versions
+    FORM ||--o{ FORMSUBMISSION : collects
+
+    PLUGIN ||--o{ PLUGINDATA : stores
+    PLUGIN ||--o{ PLUGINMIGRATION : records
+
+    MENUREDIRECT ||--|| MENUREDIRECTANALYTICS : measures
+
+    TETHEME ||--|| TECUSTOM : customizes
+    TETHEME ||--o| TESETTINGS : activates
+    TETHEME ||--o{ TEPREVIEW : previews

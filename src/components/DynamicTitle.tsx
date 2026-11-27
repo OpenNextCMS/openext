@@ -3,62 +3,86 @@ import { apiUrl } from '@/lib/apiClient';
 
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
+import { resolveSiteIconUrl } from '@/lib/media/siteIcon';
 
 const resolveSiteIcon = (siteIcon?: string) => {
-  if (!siteIcon) {
-    return '/img/default_site_icon.png';
-  }
-
-  if (siteIcon.startsWith('/') || siteIcon.startsWith('http')) {
-    return siteIcon;
-  }
-
-  return `/siteicon/${siteIcon}`;
+  return resolveSiteIconUrl(siteIcon) || '/img/default_site_icon.png';
 };
 
+/** Routes where Next.js `generateMetadata` owns the document title — do not overwrite. */
+function isPublicContentPath(pathname: string | null): boolean {
+  if (!pathname) return false;
+  const p = pathname.toLowerCase();
+  if (
+    p.startsWith('/dashboard') ||
+    p.startsWith('/editor') ||
+    p.startsWith('/login') ||
+    p.startsWith('/admin') ||
+    p.startsWith('/api') ||
+    p.startsWith('/language') ||
+    p.startsWith('/database-choice') ||
+    p.startsWith('/mongodb-setup') ||
+    p.startsWith('/mysql-setup') ||
+    p.startsWith('/postgres-setup')
+  ) {
+    return false;
+  }
+  return true;
+}
+
 export default function DynamicTitle() {
-  const [title, setTitle] = useState('Loading...');
+  const [title, setTitle] = useState<string | null>(null);
   const [icon, setIcon] = useState('/favicon.ico');
 
   const pathname = usePathname();
-
-  // Extract the last non-empty segment of the path
   const lastSegment = pathname?.split('/').filter(Boolean).pop();
+  const preserveSeoTitle = isPublicContentPath(pathname);
 
   useEffect(() => {
     async function fetchSiteSettings() {
-      try {        // Only fetch if we have a valid URL or if it's a relative path
+      try {
         const res = await fetch(apiUrl(`/api/dashboard/settings`), {
-          headers: { 'Accept': 'application/json' }
+          headers: { Accept: 'application/json' },
         });
 
         if (res.ok) {
           const data = await res.json();
           const siteTitle = data?.data?.settings?.siteTitle || 'Next.js Setup Project';
           const siteIcon = resolveSiteIcon(data?.data?.settings?.siteIcon);
-
-          const fullTitle = lastSegment ? `${lastSegment} | ${siteTitle}` : siteTitle;
-          setTitle(fullTitle);
           setIcon(siteIcon);
+
+          // Public pages/blogs keep SSR metadata titles (seoName / blog seo.title).
+          if (!preserveSeoTitle) {
+            setTitle(lastSegment ? `${lastSegment} | ${siteTitle}` : siteTitle);
+          } else {
+            setTitle(null);
+          }
         } else {
-          // Fallback if API fails (e.g. 500 or 404)
-          setTitle(lastSegment ? `${lastSegment} | Next.js Setup Project` : 'Next.js Setup Project');
           setIcon('/favicon.ico');
+          if (!preserveSeoTitle) {
+            setTitle(
+              lastSegment ? `${lastSegment} | Next.js Setup Project` : 'Next.js Setup Project'
+            );
+          } else {
+            setTitle(null);
+          }
         }
       } catch (error) {
         console.error('Failed to fetch site settings:', error);
-        setTitle('Next.js Setup Project');
         setIcon('/favicon.ico');
+        if (!preserveSeoTitle) setTitle('Next.js Setup Project');
+        else setTitle(null);
       }
     }
 
     fetchSiteSettings();
-  }, [lastSegment]);
+  }, [lastSegment, preserveSeoTitle]);
 
   useEffect(() => {
-    document.title = title;
+    if (title) {
+      document.title = title;
+    }
 
-    // Update favicon dynamically
     let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement | null;
     if (link) {
       link.href = icon;

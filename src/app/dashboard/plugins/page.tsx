@@ -4,6 +4,7 @@ import { apiUrl } from '@/lib/apiClient';
 import type React from 'react';
 
 import { useState, useRef, useEffect } from 'react';
+import Link from 'next/link';
 import { handleSuccess } from '@/utils/successHandler';
 import {
   Loader2,
@@ -65,9 +66,11 @@ interface PluginRecord {
   isActive?: boolean;
   hasUpdate?: boolean;
   icon: string;
+  type?: string;
   kind?: 'block' | 'system';
   source?: string;
   adminEntry?: string;
+  adminMount?: string;
 }
 
 interface MarketplacePlugin {
@@ -80,31 +83,25 @@ interface MarketplacePlugin {
   rating: number;
   icon: string;
   type: string;
+  pluginId?: string;
+  kind?: 'block' | 'system';
 }
 
 // Mock data for marketplace plugins
-const marketplacePlugins = [
+const marketplacePlugins: MarketplacePlugin[] = [
   {
     id: '4',
     name: 'Social Media Integration',
     version: '3.0.1',
-    description: 'Connect and share content directly to social media platforms',
+    description:
+      'Connect profiles, configure share buttons, and queue posts for Facebook, X, LinkedIn, and more.',
     author: 'SocialConnect',
     downloads: '10.5k',
     rating: 4.7,
     icon: '🌐',
     type: 'social',
-  },
-  {
-    id: '5',
-    name: 'Advanced Analytics',
-    version: '2.2.0',
-    description: 'Comprehensive analytics dashboard with user behavior tracking',
-    author: 'AnalyticsHub',
-    downloads: '8.2k',
-    rating: 4.5,
-    icon: '📈',
-    type: 'chart',
+    pluginId: 'social-media',
+    kind: 'system',
   },
   {
     id: '6',
@@ -139,18 +136,13 @@ const marketplacePlugins = [
     icon: 'Menu',
     type: 'menu',
   },
-  {
-    id: '9',
-    name: 'Contact Form Pro',
-    version: '1.0.0',
-    description: 'A beautiful contact section with Google Maps background and feedback form',
-    author: 'OpenNext',
-    downloads: '5.1k',
-    rating: 4.9,
-    icon: '📞',
-    type: 'contact',
-  },
 ];
+
+function isMarketplacePlugin(
+  plugin: PluginRecord | MarketplacePlugin
+): plugin is MarketplacePlugin {
+  return 'downloads' in plugin && typeof (plugin as MarketplacePlugin).downloads === 'string';
+}
 
 export default function PluginManagementPage() {
   const [file, setFile] = useState<File | null>(null);
@@ -163,7 +155,8 @@ export default function PluginManagementPage() {
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [editingPlugin, setEditingPlugin] = useState<PluginRecord | MarketplacePlugin | null>(null);
   const [installedPluginsList, setInstalledPluginsList] = useState<PluginRecord[]>([]);
-  const [marketplacePluginsList, setMarketplacePluginsList] = useState(marketplacePlugins);
+  const [marketplacePluginsList, setMarketplacePluginsList] =
+    useState<MarketplacePlugin[]>(marketplacePlugins);
   const [activeTab, setActiveTab] = useState('upload');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { refreshPlugins } = usePlugins();
@@ -250,7 +243,11 @@ export default function PluginManagementPage() {
 
       if (response.ok) {
         setUploadStatus('success');
-        handleSuccess(true, null, data.message || 'Plugin uploaded successfully');
+        const successMessage =
+          data.requiresNpmInstall && data.pendingDependencies?.length
+            ? `${data.message || 'Plugin uploaded'}. Added to package.json: ${(data.addedToPackageJson || []).join(', ') || 'none'}.`
+            : data.message || 'Plugin uploaded successfully';
+        handleSuccess(true, null, successMessage);
         await fetchPlugins();
         await refreshPlugins();
         setActiveTab('installed');
@@ -298,6 +295,13 @@ export default function PluginManagementPage() {
         }));
         handleSuccess(true, null, `Plugin ${newStatus ? 'enabled' : 'disabled'} successfully`);
         await refreshPlugins();
+      } else {
+        const data = await response.json().catch(() => ({}));
+        const message =
+          data.code === 'CMS_DEPENDENCY_MISSING'
+            ? `${data.message} Run npm install at the CMS project root, restart the server, then enable again.`
+            : data.message || 'Failed to toggle plugin status';
+        handleSuccess(false, null, message);
       }
     } catch {
       handleSuccess(false, null, 'Failed to toggle plugin status');
@@ -310,10 +314,18 @@ export default function PluginManagementPage() {
         method: 'DELETE',
       });
 
+      const data = await response.json().catch(() => ({}));
+      const errorMessage =
+        (typeof data?.error?.message === 'string' && data.error.message) ||
+        (typeof data?.message === 'string' && data.message) ||
+        'Failed to remove plugin';
+
       if (response.ok) {
         setInstalledPluginsList((prev) => prev.filter((plugin) => plugin.pluginId !== pluginId));
-        handleSuccess(true, null, 'Plugin removed successfully');
+        handleSuccess(true, null, data.message || 'Plugin removed successfully');
         await refreshPlugins();
+      } else {
+        handleSuccess(false, null, errorMessage);
       }
     } catch {
       handleSuccess(false, null, 'Failed to remove plugin');
@@ -330,13 +342,22 @@ export default function PluginManagementPage() {
       return;
     }
 
+    const stablePluginId =
+      pluginToInstall.pluginId ||
+      (pluginToInstall.type === 'social' ? 'social-media' : `market-${pluginToInstall.id}`);
+
     try {
       const response = await fetch(apiUrl('/api/dashboard/plugins/install-plugin'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...pluginToInstall,
-          pluginId: `market-${pluginToInstall.id}`,
+          pluginId: stablePluginId,
+          kind: pluginToInstall.kind || (pluginToInstall.type === 'social' ? 'system' : 'block'),
+          source: 'marketplace',
+          adminEntry:
+            stablePluginId === 'social-media' ? '/dashboard/plugins/social-media' : undefined,
+          isActive: true,
         }),
       });
 
@@ -344,6 +365,9 @@ export default function PluginManagementPage() {
         handleSuccess(true, null, 'Plugin installed successfully');
         await fetchPlugins();
         await refreshPlugins();
+      } else {
+        const data = await response.json().catch(() => ({}));
+        handleSuccess(false, null, data.message || 'Failed to install plugin');
       }
     } catch {
       handleSuccess(false, null, 'Failed to install plugin');
@@ -369,11 +393,10 @@ export default function PluginManagementPage() {
   const handleUpdatePlugin = async () => {
     if (!editingPlugin) return;
 
-    // Check if it's a marketplace plugin (not yet installed)
-    const isMarketplace = !('pluginId' in editingPlugin) || !editingPlugin.pluginId;
-
-    if (isMarketplace) {
-      const marketplaceEdit = editingPlugin as MarketplacePlugin;
+    // Marketplace listings may include a stable pluginId (e.g. social-media);
+    // discriminate by marketplace-only fields, not pluginId presence.
+    if (isMarketplacePlugin(editingPlugin)) {
+      const marketplaceEdit = editingPlugin;
       setMarketplacePluginsList((prev) =>
         prev.map((p) => (p.id === marketplaceEdit.id ? { ...p, ...marketplaceEdit } : p))
       );
@@ -546,10 +569,20 @@ export default function PluginManagementPage() {
                             <div className="flex gap-2">
                               {plugin.kind === 'system' && plugin.source === 'uploaded' && (
                                 <Button variant="default" size="sm" asChild>
-                                  <a href={`/dashboard/plugins/runtime/${encodeURIComponent(pId)}`}>
+                                  <Link href={`/dashboard/plugins/runtime/${encodeURIComponent(pId)}`}>
                                     <Settings className="w-4 h-4 mr-2" />
                                     Open
-                                  </a>
+                                  </Link>
+                                </Button>
+                              )}
+                              {(pId === 'social-media' ||
+                                plugin.adminEntry === '/dashboard/plugins/social-media' ||
+                                plugin.type === 'social') && (
+                                <Button variant="default" size="sm" asChild>
+                                  <Link href="/dashboard/plugins/social-media">
+                                    <Settings className="w-4 h-4 mr-2" />
+                                    Open
+                                  </Link>
                                 </Button>
                               )}
                               <Button
@@ -894,7 +927,7 @@ export default function PluginManagementPage() {
   "name": "My CRM",
   "version": "1.0.0",
   "kind": "system",
-  "adminEntry": "admin/index.html"
+  "adminMount": "ui/admin/mount.js"
 }`}</pre>
                         <p className="text-xs text-muted-foreground">
                           Or omit <code className="bg-muted px-1 rounded">kind</code> and include an{' '}

@@ -9,6 +9,7 @@ import {
 import { loadBackendPlugin, unloadBackendPlugin } from '@/lib/plugins/server/loader';
 import { runPluginMigrations, clearPluginMigrationHistory } from '@/lib/plugins/server/migrations';
 import { registerPluginPermissions, unregisterPluginPermissions } from '@/lib/plugins/server/permissions';
+import { unregisterPluginUserTypes } from '@/lib/rbac/pluginUserTypes';
 import { removePluginDirectory } from '@/lib/plugins/storage';
 import { removeBackendPluginDirectory } from '@/lib/plugins/server/storage';
 
@@ -87,12 +88,48 @@ export async function enableBackendPlugin(plugin: Pick<IPluginDocument, 'pluginI
   );
 }
 
+/** First enable runs migrations + install hook; later enables only reload routes. */
+export async function activateBackendPlugin(
+  plugin: Pick<
+    IPluginDocument,
+    | 'pluginId'
+    | 'serverEntry'
+    | 'permissions'
+    | 'dependencies'
+    | 'installHook'
+    | 'uninstallHook'
+    | 'loadedAt'
+  > & { migrations?: string[] }
+): Promise<BackendInstallResult | void> {
+  if (!plugin.serverEntry) return;
+
+  if (!plugin.loadedAt) {
+    return installBackendPlugin({
+      pluginId: plugin.pluginId,
+      serverEntry: plugin.serverEntry,
+      migrations: plugin.migrations || [],
+      permissions: plugin.permissions || [],
+      installHook: plugin.installHook,
+      uninstallHook: plugin.uninstallHook,
+      dependencies: plugin.dependencies || [],
+      enableAfterInstall: true,
+    });
+  }
+
+  await enableBackendPlugin(plugin);
+}
+
 export async function disableBackendPlugin(pluginId: string): Promise<void> {
   await unloadBackendPlugin(pluginId);
 
-  await getUserDbConnection();
-  const PluginModel = getPluginModel();
-  await PluginModel.updateOne({ pluginId }, { loadedAt: undefined });
+  try {
+    await getUserDbConnection();
+    const PluginModel = getPluginModel();
+    // Use $unset — setting `undefined` is unreliable on MySQL/Postgres document adapters.
+    await PluginModel.updateOne({ pluginId }, { $unset: { loadedAt: '' } });
+  } catch (error) {
+    console.error(`[plugin:${pluginId}] failed to clear loadedAt after disable:`, error);
+  }
 }
 
 export async function uninstallBackendPlugin(
@@ -107,34 +144,56 @@ export async function uninstallBackendPlugin(
     console.error(`[plugin:${pluginId}] uninstall hook failed:`, error);
   }
 
-  await unregisterPluginPermissions(pluginId, options.permissions || []);
-
-  if (options.dropMigrations) {
-    await clearPluginMigrationHistory(pluginId);
+  try {
+    await unregisterPluginPermissions(pluginId, options.permissions || []);
+  } catch (error) {
+    console.error(`[plugin:${pluginId}] unregister permissions failed:`, error);
   }
 
-  await removeBackendPluginDirectory(pluginId);
-
-  await getUserDbConnection();
-  const PluginModel = getPluginModel();
-  await PluginModel.updateOne(
-    { pluginId },
-    {
-      hasBackend: false,
-      serverEntry: undefined,
-      apiPrefix: undefined,
-      permissions: [],
-      dependencies: [],
-      installHook: undefined,
-      uninstallHook: undefined,
-      loadedAt: undefined,
-      loadError: undefined,
+  if (options.dropMigrations) {
+    try {
+      await clearPluginMigrationHistory(pluginId);
+    } catch (error) {
+      console.error(`[plugin:${pluginId}] clear migration history failed:`, error);
     }
-  );
+  }
+
+  try {
+    await removeBackendPluginDirectory(pluginId);
+  } catch (error) {
+    console.error(`[plugin:${pluginId}] remove backend directory failed:`, error);
+  }
+
+  try {
+    await getUserDbConnection();
+    const PluginModel = getPluginModel();
+    await PluginModel.updateOne(
+      { pluginId },
+      {
+        $set: {
+          hasBackend: false,
+          permissions: [],
+          dependencies: [],
+        },
+        $unset: {
+          serverEntry: '',
+          apiPrefix: '',
+          installHook: '',
+          uninstallHook: '',
+          loadedAt: '',
+          loadError: '',
+        },
+      }
+    );
+  } catch (error) {
+    // Plugin row may already be deleted by remove-plugin route.
+    console.error(`[plugin:${pluginId}] clear backend metadata failed:`, error);
+  }
 }
 
 export async function rollbackPluginInstall(pluginId: string): Promise<void> {
   await disableBackendPlugin(pluginId).catch(() => undefined);
+  await unregisterPluginUserTypes(pluginId).catch(() => undefined);
   await removePluginDirectory(pluginId);
   await removeBackendPluginDirectory(pluginId);
   await clearPluginMigrationHistory(pluginId).catch(() => undefined);

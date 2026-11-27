@@ -46,9 +46,29 @@ export async function callAI(
   messages: ChatMessage[],
   opts: { temperature?: number; maxTokens?: number } = {}
 ): Promise<string> {
+  // Prefer the AI API Keys plugin vault when a cms-core binding exists.
+  try {
+    const { chatViaAiKeysGateway } = await import('@/lib/ai/aiKeysGateway');
+    const viaVault = await chatViaAiKeysGateway(messages, {
+      temperature: opts.temperature,
+      maxTokens: opts.maxTokens,
+    });
+    if (viaVault) return viaVault.content;
+  } catch (error) {
+    // If the vault is partially configured but all keys fail, surface that error.
+    // If the plugin is inactive / unbound, chatViaAiKeysGateway returns null (fall through).
+    if (error instanceof Error && error.message.startsWith('AI API Keys gateway:')) {
+      throw new ApiError(error.message, 503);
+    }
+    console.warn('[AI] ai-api-keys gateway skipped:', error);
+  }
+
   const { apiKey, model } = await getAiConfig();
   if (!apiKey) {
-    throw new ApiError('AI is not configured — add an OpenRouter API key in AI settings.', 503);
+    throw new ApiError(
+      'AI is not configured — bind cms-core in the AI API Keys plugin, or add an OpenRouter API key in AI settings / .env.',
+      503
+    );
   }
 
   const res = await fetch(OPENROUTER_URL, {

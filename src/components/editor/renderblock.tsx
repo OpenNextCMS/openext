@@ -17,6 +17,7 @@ import { CardBlock } from './blocks/CardBlock';
 import { ShapeDividerBlock } from './blocks/ShapeDividerBlock';
 import { NavbarBlock } from './blocks/NavbarBlock';
 import { GenericUiBlock } from './blocks/GenericUiBlock';
+import { PluginBlockChrome } from './blocks/PluginBlockChrome';
 import { pluginRegistry } from '@/lib/pluginRegistry';
 import { ThemeEngineFrameBlock } from './blocks/ThemeEngineFrameBlock';
 import { ContactUI } from '@/components/ui/ContactUI';
@@ -118,11 +119,18 @@ const RenderBlock = ({ block, isEditing = true }: BlockRendererProps) => {
     return <ThemeEngineFrameBlock block={block} isEditing={isEditing} />;
   }
 
-  // 1. Check if it's a plugin-provided block
+  // 1. Check if it's a plugin-provided block (chrome adds select + delete in editor)
   const pluginExtension = pluginRegistry.getExtension(block.type);
   if (pluginExtension) {
     const PluginComponent = pluginExtension.component;
-    return <PluginComponent block={block} isEditing={isEditing} />;
+    return (
+      <PluginBlockChrome
+        block={block}
+        isEditing={isEditing}
+        Component={PluginComponent}
+        label={pluginExtension.name || block.label || 'Plugin'}
+      />
+    );
   }
 
   // 2. Check for choice inputs

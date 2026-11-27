@@ -2,13 +2,15 @@ import fs from 'fs/promises';
 import path from 'path';
 import { NextResponse } from 'next/server';
 import { hasBlockedExtension, isSafeRelativePath } from '@/lib/plugins/manifest';
-import { PLUGINS_PUBLIC_DIR } from '@/lib/plugins/storage';
+import { getPluginDirectory } from '@/lib/plugins/storage';
 
 const CONTENT_TYPES: Record<string, string> = {
   '.html': 'text/html; charset=utf-8',
   '.htm': 'text/html; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
-  '.js': 'application/javascript; charset=utf-8',
+  // text/javascript is preferred for browser ES module dynamic import()
+  '.js': 'text/javascript; charset=utf-8',
+  '.mjs': 'text/javascript; charset=utf-8',
   '.json': 'application/json; charset=utf-8',
   '.svg': 'image/svg+xml',
   '.png': 'image/png',
@@ -43,7 +45,7 @@ export async function GET(
     return NextResponse.json({ message: 'Invalid plugin asset path' }, { status: 400 });
   }
 
-  const pluginDir = path.join(PLUGINS_PUBLIC_DIR, pluginId);
+  const pluginDir = getPluginDirectory(pluginId);
   const assetPath = path.join(pluginDir, relativePath);
 
   if (!isPathInside(pluginDir, assetPath)) {

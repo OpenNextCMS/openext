@@ -2,15 +2,14 @@
 
 import { useSortable, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical } from 'lucide-react';
+import { GripVertical, Trash2 } from 'lucide-react';
 import type { Block } from '@/types/index';
+import { useAppDispatch } from '@/redux/hooks';
+import { removeBlock } from '@/redux/canvasSlice';
 import RenderBlock from '../renderblock';
 
-// A single nested block that can be dragged (by its grip handle) to reorder it
-// within its zone or move it into another zone. Being a sortable item means
-// dnd-kit tags its drop data with { sortable: { containerId, index } }, which
-// handleDragEnd reads to compute the precise target position.
 function SortableNestedBlock({ child }: { child: Block }) {
+  const dispatch = useAppDispatch();
   const childDisplay = (child.style?.display as string) || 'block';
   const isInlineDisplay = childDisplay === 'inline' || childDisplay === 'inline-block';
 
@@ -19,6 +18,11 @@ function SortableNestedBlock({ child }: { child: Block }) {
     data: { source: 'existing-block' },
     disabled: !child.uniqueId,
   });
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (child.uniqueId) dispatch(removeBlock(child.uniqueId));
+  };
 
   return (
     <div
@@ -36,15 +40,25 @@ function SortableNestedBlock({ child }: { child: Block }) {
         verticalAlign: isInlineDisplay ? 'baseline' : undefined,
       }}
     >
-      <button
-        type="button"
-        className="absolute left-[-8px] top-2 z-20 hidden h-6 w-6 cursor-grab items-center justify-center rounded-full border bg-background text-muted-foreground shadow-sm hover:text-primary group-hover/nested-child:flex active:cursor-grabbing"
-        title="Move block"
-        {...attributes}
-        {...listeners}
-      >
-        <GripVertical className="h-3.5 w-3.5" />
-      </button>
+      <div className="absolute left-[-8px] top-2 z-20 hidden items-center gap-1 group-hover/nested-child:flex">
+        <button
+          type="button"
+          className="flex h-6 w-6 cursor-grab items-center justify-center rounded-full border bg-background text-muted-foreground shadow-sm hover:text-primary active:cursor-grabbing"
+          title="Move block"
+          {...attributes}
+          {...listeners}
+        >
+          <GripVertical className="h-3.5 w-3.5" />
+        </button>
+        <button
+          type="button"
+          className="flex h-6 w-6 items-center justify-center rounded-full border bg-background text-muted-foreground shadow-sm hover:border-destructive hover:text-destructive"
+          title="Delete block"
+          onClick={handleDelete}
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+        </button>
+      </div>
       <RenderBlock key={child.uniqueId} block={child} isEditing={true} />
     </div>
   );
@@ -55,9 +69,6 @@ interface SortableChildrenProps {
   childBlocks: Block[];
 }
 
-// Wraps the blocks of one drop zone in a SortableContext so they can be
-// reordered precisely. Reused by every container (pre-made blocks, columns,
-// rows) so nesting behaves identically everywhere.
 export function SortableChildren({ containerId, childBlocks }: SortableChildrenProps) {
   return (
     <SortableContext

@@ -50,12 +50,15 @@ export function createCmsSdk(pluginId: string, permissions: string[], user: Auth
     models: {
       register(name: string, schema: mongoose.Schema) {
         const modelName = `${pluginId}_${name}`;
-        if (registeredModels.has(modelName)) {
-          return registeredModels.get(modelName)!;
-        }
         if (!userConn) {
           throw new Error('Call cms.database.user() before registering models');
         }
+        // Honor connection.deleteModel(): drop SDK cache when the connection model is gone
+        // so plugins can re-register an updated schema on reload.
+        if (registeredModels.has(modelName) && userConn.models?.[modelName]) {
+          return registeredModels.get(modelName)!;
+        }
+        registeredModels.delete(modelName);
         const model =
           (userConn.models[modelName] as mongoose.Model<unknown>) ||
           userConn.model<unknown>(modelName, schema);
@@ -93,14 +96,25 @@ export function createCmsSdk(pluginId: string, permissions: string[], user: Auth
   };
 }
 
-export function createAuthMiddleware(app: PluginApp, requiredPermissions: string[] = []): void {
+export function createAuthMiddleware(
+  app: PluginApp,
+  requiredPermissions: string[] = [],
+  publicPaths: string[] = []
+): void {
   app.use(async (req, res, next) => {
-    if (!req.user) {
+    const normalizedPath = req.path.replace(/\/+/g, '/').replace(/^\//, '') || '';
+    const isPublic = publicPaths.some(
+      (publicPath) =>
+        normalizedPath === publicPath.replace(/^\//, '') ||
+        normalizedPath.startsWith(`${publicPath.replace(/^\//, '')}/`)
+    );
+
+    if (!isPublic && !req.user) {
       res.status(401).json({ message: 'Unauthorized' });
       return;
     }
 
-    if (requiredPermissions.length > 0) {
+    if (requiredPermissions.length > 0 && req.user) {
       const isAdmin = typeof req.user.role === 'number' && req.user.role <= 1;
       const hasPermission = requiredPermissions.some((perm) => req.permissions.includes(perm));
       if (!isAdmin && !hasPermission) {

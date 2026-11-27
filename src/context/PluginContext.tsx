@@ -7,7 +7,7 @@ import * as Library from '@/components/plugins/PluginComponents';
 import { ContactUI } from '@/components/ui/ContactUI';
 import { sliderDefaultContentString } from '@/components/plugins/sliderSchema';
 import { ExternalPluginBlock } from '@/components/plugins/ExternalPluginBlock';
-import type { PluginKind } from '@/types/index';
+import type { PluginKind, PluginAdminNavItem } from '@/types/index';
 
 export interface PluginRecord {
   pluginId: string;
@@ -19,6 +19,8 @@ export interface PluginRecord {
   isActive?: boolean;
   entryPoint?: string;
   adminEntry?: string;
+  adminMount?: string;
+  adminNav?: PluginAdminNavItem[];
   blockEntry?: string;
   customElement?: string;
   styles?: string[];
@@ -52,7 +54,11 @@ function isBuiltinSystemPlugin(plugin: PluginRecord): boolean {
     plugin.pluginId === 'form-builder' ||
     pluginType === 'form' ||
     (pluginName.includes('form') && pluginName.includes('builder'));
-  return isFormBuilder;
+  if (isFormBuilder) return true;
+
+  // Social Media stays a placeable share-buttons block AND a dashboard system.
+  // Do not skip registry registration for it.
+  return false;
 }
 
 export const PluginProvider = ({ children }: { children: ReactNode }) => {
@@ -89,9 +95,23 @@ export const PluginProvider = ({ children }: { children: ReactNode }) => {
           // never register a generic palette stub.
           if (isBuiltinSystemPlugin(plugin)) continue;
 
-          // Uploaded system plugins without a placeable block: sidebar only.
+          const isSocialMedia =
+            plugin.pluginId === 'social-media' ||
+            plugin.pluginId === 'market-4' ||
+            pluginType === 'social' ||
+            pluginName.includes('social');
+
+          const socialDefaultContent = JSON.stringify({
+            useConnectedPlatforms: true,
+            useGlobalButtonStyle: true,
+            title: 'Follow us',
+            platforms: [],
+          });
+
+          // Uploaded / marketplace system plugins without a placeable block: sidebar only.
+          // Social Media is system + share block — always register SocialPlugin.
           const blockScript = plugin.blockEntry || plugin.entryPoint;
-          if (kind === 'system' && !blockScript) continue;
+          if (kind === 'system' && !blockScript && !isSocialMedia) continue;
 
           let Component: React.ComponentType<Record<string, unknown>> =
             Library.GenericPlugin as unknown as React.ComponentType<Record<string, unknown>>;
@@ -104,7 +124,7 @@ export const PluginProvider = ({ children }: { children: ReactNode }) => {
             pluginName.includes('analytics')
           ) {
             Component = Library.ChartPlugin as unknown as React.ComponentType<Record<string, unknown>>;
-          } else if (pluginType === 'social' || pluginName.includes('social')) {
+          } else if (isSocialMedia) {
             Component = Library.SocialPlugin as unknown as React.ComponentType<Record<string, unknown>>;
           } else if (pluginType === 'form' || pluginName.includes('form')) {
             Component = Library.FormPlugin as unknown as React.ComponentType<Record<string, unknown>>;
@@ -138,7 +158,11 @@ export const PluginProvider = ({ children }: { children: ReactNode }) => {
               description: isSliderPlugin
                 ? 'Create banners, cards, products, and content sliders.'
                 : plugin.description,
-              defaultContent: isSliderPlugin ? sliderDefaultContentString : undefined,
+              defaultContent: isSliderPlugin
+                ? sliderDefaultContentString
+                : isSocialMedia
+                  ? socialDefaultContent
+                  : undefined,
               defaultStyle: isSliderPlugin ? { width: '100%' } : undefined,
               category: isSliderPlugin ? 'Interactive Components' : 'Plugin Blocks',
             },

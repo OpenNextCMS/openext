@@ -28,6 +28,7 @@ export async function seedSystemThemes(pageDb: Connection): Promise<void> {
       { slug: def.slug },
       {
         $set: {
+          slug: def.slug,
           name: def.name,
           description: def.description,
           isSystemTheme: true,

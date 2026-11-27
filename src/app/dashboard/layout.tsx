@@ -7,7 +7,10 @@ import { AvatarProvider } from '@/context/AvatarContext';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { redirect } from 'next/navigation';
 import { jwtDecode } from 'jwt-decode';
-import { getCurrentUserFull } from '@/lib/api/user';
+import { getCurrentUserFull, needsOnboarding } from '@/lib/api/user';
+import { ensureDefaultHomePage } from '@/services/ensureDefaultHomePage';
+
+export const dynamic = 'force-dynamic';
 
 type DashboardUser = {
   username: string;
@@ -33,12 +36,20 @@ export default async function DashboardLayout({ children }: { children: React.Re
     redirect('/login');
   }
 
-  // Mandatory first-time onboarding gate: a user who hasn't finished the setup
-  // wizard is sent there before they can reach the dashboard. Only redirect on a
-  // positive "not completed" signal so a transient DB error can't lock anyone out.
+  // SuperAdmin-only first-time onboarding. Users created by SuperAdmin skip
+  // the wizard and go straight to the dashboard.
   const fullUser = await getCurrentUserFull();
-  if (fullUser && !fullUser.onboardingCompleted) {
+  if (needsOnboarding(fullUser)) {
     redirect('/onboarding');
+  }
+
+  // Keep OpenExt default_home available whether onboarding was completed or skipped.
+  if (fullUser?._id) {
+    try {
+      await ensureDefaultHomePage({ createdBy: String(fullUser._id) });
+    } catch (err) {
+      console.warn('[dashboard] ensureDefaultHomePage failed:', err);
+    }
   }
 
   return (
@@ -50,7 +61,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
           <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
             <Navbar user={user} />
-            <main className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-y-contain bg-muted/40 p-5">
+            <main className="flex min-h-0 flex-1 flex-col overflow-y-auto overflow-x-hidden overscroll-y-contain bg-muted/40 p-5">
               {children}
             </main>
           </div>

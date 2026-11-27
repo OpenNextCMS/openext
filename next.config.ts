@@ -11,26 +11,18 @@ const nextConfig: NextConfig = {
     cpus: 1,
   },
 
-  // Plugin backend loader reads uploaded files from plugins/{id}/ at runtime.
-  // Webpack cannot statically analyze those paths — suppress the expected warning.
+  // Next.js 16 default bundler. Webpack ignoreWarnings are not needed under Turbopack.
+  turbopack: {},
+
+  // Plugin backend loader reads uploaded files from src/app/api/plugins/[pluginId] at runtime.
   serverExternalPackages: ['mongoose'],
 
-  webpack: (config, { isServer }) => {
-    if (isServer) {
-      config.ignoreWarnings = [
-        ...(config.ignoreWarnings ?? []),
-        {
-          module: /[\\/]src[\\/]lib[\\/]plugins[\\/]server[\\/]/,
-          message: /Critical dependency: the request of a dependency is an expression/,
-        },
-      ];
-    }
-    return config;
-  },
-
   images: {
-    domains: ['localhost'],
     remotePatterns: [
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+      },
       {
         protocol: 'http',
         hostname: '**',
@@ -43,14 +35,25 @@ const nextConfig: NextConfig = {
   },
 
   async rewrites() {
+    // Runtime uploads land in public/upload/backgrounds AFTER the server starts.
+    // Next static serving often 404s those files — always route them through the
+    // on-disk API handler so Theme Engine / editor image fields render immediately.
+    const localUploadRewrites = [
+      {
+        source: '/upload/backgrounds/:file',
+        destination: '/api/editor/uploads/:file',
+      },
+    ];
+
     // No NEXT_PUBLIC_BACKEND_URL → Next.js serves /api locally (no proxy).
     if (!backendBaseUrl) {
-      return [];
+      return localUploadRewrites;
     }
 
     const BACKEND = backendBaseUrl;
 
     return [
+      ...localUploadRewrites,
       { source: '/theme-assets/:path*', destination: `${BACKEND}/theme-assets/:path*` },
       {
         source: '/theme-engine-assets/:path*',

@@ -39,6 +39,12 @@ const PageSchema = new Schema<PageDocument>(
     preHeading: { type: String },
     description: { type: String },
     slug: { type: String },
+    /** Content locale for multilingual sites (ISO-ish code, e.g. en, hi). */
+    locale: { type: String, default: 'en', index: true },
+    /** Translation group id linking translated versions of the same page. */
+    translationGroupId: { type: String, index: true },
+    /** Theme Engine template key (from active theme manifest). */
+    themeTemplate: { type: String, trim: true },
     seoName: { type: String },
     seoMeta: { type: String },
     component: { type: [Schema.Types.Mixed] },
@@ -47,10 +53,17 @@ const PageSchema = new Schema<PageDocument>(
   { timestamps: true }
 );
 
-// Create indexes for better query performance
-PageSchema.index({ slug: 1 }, { unique: true });
+// Unique slug per locale (multilingual). Headers/footers use the same rule.
+PageSchema.index({ locale: 1, slug: 1 }, { unique: true });
 PageSchema.index({ pageName: 1, createdBy: 1 });
 PageSchema.index({ pageType: 1, isGlobal: 1 });
+PageSchema.index({ translationGroupId: 1, locale: 1 });
+/** Homepage resolution: resolveHomepageSlug */
+PageSchema.index({ isHome: 1, pageType: 1, locale: 1 });
+/** Global header/footer chrome on public pages */
+PageSchema.index({ pageType: 1, isGlobal: 1, isPublished: 1, locale: 1, updatedAt: -1 });
+/** Dashboard counts + sitemap published pages */
+PageSchema.index({ pageType: 1, isPublished: 1 });
 
 const PageModel = models.Page || model<PageDocument>('Page', PageSchema);
 

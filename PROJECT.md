@@ -103,7 +103,7 @@ Layered architecture with a multi-tenant data tier:
                                  │ HTTP (fetch)
 ┌───────────────────────────────▼───────────────────────────────────────┐
 │ APPLICATION / API — Next.js Route Handlers (/api/**)                   │
-│ JWT cookie auth + edge middleware · Zod validation · response envelope │
+│ JWT cookie auth + proxy (Node) · Zod validation · response envelope │
 │ Pages · Blogs · Forms · Themes · Plugins · Analytics · AI · Onboarding │
 └───────────────────────────────┬───────────────────────────────────────┘
                                  │

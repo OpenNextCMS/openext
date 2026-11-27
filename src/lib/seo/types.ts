@@ -20,6 +20,17 @@ export interface SeoBlog {
   updatedAt?: string | Date | null;
 }
 
+/** The subset of a CMS page needed by page SEO helpers. */
+export interface SeoPage {
+  pageName?: string;
+  slug?: string;
+  description?: string;
+  seoName?: string;
+  seoMeta?: string;
+  isHome?: boolean;
+  updatedAt?: string | Date | null;
+}
+
 export function authorName(post: SeoBlog): string | undefined {
   if (post.authorId && typeof post.authorId === 'object') return post.authorId.name;
   return post.authorName || undefined;

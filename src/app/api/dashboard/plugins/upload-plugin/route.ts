@@ -1,14 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUserDbConnection, getPluginModel } from '@/utils/db';
 import { extractPluginZip } from '@/lib/plugins/extract';
-import { MAX_PLUGIN_ZIP_BYTES } from '@/lib/plugins/storage';
+import { getMaxPluginZipBytes } from '@/lib/plugins/uploadLimits';
+import { installBackendPlugin, rollbackPluginInstall } from '@/lib/plugins/server/lifecycle';
+import { registerPluginUserTypes, unregisterPluginUserTypes } from '@/lib/rbac/pluginUserTypes';
 import {
-  installBackendPlugin,
-  rollbackPluginInstall,
-} from '@/lib/plugins/server/lifecycle';
+  pendingDependenciesMessage,
+  registerUploadDependencies,
+} from '@/lib/cmsDependencies';
+import { handleApiError } from '@/lib/api/response';
+import { requireCapability } from '@/lib/rbac';
+import { ApiError } from '@/lib/api/errors';
 
 export async function POST(req: NextRequest) {
   try {
+    await requireCapability('plugins.manage');
     const formData = await req.formData();
     const file = formData.get('file');
 
@@ -20,15 +26,24 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: 'Only .zip plugin packages are supported' }, { status: 400 });
     }
 
-    if (file.size > MAX_PLUGIN_ZIP_BYTES) {
+    const maxPluginZipBytes = await getMaxPluginZipBytes();
+    if (file.size > maxPluginZipBytes) {
       return NextResponse.json(
-        { message: `Plugin package exceeds the ${Math.floor(MAX_PLUGIN_ZIP_BYTES / (1024 * 1024))}MB limit` },
+        {
+          message: `Plugin package exceeds the ${Math.floor(maxPluginZipBytes / (1024 * 1024))}MB limit`,
+        },
         { status: 400 }
       );
     }
 
     const arrayBuffer = await file.arrayBuffer();
     const extracted = await extractPluginZip(arrayBuffer);
+    const dependencies = extracted.dependencies ?? [];
+    const { status: depStatus, addedToPackageJson } = registerUploadDependencies(dependencies);
+    const depsReady = depStatus.satisfied;
+    const pendingDependencies = [
+      ...new Set([...depStatus.missingInPackageJson, ...depStatus.notInstalled]),
+    ];
 
     await getUserDbConnection();
     const PluginModel = getPluginModel();
@@ -52,10 +67,12 @@ export async function POST(req: NextRequest) {
         author: extracted.manifest.author || 'Unknown',
         type: extracted.manifest.type || extracted.kind,
         kind: extracted.kind,
-        isActive: true,
+        isActive: depsReady,
         icon: extracted.manifest.icon || '🧩',
         entryPoint: extracted.entryPoint,
         adminEntry: extracted.adminEntry,
+        adminMount: extracted.adminMount,
+        adminNav: extracted.adminNav,
         blockEntry: extracted.blockEntry,
         customElement: extracted.manifest.customElement,
         styles: extracted.styles,
@@ -64,17 +81,24 @@ export async function POST(req: NextRequest) {
         serverEntry: extracted.serverEntry,
         apiPrefix: extracted.hasBackend ? `/api/plugins/${extracted.manifest.pluginId}` : undefined,
         permissions: extracted.permissions,
-        dependencies: extracted.dependencies,
+        featureCatalog: extracted.featureCatalog,
+        migrations: extracted.migrations,
+        dependencies,
         installHook: extracted.installHook,
         uninstallHook: extracted.uninstallHook,
       });
+
+      if (extracted.userTypes.length > 0) {
+        await registerPluginUserTypes(extracted.manifest.pluginId, extracted.userTypes);
+      }
     } catch (dbError) {
+      await unregisterPluginUserTypes(extracted.manifest.pluginId).catch(() => undefined);
       await rollbackPluginInstall(extracted.manifest.pluginId);
       throw dbError;
     }
 
     let backendResult = null;
-    if (extracted.hasBackend && extracted.serverEntry) {
+    if (extracted.hasBackend && extracted.serverEntry && depsReady) {
       try {
         backendResult = await installBackendPlugin({
           pluginId: extracted.manifest.pluginId,
@@ -83,10 +107,11 @@ export async function POST(req: NextRequest) {
           permissions: extracted.permissions,
           installHook: extracted.installHook,
           uninstallHook: extracted.uninstallHook,
-          dependencies: extracted.dependencies,
+          dependencies,
           enableAfterInstall: true,
         });
       } catch (backendError) {
+        await unregisterPluginUserTypes(extracted.manifest.pluginId).catch(() => undefined);
         await PluginModel.findOneAndDelete({ pluginId: extracted.manifest.pluginId });
         await rollbackPluginInstall(extracted.manifest.pluginId);
         throw backendError;
@@ -95,18 +120,29 @@ export async function POST(req: NextRequest) {
 
     const kindLabel = extracted.kind === 'system' ? 'system (dashboard)' : 'block (editor)';
     const backendLabel = extracted.hasBackend ? ' with backend APIs' : '';
+    const pluginLabel = `Plugin "${extracted.manifest.pluginId}"`;
+    const message = depsReady
+      ? `Plugin extracted and installed as a ${kindLabel} plugin${backendLabel}`
+      : pendingDependenciesMessage(pluginLabel, depStatus);
+
     return NextResponse.json(
       {
         plugin: newPlugin,
         kind: extracted.kind,
         hasBackend: extracted.hasBackend,
         backend: backendResult,
-        message: `Plugin extracted and installed as a ${kindLabel} plugin${backendLabel}`,
+        requiresNpmInstall: !depsReady && dependencies.length > 0,
+        pendingDependencies,
+        addedToPackageJson,
+        message,
       },
       { status: 201 }
     );
   } catch (error) {
     console.error('Plugin upload error:', error);
+    if (error instanceof ApiError) {
+      return handleApiError(error);
+    }
     const message = error instanceof Error ? error.message : 'Internal server error';
     const status =
       message.includes('manifest.json') ||
@@ -116,7 +152,9 @@ export async function POST(req: NextRequest) {
       message.includes('entryPoint') ||
       message.includes('admin') ||
       message.includes('Backend plugin') ||
-      message.includes('serverEntry')
+      message.includes('serverEntry') ||
+      message.includes('api/roles') ||
+      message.includes('userTypes')
         ? 400
         : 500;
     return NextResponse.json({ message }, { status });

@@ -4,9 +4,30 @@ import mongoose from 'mongoose';
 import { handleError } from '@/utils/errorHandler';
 import { handleSuccess } from '@/utils/successHandler';
 import { withDbName, isValidMongoUri } from '@/utils/mongoUri';
+import { ensureCmsMysqlSchema, dropLegacyMysqlDatabases } from '@/lib/db/mysql/adapter';
+import {
+  ensureCmsPostgresSchema,
+  dropLegacyPostgresDatabases,
+} from '@/lib/db/postgres/adapter';
+import type { MysqlCredentials, PostgresCredentials } from '@/lib/db/config';
 
 export async function POST(req: NextRequest) {
-  const { userDbName, pageDbName, mongodbCredentials } = await req.json();
+  const {
+    userDbName,
+    pageDbName,
+    mongodbCredentials,
+    mysqlCredentials,
+    postgresCredentials,
+    dbType,
+  } = await req.json();
+
+  if (dbType === 'mysql' || mysqlCredentials) {
+    return setupMysql(mysqlCredentials);
+  }
+
+  if (dbType === 'postgres' || postgresCredentials) {
+    return setupPostgres(postgresCredentials);
+  }
 
   if (!userDbName || !pageDbName || !mongodbCredentials) {
     return handleError(null, 'All fields are required');
@@ -69,5 +90,51 @@ export async function POST(req: NextRequest) {
     return handleSuccess(true, null, 'Databases setup successful');
   } catch (error) {
     return handleError(error, 'Failed to setup databases');
+  }
+}
+
+async function setupMysql(mysqlCredentials: MysqlCredentials) {
+  if (!mysqlCredentials?.host || !mysqlCredentials?.user) {
+    return handleError(null, 'MySQL host and username are required');
+  }
+
+  try {
+    const creds = {
+      host: String(mysqlCredentials.host),
+      port: Number(mysqlCredentials.port || 3306),
+      user: String(mysqlCredentials.user),
+      password: String(mysqlCredentials.password || ''),
+      database: mysqlCredentials.database ? String(mysqlCredentials.database).trim() : undefined,
+    };
+
+    await dropLegacyMysqlDatabases(creds);
+    await ensureCmsMysqlSchema(creds);
+    return handleSuccess(true, null, 'Databases setup successful');
+  } catch (error) {
+    return handleError(error, 'Failed to setup MySQL databases');
+  }
+}
+
+async function setupPostgres(postgresCredentials: PostgresCredentials) {
+  if (!postgresCredentials?.host || !postgresCredentials?.user) {
+    return handleError(null, 'PostgreSQL host and username are required');
+  }
+
+  try {
+    const creds = {
+      host: String(postgresCredentials.host),
+      port: Number(postgresCredentials.port || 5432),
+      user: String(postgresCredentials.user),
+      password: String(postgresCredentials.password || ''),
+      database: postgresCredentials.database
+        ? String(postgresCredentials.database).trim()
+        : undefined,
+    };
+
+    await dropLegacyPostgresDatabases(creds);
+    await ensureCmsPostgresSchema(creds);
+    return handleSuccess(true, null, 'Databases setup successful');
+  } catch (error) {
+    return handleError(error, 'Failed to setup PostgreSQL databases');
   }
 }

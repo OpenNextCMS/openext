@@ -2,8 +2,9 @@ import { NextRequest } from 'next/server';
 import type { FilterQuery } from 'mongoose';
 import { getPageDbConnection, getBlogPostModel } from '@/utils/db';
 import type { IBlogPostDocument } from '@/types/index';
-import { requireAuth } from '@/lib/api/auth';
 import { apiOk, handleApiError } from '@/lib/api/response';
+import { requireAnyCapability, hasCapability, canPublishContent } from '@/lib/rbac';
+import { ApiError } from '@/lib/api/errors';
 import { generateUniqueSlug } from '@/lib/api/slug';
 import { parsePagination } from '@/lib/api/pagination';
 import { resolveStatusFields } from '@/lib/api/blogStatus';
@@ -20,6 +21,7 @@ import type { ContentBlock } from '@/types/index';
  */
 export async function GET(req: NextRequest) {
   try {
+    const ctx = await requireAnyCapability('blogs.view.all', 'blogs.view.own');
     const { searchParams } = new URL(req.url);
     const { status, category, tag, search } = listBlogsQuerySchema.parse({
       status: searchParams.get('status') || undefined,
@@ -33,6 +35,9 @@ export async function GET(req: NextRequest) {
     const BlogPostModel = getBlogPostModel(pageDb);
 
     const filter: FilterQuery<IBlogPostDocument> = {};
+    if (!hasCapability(ctx.role, 'blogs.view.all')) {
+      filter.createdBy = ctx.user.userId;
+    }
     if (status) filter.status = status;
     if (category) filter.categories = category;
     if (tag) filter.tags = tag;
@@ -94,7 +99,7 @@ export async function GET(req: NextRequest) {
  */
 export async function POST(req: NextRequest) {
   try {
-    const user = await requireAuth();
+    const ctx = await requireAnyCapability('blogs.create');
     const body = createBlogSchema.parse(await req.json());
 
     const pageDb = await getPageDbConnection();
@@ -106,13 +111,17 @@ export async function POST(req: NextRequest) {
       scheduledAt: body.scheduledAt ?? null,
     });
 
+    if ((body.status === 'published' || statusFields.isPublished) && !canPublishContent(ctx.role)) {
+      throw new ApiError('Forbidden — authors cannot publish posts directly', 403);
+    }
+
     const created = await BlogPostModel.create({
       ...body,
       slug,
       readingTime,
       ...statusFields,
-      createdBy: user.userId,
-      modifications: [{ modifiedBy: user.userId, modifiedAt: new Date() }],
+      createdBy: ctx.user.userId,
+      modifications: [{ modifiedBy: ctx.user.userId, modifiedAt: new Date() }],
     });
 
     return apiOk(created.toObject(), { status: 201 });

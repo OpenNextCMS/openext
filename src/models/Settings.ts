@@ -7,6 +7,10 @@ export interface ISettings extends mongoose.Document {
   tagline?: string;
   siteIcon?: string;
   language: string;
+  /** When true, public site can serve multiple content locales. */
+  multilingualEnabled?: boolean;
+  /** Locales available on the public site (must include `language`). */
+  enabledLanguages?: string[];
   timeZone: string;
   dateFormat: string;
   timeFormat: string;
@@ -18,6 +22,10 @@ export interface ISettings extends mongoose.Document {
     openrouterReviewModel?: string;
     aiMinQualityScore?: number;
   };
+  /** Plugin-defined roles from api/roles.js, keyed by pluginId. */
+  pluginUserTypes?: Record<string, unknown>;
+  /** Plugin API permission catalogs, keyed by pluginId. */
+  pluginPermissions?: Record<string, string[]>;
 }
 
 const settingsSchema = new mongoose.Schema(
@@ -27,6 +35,8 @@ const settingsSchema = new mongoose.Schema(
     tagline: String,
     siteIcon: String,
     language: { type: String, required: true, default: 'en' },
+    multilingualEnabled: { type: Boolean, default: false },
+    enabledLanguages: { type: [String], default: ['en'] },
     timeZone: { type: String, required: true, default: 'UTC' },
     dateFormat: { type: String, required: true, default: 'F j, Y' },
     timeFormat: { type: String, required: true, default: 'g:i a' },
@@ -48,6 +58,8 @@ const settingsSchema = new mongoose.Schema(
       openrouterReviewModel: { type: String, default: 'google/gemini-2.5-flash-lite' },
       aiMinQualityScore: { type: Number, default: 80 },
     },
+    pluginUserTypes: { type: mongoose.Schema.Types.Mixed, default: undefined },
+    pluginPermissions: { type: mongoose.Schema.Types.Mixed, default: undefined },
   },
   { timestamps: true }
 );

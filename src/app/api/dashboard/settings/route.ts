@@ -72,10 +72,15 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { siteTitle, activeTheme, ...settingsData } = body;
 
-    // If siteIcon exists, extract the filename in case a full path was sent.
-    if (settingsData.siteIcon) {
-      const parts = settingsData.siteIcon.split('/');
-      settingsData.siteIcon = parts[parts.length - 1];
+    // Normalize local siteIcon paths to a basename; keep absolute/S3 URLs intact.
+    if (settingsData.siteIcon && typeof settingsData.siteIcon === 'string') {
+      const icon = settingsData.siteIcon.trim();
+      const isAbsolute =
+        /^https?:\/\//i.test(icon) || icon.startsWith('//') || icon.startsWith('data:');
+      if (!isAbsolute) {
+        const parts = icon.split('/');
+        settingsData.siteIcon = parts[parts.length - 1];
+      }
     }
 
     const user = await UserModel.findOne({ email }).exec();
@@ -94,21 +99,22 @@ export async function POST(req: NextRequest) {
           isActive: theme.name === activeTheme,
         }));
       }
-      // Update maxFileSize in config if provided
+      // Merge known config keys (maxFileSize, maxPluginFiles, maxPluginZipMb, …)
       if (settingsData.config) {
         interface ConfigItem {
           key: string;
           value: string;
         }
-        const maxFileSizeConfig = settingsData.config.find(
-          (c: ConfigItem) => c.key === 'maxFileSize'
-        );
-        if (maxFileSizeConfig) {
-          const existingConfig = settings.config.find((c) => c.key === 'maxFileSize');
+        if (!Array.isArray(settings.config)) settings.config = [];
+        const incoming = settingsData.config as ConfigItem[];
+        for (const key of ['maxFileSize', 'maxPluginFiles', 'maxPluginZipMb'] as const) {
+          const next = incoming.find((c) => c.key === key);
+          if (!next) continue;
+          const existingConfig = settings.config.find((c) => c.key === key);
           if (existingConfig) {
-            existingConfig.value = maxFileSizeConfig.value;
+            existingConfig.value = next.value;
           } else {
-            settings.config.push(maxFileSizeConfig);
+            settings.config.push(next);
           }
         }
       }
@@ -120,12 +126,22 @@ export async function POST(req: NextRequest) {
           isActive: theme.name === activeTheme,
         }));
       }
-      // Add default maxFileSize if not provided
+      if (!Array.isArray(settings.config)) settings.config = [];
+      // Add defaults if not provided
       if (!settings.config.find((c) => c.key === 'maxFileSize')) {
         settings.config.push({ key: 'maxFileSize', value: '5mb' });
       }
+      if (!settings.config.find((c) => c.key === 'maxPluginFiles')) {
+        settings.config.push({ key: 'maxPluginFiles', value: '1000' });
+      }
+      if (!settings.config.find((c) => c.key === 'maxPluginZipMb')) {
+        settings.config.push({ key: 'maxPluginZipMb', value: '100' });
+      }
     }
     await settings.save();
+
+    const { invalidateSettingsCache } = await import('@/lib/cache/settingsCache');
+    invalidateSettingsCache();
 
     return NextResponse.json({
       success: true,

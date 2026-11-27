@@ -1,6 +1,7 @@
 import { getPageDbConnection, getPageModel, getMenuRedirectMappingModel } from '@/utils/db';
 import { menuItemIdFor } from '@/lib/menu-redirect/menu-item-id';
 import { getPluginState } from '@/lib/menu-redirect/lifecycle';
+import { DEFAULT_SITE_LOCALE, withLocalePrefix } from '@/lib/i18n/siteLanguages';
 import type { CmsMenuItem } from '../types';
 
 /**
@@ -8,18 +9,7 @@ import type { CmsMenuItem } from '../types';
  *
  * There is no standalone Menu collection in this CMS — navigation lives as
  * JSON inside a `nav-bar`-typed block's `content` on the global header Page
- * doc. This bridge parses that (deliberately NOT via
- * `@/lib/menu-redirect/header-detection`'s `resolveActiveHeader`, even though
- * its parsing logic is nearly identical: that function is gated entirely
- * behind the Menu Redirect PLUGIN being installed+active, since it exists to
- * serve that plugin's own admin UI. The base site menu must be readable
- * whether or not that plugin is installed — only the redirect OVERRIDES
- * layered on top are plugin-gated), then layers Menu Redirect overrides on
- * top the same way `/api/menu-redirect/public/merged` does, best-effort.
- *
- * v1 LIMITATION, documented rather than silently absorbed: every
- * manifest-declared `menus[].key` resolves to this SAME single nav-bar-
- * derived list — the CMS has no per-key menu storage yet.
+ * doc. This bridge parses that, then layers Menu Redirect overrides on top.
  */
 
 interface RawNavLink {
@@ -54,15 +44,35 @@ function parseNavLinks(navbar: { content?: unknown } | null): RawNavLink[] {
   }
 }
 
-function toMenuItems(links: RawNavLink[], parentId?: string): CmsMenuItem[] {
+function localizeHref(href: string, locale: string, defaultLocale: string): string {
+  if (!href || href.startsWith('#') || /^https?:\/\//i.test(href) || href.startsWith('mailto:')) {
+    return href;
+  }
+  // Already prefixed with a locale segment like /hi/about
+  const parts = href.split('/').filter(Boolean);
+  if (parts[0] && parts[0] === locale) return href.startsWith('/') ? href : `/${href}`;
+  const path = href.startsWith('/') ? href : `/${href}`;
+  return withLocalePrefix(path, locale, defaultLocale);
+}
+
+function toMenuItems(
+  links: RawNavLink[],
+  locale: string,
+  defaultLocale: string,
+  parentId?: string
+): CmsMenuItem[] {
   return links.map((l, i) => {
     const label = l.label || `Link ${i + 1}`;
     const id = menuItemIdFor(label, i, parentId);
+    const raw = l.href || '#';
     return {
       id,
       label,
-      url: l.href || '#',
-      children: Array.isArray(l.children) && l.children.length > 0 ? toMenuItems(l.children, id) : undefined,
+      url: localizeHref(raw, locale, defaultLocale),
+      children:
+        Array.isArray(l.children) && l.children.length > 0
+          ? toMenuItems(l.children, locale, defaultLocale, id)
+          : undefined,
     };
   });
 }
@@ -72,30 +82,54 @@ interface Override {
   enabled?: boolean;
 }
 
-function applyOverrides(items: CmsMenuItem[], overrides: Map<string, Override>): CmsMenuItem[] {
+function applyOverrides(
+  items: CmsMenuItem[],
+  overrides: Map<string, Override>,
+  locale: string,
+  defaultLocale: string
+): CmsMenuItem[] {
   return items
-    .filter((item) => overrides.get(item.id)?.enabled !== false) // an explicit disabled override hides the item
+    .filter((item) => overrides.get(item.id)?.enabled !== false)
     .map((item) => {
       const o = overrides.get(item.id);
+      const url = o?.targetUrl ? localizeHref(o.targetUrl, locale, defaultLocale) : item.url;
       return {
         ...item,
-        url: o?.targetUrl || item.url,
-        children: item.children ? applyOverrides(item.children, overrides) : undefined,
+        url,
+        children: item.children
+          ? applyOverrides(item.children, overrides, locale, defaultLocale)
+          : undefined,
       };
     });
 }
 
-export async function resolveSiteMenu(): Promise<CmsMenuItem[]> {
+export async function resolveSiteMenu(
+  locale: string = DEFAULT_SITE_LOCALE,
+  defaultLocale: string = DEFAULT_SITE_LOCALE
+): Promise<CmsMenuItem[]> {
   const pageDb = await getPageDbConnection();
   const Page = getPageModel(pageDb);
+  const preferred = locale || defaultLocale || DEFAULT_SITE_LOCALE;
 
   const header =
-    (await Page.findOne({ pageType: 'header', isGlobal: true }).lean().exec()) ??
-    (await Page.findOne({ pageType: 'header' }).lean().exec());
+    (await Page.findOne({
+      pageType: 'header',
+      isGlobal: true,
+      isPublished: true,
+      locale: preferred,
+    })
+      .lean()
+      .exec()) ??
+    (await Page.findOne({ pageType: 'header', isPublished: true, locale: preferred }).lean().exec()) ??
+    (preferred === defaultLocale
+      ? (await Page.findOne({ pageType: 'header', isGlobal: true, isPublished: true }).lean().exec()) ??
+        (await Page.findOne({ pageType: 'header', isPublished: true }).lean().exec())
+      : null);
+
   if (!header) return [];
 
   const navbar = findNavbarBlock((header as { component?: unknown[] }).component || []);
-  const items = toMenuItems(parseNavLinks(navbar));
+  const items = toMenuItems(parseNavLinks(navbar), preferred, defaultLocale);
   if (items.length === 0) return items;
 
   try {
@@ -111,9 +145,8 @@ export async function resolveSiteMenu(): Promise<CmsMenuItem[]> {
         return [mapping.menuItemId, { targetUrl: mapping.targetUrl, enabled: mapping.enabled }];
       })
     );
-    return applyOverrides(items, overrides);
+    return applyOverrides(items, overrides, preferred, defaultLocale);
   } catch {
-    // The redirect overlay is best-effort — a failure here must never break the base menu.
     return items;
   }
 }

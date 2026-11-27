@@ -6,8 +6,8 @@ This document describes the extended NextCMS plugin system. Plugins can now ship
 
 | Layer | Location | Served publicly? |
 |-------|----------|------------------|
-| Frontend assets | `public/plugins/{pluginId}/` | Yes |
-| Backend code | `plugins/{pluginId}/` | **Never** |
+| Frontend assets | `src/plugins/{pluginId}/{pluginId}/` | Via `/plugins/{pluginId}/...` route — **not** under `public/` |
+| Backend code | `src/app/api/plugins/[pluginId]/{pluginId}/` | **Never** |
 
 Backend code is loaded by the CMS at startup (and on enable/upload). Plugin APIs are automatically namespaced under:
 
@@ -50,8 +50,8 @@ crm-plugin/
 ```text
 Upload ZIP
   → Validate ZIP + manifest
-  → Extract frontend → public/plugins/{id}/
-  → Extract backend  → plugins/{id}/
+  → Extract frontend → src/plugins/{pluginId}/{pluginId}/
+  → Extract backend  → src/app/api/plugins/[pluginId]/{pluginId}/
   → Run pending migrations
   → Run install hook
   → Register permissions
@@ -124,15 +124,77 @@ module.exports = {
 };
 ```
 
-### Option 2: Auto-loaded route files
+### Option 2: Auto-loaded route files (flat or nested)
 
-Place files in `server/routes/*.js`. Each file may export:
+Place files under `api/routes/` (or legacy `server/routes/`). **Nested folders are supported** — the CMS walks the tree recursively.
+
+```text
+api/routes/
+├── health.js
+├── customers/
+│   ├── list.js          ← auto-loaded
+│   ├── create.js        ← auto-loaded
+│   └── _shared.js       ← skipped (leading underscore = helper)
+└── orders/
+    └── index.js         ← auto-loaded
+```
+
+Each file may export:
 
 - a function `(app) => void`, or
-- an array of `{ method, path, handler }` objects
+- an array of `{ method, path, handler }` objects, or
+- a single `{ method, path, handler }` object
 
-Routes are mounted relative to `/api/plugins/{pluginId}`.
+Routes are mounted relative to `/api/plugins/{pluginId}`. Path strings you register (e.g. `/customers`) are unchanged by folder nesting — nesting is only for code organization.
 
+Skip rules:
+
+- Directories named `node_modules`, `.git`, `__tests__`, `test`, `tests`
+- Files starting with `_` or `.` (use for shared helpers)
+
+TypeScript works too (`api/routes/customers/list.ts`) — compiled to `.js` on upload.
+
+### Nested UI pages
+
+Frontend nesting under `ui/` is already supported. Point `adminNav` entries at nested HTML files:
+
+```json
+{
+  "adminEntry": "ui/admin/index.html",
+  "adminNav": [
+    {
+      "label": "Dashboard",
+      "id": "dashboard",
+      "entry": "ui/admin/dashboard/index.html",
+      "icon": "layout-dashboard"
+    },
+    {
+      "label": "Customers",
+      "id": "customers",
+      "entry": "ui/admin/customers/index.html",
+      "icon": "users"
+    }
+  ]
+}
+```
+
+Assets resolve relatively inside those folders (e.g. `./app.js`, `../shared/styles.css`).
+
+```text
+ui/admin/
+├── index.html
+├── dashboard/
+│   └── index.html
+├── customers/
+│   ├── index.html
+│   └── customers.js
+└── shared/
+    └── styles.css
+```
+
+### Option 2 legacy note
+
+Older docs referred only to `server/routes/*.js`. Prefer `api/routes/` with the nested layout above.
 ## CMS SDK (`cms`)
 
 Available in `register`, `boot`, hooks, and migrations:
@@ -283,3 +345,5 @@ Zip the folder and upload via **Dashboard → Plugins → Upload Plugin**.
 ## Related docs
 
 - [Plugin ZIP Upload Format](./plugin-upload-format.md) — package structure, manifest fields, upload checklist, security limits
+- [Extension Management](./extension-management.md) — packages that extend an installed plugin. This is not the complete-plugin ZIP format.
+- [Extension Developer Guide](./extension-developer-guide.md) — adopt `extensionHost` in an existing plugin, and build extension packages

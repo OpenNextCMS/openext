@@ -3,7 +3,8 @@ import renderFromJson from '@/components/ReusableComponents/RenderFromJson';
 import type { BlockData } from '@/types';
 import { assetManager, type AssetManager } from './AssetManager';
 import { resolveImageUrl } from './bridges/imageBridge';
-import { parseThemeSectionContent } from './sectionSchema';
+import { defaultsFromSchema, normalizeSectionSchema, parseThemeSectionContent } from './sectionSchema';
+import { defaultsFromSettingsSchema } from './settingsSchema';
 import type { CmsBlock, CmsMenuItem, CmsPage, CmsUserSummary, LoadedTheme, RenderInput, ThemeAPI as ThemeAPIInterface } from './types';
 
 /**
@@ -63,14 +64,16 @@ export class ThemeApiImpl implements ThemeAPIInterface {
 
   /** This theme's OWN settings values: manifest-declared defaults, overridden by admin-saved values. Site-level info lives on `site()`, not here. */
   settings(): Record<string, unknown> {
-    const defaults: Record<string, unknown> = {};
-    for (const s of this.ctx.loadedTheme.manifest.themeSettings) defaults[s.key] = s.default;
+    const defaults = defaultsFromSettingsSchema(this.ctx.loadedTheme.manifest);
+    for (const s of this.ctx.loadedTheme.manifest.themeSettings ?? []) {
+      if (!(s.key in defaults)) defaults[s.key] = s.default;
+    }
     return { ...defaults, ...(this.ctx.themeSettingValues ?? {}) };
   }
 
   blocks(): React.ReactElement[] {
     const source = this.ctx.input.draftBlocks ?? this.ctx.input.blocks;
-    return source
+    const rendered = source
       .filter((block) => {
         const parsed = parseThemeSectionContent(
           (block.data as { content?: unknown })?.content ?? block.data
@@ -78,6 +81,68 @@ export class ThemeApiImpl implements ThemeAPIInterface {
         return !parsed?.hidden;
       })
       .map((block) => this.renderBlock(block));
+
+    // Card / marketplace / gallery full preview ships empty CMS blocks so the
+    // package can render without a seeded homepage. Never do this on real
+    // published pages — that flashes the theme's Welcome defaults over CMS content.
+    if (rendered.length === 0) {
+      if (this.ctx.input.allowSectionDefaults) {
+        return this.renderEditableSectionDefaults();
+      }
+      return [];
+    }
+    return rendered;
+  }
+
+  /**
+   * Render every manifest `editableSections` entry using registered block
+   * renderers + schema/section defaults. Used when the page has no CMS blocks
+   * yet (theme gallery full preview, pre-seed activate).
+   */
+  private renderEditableSectionDefaults(): React.ReactElement[] {
+    const sections = this.ctx.loadedTheme.manifest.editableSections || [];
+    const out: React.ReactElement[] = [];
+
+    const pushSection = (sectionId: string, blockType: string, defaults?: Record<string, unknown>) => {
+      const registered = this.ctx.loadedTheme.blocks[blockType];
+      if (!registered?.Renderer) return;
+      const fields = normalizeSectionSchema(registered.schema);
+      const data = {
+        ...defaultsFromSchema(fields),
+        ...(defaults || {}),
+      };
+      const block: CmsBlock = {
+        id: `preview-${sectionId}`,
+        type: blockType,
+        data,
+      };
+      try {
+        out.push(
+          React.createElement(registered.Renderer, {
+            key: block.id,
+            block,
+            schema: registered.schema,
+            data,
+          })
+        );
+      } catch {
+        // blocks() must never throw
+      }
+    };
+
+    if (sections.length > 0) {
+      for (const section of sections) {
+        if (section.hiddenByDefault) continue;
+        pushSection(section.id, section.blockType, section.defaults);
+      }
+      return out;
+    }
+
+    // Fallback: themes without editableSections still preview every loaded block.
+    for (const declared of this.ctx.loadedTheme.manifest.blocks || []) {
+      pushSection(declared.type, declared.type);
+    }
+    return out;
   }
 
   currentUser(): CmsUserSummary | null {

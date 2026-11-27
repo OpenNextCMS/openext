@@ -68,6 +68,10 @@ export function pluginResponseToNext(res: PluginResponse): NextResponse {
     return new NextResponse(null, { status, headers });
   }
 
+  if (Buffer.isBuffer(body)) {
+    return new NextResponse(new Uint8Array(body), { status, headers });
+  }
+
   if (headers['content-type']?.includes('application/json') || typeof body === 'object') {
     return NextResponse.json(body, { status, headers });
   }

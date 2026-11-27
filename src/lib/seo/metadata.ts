@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { getSiteUrl } from './url';
-import type { SeoBlog } from './types';
+import type { SeoBlog, SeoPage } from './types';
+import { DEFAULT_SITE_LOCALE, withLocalePrefix } from '@/lib/i18n/siteLanguages';
 
 /**
  * Build Next.js `Metadata` for a blog post from its `seo` object (with sensible
@@ -39,6 +40,49 @@ export function buildBlogMetadata(post: SeoBlog): Metadata {
       title,
       description,
       images: ogImage ? [ogImage] : undefined,
+    },
+  };
+}
+
+/**
+ * Build Next.js `Metadata` for a CMS page from `seoName` / `seoMeta` (with
+ * fallbacks to `pageName` / `description`). Used by `/` and `/[slug]`.
+ */
+export function buildPageMetadata(
+  page: SeoPage,
+  opts: { isHome?: boolean; locale?: string; defaultLocale?: string } = {}
+): Metadata {
+  const siteUrl = getSiteUrl();
+  const title =
+    (page.seoName || '').trim() ||
+    (page.pageName || '').trim() ||
+    (opts.isHome ? 'Home' : 'Page');
+  const description =
+    (page.seoMeta || '').trim() || (page.description || '').trim() || '';
+  const isHome = opts.isHome === true || page.isHome === true;
+  const slug = (page.slug || '').replace(/^\//, '');
+  const path = isHome || !slug ? '/' : `/${slug}`;
+  const defaultLocale = opts.defaultLocale || DEFAULT_SITE_LOCALE;
+  const locale = opts.locale || defaultLocale;
+  const prefixed = withLocalePrefix(path, locale, defaultLocale);
+  const canonical = `${siteUrl}${prefixed === '/' ? '' : prefixed}` || siteUrl;
+
+  return {
+    metadataBase: new URL(siteUrl),
+    title,
+    description,
+    alternates: { canonical },
+    openGraph: {
+      title,
+      description,
+      url: canonical,
+      type: 'website',
+      locale,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
     },
   };
 }
