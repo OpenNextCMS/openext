@@ -14,6 +14,7 @@ import SiteThemeProvider from '@/providers/SiteThemeProvider';
 import { getGlobalLayoutBlocks } from '@/utils/getPageData';
 import type { BlockData } from '@/types/index';
 import SiteChromeLayout from '@/components/layout/SiteChromeLayout';
+import { resolveRequestLocale } from '@/lib/i18n/siteLocale';
 
 // SSR with periodic revalidation.
 export const revalidate = 60;
@@ -40,7 +41,8 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
     redirect(`/blog/${post.slug}`);
   }
 
-  const { headerBlocks, footerBlocks } = await getGlobalLayoutBlocks();
+  const locale = await resolveRequestLocale();
+  const { headerBlocks, footerBlocks } = await getGlobalLayoutBlocks(locale);
 
   const siteUrl = getSiteUrl();
   const author = post.authorId && typeof post.authorId === 'object' ? post.authorId : null;

@@ -2,7 +2,6 @@
 import { apiUrl } from '@/lib/apiClient';
 
 import { useState, useEffect } from 'react';
-import type React from 'react';
 import {
   Loader2,
   FileText,
@@ -39,8 +38,11 @@ interface Page {
   isPublished: boolean;
   lastModified: string;
   slug: string;
-}export default function AllPagesPage() {
+  locale?: string;
+  translationGroupId?: string;
+}
 
+export default function AllPagesPage() {
   const [pages, setPages] = useState<Page[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -48,6 +50,7 @@ interface Page {
   const [activeTab, setActiveTab] = useState('page-list');
   const [filteredPages, setFilteredPages] = useState<Page[]>([]);
   const [userId, setUserId] = useState('');
+
   const fetchPages = async () => {
     setIsLoading(true);
     try {
@@ -57,7 +60,7 @@ interface Page {
       });
       if (!response.ok) throw new Error('Failed to fetch pages');
       const data = await response.json();
-      setUserId(data.userId); // Save the userId
+      setUserId(data.userId);
       const normalPages = (data.pages || []).filter(
         (page: Page) => (page.pageType || 'page') === 'page'
       );
@@ -96,19 +99,30 @@ interface Page {
     try {
       const response = await fetch(apiUrl(`/api/pages/update-page`), {
         method: 'PATCH',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ pageID, userId, ...updates }),
       });
 
-      if (!response.ok) throw new Error('Failed to update page');
+      const result = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(result?.message || 'Failed to update page');
+      }
 
-      toast.success('Page updated successfully');
+      toast.success(
+        updates.isPublished === false
+          ? 'Page unpublished'
+          : updates.isPublished === true
+            ? 'Page published'
+            : 'Page updated successfully'
+      );
       fetchPages();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update page');
-      toast.error('Failed to update page');
+      const message = err instanceof Error ? err.message : 'Failed to update page';
+      setError(message);
+      toast.error(message);
     }
   };
 
@@ -163,13 +177,13 @@ interface Page {
                     {filteredPages.length} pages
                   </Badge>
                 </div>
-                <div className="flex items-center mt-4 md:mt-0 space-x-2">
+                <div className="flex items-center gap-2 mt-4 md:mt-0">
                   <div className="relative">
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
                       type="search"
                       placeholder="Search pages..."
-                      className="pl-8 w-full md:w-[250px]"
+                      className="pl-8 w-[200px] md:w-[260px]"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -216,9 +230,7 @@ interface Page {
                               <div className="font-medium">{index + 1}</div>
                             </TableCell>
                             <TableCell>
-                              <div className="flex items-center gap-3">
-                                <div className="font-medium">{page.pageName}</div>
-                              </div>
+                              <div className="font-medium">{page.pageName}</div>
                             </TableCell>
                             <TableCell>{page.createdBy}</TableCell>
                             <TableCell className="flex items-center gap-2">
@@ -248,7 +260,7 @@ interface Page {
                               {new Date(page.lastModified).toLocaleDateString()}
                             </TableCell>
                             <TableCell className="text-right">
-                              <div className="flex justify-end gap-2">
+                              <div className="flex justify-end gap-2 flex-wrap">
                                 <Button
                                   onClick={() => handleEditPage(page.slug, userId, page._id)}
                                   variant="outline"
@@ -259,7 +271,9 @@ interface Page {
                                 </Button>
                                 <Button
                                   onClick={() =>
-                                    handlePageUpdate(page._id, userId, { isPublished: !page.isPublished })
+                                    handlePageUpdate(page._id, userId, {
+                                      isPublished: !page.isPublished,
+                                    })
                                   }
                                   variant={page.isPublished ? 'secondary' : 'default'}
                                   size="sm"

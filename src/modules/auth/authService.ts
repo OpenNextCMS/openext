@@ -36,10 +36,10 @@ export class AuthService {
     if (!roleDoc) {
       // Seed roles if not found
       const roles = [
-        { name: 'SuperAdmin', value: 0 },
-        { name: 'Admin', value: 1 },
-        { name: 'Editor', value: 2 },
-        { name: 'Author', value: 3 },
+        { name: 'SuperAdmin', value: 0, type: 'system' },
+        { name: 'Admin', value: 1, type: 'system' },
+        { name: 'Editor', value: 2, type: 'system' },
+        { name: 'Author', value: 3, type: 'system' },
       ];
       for (const role of roles) {
         await RoleModel.create(role);
@@ -77,7 +77,11 @@ export class AuthService {
       dateFormat: 'F j, Y',
       timeFormat: 'g:i a',
       themes: [{ name: 'openNextDefault', isActive: true }],
-      config: [{ key: 'maxFileSize', value: '5mb' }], // Default max file size
+      config: [
+        { key: 'maxFileSize', value: '5mb' },
+        { key: 'maxPluginFiles', value: '1000' },
+        { key: 'maxPluginZipMb', value: '100' },
+      ],
     });
 
     return {
@@ -100,6 +104,10 @@ export class AuthService {
 
       if (!user) {
         return { error: 'User not found' };
+      }
+
+      if (user.active === false) {
+        return { error: 'This account is inactive. Contact an administrator.' };
       }
 
       const isValidPassword = await bcrypt.compare(password, user.password);

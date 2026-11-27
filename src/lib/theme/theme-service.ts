@@ -169,8 +169,34 @@ export const ThemeService = {
   /** Activate a theme by its slug (e.g. a system theme like 'startup' or 'dark'). */
   async activateBySlug(slug: string): Promise<ITheme & { _id: string }> {
     const pageDb = await getPageDbConnection();
+    // Ensure in-code system themes exist (MySQL/Postgres upserts previously
+    // omitted filter fields like slug — re-seed is idempotent and fills gaps).
+    const { seedSystemThemes } = await import('@/lib/theme/seed');
+    await seedSystemThemes(pageDb);
+
     const Theme = getThemeModel(pageDb);
-    const target = await Theme.findOne({ slug }).exec();
+    let target = await Theme.findOne({ slug }).exec();
+    if (!target) {
+      const { getSystemTheme } = await import('@/themes');
+      const def = getSystemTheme(slug);
+      if (def) {
+        target = await Theme.create({
+          slug: def.slug,
+          name: def.name,
+          description: def.description,
+          isSystemTheme: true,
+          isDefault: false,
+          installed: true,
+          isPackageTheme: false,
+          previewImage: def.previewImage,
+          version: '1.0.0',
+          theme: def.theme,
+          componentVariants: def.componentVariants,
+          meta: def.meta ?? {},
+          isActive: false,
+        });
+      }
+    }
     if (!target) throw new ApiError(`Theme with slug '${slug}' not found`, 404);
     return this.activate(String(target._id));
   },

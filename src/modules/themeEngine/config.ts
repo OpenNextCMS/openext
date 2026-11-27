@@ -1,4 +1,5 @@
 import path from 'path';
+import { UPLOADED_THEMES_ROOT, assertUploadPathNotInPublic } from '@/lib/dynamicContent';
 
 /**
  * Theme Engine — configuration (spec §3, §4.2, §4.3).
@@ -18,10 +19,16 @@ import path from 'path';
  */
 export const CMS_VERSION = process.env.THEME_ENGINE_CMS_VERSION?.trim() || '2.0.0';
 
-/** Installed themes live here: `/themes/{slug}` (spec §3). */
-export const THEMES_ROOT = process.env.THEME_ENGINE_THEMES_DIR
-  ? path.resolve(process.env.THEME_ENGINE_THEMES_DIR)
-  : path.join(process.cwd(), 'themes');
+/** Installed themes: `src/themes/[slug]/{slug}/` — never under `public/` (override via env). */
+function resolveThemesRoot(): string {
+  const root = process.env.THEME_ENGINE_THEMES_DIR
+    ? path.resolve(process.env.THEME_ENGINE_THEMES_DIR)
+    : UPLOADED_THEMES_ROOT;
+  assertUploadPathNotInPublic(root, 'THEME_ENGINE_THEMES_DIR');
+  return root;
+}
+
+export const THEMES_ROOT = resolveThemesRoot();
 
 /** Uploads are extracted here first — never straight into THEMES_ROOT (spec §4.3). */
 export const TEMP_UPLOAD_ROOT = process.env.THEME_ENGINE_TMP_DIR

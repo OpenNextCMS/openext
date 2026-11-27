@@ -2,8 +2,14 @@ import { NextRequest } from 'next/server';
 import { Types } from 'mongoose';
 import { revalidatePath } from 'next/cache';
 import { getPageDbConnection, getBlogPostModel } from '@/utils/db';
-import { requireAuth } from '@/lib/api/auth';
 import { apiOk, apiError, handleApiError } from '@/lib/api/response';
+import {
+  requireAnyCapability,
+  assertResourceOwnership,
+  canPublishContent,
+  requireRbac,
+} from '@/lib/rbac';
+import { ApiError } from '@/lib/api/errors';
 import { generateUniqueSlug } from '@/lib/api/slug';
 import { resolveStatusFields } from '@/lib/api/blogStatus';
 import { calculateReadingTime } from '@/utils/blog';
@@ -19,7 +25,7 @@ const populate = [
 /** GET /api/blogs/[id] — fetch one post by id (admin). */
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    await requireAuth();
+    const ctx = await requireAnyCapability('blogs.view.all', 'blogs.view.own');
     const { id } = await params;
     const pageDb = await getPageDbConnection();
     const BlogPostModel = getBlogPostModel(pageDb);
@@ -29,6 +35,15 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       .lean()
       .exec();
     if (!blog) return apiError('Blog post not found', 404);
+
+    assertResourceOwnership({
+      role: ctx.role,
+      ownerId: blog.createdBy,
+      userId: ctx.user.userId,
+      editAllCap: 'blogs.view.all',
+      editOwnCap: 'blogs.view.own',
+    });
+
     return apiOk(blog);
   } catch (err) {
     return handleApiError(err);
@@ -38,7 +53,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 /** PUT /api/blogs/[id] — update a post (admin). */
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const user = await requireAuth();
+    const ctx = await requireRbac();
     const { id } = await params;
     const body = updateBlogSchema.parse(await req.json());
 
@@ -47,6 +62,18 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
     const blog = await BlogPostModel.findOne({ _id: id });
     if (!blog) return apiError('Blog post not found', 404);
+
+    assertResourceOwnership({
+      role: ctx.role,
+      ownerId: blog.createdBy,
+      userId: ctx.user.userId,
+      editAllCap: 'blogs.edit.all',
+      editOwnCap: 'blogs.edit.own',
+    });
+
+    if (body.status === 'published' && !canPublishContent(ctx.role)) {
+      throw new ApiError('Forbidden — authors cannot publish posts directly', 403);
+    }
 
     const previousSlug = blog.slug;
 
@@ -79,7 +106,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     }
 
     blog.modifications.push({
-      modifiedBy: new Types.ObjectId(user.userId),
+      modifiedBy: new Types.ObjectId(ctx.user.userId),
       modifiedAt: new Date(),
     });
     await blog.save();
@@ -102,13 +129,23 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 /** DELETE /api/blogs/[id] — delete a post (admin). */
 export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    await requireAuth();
+    const ctx = await requireRbac();
     const { id } = await params;
     const pageDb = await getPageDbConnection();
     const BlogPostModel = getBlogPostModel(pageDb);
 
+    const existing = await BlogPostModel.findOne({ _id: id }).lean();
+    if (!existing) return apiError('Blog post not found', 404);
+
+    assertResourceOwnership({
+      role: ctx.role,
+      ownerId: existing.createdBy,
+      userId: ctx.user.userId,
+      editAllCap: 'blogs.delete.all',
+      editOwnCap: 'blogs.delete.own',
+    });
+
     const deleted = await BlogPostModel.findOneAndDelete({ _id: id }).lean().exec();
-    if (!deleted) return apiError('Blog post not found', 404);
 
     try {
       revalidatePath('/blogs');

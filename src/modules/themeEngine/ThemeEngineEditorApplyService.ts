@@ -1,7 +1,11 @@
 import { randomUUID } from 'crypto';
 import { revalidatePath } from 'next/cache';
+import { Types } from 'mongoose';
 import { ApiError } from '@/lib/api/errors';
+import { convertThemeEngineCanvasToEditorBlocks } from '@/lib/editor/normalizePageBlocks';
+import { fetchPageWithLayout } from '@/utils/getPageData';
 import { getPageDbConnection, getPageModel, getWebsitePreferencesModel } from '@/utils/db';
+import { isThemeEngineCanvas } from './bridges/pageBridge';
 import { themeRegistry } from './ThemeRegistry';
 import { themeLoader } from './ThemeLoader';
 import { readDiskManifest } from './readDiskManifest';
@@ -112,6 +116,72 @@ export const ThemeEngineEditorApplyService = {
       hasEditableSections,
       header: 'theme-package',
       footer: 'theme-package',
+    };
+  },
+
+  /**
+   * Remove Theme Engine from a page canvas and restore the classic block editor.
+   * Theme section content is converted to approximate CMS blocks when possible.
+   */
+  async removeFromPage(input: {
+    pageId?: string;
+    pageSlug?: string;
+    userId: string;
+  }): Promise<{
+    pageId: string;
+    slug: string;
+    blocks: CanvasBlock[];
+    headerBlocks: CanvasBlock[];
+    footerBlocks: CanvasBlock[];
+  }> {
+    const { pageId, pageSlug, userId } = input;
+    if (!pageId && !pageSlug) {
+      throw new ApiError('Missing pageId or pageSlug', 400);
+    }
+
+    const pageDb = await getPageDbConnection();
+    const Page = getPageModel(pageDb);
+    const page = pageId
+      ? await Page.findById(pageId).exec()
+      : await Page.findOne({ slug: pageSlug, pageType: 'page' }).exec();
+
+    if (!page) {
+      throw new ApiError('Page not found', 404);
+    }
+
+    const existing = Array.isArray(page.component) ? page.component : [];
+    if (!isThemeEngineCanvas(existing)) {
+      throw new ApiError('This page is not using a Theme Engine canvas', 400);
+    }
+
+    const blocks = convertThemeEngineCanvasToEditorBlocks(existing) as CanvasBlock[];
+    page.component = blocks;
+    page.modifications = page.modifications || [];
+    page.modifications.push({
+      modifiedBy: new Types.ObjectId(userId),
+      modifiedAt: new Date(),
+    });
+    await page.save();
+
+    const slug = String(page.slug || pageSlug || '');
+    const layout = slug ? await fetchPageWithLayout(slug) : null;
+
+    try {
+      if (slug) {
+        revalidatePath(`/${slug}`);
+        revalidatePath('/');
+      }
+      revalidatePath('/Editor', 'page');
+    } catch {
+      // ignore
+    }
+
+    return {
+      pageId: String(page._id),
+      slug,
+      blocks,
+      headerBlocks: (layout?.header?.component || []) as CanvasBlock[],
+      footerBlocks: (layout?.footer?.component || []) as CanvasBlock[],
     };
   },
 };

@@ -27,6 +27,8 @@ const LayoutSchema = new Schema<ILayoutDocument>(
   { timestamps: true }
 );
 
+LayoutSchema.index({ isActive: 1 });
+
 const LayoutModel = models.Layout || model<ILayoutDocument>('Layout', LayoutSchema);
 
 export default LayoutModel;

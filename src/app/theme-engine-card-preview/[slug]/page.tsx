@@ -2,26 +2,30 @@ import React from 'react';
 import { notFound } from 'next/navigation';
 import { getAuthUser } from '@/lib/api/auth';
 import { buildCardPreviewInput } from '@/modules/themeEngine/buildRenderInput';
+import { previewBlocksFromLoadedTheme } from '@/modules/themeEngine/previewBlocksFromLoadedTheme';
 import { themeLoader } from '@/modules/themeEngine/ThemeLoader';
 import { templateResolver } from '@/modules/themeEngine/TemplateResolver';
 import { assetManager } from '@/modules/themeEngine/AssetManager';
 import { ThemeApiImpl } from '@/modules/themeEngine/ThemeAPI';
 import { resolveThemeSettingValues } from '@/modules/themeEngine/bridges/settingsBridge';
 import { themeRegistry } from '@/modules/themeEngine/ThemeRegistry';
+import { resolveCompanionScriptUrls } from '@/modules/themeEngine/companionScripts';
+import ThemeScripts from '@/components/theme-engine/ThemeScripts';
 
 export const dynamic = 'force-dynamic';
 
 /**
- * Theme-only preview for gallery cards / live preview.
- * Renders the package Header + Index template + Footer with theme CSS —
- * no CMS page blocks. Use `?compose=1` so cards pin header and footer in view.
+ * Theme-only preview for gallery cards / live preview / “Open full preview”.
+ * Renders Header + Home/Index template + Footer with theme CSS + theme.js.
+ * Seeds editableSections (schema defaults) so full preview shows every section,
+ * not only a template fallback hero.
  */
 export default async function ThemeEngineCardPreviewPage({
   params,
   searchParams,
 }: {
   params: Promise<{ slug: string }>;
-  searchParams?: Promise<{ compose?: string }>;
+  searchParams?: Promise<{ compose?: string; template?: string }>;
 }) {
   const user = await getAuthUser();
   if (!user) notFound();
@@ -29,17 +33,32 @@ export default async function ThemeEngineCardPreviewPage({
   const { slug } = await params;
   const query = (await searchParams) || {};
   const compose = query.compose === '1' || query.compose === 'true';
+  const templateKey = typeof query.template === 'string' ? query.template.trim() : '';
 
   const theme = await themeRegistry.getBySlug(slug);
   if (!theme || theme.status !== 'installed') notFound();
 
+  const templatesMeta = Array.isArray(theme.templates) ? theme.templates : theme.manifest.templateRegistry ?? [];
+  const templateMeta = templatesMeta.find((t) => t.key === templateKey);
+
   try {
-    const input = await buildCardPreviewInput(slug);
     const loaded = await themeLoader.loadTheme(slug);
-    const Template = templateResolver.resolve(loaded, {
-      pageType: input.page.type,
-      customTemplateKey: input.page.templateKey as string | undefined,
-    });
+    const input = {
+      ...(await buildCardPreviewInput(slug, {
+        templateKey: templateKey || undefined,
+        templateType: templateMeta?.type,
+        title: templateMeta?.name,
+      })),
+      blocks: previewBlocksFromLoadedTheme(loaded),
+    };
+    const Template = templateResolver.resolve(
+      loaded,
+      {
+        pageType: input.page.type,
+        customTemplateKey: templateKey || undefined,
+      },
+      { manifest: loaded.manifest, pageSlug: input.page.slug }
+    );
     const themeSettingValues = await resolveThemeSettingValues(loaded.manifest.slug);
     const api = new ThemeApiImpl({
       input,
@@ -52,6 +71,8 @@ export default async function ThemeEngineCardPreviewPage({
       loaded.manifest.slug,
       loaded.manifest.version
     );
+    const scriptUrl = assetManager.getScriptUrl(loaded.manifest.slug, loaded.manifest.version);
+    const companionScriptUrls = await resolveCompanionScriptUrls(loaded.manifest.slug, scriptUrl);
 
     const header = api.header();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -101,11 +122,13 @@ export default async function ThemeEngineCardPreviewPage({
           data-theme-engine-card-preview={slug}
           data-theme-only="true"
           data-compose={compose ? 'true' : 'false'}
+          data-preview-sections={String(input.blocks.length)}
         >
           <div data-preview-part="header">{header}</div>
           <div data-preview-part="body">{body}</div>
           <div data-preview-part="footer">{footer}</div>
         </div>
+        <ThemeScripts scriptUrl={scriptUrl} companionScriptUrls={companionScriptUrls} />
       </>
     );
   } catch (err) {

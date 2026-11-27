@@ -1,18 +1,18 @@
 import { NextResponse } from 'next/server';
 import { getUserDbConnection, getUserModel } from '../../../../utils/db';
+import { handleApiError } from '@/lib/api/response';
+import { requireCapability } from '@/lib/rbac';
 
 export async function GET() {
   try {
-    // Establish DB connection and get User model
+    await requireCapability('users.manage');
     await getUserDbConnection();
     const User = getUserModel();
 
-    // Query to retrieve all users
-    const users = await User.find();
+    const users = await User.find().select('-password');
 
     return NextResponse.json({ users }, { status: 200 });
   } catch (error) {
-    console.error('Error fetching users:', error);
-    return NextResponse.json({ error: 'Error fetching users' }, { status: 500 });
+    return handleApiError(error);
   }
 }

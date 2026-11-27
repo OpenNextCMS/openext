@@ -1,0 +1,48 @@
+{
+  "manifestVersion": 1,
+  "id": "crm-follow-up-notes",
+  "name": "CRM Follow-up Notes",
+  "version": "1.0.0",
+  "type": "plugin-extension",
+  "description": "Adds a follow-up notes page and navigation item to Root CRM (openext-crm-suite).",
+  "publisher": {
+    "name": "OpenNext"
+  },
+  "target": {
+    "pluginId": "openext-crm-suite",
+    "version": "^2.0.0"
+  },
+  "compatibility": {
+    "cms": ">=0.1.0",
+    "extensionSdk": "^1.0.0"
+  },
+  "entry": {
+    "frontend": "ui/pages/follow-ups.html",
+    "backend": "server/index.js"
+  },
+  "capabilities": [
+    "navigation.register",
+    "ui.page.register",
+    "lifecycle.register"
+  ],
+  "permissions": [
+    "crm.followups.read"
+  ],
+  "dependencies": [],
+  "contributions": {
+    "navigation": [
+      {
+        "id": "follow-ups",
+        "label": "Follow-ups",
+        "href": "ui/pages/follow-ups.html"
+      }
+    ],
+    "pages": [
+      {
+        "id": "follow-ups",
+        "title": "Follow-up Notes",
+        "entry": "ui/pages/follow-ups.html"
+      }
+    ]
+  }
+}

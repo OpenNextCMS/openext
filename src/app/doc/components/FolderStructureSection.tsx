@@ -44,7 +44,7 @@ export default function FolderStructureSection() {
 |           1742213344234-vssurat.png
 |
 \---src
-    |   middleware.ts
+    |   proxy.ts
     |
     +---app
     |   |   layout.tsx

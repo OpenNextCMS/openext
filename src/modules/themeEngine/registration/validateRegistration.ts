@@ -62,11 +62,18 @@ export async function validateRegistration(
 
   const paths = registryToManifestPaths(registry);
 
-  if (requireIndexTemplate && !paths.templates.index) {
-    errors.push({
-      code: RegistrationValidationCode.INDEX_TEMPLATE_MISSING,
-      message: 'No index template registered. Declare templates/index.tsx or registerTemplate("index", ...).',
-    });
+  if (requireIndexTemplate) {
+    const templateKeys = Object.keys(registry.templates);
+    const manifestPaths = Object.entries(paths.templates).filter(
+      ([, rel]) => typeof rel === 'string' && rel.length > 0
+    );
+    if (templateKeys.length === 0 && manifestPaths.length === 0) {
+      errors.push({
+        code: RegistrationValidationCode.INDEX_TEMPLATE_MISSING,
+        message:
+          'At least one template is required. Declare templates in theme.json (e.g. home), include templates/*.tsx, or provide theme.ts with registerTemplate(...).',
+      });
+    }
   }
 
   for (const [key, tpl] of Object.entries(registry.templates)) {

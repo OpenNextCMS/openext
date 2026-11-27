@@ -6,10 +6,18 @@ import fs from 'fs/promises';
 import path from 'path';
 import { getDynamicEnv } from '@/utils/dynamicEnv';
 import { withDbName } from '@/utils/mongoUri';
+import { isMysql, isPostgres } from '@/lib/db/config';
+import { closeMysqlPool, dropMysqlDatabase, getMysqlDatabaseName } from '@/lib/db/mysql/adapter';
+import {
+  closePostgresPool,
+  dropPostgresDatabase,
+  getPostgresDatabaseName,
+} from '@/lib/db/postgres/adapter';
 
 dotenv.config();
 
 export async function POST() {
+  const env = getDynamicEnv();
   const {
     MONGODB,
     MONGODB_USERNAME,
@@ -19,7 +27,43 @@ export async function POST() {
     MONGODB_AUTH_MECH,
     MONGODB_AUTH_SOURCE,
     MONGODB_URI,
-  } = getDynamicEnv();
+  } = env;
+
+  if (isMysql()) {
+    try {
+      const dbName = getMysqlDatabaseName();
+      await dropMysqlDatabase(dbName);
+      await closeMysqlPool();
+      const envPath = path.join(process.cwd(), '.env');
+      await fs.writeFile(envPath, '', { flag: 'w' });
+      return handleSuccess(
+        true,
+        null,
+        `The MySQL database "${dbName}" has been deleted and .env has been cleared`
+      );
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to delete databases';
+      return handleError(error, message);
+    }
+  }
+
+  if (isPostgres()) {
+    try {
+      const dbName = getPostgresDatabaseName();
+      await dropPostgresDatabase(dbName);
+      await closePostgresPool();
+      const envPath = path.join(process.cwd(), '.env');
+      await fs.writeFile(envPath, '', { flag: 'w' });
+      return handleSuccess(
+        true,
+        null,
+        `The PostgreSQL database "${dbName}" has been deleted and .env has been cleared`
+      );
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to delete databases';
+      return handleError(error, message);
+    }
+  }
 
   if (MONGODB === 'uri') {
     if (!MONGODB_URI) {

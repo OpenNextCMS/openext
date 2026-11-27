@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { apiOk, handleApiError } from '@/lib/api/response';
-import { requireAuth } from '@/lib/api/auth';
+import { requireMinRole, ROLE } from '@/lib/rbac';
 import { generateStarterWebsite } from '@/services/generateStarterWebsite';
 
 const generateSchema = z.object({
@@ -21,9 +21,9 @@ const generateSchema = z.object({
  */
 export async function POST(req: NextRequest) {
   try {
-    const auth = await requireAuth();
+    const auth = await requireMinRole(ROLE.SUPER_ADMIN);
     const data = generateSchema.parse(await req.json());
-    const result = await generateStarterWebsite({ userId: auth.userId, ...data });
+    const result = await generateStarterWebsite({ userId: auth.user.userId, ...data });
     return apiOk(result);
   } catch (err) {
     return handleApiError(err);

@@ -3,7 +3,7 @@ import path from 'path';
 import { pathToFileURL } from 'url';
 import ts from 'typescript';
 import { COMPILED_ROOT, MANIFEST_FILENAME, THEMES_ROOT } from '../config';
-import { manifestParser } from '../ManifestParser';
+import { manifestParser, resolveTemplateEntryPath } from '../ManifestParser';
 import type { ThemeManifest, ThemeValidationIssue } from '../types';
 import { autoDiscover } from './autoDiscover';
 import { manifestFromRegistry, mergeRegistries } from './manifestFromRegistry';
@@ -25,6 +25,14 @@ export interface ThemeBootstrapOptions {
 }
 
 const DEFAULT_ENTRY = 'theme.ts';
+
+function resolveTemplateIndex(templates: ThemeManifest['templates']): boolean {
+  if (resolveTemplateEntryPath(templates.index)) return true;
+  if (resolveTemplateEntryPath(templates.home)) return true;
+  return Object.entries(templates).some(
+    ([key, rel]) => key !== 'index' && typeof rel === 'string' && rel.length > 0
+  );
+}
 const SDK_COMPILE_SLUG = '_cms-sdk';
 const SDK_COMPILE_VERSION = '1.0.0';
 
@@ -59,7 +67,7 @@ export class ThemeBootstrap {
     let registry = await autoDiscover(root);
 
     const entryRel = baseManifest.entry ?? DEFAULT_ENTRY;
-    const entryAbs = path.join(root, entryRel);
+    const entryAbs = path.join(/*turbopackIgnore: true*/ root, entryRel);
 
     if (options.executeEntry && (await this.fileExists(entryAbs))) {
       const loaded = await this.loadThemeDefinition(root, entryRel, options.slug ?? baseManifest.slug, options.version ?? baseManifest.version);
@@ -72,17 +80,18 @@ export class ThemeBootstrap {
 
     const manifest = manifestFromRegistry(baseManifest, registry);
 
+    const entryOnDisk = await this.fileExists(entryAbs);
     const regValidation = await validateRegistration(root, registry, {
-      requireIndexTemplate: true,
-      entryPath: baseManifest.entry ?? (await this.fileExists(entryAbs) ? entryRel : undefined),
+      requireIndexTemplate: !entryOnDisk && Object.keys(registry.templates).length === 0,
+      entryPath: baseManifest.entry ?? (entryOnDisk ? entryRel : undefined),
     });
     errors.push(...regValidation.errors);
     warnings.push(...regValidation.warnings);
 
-    if (!manifest.templates.index) {
+    if (!resolveTemplateIndex(manifest.templates)) {
       errors.push({
         code: RegistrationValidationCode.INDEX_TEMPLATE_MISSING,
-        message: 'Bootstrap completed but no index template is available.',
+        message: 'Bootstrap completed but no usable template is available.',
         file: MANIFEST_FILENAME,
       });
     }
@@ -90,7 +99,7 @@ export class ThemeBootstrap {
     return { manifest, registry, errors, warnings };
   }
 
-  /** Validate-only bootstrap for ThemeValidator — executes theme.ts when entry is declared. */
+  /** Validate-only bootstrap for ThemeValidator — loads theme.ts only when needed. */
   async validateOnly(root: string, baseManifest: ThemeManifest): Promise<ThemeBootstrapResult> {
     const errors: ThemeValidationIssue[] = [];
     const warnings: ThemeValidationIssue[] = [];
@@ -98,25 +107,43 @@ export class ThemeBootstrap {
     let registry = await autoDiscover(root);
 
     const entryRel = baseManifest.entry ?? DEFAULT_ENTRY;
-    const entryAbs = path.join(root, entryRel);
+    const entryAbs = path.join(/*turbopackIgnore: true*/ root, entryRel);
+    const entryExists = await this.fileExists(entryAbs);
+    const entryDeclared = Boolean(baseManifest.entry);
+    const hasDiscoveredTemplates = Object.keys(registry.templates).length > 0;
+    const hasManifestTemplates = Object.values(baseManifest.templates).some(
+      (rel) => typeof rel === 'string' && rel.length > 0
+    );
+    const templatesSatisfied = hasDiscoveredTemplates || hasManifestTemplates;
 
-    if (baseManifest.entry && (await this.fileExists(entryAbs))) {
+    const shouldLoadEntry =
+      entryDeclared || (entryExists && !templatesSatisfied);
+
+    if (shouldLoadEntry && entryExists) {
       const loaded = await this.loadThemeDefinition(
         root,
         entryRel,
         baseManifest.slug,
         baseManifest.version
       );
-      errors.push(...loaded.errors);
-      if (loaded.definition) {
+      if (loaded.errors.length > 0) {
+        errors.push(...loaded.errors);
+      } else if (loaded.definition) {
         registry = mergeRegistries(registry, loaded.definition.registry);
       }
+    } else if (entryExists && !entryDeclared && templatesSatisfied) {
+      warnings.push({
+        code: RegistrationValidationCode.THEME_TS_LOAD_FAILED,
+        message:
+          'theme.ts is present but not declared via "entry" — manifest and auto-discovered templates are used instead.',
+        file: entryRel,
+      });
     }
 
     const manifest = manifestFromRegistry(baseManifest, registry);
     const regValidation = await validateRegistration(root, registry, {
-      requireIndexTemplate: !baseManifest.entry,
-      entryPath: baseManifest.entry,
+      requireIndexTemplate: !templatesSatisfied && !entryDeclared && !entryExists,
+      entryPath: baseManifest.entry ?? (entryDeclared && entryExists ? entryRel : undefined),
     });
     errors.push(...regValidation.errors);
     warnings.push(...regValidation.warnings);
@@ -236,10 +263,16 @@ export class ThemeBootstrap {
     };
   }
 
-  /** Compile @cms/theme SDK to CommonJS once; returns absolute path to sdk/index.ts.cjs. */
+  /** Compile @cms/theme SDK to CommonJS once; returns absolute path to defineTheme.ts.cjs. */
   private async ensureSdkCompiled(): Promise<string> {
     const engineRoot = path.join(process.cwd(), 'src', 'modules', 'themeEngine');
-    const sdkEntry = path.join(COMPILED_ROOT, SDK_COMPILE_SLUG, SDK_COMPILE_VERSION, 'sdk', 'index.ts.cjs');
+    const sdkDefinePath = path.join(
+      COMPILED_ROOT,
+      SDK_COMPILE_SLUG,
+      SDK_COMPILE_VERSION,
+      'registration',
+      'defineTheme.ts.cjs'
+    );
 
     let newestSource = 0;
     for (const rel of SDK_SOURCE_FILES) {
@@ -247,30 +280,47 @@ export class ThemeBootstrap {
       newestSource = Math.max(newestSource, st.mtimeMs);
     }
 
+    const cachedOk = await this.isSdkCompiled(sdkDefinePath, newestSource);
+    if (!cachedOk) {
+      await fs.rm(path.join(COMPILED_ROOT, SDK_COMPILE_SLUG), { recursive: true, force: true }).catch(() => undefined);
+
+      for (const rel of SDK_SOURCE_FILES) {
+        const sourcePath = path.join(engineRoot, rel);
+        const outPath = path.join(COMPILED_ROOT, SDK_COMPILE_SLUG, SDK_COMPILE_VERSION, `${rel}.cjs`);
+        await this.compile(SDK_COMPILE_SLUG, SDK_COMPILE_VERSION, rel, sourcePath);
+        await patchCompiledRequires(outPath);
+      }
+
+      if (!(await this.isSdkCompiled(sdkDefinePath, newestSource))) {
+        throw new Error('@cms/theme SDK failed to compile — defineTheme is unavailable.');
+      }
+    }
+
+    return sdkDefinePath;
+  }
+
+  /** True when defineTheme.ts.cjs exists, is non-empty, fresh, and exports defineTheme(). */
+  private async isSdkCompiled(sdkDefinePath: string, newestSource: number): Promise<boolean> {
     try {
-      const st = await fs.stat(sdkEntry);
-      if (st.mtimeMs >= newestSource) return sdkEntry;
+      const st = await fs.stat(sdkDefinePath);
+      if (st.size === 0 || st.mtimeMs < newestSource) return false;
+      const mod = (await import(/* webpackIgnore: true */ pathToFileURL(sdkDefinePath).href)) as Record<
+        string,
+        unknown
+      >;
+      return typeof mod.defineTheme === 'function';
     } catch {
-      // compile fresh
+      return false;
     }
-
-    for (const rel of SDK_SOURCE_FILES) {
-      const sourcePath = path.join(engineRoot, rel);
-      const outPath = path.join(COMPILED_ROOT, SDK_COMPILE_SLUG, SDK_COMPILE_VERSION, `${rel}.cjs`);
-      await this.compile(SDK_COMPILE_SLUG, SDK_COMPILE_VERSION, rel, sourcePath);
-      await patchCompiledRequires(outPath);
-    }
-
-    return sdkEntry;
   }
 
   /** Replace `@cms/theme` import with a require of the compiled internal SDK bundle. */
   private async rewriteThemeEntrySource(source: string): Promise<string> {
     const sdkAbsPath = (await this.ensureSdkCompiled()).replace(/\\/g, '/');
-    const stripped = source.replace(
-      /import\s+\{[^}]+\}\s+from\s+['"]@cms\/theme['"];?\s*\n?/g,
-      ''
-    );
+    const stripped = source
+      .replace(/import\s+\{[^}]+\}\s+from\s+['"]@cms\/theme['"];?\s*\n?/g, '')
+      .replace(/import\s+defineTheme\s+from\s+['"]@cms\/theme['"];?\s*\n?/g, '')
+      .replace(/import\s+\*\s+as\s+\w+\s+from\s+['"]@cms\/theme['"];?\s*\n?/g, '');
     return `const { defineTheme, definePlugin } = require(${JSON.stringify(sdkAbsPath)});\n${stripped}`;
   }
 }
@@ -278,6 +328,7 @@ export class ThemeBootstrap {
 /** Patch relative requires in compiled SDK output to absolute .cjs paths. */
 async function patchCompiledRequires(outPath: string): Promise<void> {
   let code = await fs.readFile(outPath, 'utf8');
+  if (!code.trim()) return;
   code = code.replace(/require\(["']((?:\.\.?\/)[^"']+)["']\)/g, (_match, rel: string) => {
     const target = rel.endsWith('.ts') ? `${rel}.cjs` : `${rel}.ts.cjs`;
     const abs = path.resolve(path.dirname(outPath), target).replace(/\\/g, '/');
@@ -287,12 +338,17 @@ async function patchCompiledRequires(outPath: string): Promise<void> {
 }
 
 function unwrapDefault(mod: Record<string, unknown>): unknown {
-  let candidate: unknown = mod;
-  for (let i = 0; i < 2; i++) {
-    if (!candidate || typeof candidate !== 'object' || !('default' in candidate)) break;
-    const next = (candidate as { default?: unknown }).default;
-    if (next && typeof next === 'object' && 'registry' in next) return next;
-    candidate = next;
+  if (mod && typeof mod === 'object' && 'registry' in mod) return mod;
+
+  let candidate: unknown = mod.default ?? mod;
+  for (let i = 0; i < 3; i++) {
+    if (!candidate || typeof candidate !== 'object') break;
+    if ('registry' in (candidate as object)) return candidate;
+    if ('default' in candidate) {
+      candidate = (candidate as { default?: unknown }).default;
+      continue;
+    }
+    break;
   }
   return candidate;
 }

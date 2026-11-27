@@ -4,6 +4,9 @@ import fs from 'fs';
 import path from 'path';
 import { getDynamicEnv } from '@/utils/dynamicEnv';
 import { withDbName } from '@/utils/mongoUri';
+import { isMysql, isPostgres } from '@/lib/db/config';
+import { getMysqlPool, getMysqlDatabaseName } from '@/lib/db/mysql/adapter';
+import { getPostgresPool, getPostgresDatabaseName } from '@/lib/db/postgres/adapter';
 
 function createConnectionUri(dbName: string) {
   const {
@@ -77,10 +80,61 @@ async function updateEnvFile(dbConnection: boolean, isRegistration: boolean) {
   }
 }
 
+async function mysqlDatabaseExists(dbName: string): Promise<boolean> {
+  try {
+    const pool = await getMysqlPool();
+    const [rows] = await pool.query(
+      'SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = ?',
+      [dbName]
+    );
+    return Array.isArray(rows) && rows.length > 0;
+  } catch (error) {
+    console.error(`Error checking MySQL database ${dbName}:`, error);
+    return false;
+  }
+}
+
+async function postgresDatabaseExists(dbName: string): Promise<boolean> {
+  try {
+    const pool = await getPostgresPool();
+    const { rows } = await pool.query(
+      `SELECT 1 FROM information_schema.tables
+       WHERE table_schema = 'public' AND table_name = 'users'
+       LIMIT 1`
+    );
+    return rows.length > 0 && Boolean(dbName);
+  } catch (error) {
+    console.error(`Error checking PostgreSQL database ${dbName}:`, error);
+    return false;
+  }
+}
+
 export async function GET() {
   try {
+    if (isMysql()) {
+      const connected = await mysqlDatabaseExists(getMysqlDatabaseName());
+      await updateEnvFile(connected, connected);
+      return NextResponse.json({
+        masterDbConnected: connected,
+        userDbConnected: connected,
+        pageDbConnected: connected,
+        dbConnection: connected,
+      });
+    }
+
+    if (isPostgres()) {
+      const connected = await postgresDatabaseExists(getPostgresDatabaseName());
+      await updateEnvFile(connected, connected);
+      return NextResponse.json({
+        masterDbConnected: connected,
+        userDbConnected: connected,
+        pageDbConnected: connected,
+        dbConnection: connected,
+      });
+    }
+
     const { USER_DB_NAME, PAGE_DB_NAME } = getDynamicEnv();
-    
+
     if (!USER_DB_NAME || !PAGE_DB_NAME) {
       throw new Error('USER_DB_NAME or PAGE_DB_NAME environment variable is not set');
     }

@@ -22,6 +22,8 @@ const BlogPostSchema = new Schema<IBlogPostDocument>(
     createdBy: { type: Schema.Types.ObjectId, ref: 'User' },
     isPublished: { type: Boolean, default: false },
     slug: { type: String },
+    locale: { type: String, default: 'en', index: true },
+    translationGroupId: { type: String, index: true },
     modifications: [ModificationSchema],
 
     excerpt: { type: String },
@@ -57,9 +59,12 @@ const BlogPostSchema = new Schema<IBlogPostDocument>(
 );
 
 // Create indexes for better query performance
-BlogPostSchema.index({ slug: 1 }, { unique: true });
+BlogPostSchema.index({ locale: 1, slug: 1 }, { unique: true });
 BlogPostSchema.index({ pageName: 1, createdBy: 1 });
 BlogPostSchema.index({ status: 1, publishedAt: -1 });
+BlogPostSchema.index({ translationGroupId: 1, locale: 1 });
+/** Public blog listing + dashboard counts that filter on isPublished */
+BlogPostSchema.index({ isPublished: 1, publishDate: -1 });
 
 const BlogPostModel = models.BlogPost || model<IBlogPostDocument>('BlogPost', BlogPostSchema);
 

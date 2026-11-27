@@ -5,6 +5,7 @@ import {
   hasBlockedExtension,
   isSafeRelativePath,
   parsePluginManifest,
+  isAdminMountPath,
   resolvePluginKind,
   type ParsedPluginManifest,
   type PluginKind,
@@ -12,9 +13,9 @@ import {
 import {
   ensurePluginsDirectory,
   getPluginDirectory,
-  MAX_PLUGIN_FILES,
   toPublicPluginPath,
 } from '@/lib/plugins/storage';
+import { getMaxPluginFiles } from '@/lib/plugins/uploadLimits';
 import {
   ensureBackendPluginsDirectory,
   getBackendPluginDirectory,
@@ -24,14 +25,34 @@ import {
   shouldExtractToFrontend,
   validateBackendManifest,
 } from '@/lib/plugins/server/validation';
+import { type PluginUserTypeDraft } from '@/lib/rbac/pluginUserTypes';
+import { resolvePluginRolesForUpload } from '@/lib/plugins/loadPluginRoles';
+import {
+  PLUGIN_MANIFEST_FILE,
+  resolvePluginPackageRootInZip,
+} from '@/lib/plugins/pluginLayout';
+import { compilePluginTypeScript } from '@/lib/plugins/compile';
+
+/** Reject extension packages before the complete-plugin installer writes any files. */
+export function assertCompletePluginPackage(manifest: { type?: string }): void {
+  if (manifest.type === 'plugin-extension') {
+    throw new Error(
+      'manifest.json "type" is "plugin-extension". Install extension packages from Dashboard → Extensions, not the plugin uploader.'
+    );
+  }
+}
 
 export interface ExtractedPlugin {
   manifest: ParsedPluginManifest & { kind: PluginKind; type: string };
   kind: PluginKind;
   /** Public URL for canvas block entry (block plugins, or system with block/). */
   entryPoint?: string;
-  /** Public URL for dashboard admin HTML. */
+  /** @deprecated Public URL for optional HTML; dashboard uses adminMount. */
   adminEntry?: string;
+  /** Public URL for dashboard ESM mount module. */
+  adminMount?: string;
+  /** Sidebar navigation pages for system plugins. */
+  adminNav?: import('@/types/index').PluginAdminNavItem[];
   /** Public URL for optional system placeable block. */
   blockEntry?: string;
   styles: string[];
@@ -40,6 +61,9 @@ export interface ExtractedPlugin {
   migrations: string[];
   models: string[];
   permissions: string[];
+  userTypes: PluginUserTypeDraft[];
+  /** Pages/features/permissions catalog for custom-role pickers. */
+  featureCatalog: import('@/lib/plugins/pluginRolesSchema').PluginFeatureCatalog;
   installHook?: string;
   uninstallHook?: string;
   dependencies: string[];
@@ -49,45 +73,19 @@ function normalizeZipPath(filePath: string): string {
   return filePath.replace(/\\/g, '/').replace(/^\/+/, '');
 }
 
-function detectZipRootPrefix(filePaths: string[]): string {
-  const normalized = filePaths.map(normalizeZipPath).filter(Boolean);
-  if (normalized.length === 0) return '';
-
-  const topLevels = new Set(normalized.map((filePath) => filePath.split('/')[0]));
-  if (topLevels.size !== 1) return '';
-
-  const prefix = `${[...topLevels][0]}/`;
-  const hasNestedFiles = normalized.some((filePath) => filePath.includes('/'));
-  if (!hasNestedFiles) return '';
-
-  const manifestAtRoot = normalized.some(
-    (filePath) => filePath === `${prefix}manifest.json` || filePath.endsWith('/manifest.json')
-  );
-  return manifestAtRoot ? prefix : '';
+/** Map a normalized ZIP path back to the key JSZip uses (may contain backslashes). */
+function resolveZipEntryPath(filePaths: string[], logicalPath: string): string | undefined {
+  const target = normalizeZipPath(logicalPath);
+  return filePaths.find((filePath) => normalizeZipPath(filePath) === target);
 }
 
-function findManifestRelativePath(filePaths: string[], rootPrefix: string): string {
-  const candidates = filePaths
-    .map(normalizeZipPath)
-    .filter((filePath) => !filePath.endsWith('/'))
-    .filter((filePath) => filePath.startsWith(rootPrefix))
-    .map((filePath) => filePath.slice(rootPrefix.length))
-    .filter((filePath) => filePath === 'manifest.json' || filePath.endsWith('/manifest.json'));
-
-  const exact = candidates.find((filePath) => filePath === 'manifest.json');
-  if (exact) return exact;
-
-  const shallow = candidates.find(
-    (filePath) => !filePath.slice(0, -'manifest.json'.length).includes('/')
-  );
-  if (shallow) return shallow;
-
-  if (candidates.length > 0) return candidates[0];
-  throw new Error('manifest.json was not found in the plugin package');
-}
-
-async function readManifest(zip: JSZip, manifestPath: string): Promise<ParsedPluginManifest> {
-  const manifestFile = zip.file(manifestPath);
+async function readManifest(
+  zip: JSZip,
+  manifestPath: string,
+  filePaths: string[]
+): Promise<ParsedPluginManifest> {
+  const zipEntryPath = resolveZipEntryPath(filePaths, manifestPath) ?? manifestPath;
+  const manifestFile = zip.file(zipEntryPath);
   if (!manifestFile) {
     throw new Error('manifest.json was not found in the plugin package');
   }
@@ -104,6 +102,25 @@ async function readManifest(zip: JSZip, manifestPath: string): Promise<ParsedPlu
   return parsePluginManifest(parsed);
 }
 
+function findManifestPathInZip(filePaths: string[]): string {
+  const candidates = filePaths.filter((filePath) => {
+    const normalized = normalizeZipPath(filePath);
+    return (
+      !normalized.endsWith('/') &&
+      (normalized === PLUGIN_MANIFEST_FILE || normalized.endsWith(`/${PLUGIN_MANIFEST_FILE}`))
+    );
+  });
+  if (candidates.length === 0) {
+    throw new Error('manifest.json was not found in the plugin package');
+  }
+  candidates.sort((a, b) => {
+    const na = normalizeZipPath(a);
+    const nb = normalizeZipPath(b);
+    return nb.split('/').length - na.split('/').length || na.localeCompare(nb);
+  });
+  return candidates[0];
+}
+
 async function assertFileExists(absolutePath: string, label: string): Promise<void> {
   try {
     await fs.access(absolutePath);
@@ -117,47 +134,58 @@ export async function extractPluginZip(
   pluginIdOverride?: string
 ): Promise<ExtractedPlugin> {
   const zip = await JSZip.loadAsync(arrayBuffer);
-  const fileEntries = Object.entries(zip.files).filter(([, entry]) => !entry.dir);
+  const fileEntries = Object.entries(zip.files).filter(([filePath, entry]) => {
+    if (entry.dir) return false;
+    const normalized = normalizeZipPath(filePath);
+    return normalized.length > 0 && !normalized.endsWith('/');
+  });
 
   if (fileEntries.length === 0) {
     throw new Error('The plugin package is empty');
   }
 
-  if (fileEntries.length > MAX_PLUGIN_FILES) {
-    throw new Error(`Plugin package exceeds the ${MAX_PLUGIN_FILES} file limit`);
+  const maxPluginFiles = await getMaxPluginFiles();
+  if (fileEntries.length > maxPluginFiles) {
+    throw new Error(`Plugin package exceeds the ${maxPluginFiles} file limit`);
   }
 
   const filePaths = fileEntries.map(([filePath]) => filePath);
-  const rootPrefix = detectZipRootPrefix(filePaths);
-  const manifestRelativePath = findManifestRelativePath(filePaths, rootPrefix);
-  const manifest = await readManifest(zip, `${rootPrefix}${manifestRelativePath}`);
-  const pluginId = pluginIdOverride || manifest.pluginId;
+  const probeManifestPath = findManifestPathInZip(filePaths);
+  const probeManifest = await readManifest(zip, probeManifestPath, filePaths);
+  const pluginId = pluginIdOverride || probeManifest.pluginId;
+  const { zipPrefix, manifestRelativePath } = resolvePluginPackageRootInZip(filePaths, pluginId);
+  const manifestZipPath = `${zipPrefix}${manifestRelativePath}`.replace(/\/+/g, '/').replace(/^\//, '');
+  const manifest =
+    normalizeZipPath(manifestZipPath) === normalizeZipPath(probeManifestPath)
+      ? probeManifest
+      : await readManifest(zip, manifestZipPath, filePaths);
+
+  assertCompletePluginPackage(manifest);
+
   const manifestDir = path.posix.dirname(manifestRelativePath);
-  const pluginRootInZip =
-    manifestDir === '.'
-      ? rootPrefix.replace(/\/$/, '')
-      : `${rootPrefix}${manifestDir}`.replace(/\/$/, '');
-  const publicPluginDir = getPluginDirectory(pluginId);
+  const pluginRootInZip = manifestDir === '.' ? '' : manifestDir;
+  const packagePrefix = pluginRootInZip ? `${zipPrefix}${pluginRootInZip}/` : zipPrefix;
+  const frontendPluginDir = getPluginDirectory(pluginId);
   const backendPluginDir = getBackendPluginDirectory(pluginId);
 
   await ensurePluginsDirectory();
   await ensureBackendPluginsDirectory();
-  await fs.rm(publicPluginDir, { recursive: true, force: true });
+  await fs.rm(frontendPluginDir, { recursive: true, force: true });
   await fs.rm(backendPluginDir, { recursive: true, force: true });
-  await fs.mkdir(publicPluginDir, { recursive: true });
+  await fs.mkdir(frontendPluginDir, { recursive: true });
   await fs.mkdir(backendPluginDir, { recursive: true });
 
-  const manifestDirPrefix = pluginRootInZip ? `${pluginRootInZip}/` : '';
+  const manifestDirPrefix = packagePrefix;
   const extractedRelativePaths: string[] = [];
 
   for (const [filePath, zipEntry] of fileEntries) {
     const normalized = normalizeZipPath(filePath);
-    if (!normalized.startsWith(manifestDirPrefix) && manifestDirPrefix) continue;
-    if (normalized === `${rootPrefix}${manifestRelativePath}`) continue;
+    if (manifestDirPrefix && !normalized.startsWith(manifestDirPrefix)) continue;
+    if (normalized === manifestZipPath) continue;
 
     const relativePath = manifestDirPrefix
       ? normalized.slice(manifestDirPrefix.length)
-      : normalized.slice(rootPrefix.length);
+      : normalized;
 
     if (!relativePath || !isSafeRelativePath(relativePath) || hasBlockedExtension(relativePath)) {
       continue;
@@ -173,39 +201,63 @@ export async function extractPluginZip(
     }
 
     if (shouldExtractToFrontend(relativePath)) {
-      const outputPath = path.join(publicPluginDir, relativePath);
+      const outputPath = path.join(frontendPluginDir, relativePath);
       await fs.mkdir(path.dirname(outputPath), { recursive: true });
       await fs.writeFile(outputPath, content);
     }
   }
 
-  const backendMeta = validateBackendManifest(manifest, extractedRelativePaths);
+  const compiled = await compilePluginTypeScript({
+    frontendDir: frontendPluginDir,
+    backendDir: backendPluginDir,
+    manifest,
+    relativePaths: extractedRelativePaths,
+  });
+  const compiledManifest = compiled.manifest;
+  const compiledRelativePaths = compiled.relativePaths;
+
+  const backendMeta = validateBackendManifest(compiledManifest, compiledRelativePaths);
+
+  const { roles: userTypes, featureCatalog } = await resolvePluginRolesForUpload(
+    pluginId,
+    backendMeta.hasBackend ? backendPluginDir : null,
+    compiledManifest.userTypes,
+    backendMeta.permissions,
+    compiledManifest.adminNav
+  );
+
+  const frontendPaths = compiledRelativePaths.filter(shouldExtractToFrontend);
+  const resolved = resolvePluginKind(compiledManifest, frontendPaths);
 
   const manifestPayload = {
     id: pluginId,
-    name: manifest.name,
-    version: manifest.version,
-    description: manifest.description,
-    author: manifest.author,
-    type: manifest.type,
-    kind: manifest.kind,
-    icon: manifest.icon,
-    entryPoint: manifest.entryPoint,
-    adminEntry: manifest.adminEntry,
-    blockEntry: manifest.blockEntry,
-    styles: manifest.styles,
-    customElement: manifest.customElement,
+    name: compiledManifest.name,
+    version: compiledManifest.version,
+    description: compiledManifest.description,
+    author: compiledManifest.author,
+    type: resolved.type,
+    kind: resolved.kind,
+    icon: compiledManifest.icon,
+    entryPoint: resolved.entryPoint,
+    adminEntry: resolved.adminEntry,
+    adminMount: resolved.adminMount,
+    adminNav: compiledManifest.adminNav,
+    blockEntry: resolved.blockEntry,
+    styles: resolved.styles,
+    customElement: compiledManifest.customElement,
     serverEntry: backendMeta.serverEntry,
     migrations: backendMeta.migrations,
     models: backendMeta.models,
     permissions: backendMeta.permissions,
+    // Roles live in api/roles.js — keep empty in written manifest for clarity.
+    userTypes: undefined,
     installHook: backendMeta.installHook,
     uninstallHook: backendMeta.uninstallHook,
     dependencies: backendMeta.dependencies,
   };
 
   await fs.writeFile(
-    path.join(publicPluginDir, 'manifest.json'),
+    path.join(frontendPluginDir, 'manifest.json'),
     JSON.stringify(manifestPayload, null, 2),
     'utf8'
   );
@@ -218,36 +270,53 @@ export async function extractPluginZip(
     );
   }
 
-  const frontendPaths = extractedRelativePaths.filter(shouldExtractToFrontend);
-  const resolved = resolvePluginKind(manifest, frontendPaths);
-
   if (resolved.kind === 'block') {
     if (!resolved.entryPoint) {
       throw new Error('Block plugin requires an entryPoint');
     }
     await assertFileExists(
-      path.join(publicPluginDir, resolved.entryPoint),
+      path.join(frontendPluginDir, resolved.entryPoint),
       `manifest.json entryPoint "${resolved.entryPoint}"`
     );
   } else {
-    if (!resolved.adminEntry) {
-      throw new Error('System plugin requires an adminEntry');
+    if (!resolved.adminMount) {
+      throw new Error('System plugin requires an adminMount module (export mount/unmount)');
     }
     await assertFileExists(
-      path.join(publicPluginDir, resolved.adminEntry),
-      `System plugin admin entry "${resolved.adminEntry}"`
+      path.join(frontendPluginDir, resolved.adminMount),
+      `System plugin adminMount "${resolved.adminMount}"`
     );
+    if (resolved.adminEntry) {
+      await assertFileExists(
+        path.join(frontendPluginDir, resolved.adminEntry),
+        `System plugin adminEntry "${resolved.adminEntry}"`
+      );
+    }
     if (resolved.blockEntry) {
       await assertFileExists(
-        path.join(publicPluginDir, resolved.blockEntry),
+        path.join(frontendPluginDir, resolved.blockEntry),
         `System plugin block entry "${resolved.blockEntry}"`
       );
+    }
+    if (compiledManifest.adminNav?.length) {
+      for (const navItem of compiledManifest.adminNav) {
+        // Shared adminMount + pageId: nav entry may point at the same mount module.
+        if (!isAdminMountPath(navItem.entry)) {
+          throw new Error(
+            `manifest.json adminNav "${navItem.label}" entry must be a mount module (.js/.mjs/.ts), got "${navItem.entry}"`
+          );
+        }
+        await assertFileExists(
+          path.join(frontendPluginDir, navItem.entry),
+          `manifest.json adminNav entry "${navItem.label}" (${navItem.entry})`
+        );
+      }
     }
   }
 
   for (const stylePath of resolved.styles) {
     await assertFileExists(
-      path.join(publicPluginDir, stylePath),
+      path.join(frontendPluginDir, stylePath),
       `manifest.json styles entry "${stylePath}"`
     );
   }
@@ -258,24 +327,35 @@ export async function extractPluginZip(
   const publicAdmin = resolved.adminEntry
     ? toPublicPluginPath(pluginId, resolved.adminEntry)
     : undefined;
+  const publicAdminMount = resolved.adminMount
+    ? toPublicPluginPath(pluginId, resolved.adminMount)
+    : undefined;
   const publicBlock = resolved.blockEntry
     ? toPublicPluginPath(pluginId, resolved.blockEntry)
     : undefined;
+  const publicAdminNav = compiledManifest.adminNav?.map((item) => ({
+    ...item,
+    entry: toPublicPluginPath(pluginId, item.entry),
+  }));
 
   return {
     manifest: {
-      ...manifest,
+      ...compiledManifest,
       pluginId,
       kind: resolved.kind,
       type: resolved.type,
       entryPoint: resolved.entryPoint,
       adminEntry: resolved.adminEntry,
+      adminMount: resolved.adminMount,
+      adminNav: compiledManifest.adminNav,
       blockEntry: resolved.blockEntry,
       styles: resolved.styles,
     },
     kind: resolved.kind,
     entryPoint: publicEntry,
     adminEntry: publicAdmin,
+    adminMount: publicAdminMount,
+    adminNav: publicAdminNav,
     blockEntry: publicBlock,
     styles: resolved.styles.map((stylePath) => toPublicPluginPath(pluginId, stylePath)),
     hasBackend: backendMeta.hasBackend,
@@ -283,6 +363,8 @@ export async function extractPluginZip(
     migrations: backendMeta.migrations,
     models: backendMeta.models,
     permissions: backendMeta.permissions,
+    userTypes,
+    featureCatalog,
     installHook: backendMeta.installHook,
     uninstallHook: backendMeta.uninstallHook,
     dependencies: backendMeta.dependencies,

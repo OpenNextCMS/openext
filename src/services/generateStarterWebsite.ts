@@ -27,6 +27,10 @@ import { getHomepageTemplate } from '@/templates/homepages';
 import { getHeaderTemplate } from '@/templates/headers';
 import { getFooterTemplate } from '@/templates/footers';
 import {
+  ensureDefaultHomePage,
+  type DefaultHomePageModel,
+} from '@/services/ensureDefaultHomePage';
+import {
   getSupportingPages,
   getPageBlocks,
   getNavLinks,
@@ -278,6 +282,16 @@ export async function generateStarterWebsite(
   ).exec();
 
   await markUserOnboarded(input.userId);
+
+  // Keep OpenExt default_home as the site home even after wizard pages are created.
+  try {
+    await ensureDefaultHomePage({
+      pageModel: PageModel as unknown as DefaultHomePageModel,
+      createdBy: input.userId,
+    });
+  } catch (err) {
+    console.warn('Could not ensure default_home after generate:', err);
+  }
 
   return { homepageSlug, pages: createdPages, themeSlug, alreadyGenerated: false };
 }

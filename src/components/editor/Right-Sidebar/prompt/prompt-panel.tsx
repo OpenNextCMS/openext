@@ -237,6 +237,24 @@ export default function PromptPanel() {
   const [imageName, setImageName] = useState('');
   const [imagePreview, setImagePreview] = useState<string>('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [generateStatus, setGenerateStatus] = useState('');
+  const [fullWebsiteMode, setFullWebsiteMode] = useState(false);
+  const [lastSiteSummary, setLastSiteSummary] = useState<{
+    brand?: string;
+    pages: Array<{ pageName: string; slug: string; pageType: string; isHome?: boolean }>;
+    liveUrl?: string;
+    research?: {
+      niche?: string;
+      source?: string;
+      references?: Array<{ hostname: string; url?: string; title?: string }>;
+      palette?: {
+        primaryColor?: string;
+        secondaryColor?: string;
+        backgroundColor?: string;
+        textColor?: string;
+      };
+    };
+  } | null>(null);
   const [generatedBlocks, setGeneratedBlocks] = useState<BlockData[]>([]);
   const [generatedJson, setGeneratedJson] = useState('');
   const [jsonError, setJsonError] = useState('');
@@ -259,6 +277,18 @@ export default function PromptPanel() {
     () => !isGenerating && (prompt.trim().length > 0 || Boolean(imageFile)),
     [imageFile, isGenerating, prompt]
   );
+
+  useEffect(() => {
+    if (!isPage && fullWebsiteMode) {
+      setFullWebsiteMode(false);
+    }
+  }, [fullWebsiteMode, isPage]);
+
+  useEffect(() => {
+    if (fullWebsiteMode && applyMode === 'append') {
+      setApplyMode('replace');
+    }
+  }, [applyMode, fullWebsiteMode]);
 
   useEffect(() => {
     if (!imageFile) {
@@ -284,6 +314,8 @@ export default function PromptPanel() {
     setGeneratedJson('');
     setJsonError('');
     setLastUsage(null);
+    setLastSiteSummary(null);
+    setGenerateStatus('');
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -327,18 +359,34 @@ export default function PromptPanel() {
     if (!canGenerate) return;
 
     const existingBlocks = canvasBlocks;
-    const mode = applyMode;
+    const mode = fullWebsiteMode ? 'replace' : applyMode;
 
     const formData = new FormData();
     formData.append('prompt', prompt.trim());
     formData.append('pageType', pageType);
+    formData.append('siteMode', fullWebsiteMode ? 'true' : 'false');
 
     if (imageFile) {
       formData.append('image', imageFile);
     }
 
+    let statusTimer: ReturnType<typeof setTimeout> | undefined;
+
     try {
       setIsGenerating(true);
+      setGenerateStatus(
+        fullWebsiteMode
+          ? 'Researching similar sites for structure and colors…'
+          : 'Generating…'
+      );
+      if (fullWebsiteMode) {
+        statusTimer = setTimeout(() => {
+          setGenerateStatus((prev) =>
+            prev.startsWith('Researching') ? 'Building full website from research…' : prev
+          );
+        }, 8000);
+      }
+
       const response = await fetch(apiUrl('/api/ai/generate-page-json'), {
         method: 'POST',
         credentials: 'include',
@@ -352,11 +400,16 @@ export default function PromptPanel() {
 
       if (result?.mode === 'site' && result?.home) {
         const sitePages = Array.isArray(result.pages) ? result.pages : [];
-        const bodyCount = sitePages.filter(
+        const bodyPages = sitePages.filter(
           (p: { pageType?: string }) => p.pageType === 'page'
-        ).length;
+        );
+        const bodyCount = bodyPages.length;
         const hasHeader = sitePages.some((p: { pageType?: string }) => p.pageType === 'header');
         const hasFooter = sitePages.some((p: { pageType?: string }) => p.pageType === 'footer');
+        const pageNames = bodyPages
+          .map((p: { pageName?: string; slug?: string }) => p.pageName || p.slug)
+          .filter(Boolean)
+          .join(', ');
         const parts = [
           `${bodyCount} page${bodyCount === 1 ? '' : 's'}`,
           hasHeader ? '+ header' : '',
@@ -365,7 +418,24 @@ export default function PromptPanel() {
           .filter(Boolean)
           .join(' ');
         const liveUrl = result.home.url || `/${result.home.slug || ''}`;
-        toast.success(`Site created: ${parts}. Live: ${liveUrl}`, { duration: 8000 });
+        const niche = result?.research?.niche ? ` · ${result.research.niche}` : '';
+        toast.success(`Site created: ${parts}${niche}. Live: ${liveUrl}`, { duration: 8000 });
+
+        setLastSiteSummary({
+          brand: result.brand,
+          pages: sitePages,
+          liveUrl,
+          research: result.research
+            ? {
+                niche: result.research.niche,
+                source: result.research.source,
+                references: Array.isArray(result.research.references)
+                  ? result.research.references
+                  : [],
+                palette: result.research.palette,
+              }
+            : undefined,
+        });
 
         // Open the live site in a new tab so the user can navigate the whole
         // website with working header/footer links, while the editor loads the
@@ -374,6 +444,10 @@ export default function PromptPanel() {
           window.open(liveUrl, '_blank', 'noopener,noreferrer');
         } catch {
           /* popup blocked — user can still click the live URL in the toast */
+        }
+
+        if (pageNames) {
+          toast.success(`Pages: ${pageNames}`, { duration: 6000 });
         }
 
         const homeSlug = encodeURIComponent(result.home.slug || '');
@@ -407,6 +481,7 @@ export default function PromptPanel() {
         stringifyGeneratedOutput(canvasReady, headerComponents, footerComponents)
       );
       setJsonError('');
+      setLastSiteSummary(null);
       setLastUsage({
         body: canvasReady.length,
         header: headerComponents.length || undefined,
@@ -444,7 +519,9 @@ export default function PromptPanel() {
       console.error(error);
       toast.error(error instanceof Error ? error.message : 'Failed to generate JSON');
     } finally {
+      if (statusTimer) clearTimeout(statusTimer);
       setIsGenerating(false);
+      setGenerateStatus('');
     }
   };
 
@@ -549,7 +626,9 @@ export default function PromptPanel() {
       ? 'Header page — output is scoped to nav-bar only'
       : pageType === 'footer'
         ? 'Footer page — output is scoped to footer blocks only'
-        : 'Page body — header and footer are skipped; if you upload an image, they will be created as separate pages';
+        : fullWebsiteMode
+          ? 'Full website — researches similar sites for structure & colors, then builds header, footer, and multiple pages'
+          : 'Page body — header and footer are skipped; if you upload an image, they will be created as separate pages';
 
   return (
     <div className="space-y-4">
@@ -557,6 +636,37 @@ export default function PromptPanel() {
         <div className="font-medium">Editing: {pageType}</div>
         <div className="text-muted-foreground">{contextLabel}</div>
       </div>
+
+      {isPage && (
+        <div className="space-y-2 rounded-md border p-3">
+          <Label className="text-sm">Generation mode</Label>
+          <div className="grid grid-cols-2 gap-2">
+            <Button
+              type="button"
+              size="sm"
+              variant={!fullWebsiteMode ? 'default' : 'outline'}
+              onClick={() => setFullWebsiteMode(false)}
+              disabled={isGenerating}
+            >
+              This page
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant={fullWebsiteMode ? 'default' : 'outline'}
+              onClick={() => setFullWebsiteMode(true)}
+              disabled={isGenerating}
+            >
+              Full website
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {fullWebsiteMode
+              ? 'Researches ~8–15 reference sites in your niche (plus industry playbooks), learns common page structure and color palettes, then creates a multi-page published site.'
+              : 'Generates blocks for the current canvas page only.'}
+          </p>
+        </div>
+      )}
 
       <div className="space-y-2">
         <Label htmlFor="ai-prompt">Prompt</Label>
@@ -569,7 +679,9 @@ export default function PromptPanel() {
               ? 'e.g. "Create a horizontal navbar with logo and 4 links on dark background"'
               : pageType === 'footer'
                 ? 'e.g. "Three column footer with Company, Resources, Contact and a copyright row"'
-                : 'Describe the page, or upload a screenshot and click Generate to recreate it'
+                : fullWebsiteMode
+                  ? 'e.g. "AI automation agency in Bangalore — Home, Services, About, Pricing, Contact. Modern tech brand."'
+                  : 'Describe the page, or upload a screenshot and click Generate to recreate it'
           }
           className="min-h-[160px] resize-none text-sm"
         />
@@ -609,34 +721,36 @@ export default function PromptPanel() {
         ) : null}
       </div>
 
-      <div className="space-y-2 rounded-md border p-3">
-        <Label className="text-sm">Apply generated output as</Label>
-        <div className="grid grid-cols-2 gap-2">
-          <Button
-            type="button"
-            size="sm"
-            variant={applyMode === 'replace' ? 'default' : 'outline'}
-            onClick={() => setApplyMode('replace')}
-          >
-            Full page
-          </Button>
-          <Button
-            type="button"
-            size="sm"
-            variant={applyMode === 'append' ? 'default' : 'outline'}
-            onClick={() => setApplyMode('append')}
-          >
-            Insert blocks
-          </Button>
+      {!fullWebsiteMode && (
+        <div className="space-y-2 rounded-md border p-3">
+          <Label className="text-sm">Apply generated output as</Label>
+          <div className="grid grid-cols-2 gap-2">
+            <Button
+              type="button"
+              size="sm"
+              variant={applyMode === 'replace' ? 'default' : 'outline'}
+              onClick={() => setApplyMode('replace')}
+            >
+              Full page
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant={applyMode === 'append' ? 'default' : 'outline'}
+              onClick={() => setApplyMode('append')}
+            >
+              Insert blocks
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {applyMode === 'replace'
+              ? 'Replaces the entire canvas with the generated page/section.'
+              : 'Appends the generated blocks below what is already on the canvas.'}
+          </p>
         </div>
-        <p className="text-xs text-muted-foreground">
-          {applyMode === 'replace'
-            ? 'Replaces the entire canvas with the generated page/section.'
-            : 'Appends the generated blocks below what is already on the canvas.'}
-        </p>
-      </div>
+      )}
 
-      {isPage && imageFile && (
+      {isPage && imageFile && !fullWebsiteMode && (
         <label className="flex items-start gap-2 rounded-md border p-3 text-xs">
           <input
             type="checkbox"
@@ -667,6 +781,75 @@ export default function PromptPanel() {
         )}
       </div>
 
+      {generateStatus ? (
+        <p className="text-xs text-muted-foreground flex items-center gap-2">
+          <Loader2 className="h-3.5 w-3.5 animate-spin shrink-0" />
+          {generateStatus}
+        </p>
+      ) : null}
+
+      {lastSiteSummary && (
+        <div className="space-y-2 rounded-md border p-3 text-xs">
+          <div className="font-medium text-sm">
+            Site created{lastSiteSummary.brand ? `: ${lastSiteSummary.brand}` : ''}
+          </div>
+          {lastSiteSummary.research?.niche && (
+            <div className="text-muted-foreground">
+              Research niche: {lastSiteSummary.research.niche}
+              {lastSiteSummary.research.source ? ` (${lastSiteSummary.research.source})` : ''}
+            </div>
+          )}
+          {lastSiteSummary.research?.references &&
+            lastSiteSummary.research.references.length > 0 && (
+              <div className="text-muted-foreground">
+                Inspired by:{' '}
+                {lastSiteSummary.research.references
+                  .slice(0, 8)
+                  .map((r) => r.hostname)
+                  .join(', ')}
+              </div>
+            )}
+          {lastSiteSummary.research?.palette && (
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-muted-foreground">Palette:</span>
+              {[
+                lastSiteSummary.research.palette.primaryColor,
+                lastSiteSummary.research.palette.secondaryColor,
+                lastSiteSummary.research.palette.backgroundColor,
+                lastSiteSummary.research.palette.textColor,
+              ]
+                .filter(Boolean)
+                .map((hex) => (
+                  <span
+                    key={hex}
+                    title={hex}
+                    className="inline-block h-3.5 w-3.5 rounded-sm border"
+                    style={{ backgroundColor: hex }}
+                  />
+                ))}
+            </div>
+          )}
+          <ul className="space-y-0.5 text-muted-foreground">
+            {lastSiteSummary.pages.map((p) => (
+              <li key={`${p.pageType}-${p.slug}`}>
+                {p.pageType}: {p.pageName || p.slug}
+                {p.isHome ? ' (home)' : ''}
+              </li>
+            ))}
+          </ul>
+          {lastSiteSummary.liveUrl && (
+            <a
+              href={lastSiteSummary.liveUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary underline"
+            >
+              Open live site
+            </a>
+          )}
+        </div>
+      )}
+
       <div className="grid grid-cols-2 gap-2">
         <Button type="button" disabled={!canGenerate} onClick={handleGenerate}>
           {isGenerating ? (
@@ -675,12 +858,16 @@ export default function PromptPanel() {
             <Wand2 className="mr-2 h-4 w-4" />
           )}
           {isGenerating
-            ? 'Generating'
-            : imageFile
-              ? applyMode === 'replace'
-                ? 'Generate page'
-                : 'Generate blocks'
-              : 'Generate'}
+            ? fullWebsiteMode
+              ? 'Building site'
+              : 'Generating'
+            : fullWebsiteMode
+              ? 'Generate website'
+              : imageFile
+                ? applyMode === 'replace'
+                  ? 'Generate page'
+                  : 'Generate blocks'
+                : 'Generate'}
         </Button>
         <Button type="button" variant="outline" onClick={handleClear}>
           <Trash2 className="mr-2 h-4 w-4" />

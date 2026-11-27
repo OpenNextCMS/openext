@@ -21,7 +21,8 @@ export default function LeftSidebar() {
   const [pages, setPages] = useState<Page[]>([]);
   const [formData, setFormData] = useState<Page | null>(null);
   const [openPage, setOpenPage] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);  const fetchPageById = useCallback(async () => {
+  const [isSaving, setIsSaving] = useState(false);
+  const fetchPageById = useCallback(async () => {
     try {
       const response = await fetch(apiUrl(`/api/pages/get-pages?key=allowMe`), {
         credentials: 'include',
@@ -41,6 +42,7 @@ export default function LeftSidebar() {
           pageType: page.pageType || 'page',
           isHome: page.isHome || false,
           isGlobal: page.isGlobal || false,
+          themeTemplate: (page as { themeTemplate?: string }).themeTemplate || '',
           isPublished: page.isPublished,
           createdAt: page.createdAt,
           updatedAt: page.updatedAt,
@@ -111,6 +113,7 @@ export default function LeftSidebar() {
           seoMeta: formData.seoMeta,
           isPublished: formData.isPublished,
           isGlobal: formData.isGlobal,
+          themeTemplate: formData.themeTemplate || undefined,
         }),
       });
 

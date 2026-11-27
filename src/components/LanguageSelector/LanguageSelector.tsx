@@ -66,7 +66,7 @@ export default function LanguageSelector() {
   };
 
   const handleSubmit = () => {
-    router.push('/mongodb-setup');
+    router.push('/database-choice');
   };
 
   useEffect(() => {

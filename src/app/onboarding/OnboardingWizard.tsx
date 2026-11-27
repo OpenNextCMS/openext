@@ -2,7 +2,6 @@
 import { apiUrl } from '@/lib/apiClient';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import Link from 'next/link';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   ArrowLeft,
@@ -46,6 +45,7 @@ export default function OnboardingWizard({ initialDraft }: { initialDraft?: Part
   const [step, setStep] = useState(0);
   const [phase, setPhase] = useState<Phase>('wizard');
   const [result, setResult] = useState<GenerateResult | null>(null);
+  const [skipping, setSkipping] = useState(false);
   const submittingRef = useRef(false);
 
   const update = useCallback(<K extends keyof WizardData>(key: K, value: WizardData[K]) => {
@@ -121,6 +121,23 @@ export default function OnboardingWizard({ initialDraft }: { initialDraft?: Part
       toast.error(err instanceof Error ? err.message : 'Something went wrong');
       setPhase('wizard');
       submittingRef.current = false;
+    }
+  };
+
+  const skipSetup = async () => {
+    if (skipping || submittingRef.current) return;
+    setSkipping(true);
+    try {
+      const res = await fetch(apiUrl('/api/onboarding/skip'), { method: 'POST' });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(json?.error?.message || 'Could not skip setup');
+      }
+      toast.success('Setup skipped — you can customize anytime from the dashboard');
+      window.location.assign('/dashboard');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Could not skip setup');
+      setSkipping(false);
     }
   };
 
@@ -214,33 +231,50 @@ export default function OnboardingWizard({ initialDraft }: { initialDraft?: Part
 
       {/* Footer nav */}
       <footer className="sticky bottom-0 border-t border-border bg-background/80 backdrop-blur">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4 sm:px-6">
+        <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-4 sm:px-6">
           <button
             type="button"
             onClick={back}
-            disabled={step === 0}
+            disabled={step === 0 || skipping}
             className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground disabled:opacity-40"
           >
             <ArrowLeft className="h-4 w-4" /> Back
           </button>
-          {step < STEPS.length - 1 ? (
+          <div className="flex items-center gap-2 sm:gap-3">
             <button
               type="button"
-              onClick={next}
-              disabled={!canProceed}
-              className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+              onClick={skipSetup}
+              disabled={skipping}
+              className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline disabled:opacity-40"
             >
-              Continue <ArrowRight className="h-4 w-4" />
+              {skipping ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" /> Skipping…
+                </>
+              ) : (
+                'Skip for now'
+              )}
             </button>
-          ) : (
-            <button
-              type="button"
-              onClick={generate}
-              className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
-            >
-              <Sparkles className="h-4 w-4" /> Generate Website
-            </button>
-          )}
+            {step < STEPS.length - 1 ? (
+              <button
+                type="button"
+                onClick={next}
+                disabled={!canProceed || skipping}
+                className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                Continue <ArrowRight className="h-4 w-4" />
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={generate}
+                disabled={skipping}
+                className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-40"
+              >
+                <Sparkles className="h-4 w-4" /> Generate Website
+              </button>
+            )}
+          </div>
         </div>
       </footer>
     </div>
@@ -580,12 +614,17 @@ function SuccessScreen({ result, name }: { result: GenerateResult; name: string 
         >
           <ExternalLink className="h-4 w-4" /> Open Website
         </a>
-        <Link
-          href="/dashboard"
+        <button
+          type="button"
+          onClick={() => {
+            // Hard navigation: soft <Link> can reuse a stale Router Cache entry from
+            // login (/dashboard → /onboarding redirect) and appear stuck until refresh.
+            window.location.assign('/dashboard');
+          }}
           className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
         >
           <LayoutDashboard className="h-4 w-4" /> Go to Dashboard
-        </Link>
+        </button>
       </div>
     </div>
   );

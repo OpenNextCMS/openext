@@ -1,5 +1,6 @@
 import { ApiError } from '@/lib/api/errors';
 import { getAuthUser } from '@/lib/api/auth';
+import { normalizeRole, ROLE } from '@/lib/rbac/roles';
 import type { FormPermission } from './constants';
 
 /**
@@ -52,27 +53,16 @@ export function requireFormAccess(role: FormBuilderRole, action: FormAccessActio
   }
 }
 
-/**
- * Resolve the current user's plugin role from the session.
- * PLACEHOLDER: maps the repo's numeric roles (SuperAdmin 0 / Admin 1 / Editor 2
- * / Author 3) onto Owner/Admin/Editor/Viewer; defaults to Admin when no claim is
- * available. Wire to the real user→role lookup later. Matches Menu Redirect.
- */
+/** Map CMS numeric role to Form Builder tier. Authors have no form-builder access. */
+export function mapRoleToFormBuilderTier(role: number | string | undefined | null): FormBuilderRole {
+  const r = normalizeRole(role);
+  if (r === ROLE.SUPER_ADMIN) return 'Owner';
+  if (r === ROLE.ADMIN) return 'Admin';
+  if (r === ROLE.EDITOR) return 'Editor';
+  return 'Viewer';
+}
+
 export async function getCurrentFormRole(): Promise<FormBuilderRole> {
   const user = await getAuthUser();
-  const claim = (user as { role?: string | number } | null)?.role;
-  if (typeof claim === 'string') {
-    const r = claim.toLowerCase();
-    if (r.includes('owner') || r.includes('super')) return 'Owner';
-    if (r.includes('admin')) return 'Admin';
-    if (r.includes('editor')) return 'Editor';
-    if (r.includes('viewer') || r.includes('author')) return 'Viewer';
-  }
-  if (typeof claim === 'number') {
-    if (claim === 0) return 'Owner';
-    if (claim === 1) return 'Admin';
-    if (claim === 2) return 'Editor';
-    return 'Viewer';
-  }
-  return 'Admin';
+  return mapRoleToFormBuilderTier(user?.role);
 }

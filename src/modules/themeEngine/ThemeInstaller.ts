@@ -19,6 +19,7 @@ import {
   THEMES_ROOT,
 } from './config';
 import type { ThemeInstallLogEntry, ThemeManifest, ThemeValidationIssue } from './types';
+import { hashThemeAssets } from './themeAssetPaths';
 
 /**
  * §4.3 ThemeInstaller — orchestrate ZIP → validated → installed-on-disk →
@@ -79,6 +80,43 @@ function assertInsideTarget(targetDir: string, relativePath: string): string {
     throw new ThemeInstallError(`Archive entry "${relativePath}" resolves outside the extraction target (Zip Slip).`);
   }
   return resolved;
+}
+
+/** True for directory-only ZIP entries (some Windows archivers emit these as zero-byte files). */
+function isDirectoryPlaceholder(archivePath: string, entry: JSZip.JSZipObject): boolean {
+  if (entry.dir) return true;
+  const normalized = archivePath.replace(/\\/g, '/');
+  if (normalized.endsWith('/')) return true;
+  const { uncompressed } = entrySizes(entry);
+  if (uncompressed === 0 && !path.basename(normalized).includes('.')) {
+    // e.g. "kinetic-typography/blocks/" stored as dir:false with 0 bytes
+    return true;
+  }
+  return false;
+}
+
+/** Ensure parent directories exist; remove mistaken empty file placeholders from ZIP tools. */
+async function ensureParentDirectory(filePath: string): Promise<void> {
+  const parent = path.dirname(filePath);
+  if (parent === filePath) return;
+
+  try {
+    const stat = await fs.stat(parent);
+    if (stat.isDirectory()) return;
+    if (stat.isFile() && stat.size === 0) {
+      await fs.unlink(parent);
+    } else {
+      throw new ThemeInstallError(
+        `Archive path conflict: "${path.basename(parent)}" exists as a file, not a directory. Re-pack the theme ZIP without directory stub entries.`
+      );
+    }
+  } catch (err) {
+    const code = (err as NodeJS.ErrnoException).code;
+    if (code !== 'ENOENT' && !(err instanceof ThemeInstallError)) throw err;
+    if (err instanceof ThemeInstallError) throw err;
+  }
+
+  await fs.mkdir(parent, { recursive: true });
 }
 
 export class ThemeInstaller {
@@ -158,7 +196,7 @@ export class ThemeInstaller {
       tmpDir = null; // ownership transferred to the permanent install path
 
       // ---- 6b. content-hash style.css/theme.js ONCE, at install time (spec §4.9) --
-      const assetHashes = await this.hashAssets(destDir);
+      const assetBundle = await this.hashAssets(destDir);
 
       // ---- 7. persist the `themes` document (via ThemeRegistry, spec §4.3 step 7) --
       stamp('success', 'ok', 'Installed successfully.');
@@ -168,7 +206,8 @@ export class ThemeInstaller {
         checksum,
         ctx.installedBy,
         log,
-        assetHashes
+        { stylesheet: assetBundle.stylesheet, script: assetBundle.script },
+        assetBundle.paths
       );
 
       // Upgrade succeeded — the aside copy of the old install is no longer needed.
@@ -199,7 +238,7 @@ export class ThemeInstaller {
       throw new ThemeInstallError('The uploaded file is not a valid ZIP archive.');
     }
 
-    const rawEntries = Object.values(zip.files).filter((f) => !f.dir);
+    const rawEntries = Object.values(zip.files).filter((f) => !f.dir && !isDirectoryPlaceholder(f.name, f));
     if (rawEntries.length === 0) throw new ThemeInstallError('The archive contains no files.');
     if (rawEntries.length > MAX_ENTRIES) {
       throw new ThemeInstallError(`Archive has too many entries (>${MAX_ENTRIES}) — possible zip bomb.`);
@@ -237,11 +276,11 @@ export class ThemeInstaller {
         // Strip the wrapping folder (if any) so paths land package-relative.
         if (rootPrefix && !archivePath.startsWith(rootPrefix)) continue;
         const relativePath = rootPrefix ? archivePath.slice(rootPrefix.length) : archivePath;
-        if (!relativePath) continue;
+        if (!relativePath || relativePath.endsWith('/')) continue;
 
         const targetPath = assertInsideTarget(tmpDir, relativePath);
         const content = await entry.async('nodebuffer');
-        await fs.mkdir(path.dirname(targetPath), { recursive: true });
+        await ensureParentDirectory(targetPath);
         await fs.writeFile(targetPath, content);
       }
     } catch (err) {
@@ -283,25 +322,22 @@ export class ThemeInstaller {
   }
 
   /**
-   * Content-hash `assets/style.css` and `assets/theme.js` ONCE, right after the
-   * install move (spec §4.9 — `AssetManager` never re-hashes per request).
-   * Both files are optional; a missing one just leaves that hash undefined.
+   * Content-hash styles/scripts ONCE after install (supports styles/ and assets/ paths).
    */
-  private async hashAssets(destDir: string): Promise<{ stylesheet?: string; script?: string }> {
-    const hashes: { stylesheet?: string; script?: string } = {};
-    const targets: [key: 'stylesheet' | 'script', rel: string][] = [
-      ['stylesheet', path.join('assets', 'style.css')],
-      ['script', path.join('assets', 'theme.js')],
-    ];
-    for (const [key, rel] of targets) {
-      try {
-        const content = await fs.readFile(path.join(destDir, rel));
-        hashes[key] = createHash('sha256').update(content).digest('hex');
-      } catch {
-        // File doesn't exist — this theme simply has no stylesheet/script.
-      }
-    }
-    return hashes;
+  private async hashAssets(destDir: string): Promise<{
+    stylesheet?: string;
+    script?: string;
+    paths?: { stylesheet?: string; script?: string };
+  }> {
+    const discovered = await hashThemeAssets(destDir);
+    return {
+      stylesheet: discovered.stylesheetHash,
+      script: discovered.scriptHash,
+      paths: {
+        stylesheet: discovered.stylesheet,
+        script: discovered.script,
+      },
+    };
   }
 }
 

@@ -5,6 +5,13 @@ import {
   type ParsedPluginManifest,
 } from '@/lib/plugins/manifest';
 import {
+  defaultApiEntry,
+  defaultMigrationsDir,
+  defaultModelsDir,
+  normalizeBackendEntryPath,
+  PLUGIN_API_DIR,
+} from '@/lib/plugins/pluginLayout';
+import {
   BLOCKED_PLUGIN_PATH_SEGMENTS,
   isBackendRelativePath,
   isFrontendRelativePath,
@@ -15,6 +22,16 @@ const BLOCKED_BACKEND_FILES = new Set([
   'node_modules',
   '.git',
 ]);
+
+function isAllowedBackendRoot(relativePath: string): boolean {
+  return (
+    relativePath.startsWith(`${PLUGIN_API_DIR}/`) ||
+    relativePath === `${PLUGIN_API_DIR}` ||
+    relativePath.startsWith('server/') ||
+    relativePath === 'server' ||
+    relativePath === 'package.json'
+  );
+}
 
 export function assertSafeBackendPath(relativePath: string, label: string): string {
   const normalized = relativePath.replace(/\\/g, '/').replace(/^\/+/, '');
@@ -32,8 +49,8 @@ export function assertSafeBackendPath(relativePath: string, label: string): stri
     }
   }
 
-  if (!normalized.startsWith('server/') && normalized !== 'package.json') {
-    throw new Error(`${label} must be under server/ or package.json`);
+  if (!isAllowedBackendRoot(normalized)) {
+    throw new Error(`${label} must be under api/ (or legacy server/) or package.json`);
   }
 
   return normalized;
@@ -51,14 +68,17 @@ export function validateBackendManifest(manifest: ParsedPluginManifest, relative
 } {
   const serverEntryRaw =
     typeof manifest.serverEntry === 'string' && manifest.serverEntry.trim()
-      ? manifest.serverEntry.trim()
+      ? normalizeBackendEntryPath(manifest.serverEntry.trim())
       : undefined;
 
+  const hasApiFolder = relativePaths.some(
+    (filePath) => filePath === PLUGIN_API_DIR || filePath.startsWith(`${PLUGIN_API_DIR}/`)
+  );
   const hasServerFolder = relativePaths.some(
     (filePath) => filePath === 'server' || filePath.startsWith('server/')
   );
 
-  const hasBackend = Boolean(serverEntryRaw || hasServerFolder);
+  const hasBackend = Boolean(serverEntryRaw || hasApiFolder || hasServerFolder);
   if (!hasBackend) {
     return {
       migrations: [],
@@ -69,13 +89,11 @@ export function validateBackendManifest(manifest: ParsedPluginManifest, relative
     };
   }
 
-  let serverEntry = serverEntryRaw;
+  let serverEntry = serverEntryRaw ?? defaultApiEntry(relativePaths);
   if (!serverEntry) {
-    if (relativePaths.includes('server/index.js')) {
-      serverEntry = 'server/index.js';
-    } else {
-      throw new Error('Backend plugin requires manifest.serverEntry or server/index.js');
-    }
+    throw new Error(
+      `Backend plugin requires manifest.serverEntry or ${PLUGIN_API_DIR}/index.js (or legacy server/index.js)`
+    );
   }
 
   serverEntry = assertSafeBackendPath(serverEntry, 'manifest.serverEntry');
@@ -84,16 +102,16 @@ export function validateBackendManifest(manifest: ParsedPluginManifest, relative
   }
 
   const migrations = Array.isArray(manifest.migrations)
-    ? manifest.migrations.map((entry) => assertSafeBackendPath(String(entry), 'manifest.migrations'))
-    : relativePaths.some((p) => p.startsWith('server/migrations/'))
-      ? ['server/migrations']
-      : [];
+    ? manifest.migrations.map((entry) =>
+        assertSafeBackendPath(normalizeBackendEntryPath(String(entry)), 'manifest.migrations')
+      )
+    : defaultMigrationsDir(relativePaths);
 
   const models = Array.isArray(manifest.models)
-    ? manifest.models.map((entry) => assertSafeBackendPath(String(entry), 'manifest.models'))
-    : relativePaths.some((p) => p.startsWith('server/models/'))
-      ? ['server/models']
-      : [];
+    ? manifest.models.map((entry) =>
+        assertSafeBackendPath(normalizeBackendEntryPath(String(entry)), 'manifest.models')
+      )
+    : defaultModelsDir(relativePaths);
 
   const permissions = Array.isArray(manifest.permissions)
     ? manifest.permissions.filter((p): p is string => typeof p === 'string' && p.trim().length > 0)
@@ -101,12 +119,15 @@ export function validateBackendManifest(manifest: ParsedPluginManifest, relative
 
   const installHook =
     typeof manifest.installHook === 'string' && manifest.installHook.trim()
-      ? assertSafeBackendPath(manifest.installHook.trim(), 'manifest.installHook')
+      ? assertSafeBackendPath(normalizeBackendEntryPath(manifest.installHook.trim()), 'manifest.installHook')
       : undefined;
 
   const uninstallHook =
     typeof manifest.uninstallHook === 'string' && manifest.uninstallHook.trim()
-      ? assertSafeBackendPath(manifest.uninstallHook.trim(), 'manifest.uninstallHook')
+      ? assertSafeBackendPath(
+          normalizeBackendEntryPath(manifest.uninstallHook.trim()),
+          'manifest.uninstallHook'
+        )
       : undefined;
 
   if (installHook && !relativePaths.includes(installHook)) {

@@ -19,9 +19,18 @@ export class ThemeRegistry {
     checksum: string,
     installedBy: Types.ObjectId | string,
     installLog: ThemeInstallLogEntry[] = [],
-    assetHashes?: { stylesheet?: string; script?: string }
+    assetHashes?: { stylesheet?: string; script?: string },
+    assetPaths?: { stylesheet?: string; script?: string }
   ): Promise<IThemeEngineThemeDocument> {
-    return themeRepository.upsertInstalled({ manifest, installPath, checksum, installedBy, installLog, assetHashes });
+    return themeRepository.upsertInstalled({
+      manifest,
+      installPath,
+      checksum,
+      installedBy,
+      installLog,
+      assetHashes,
+      assetPaths,
+    });
   }
 
   async list(): Promise<IThemeEngineThemeDocument[]> {
@@ -76,6 +85,60 @@ export class ThemeRegistry {
     if (settings.activeThemeSlug === slug) throw new ThemeActiveLockedError(slug);
     await themeRepository.remove(slug);
     themeCache.invalidateTheme(slug);
+  }
+
+  /**
+   * Roll back to the theme that was active before the most recent activation.
+   * Returns the slug that was restored.
+   */
+  async rollback(activatedBy: Types.ObjectId | string): Promise<string> {
+    let restoredSlug = '';
+    await themeRepository.withSession(async (session) => {
+      restoredSlug = await themeRepository.rollbackToPrevious(activatedBy, session);
+    });
+    themeCache.invalidateActive();
+    return restoredSlug;
+  }
+
+  async getSettings() {
+    return themeRepository.getSettings();
+  }
+
+  async getTemplates(slug: string) {
+    const theme = await this.getBySlug(slug);
+    if (!theme) throw new ThemeNotFoundError(slug);
+    return theme.templates?.length
+      ? theme.templates
+      : (theme.manifest.templateRegistry ?? []);
+  }
+
+  async getBlocks(slug: string) {
+    const theme = await this.getBySlug(slug);
+    if (!theme) throw new ThemeNotFoundError(slug);
+    return theme.manifest.blocks ?? [];
+  }
+
+  async getPartials(slug: string) {
+    const theme = await this.getBySlug(slug);
+    if (!theme) throw new ThemeNotFoundError(slug);
+    return (theme.partials as Record<string, string>) ?? theme.manifest.partials ?? {};
+  }
+
+  async getSettingsSchema(slug: string) {
+    const theme = await this.getBySlug(slug);
+    if (!theme) throw new ThemeNotFoundError(slug);
+    const { flattenSettingsSchema } = await import('./settingsSchema');
+    return flattenSettingsSchema(theme.manifest);
+  }
+
+  async getThemeDefaults(slug: string) {
+    const theme = await this.getBySlug(slug);
+    if (!theme) throw new ThemeNotFoundError(slug);
+    return theme.manifest.defaults ?? {};
+  }
+
+  async setHomepageTemplateKey(key: string | null): Promise<void> {
+    await themeRepository.setHomepageTemplateKey(key);
   }
 }
 

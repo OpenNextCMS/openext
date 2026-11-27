@@ -71,7 +71,8 @@ export default function Toolbar({ toggleSidebar, onViewChange }: ToolbarProps) {
   const historyFuture = useAppSelector((state) => state.canvas.historyFuture) || [];
   
   const canUndo = historyPast.length > 0;
-  const canRedo = historyFuture.length > 0;  useEffect(() => {
+  const canRedo = historyFuture.length > 0;
+  useEffect(() => {
     if (slug) {
       setPageMetadata((prev) => ({ ...prev, slug, pageName: slug }));
     }

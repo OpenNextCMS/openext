@@ -6,6 +6,11 @@ import { BlogPostSchema } from '@/models/BlogPost';
 import { roleSchema } from '@/models/Role';
 import { PluginSchema } from '@/models/Plugin';
 import { PluginMigrationSchema, type IPluginMigrationDocument } from '@/models/PluginMigration';
+import { PluginExtensionSchema } from '@/models/PluginExtension';
+import {
+  ExtensionMigrationSchema,
+  type IExtensionMigrationDocument,
+} from '@/models/ExtensionMigration';
 import { PluginDataSchema, type IPluginDataDocument } from '@/models/PluginData';
 import { CategorySchema } from '@/models/Category';
 import { TagSchema } from '@/models/Tag';
@@ -20,6 +25,10 @@ import { MenuRedirectHistorySchema } from '@/models/MenuRedirectHistory';
 import { FormSchema } from '@/models/Form';
 import { FormSubmissionSchema } from '@/models/FormSubmission';
 import { FormVersionSchema } from '@/models/FormVersion';
+import {
+  SocialMediaSettingsSchema,
+  SocialMediaPostSchema,
+} from '@/models/SocialMediaSettings';
 import { ThemeSchema } from '@/models/Theme';
 import { WebsitePreferencesSchema, IWebsitePreferences } from '@/models/WebsitePreferences';
 import type {
@@ -32,6 +41,7 @@ import type {
   ISubmissionDocument,
   IFormVersionDocument,
 } from '@/types/form-builder';
+import type { ISocialMediaPost, ISocialMediaSettings } from '@/types/social-media';
 import type { IThemeDocument } from '@/types/theme';
 import type {
   PageDocument,
@@ -49,10 +59,35 @@ import type {
 } from '@/types/index';
 import { getDynamicEnv } from '@/utils/dynamicEnv';
 import { withDbName } from '@/utils/mongoUri';
+import { isMysql, isPostgres } from '@/lib/db/config';
+import { closeMysqlPool, getMysqlConnection } from '@/lib/db/mysql/adapter';
+import { closePostgresPool, getPostgresConnection } from '@/lib/db/postgres/adapter';
 
 let userDb: mongoose.Connection | null = null;
 let pageDb: mongoose.Connection | null = null;
 let masterDb: mongoose.Connection | null = null;
+
+/** Prevent connect stampedes under concurrent cold starts. */
+let userDbConnecting: Promise<mongoose.Connection> | null = null;
+let pageDbConnecting: Promise<mongoose.Connection> | null = null;
+let masterDbConnecting: Promise<mongoose.Connection> | null = null;
+
+/** Run Role/Settings seed and system-theme seed once per process, not on every reconnect. */
+let userDbSeeded = false;
+let pageDbThemesSeeded = false;
+
+function mongoPoolOptions(): mongoose.ConnectOptions {
+  const maxPoolSize = Number(process.env.MONGODB_MAX_POOL_SIZE) || 25;
+  const minPoolSize = Number(process.env.MONGODB_MIN_POOL_SIZE) || 2;
+  return {
+    maxPoolSize: Math.max(1, maxPoolSize),
+    minPoolSize: Math.max(0, Math.min(minPoolSize, maxPoolSize)),
+    maxIdleTimeMS: Number(process.env.MONGODB_MAX_IDLE_MS) || 30_000,
+    waitQueueTimeoutMS: Number(process.env.MONGODB_WAIT_QUEUE_MS) || 10_000,
+    serverSelectionTimeoutMS: Number(process.env.MONGODB_SERVER_SELECTION_MS) || 30_000,
+    socketTimeoutMS: Number(process.env.MONGODB_SOCKET_TIMEOUT_MS) || 45_000,
+  };
+}
 
 async function createConnectionUri(dbName: string) {
   const {
@@ -93,11 +128,37 @@ async function createConnectionUri(dbName: string) {
 }
 
 export async function getMasterDbConnection() {
-  if (!masterDb) {
-    const uri = await createConnectionUri('master');
-    masterDb = await mongoose.createConnection(uri);
+  if (masterDb && (isMysql() || isPostgres() || masterDb.readyState === 1)) {
+    return masterDb;
   }
-  return masterDb;
+
+  if (masterDbConnecting) return masterDbConnecting;
+
+  masterDbConnecting = (async () => {
+    if (isMysql()) {
+      masterDb = (await getMysqlConnection('master')) as unknown as mongoose.Connection;
+    } else if (isPostgres()) {
+      masterDb = (await getPostgresConnection('master')) as unknown as mongoose.Connection;
+    } else {
+      const uri = await createConnectionUri('master');
+      masterDb = await mongoose.createConnection(uri, mongoPoolOptions()).asPromise();
+      masterDb.on('error', (error) => {
+        console.error('MongoDB master database connection error:', error);
+        masterDb = null;
+      });
+      masterDb.on('disconnected', () => {
+        console.warn('MongoDB master database disconnected');
+        masterDb = null;
+      });
+    }
+    return masterDb!;
+  })();
+
+  try {
+    return await masterDbConnecting;
+  } finally {
+    masterDbConnecting = null;
+  }
 }
 
 export const getUserDbConnection = async () => {
@@ -108,14 +169,22 @@ export const getUserDbConnection = async () => {
     throw new Error('USER_DB_NAME environment variable is not set');
   }
 
-  try {
-    if (!userDb) {
-      const uri = await createConnectionUri(USER_DB_NAME);
-      userDb = await mongoose.createConnection(uri, {
-        maxPoolSize: 10,
-        serverSelectionTimeoutMS: 30000,
-        socketTimeoutMS: 45000,
-      });
+  if (userDb && (isMysql() || isPostgres() || userDb.readyState === 1)) {
+    return userDb;
+  }
+
+  if (userDbConnecting) return userDbConnecting;
+
+  userDbConnecting = (async () => {
+    try {
+      if (isMysql()) {
+        userDb = (await getMysqlConnection(USER_DB_NAME)) as unknown as mongoose.Connection;
+      } else if (isPostgres()) {
+        userDb = (await getPostgresConnection(USER_DB_NAME)) as unknown as mongoose.Connection;
+      } else {
+        const uri = await createConnectionUri(USER_DB_NAME);
+        userDb = await mongoose.createConnection(uri, mongoPoolOptions()).asPromise();
+      }
 
       if (!userDb.models.User) {
         userDb.model<IUser>('User', userSchema);
@@ -133,62 +202,73 @@ export const getUserDbConnection = async () => {
         userDb.model<IPluginMigrationDocument>('PluginMigration', PluginMigrationSchema);
       }
 
-      const RoleModel = userDb.models.Role || userDb.model('Role', roleSchema);
-      const existingCount = await RoleModel.countDocuments({});
-      if (existingCount === 0) {
-        const roles = [
-          { name: 'SuperAdmin', value: 0 },
-          { name: 'Admin', value: 1 },
-          { name: 'Editor', value: 2 },
-          { name: 'Author', value: 3 },
-          { name: 'Author', value: 3 },
-        ];
-        for (const role of roles) {
-          await RoleModel.create(role);
+      if (!userDbSeeded) {
+        const RoleModel = userDb.models.Role || userDb.model('Role', roleSchema);
+        const existingCount = await RoleModel.countDocuments({});
+        if (existingCount === 0) {
+          const roles = [
+            { name: 'SuperAdmin', value: 0, type: 'system' },
+            { name: 'Admin', value: 1, type: 'system' },
+            { name: 'Editor', value: 2, type: 'system' },
+            { name: 'Author', value: 3, type: 'system' },
+          ];
+          for (const role of roles) {
+            await RoleModel.create(role);
+          }
+          console.log('Roles seeded in user DB.');
         }
-        console.log('Roles seeded in user DB.');
+
+        const SettingsModel = userDb.models.Settings || userDb.model('Settings', settingsSchema);
+        const settings = await SettingsModel.findOne({});
+        if (settings) {
+          const themeExists: boolean = (settings as ISettingsDocument).themes.some(
+            (theme: ITheme) => theme.name === 'openNextDefault'
+          );
+          if (!themeExists) {
+            settings.themes.push({ name: 'openNextDefault', isActive: true });
+            await settings.save();
+          }
+        } else {
+          await SettingsModel.create({
+            siteTitle: 'Default Site',
+            language: 'en',
+            timeZone: 'UTC',
+            dateFormat: 'F j, Y',
+            timeFormat: 'g:i a',
+            themes: [{ name: 'openNextDefault', isActive: true }],
+          });
+        }
+        userDbSeeded = true;
       }
 
-      const SettingsModel = userDb.models.Settings || userDb.model('Settings', settingsSchema);
-      const settings = await SettingsModel.findOne({});
-      if (settings) {
-        const themeExists: boolean = (settings as ISettingsDocument).themes.some(
-          (theme: ITheme) => theme.name === 'openNextDefault'
-        );
-        if (!themeExists) {
-          settings.themes.push({ name: 'openNextDefault', isActive: true });
-          await settings.save();
-        }
-      } else {
-        await SettingsModel.create({
-          siteTitle: 'Default Site',
-          language: 'en',
-          timeZone: 'UTC',
-          dateFormat: 'F j, Y',
-          timeFormat: 'g:i a',
-          themes: [{ name: 'openNextDefault', isActive: true }],
+      if (!isMysql() && !isPostgres()) {
+        userDb.on('error', (error) => {
+          console.error('MongoDB user database connection error:', error);
+          userDb = null;
+        });
+
+        userDb.on('connected', () => {
+          console.log('MongoDB user database connected successfully');
+        });
+
+        userDb.on('disconnected', () => {
+          console.warn('MongoDB user database disconnected');
+          userDb = null;
         });
       }
 
-      userDb.on('error', (error) => {
-        console.error('MongoDB user database connection error:', error);
-        userDb = null;
-      });
-
-      userDb.on('connected', () => {
-        console.log('MongoDB user database connected successfully');
-      });
-
-      userDb.on('disconnected', () => {
-        console.warn('MongoDB user database disconnected');
-        userDb = null;
-      });
+      return userDb!;
+    } catch (error) {
+      console.error('MongoDB connection error:', error);
+      userDb = null;
+      throw error;
     }
+  })();
 
-    return userDb;
-  } catch (error) {
-    console.error('MongoDB connection error:', error);
-    throw error;
+  try {
+    return await userDbConnecting;
+  } finally {
+    userDbConnecting = null;
   }
 };
 
@@ -196,14 +276,22 @@ export async function getPageDbConnection() {
   const dynamicEnv = getDynamicEnv();
   const PAGE_DB_NAME = dynamicEnv.PAGE_DB_NAME || 'pages';
 
-  try {
-    if (!pageDb || pageDb.readyState !== 1) {
-      const uri = await createConnectionUri(PAGE_DB_NAME);
-      pageDb = await mongoose.createConnection(uri, {
-        serverSelectionTimeoutMS: 30000,
-        socketTimeoutMS: 45000,
-        maxPoolSize: 10,
-      }).asPromise();
+  if (pageDb && (isMysql() || isPostgres() || pageDb.readyState === 1)) {
+    return pageDb;
+  }
+
+  if (pageDbConnecting) return pageDbConnecting;
+
+  pageDbConnecting = (async () => {
+    try {
+      if (isMysql()) {
+        pageDb = (await getMysqlConnection(PAGE_DB_NAME)) as unknown as mongoose.Connection;
+      } else if (isPostgres()) {
+        pageDb = (await getPostgresConnection(PAGE_DB_NAME)) as unknown as mongoose.Connection;
+      } else {
+        const uri = await createConnectionUri(PAGE_DB_NAME);
+        pageDb = await mongoose.createConnection(uri, mongoPoolOptions()).asPromise();
+      }
 
       if (!pageDb.models.Page) {
         pageDb.model<PageDocument>('Page', PageSchema);
@@ -259,6 +347,14 @@ export async function getPageDbConnection() {
         pageDb.model<IFormVersionDocument>('FormVersion', FormVersionSchema);
       }
 
+      // Social Media Integration plugin collections (per-tenant page DB).
+      if (!pageDb.models.SocialMediaSettings) {
+        pageDb.model<ISocialMediaSettings>('SocialMediaSettings', SocialMediaSettingsSchema);
+      }
+      if (!pageDb.models.SocialMediaPost) {
+        pageDb.model<ISocialMediaPost>('SocialMediaPost', SocialMediaPostSchema);
+      }
+
       // Site-wide Theme Builder collection (per-tenant page DB).
       if (!pageDb.models.Theme) {
         pageDb.model<IThemeDocument>('Theme', ThemeSchema);
@@ -269,38 +365,45 @@ export async function getPageDbConnection() {
         pageDb.model<IWebsitePreferences>('WebsitePreferences', WebsitePreferencesSchema);
       }
 
-      // Auto-seed the in-code system themes. `seedSystemThemes` is an idempotent
-      // upsert-by-slug that only sets `isActive` on insert, so running it on
-      // every fresh connection (once per process) safely propagates newly-added
-      // system themes (e.g. Luxury/Dark) to existing tenants without disturbing
-      // an existing active selection. Best-effort: a seed failure must never
-      // break page loads.
-      try {
-        const { seedSystemThemes } = await import('@/lib/theme/seed');
-        await seedSystemThemes(pageDb);
-      } catch (seedErr) {
-        console.warn('⚠️ System theme auto-seed skipped:', seedErr);
+      // Auto-seed system themes once per process (idempotent upsert-by-slug).
+      if (!pageDbThemesSeeded) {
+        try {
+          const { seedSystemThemes } = await import('@/lib/theme/seed');
+          await seedSystemThemes(pageDb);
+          pageDbThemesSeeded = true;
+        } catch (seedErr) {
+          console.warn('⚠️ System theme auto-seed skipped:', seedErr);
+        }
       }
 
-      pageDb.on('error', (error) => {
-        console.error('❌ MongoDB page database connection error:', error);
-        pageDb = null;
-      });
+      if (!isMysql() && !isPostgres()) {
+        pageDb.on('error', (error) => {
+          console.error('❌ MongoDB page database connection error:', error);
+          pageDb = null;
+        });
 
-      pageDb.on('connected', () => {
-        console.log(`✅ MongoDB page database (${PAGE_DB_NAME}) connected successfully`);
-      });
+        pageDb.on('connected', () => {
+          console.log(`✅ MongoDB page database (${PAGE_DB_NAME}) connected successfully`);
+        });
 
-      pageDb.on('disconnected', () => {
-        console.warn('⚠️ MongoDB page database disconnected');
-        pageDb = null;
-      });
+        pageDb.on('disconnected', () => {
+          console.warn('⚠️ MongoDB page database disconnected');
+          pageDb = null;
+        });
+      }
+
+      return pageDb!;
+    } catch (error) {
+      console.error('❌ MongoDB page connection error:', error);
+      pageDb = null;
+      throw error;
     }
+  })();
 
-    return pageDb;
-  } catch (error) {
-    console.error('❌ MongoDB page connection error:', error);
-    throw error;
+  try {
+    return await pageDbConnecting;
+  } finally {
+    pageDbConnecting = null;
   }
 }
 export function getPageModel(pageDb: mongoose.Connection): mongoose.Model<PageDocument> {
@@ -458,6 +561,26 @@ export function getFormVersionModel(
   );
 }
 
+export function getSocialMediaSettingsModel(
+  pageDb: mongoose.Connection
+): mongoose.Model<ISocialMediaSettings> {
+  if (!pageDb) throw new Error('Page database connection not initialized');
+  return (
+    (pageDb.models.SocialMediaSettings as mongoose.Model<ISocialMediaSettings>) ||
+    pageDb.model<ISocialMediaSettings>('SocialMediaSettings', SocialMediaSettingsSchema)
+  );
+}
+
+export function getSocialMediaPostModel(
+  pageDb: mongoose.Connection
+): mongoose.Model<ISocialMediaPost> {
+  if (!pageDb) throw new Error('Page database connection not initialized');
+  return (
+    (pageDb.models.SocialMediaPost as mongoose.Model<ISocialMediaPost>) ||
+    pageDb.model<ISocialMediaPost>('SocialMediaPost', SocialMediaPostSchema)
+  );
+}
+
 export function getThemeModel(pageDb: mongoose.Connection): mongoose.Model<IThemeDocument> {
   if (!pageDb) throw new Error('Page database connection not initialized');
   return (
@@ -523,9 +646,31 @@ export function getPluginMigrationModel(): mongoose.Model<IPluginMigrationDocume
   );
 }
 
+export function getPluginExtensionModel(): mongoose.Model<Record<string, unknown>> {
+  if (!userDb) {
+    throw new Error('User database connection not initialized');
+  }
+  return (
+    (userDb.models.PluginExtension as mongoose.Model<Record<string, unknown>>) ||
+    userDb.model<Record<string, unknown>>('PluginExtension', PluginExtensionSchema)
+  );
+}
+
+export function getExtensionMigrationModel(): mongoose.Model<IExtensionMigrationDocument> {
+  if (!userDb) {
+    throw new Error('User database connection not initialized');
+  }
+  return (
+    (userDb.models.ExtensionMigration as mongoose.Model<IExtensionMigrationDocument>) ||
+    userDb.model<IExtensionMigrationDocument>('ExtensionMigration', ExtensionMigrationSchema)
+  );
+}
+
 export async function closeAllConnections() {
   await Promise.all([userDb?.close(), pageDb?.close(), masterDb?.close()]);
   userDb = null;
   pageDb = null;
   masterDb = null;
+  await closeMysqlPool();
+  await closePostgresPool();
 }

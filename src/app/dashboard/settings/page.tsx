@@ -11,7 +11,6 @@ import { languageNames, translations } from '../../../../public/locales/translat
 import Cookies from 'js-cookie';
 import moment from 'moment-timezone';
 import { toast } from 'sonner';
-import Image from 'next/image';
 import {
   Card,
   CardContent,
@@ -35,6 +34,7 @@ import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { AlertCircle, Check, Globe, Info, Upload } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { resolveSiteIconUrl } from '@/lib/media/siteIcon';
 import {
   Dialog,
   DialogContent,
@@ -43,19 +43,24 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { useTheme } from '@/context/ThemeContext';
+import S3StorageConfig from '@/components/settings/S3StorageConfig';
 
 const formSchema = z.object({
   siteTitle: z.string().min(1, 'Site title is required'),
   tagline: z.string().optional(),
   siteIcon: z.string().optional(),
   language: z.string().min(2, 'Language is required'),
+  multilingualEnabled: z.boolean().optional(),
+  enabledLanguages: z.array(z.string()).optional(),
   timeZone: z.string().min(2, 'Time zone is required'),
   dateFormat: z.string().min(2, 'Date format is required'),
   timeFormat: z.string().min(2, 'Time format is required'),
   activeTheme: z.string().optional(),
   imgSize: z.string().optional(),
+  maxPluginFiles: z.string().optional(),
+  maxPluginZipMb: z.string().optional(),
   enableDarkMode: z.boolean().optional(),
-  revisionHistory: z.boolean().optional(), // Add this line
+  revisionHistory: z.boolean().optional(),
 });
 
 const languages = Object.entries(languageNames).map(([code, name]) => ({
@@ -80,16 +85,23 @@ export default function SettingsPage() {
       tagline: '',
       siteIcon: '',
       language: 'en',
+      multilingualEnabled: false,
+      enabledLanguages: ['en'],
       timeZone: 'UTC',
       dateFormat: 'MMMM D, YYYY',
       timeFormat: 'h:mm a',
       activeTheme: 'default',
       imgSize: '5mb',
+      maxPluginFiles: '1000',
+      maxPluginZipMb: '100',
       enableDarkMode: false,
-      revisionHistory: false, // Add this line
+      revisionHistory: false,
     },
   });
   const siteIcon = watch('siteIcon');
+  const multilingualEnabled = watch('multilingualEnabled');
+  const enabledLanguages = watch('enabledLanguages') || [];
+  const defaultLanguage = watch('language');
   const { theme, setTheme } = useTheme();
 
   const [t, setT] = useState(translations.en);
@@ -118,7 +130,8 @@ export default function SettingsPage() {
     setValue('enableDarkMode', theme === 'dark');
   }, [theme, setValue]);
 
-  useEffect(() => {    const fetchSettingsData = async () => {
+  useEffect(() => {
+    const fetchSettingsData = async () => {
       try {
         setIsLoading(true);
         const response = await fetch(apiUrl(`/api/dashboard/settings`), {
@@ -130,6 +143,22 @@ export default function SettingsPage() {
           setValue('tagline', result.data.settings.tagline || '');
           setValue('siteIcon', result.data.settings.siteIcon || '');
           setValue('language', result.data.settings.language || 'en');
+          setValue('multilingualEnabled', !!result.data.settings.multilingualEnabled);
+          setValue(
+            'enabledLanguages',
+            Array.isArray(result.data.settings.enabledLanguages) &&
+              result.data.settings.enabledLanguages.length
+              ? result.data.settings.enabledLanguages
+              : [result.data.settings.language || 'en']
+          );
+          const multiOn =
+            !!result.data.settings.multilingualEnabled &&
+            Array.isArray(result.data.settings.enabledLanguages) &&
+            result.data.settings.enabledLanguages.length > 1;
+          Cookies.set('siteMultilingual', multiOn ? 'true' : 'false', {
+            expires: 365,
+            path: '/',
+          });
           setValue('timeZone', result.data.settings.timeZone || 'UTC');
           setValue('dateFormat', result.data.settings.dateFormat || 'MMMM D, YYYY');
           setValue('timeFormat', result.data.settings.timeFormat || 'h:mm a');
@@ -147,6 +176,24 @@ export default function SettingsPage() {
           );
           if (maxFileSizeSetting) {
             setValue('imgSize', maxFileSizeSetting.value || '5mb'); // Default fallback
+          }
+          const maxPluginFilesSetting = configArray.find(
+            (item: { key: string }) => item.key === 'maxPluginFiles'
+          );
+          if (maxPluginFilesSetting) {
+            setValue(
+              'maxPluginFiles',
+              String(maxPluginFilesSetting.value ?? '1000').replace(/\D/g, '') || '1000'
+            );
+          }
+          const maxPluginZipMbSetting = configArray.find(
+            (item: { key: string }) => item.key === 'maxPluginZipMb'
+          );
+          if (maxPluginZipMbSetting) {
+            setValue(
+              'maxPluginZipMb',
+              String(maxPluginZipMbSetting.value ?? '100').replace(/\D/g, '') || '100'
+            );
           }
 
           const uniqueThemes: Theme[] = Array.from(
@@ -176,7 +223,8 @@ export default function SettingsPage() {
     fetchSettingsData();
   }, [setValue]);
 
-  const handleSiteIconChange = async (e: React.ChangeEvent<HTMLInputElement>) => {    const file = e.target.files?.[0];
+  const handleSiteIconChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
     if (!file) return;
     const formData = new FormData();
     formData.append('file', file);
@@ -212,17 +260,34 @@ export default function SettingsPage() {
   ];
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    setIsLoading(true);    try {
+    setIsLoading(true);
+    try {
       // Map imgSize to the correct structure for MongoDB
       interface ConfigItem {
         key: string;
         value: string;
       }
 
-      const updatedConfig: ConfigItem[] = [{ key: 'maxFileSize', value: values.imgSize || '5mb' }];
+      const pluginFilesRaw = String(values.maxPluginFiles || '1000').replace(/\D/g, '') || '1000';
+      const pluginZipMbRaw = String(values.maxPluginZipMb || '100').replace(/\D/g, '') || '100';
+      const updatedConfig: ConfigItem[] = [
+        { key: 'maxFileSize', value: values.imgSize || '5mb' },
+        { key: 'maxPluginFiles', value: pluginFilesRaw },
+        { key: 'maxPluginZipMb', value: pluginZipMbRaw },
+      ];
 
       const updatedValues = {
         ...values,
+        enabledLanguages: [
+          ...new Set([
+            values.language,
+            ...(Array.isArray(values.enabledLanguages) ? values.enabledLanguages : []),
+          ]),
+        ],
+        multilingualEnabled:
+          !!values.multilingualEnabled &&
+          Array.isArray(values.enabledLanguages) &&
+          [...new Set([values.language, ...(values.enabledLanguages || [])])].length > 1,
         config: updatedConfig,
       };
 
@@ -239,6 +304,18 @@ export default function SettingsPage() {
 
       if (result.success) {
         Cookies.set('selectedLanguage', values.language, { expires: 7 });
+        Cookies.set('siteLocale', values.language, { expires: 365, path: '/' });
+        const multi =
+          !!values.multilingualEnabled &&
+          Array.isArray(values.enabledLanguages) &&
+          values.enabledLanguages.length > 1;
+        Cookies.set('siteMultilingual', multi ? 'true' : 'false', {
+          expires: 365,
+          path: '/',
+        });
+        setT(
+          translations[values.language as keyof typeof translations] as typeof translations.en
+        );
         setShowSuccessDialog(true);
       } else {
         setErrorMessage('Failed to save settings: ' + result.message);
@@ -305,13 +382,13 @@ export default function SettingsPage() {
                     <div className="flex items-center space-x-4 mt-2">
                       <div className="w-16 h-16 border rounded-lg overflow-hidden flex items-center justify-center bg-secondary">
                         {siteIcon ? (
-                          <Image
-                            src={`/siteicon/${siteIcon}`}
+                          // eslint-disable-next-line @next/next/no-img-element -- site icon may be local or arbitrary S3/CDN URL
+                          <img
+                            src={resolveSiteIconUrl(siteIcon) || `/siteicon/${siteIcon}`}
                             alt="Site Icon"
                             className="w-full h-full object-cover"
                             width={64}
                             height={64}
-                            priority
                           />
                         ) : (
                           <Globe className="text-muted-foreground" />
@@ -343,12 +420,28 @@ export default function SettingsPage() {
               <TabsContent value="localization" className="space-y-6">
                 <div className="space-y-4">
                   <div>
-                    <Label htmlFor="language">{t.profileSettings.language}</Label>
+                    <Label htmlFor="language">{t.profileSettings.language} (default)</Label>
                     <Controller
                       name="language"
                       control={control}
                       render={({ field }) => (
-                        <Select onValueChange={field.onChange} value={field.value}>
+                        <Select
+                          onValueChange={(code) => {
+                            field.onChange(code);
+                            const current = watch('enabledLanguages') || [];
+                            if (!current.includes(code)) {
+                              setValue('enabledLanguages', [...current, code], {
+                                shouldDirty: true,
+                              });
+                            }
+                            // Admin UI strings follow this selection immediately.
+                            Cookies.set('selectedLanguage', code, { expires: 7 });
+                            setT(
+                              translations[code as keyof typeof translations] as typeof translations.en
+                            );
+                          }}
+                          value={field.value}
+                        >
                           <SelectTrigger>
                             <SelectValue placeholder="Select language" />
                           </SelectTrigger>
@@ -362,7 +455,75 @@ export default function SettingsPage() {
                         </Select>
                       )}
                     />
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Default content language. Public URLs for this language stay unprefixed.
+                    </p>
                   </div>
+
+                  <div className="flex items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5 pr-4">
+                      <Label htmlFor="multilingualEnabled">Multilingual website</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Let visitors switch the website language when multiple languages are
+                        enabled. Page translation tools are not available — prepare locale pages
+                        outside this CMS if needed.
+                      </p>
+                    </div>
+                    <Controller
+                      name="multilingualEnabled"
+                      control={control}
+                      render={({ field }) => (
+                        <Switch
+                          id="multilingualEnabled"
+                          checked={!!field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      )}
+                    />
+                  </div>
+
+                  {multilingualEnabled ? (
+                    <div className="space-y-3 rounded-lg border p-4">
+                      <Label>Enabled public languages</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Select every language you want available on the public site. The default
+                        language is always included.
+                      </p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-64 overflow-y-auto">
+                        {languages.map((lang) => {
+                          const checked =
+                            enabledLanguages.includes(lang.value) ||
+                            lang.value === defaultLanguage;
+                          const locked = lang.value === defaultLanguage;
+                          return (
+                            <label
+                              key={lang.value}
+                              className="flex items-center gap-2 text-sm cursor-pointer"
+                            >
+                              <input
+                                type="checkbox"
+                                className="h-4 w-4"
+                                checked={checked}
+                                disabled={locked}
+                                onChange={(e) => {
+                                  const next = e.target.checked
+                                    ? [...new Set([...enabledLanguages, lang.value])]
+                                    : enabledLanguages.filter((c) => c !== lang.value);
+                                  if (!next.includes(defaultLanguage)) next.unshift(defaultLanguage);
+                                  setValue('enabledLanguages', next, { shouldDirty: true });
+                                }}
+                              />
+                              <span>
+                                {lang.label}{' '}
+                                <span className="text-muted-foreground">({lang.value})</span>
+                              </span>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ) : null}
+
                   <div>
                     <Label htmlFor="timeZone">{t.profileSettings.timeZone}</Label>
                     <Controller
@@ -490,6 +651,45 @@ export default function SettingsPage() {
                     <p className="text-gray-800 dark:text-gray-200">mb</p>
                   </div>
                 </div>
+                <div className="flex items-center justify-between gap-4 m-5">
+                  <div className="min-w-0 flex-1">
+                    <Label htmlFor="maxPluginZipMb">Max plugin ZIP size</Label>
+                    <p className="text-gray-600 dark:text-gray-200 text-sm mt-1">
+                      Maximum size of an uploaded plugin or extension ZIP in megabytes (default 100)
+                    </p>
+                  </div>
+                  <div className="flex items-center border border-gray-200 rounded bg-gray-200 dark:bg-black pr-3">
+                    <Input
+                      id="maxPluginZipMb"
+                      type="number"
+                      min={1}
+                      max={1024}
+                      className="w-20 mx-2"
+                      {...register('maxPluginZipMb', {
+                        setValueAs: (value) => String(value ?? '').replace(/\D/g, '') || '100',
+                      })}
+                    />
+                    <p className="text-gray-800 dark:text-gray-200">mb</p>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between gap-4 m-5">
+                  <div className="min-w-0 flex-1">
+                    <Label htmlFor="maxPluginFiles">Max plugin files</Label>
+                    <p className="text-gray-600 dark:text-gray-200 text-sm mt-1">
+                      Maximum number of files allowed inside an uploaded plugin ZIP (default 1000)
+                    </p>
+                  </div>
+                  <Input
+                    id="maxPluginFiles"
+                    type="number"
+                    min={1}
+                    max={100000}
+                    className="w-28"
+                    {...register('maxPluginFiles', {
+                      setValueAs: (value) => String(value ?? '').replace(/\D/g, '') || '1000',
+                    })}
+                  />
+                </div>
                 <div className="flex items-center justify-between m-5">
                   <Label htmlFor="revisionHistory">Revision History</Label>
                   <p className="text-gray-600 dark:text-gray-200 text-sm">
@@ -512,6 +712,7 @@ export default function SettingsPage() {
                     )}
                   />
                 </div>
+                <S3StorageConfig />
               </TabsContent>
             </Tabs>
           </CardContent>

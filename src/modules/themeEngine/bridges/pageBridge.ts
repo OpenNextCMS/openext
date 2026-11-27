@@ -1,4 +1,4 @@
-import type { CmsBlock, CmsPage } from '../types';
+import type { CmsBlock, CmsPage, PageContentType } from '../types';
 import { parseThemeSectionContent } from '../sectionSchema';
 
 /**
@@ -14,15 +14,62 @@ interface PageMetadata {
   slug?: string;
   pageName?: string;
   isHome?: boolean;
+  /** Per-page theme template key (e.g. "about", "product"). */
+  themeTemplate?: string;
+  /** Legacy nested shape: { theme: { template: "about" } } */
+  theme?: { template?: string };
+  pageType?: string;
+  contentType?: string;
   [key: string]: unknown;
 }
 
+const HOME_SLUGS = new Set(['home', 'index', 'default_home']);
+
+function isHomepage(metadata: PageMetadata, resolvedSlug: string): boolean {
+  if (metadata.isHome) return true;
+  return HOME_SLUGS.has(String(resolvedSlug || metadata.slug || '').toLowerCase());
+}
+
+function resolvePageType(metadata: PageMetadata, resolvedSlug: string, isHome: boolean): PageContentType {
+  if (isHome) return 'home';
+  const explicit = metadata.contentType ?? metadata.pageContentType;
+  if (typeof explicit === 'string') {
+    const normalized = explicit.toLowerCase();
+    const allowed: PageContentType[] = [
+      'page', 'post', 'archive', 'product', 'products', 'category',
+      'blog', 'blogPost', 'search', 'error', 'custom', 'home',
+    ];
+    if (allowed.includes(normalized as PageContentType)) {
+      return normalized as PageContentType;
+    }
+  }
+  return 'page';
+}
+
+function resolveTemplateKey(metadata: PageMetadata): string | undefined {
+  if (typeof metadata.themeTemplate === 'string' && metadata.themeTemplate.trim()) {
+    return metadata.themeTemplate.trim();
+  }
+  const nested = metadata.theme?.template;
+  if (typeof nested === 'string' && nested.trim()) return nested.trim();
+  return undefined;
+}
+
 export function toCmsPage(metadata: PageMetadata, resolvedSlug: string): CmsPage {
+  const home = isHomepage(metadata, resolvedSlug);
+  const pageName = typeof metadata.pageName === 'string' ? metadata.pageName.trim() : '';
+  const title = pageName && pageName.toLowerCase() !== resolvedSlug.toLowerCase()
+    ? pageName
+    : home
+      ? 'Home'
+      : resolvedSlug;
+
   return {
     id: String(metadata._id ?? metadata.id ?? resolvedSlug),
     slug: resolvedSlug,
-    title: metadata.pageName || resolvedSlug,
-    type: metadata.isHome ? 'home' : 'page',
+    title,
+    type: resolvePageType(metadata, resolvedSlug, home),
+    templateKey: resolveTemplateKey(metadata),
   };
 }
 

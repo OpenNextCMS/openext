@@ -64,8 +64,47 @@ export class ThemeLoader {
 
     // Seed AssetManager's sync lookup cache (spec §4.9) — the ONLY place the
     // already-computed hashes move from the DB doc into that pure-lookup cache.
-    this.assets.registerAssetHashes(slug, version, doc.assetHashes);
+    this.assets.registerThemeAssets(slug, version, {
+      hashes: doc.assetHashes,
+      paths: doc.assetPaths,
+    });
 
+    return this.assembleLoadedTheme(slug, version, root, manifest, registry);
+  }
+
+  /**
+   * Load a theme package directly from disk for marketplace previews.
+   * Does not require a MongoDB install record or auth.
+   */
+  async loadThemeForMarketplacePreview(slug: string): Promise<LoadedTheme> {
+    const root = path.join(THEMES_ROOT, slug);
+
+    const bootstrap = await themeBootstrap.bootstrap(root, {
+      executeEntry: true,
+      slug,
+      version: 'preview',
+    });
+
+    const manifest = bootstrap.manifest;
+    const version = manifest.version ?? '0.0.0';
+    const registry = bootstrap.registry;
+
+    if (bootstrap.errors.length > 0) {
+      for (const err of bootstrap.errors) {
+        this.warn(slug, err.file ?? 'theme.ts', err.message);
+      }
+    }
+
+    return this.assembleLoadedTheme(slug, version, root, manifest, registry);
+  }
+
+  private async assembleLoadedTheme(
+    slug: string,
+    version: string,
+    root: string,
+    manifest: LoadedTheme['manifest'],
+    registry: LoadedTheme['registry']
+  ): Promise<LoadedTheme> {
     const templates: Record<string, ThemeComponent> = {};
     for (const [key, rel] of Object.entries(manifest.templates)) {
       if (!rel) continue;
@@ -84,7 +123,7 @@ export class ThemeLoader {
 
     const blocks: Record<string, LoadedThemeBlock> = {};
     for (const b of manifest.blocks ?? []) {
-      const regBlock = registry.blocks[b.type];
+      const regBlock = registry?.blocks[b.type];
       if (regBlock?.renderer) {
         blocks[b.type] = {
           Renderer: regBlock.renderer,

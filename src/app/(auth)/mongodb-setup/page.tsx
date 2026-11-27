@@ -45,6 +45,20 @@ export default function MongoDBSetup() {
     const langFromCookie = Cookies.get('selectedLanguage') || 'en';
     setT(translations[langFromCookie as keyof typeof translations] as typeof translations.en);
 
+    const dbType = safeStorageGet('DB_TYPE');
+    if (dbType === 'mysql') {
+      router.replace('/mysql-setup');
+      return;
+    }
+    if (dbType === 'postgres') {
+      router.replace('/postgres-setup');
+      return;
+    }
+    if (!dbType) {
+      router.replace('/database-choice');
+      return;
+    }
+
     // Load MongoDB credentials from localStorage if they exist
     const savedUsername = safeStorageGet('MONGODB_USERNAME');
     const savedPassword = safeStorageGet('MONGODB_PASSWORD');
@@ -100,11 +114,12 @@ export default function MongoDBSetup() {
     setTimeout(() => {
       setIsVisible(true);
     }, 100);
-  }, []);
+  }, [router]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setIsLoading(true);    try {
+    setIsLoading(true);
+    try {
       // Construct payload based on connection type
       const payload = useUri
         ? { mongoDB: 'uri', uri } // For pasted URI
@@ -130,6 +145,7 @@ export default function MongoDBSetup() {
 
       if (data.success) {
         if (useUri) {
+          safeStorageSet('DB_TYPE', 'mongodb');
           safeStorageSet('MONGODB', 'uri');
           safeStorageSet('MONGODB_URI', uri);
           safeStorageSet('USE_URI', 'true');
@@ -143,6 +159,7 @@ export default function MongoDBSetup() {
           );
           router.push('/admin');
         } else {
+          safeStorageSet('DB_TYPE', 'mongodb');
           safeStorageSet('MONGODB_USERNAME', username);
           safeStorageSet('MONGODB_PASSWORD', password);
           safeStorageSet('MONGODB_HOST', host);
@@ -216,6 +233,15 @@ export default function MongoDBSetup() {
         <div
           className={`transition-opacity duration-500 delay-100 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
         >
+          <div className="text-center mb-2">
+            <button
+              type="button"
+              onClick={() => router.push('/database-choice')}
+              className="text-sm text-gray-500 hover:text-gray-900 underline underline-offset-2"
+            >
+              {t.mongodbSetup.backToChoice}
+            </button>
+          </div>
           <h2 className="mt-2 text-center text-3xl font-extrabold text-gray-900">
             {t.mongodbSetup.title}
           </h2>

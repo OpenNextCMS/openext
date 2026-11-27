@@ -1,4 +1,9 @@
 {
+  "ignorePatterns": [
+    "src/plugins/**",
+    "src/app/api/plugins/**/api/**",
+    "src/app/api/plugins/**/server/**"
+  ],
   "env": {
     "browser": true,
     "es2021": true,

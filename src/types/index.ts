@@ -256,7 +256,13 @@ export interface PageDocument extends Document {
   seoName: string;
   seoMeta: string;
   slug: string;
+  /** Content locale (e.g. en, hi). Defaults to site default language. */
+  locale?: string;
+  /** Links translated copies of the same logical page. */
+  translationGroupId?: string;
   component: unknown[];
+  /** Theme Engine template key (from active theme manifest). */
+  themeTemplate?: string;
   modifications: IModification[];
   createdAt?: Date;
   updatedAt?: Date;
@@ -267,6 +273,8 @@ export interface IBlogPostDocument extends Document {
   createdBy: Types.ObjectId;
   isPublished: boolean;
   slug: string;
+  locale?: string;
+  translationGroupId?: string;
   modifications: IModification[];
 
   excerpt?: string;
@@ -471,6 +479,17 @@ export interface IAnalyticsEventDocument extends IAnalyticsEvent, Document {
 
 export type PluginKind = 'block' | 'system';
 
+/** Sidebar navigation item for uploaded system plugin admin pages. */
+export interface PluginAdminNavItem {
+  /** URL segment under /dashboard/plugins/runtime/{pluginId}/ */
+  id: string;
+  label: string;
+  /** HTML file relative to the plugin package root (e.g. admin/customers.html). */
+  entry: string;
+  /** Optional Lucide icon name (e.g. list, users, settings). */
+  icon?: string;
+}
+
 export interface IPlugin {
   pluginId: string;
   name: string;
@@ -484,7 +503,24 @@ export interface IPlugin {
   isActive: boolean;
   icon: string;
   entryPoint?: string;
+  /** @deprecated Dashboard uses adminMount. */
   adminEntry?: string;
+  /** Public or relative ESM path that exports mount/unmount for the dashboard plugin root. */
+  adminMount?: string;
+  /** Multi-page dashboard navigation declared in manifest.json for system plugins. */
+  adminNav?: PluginAdminNavItem[];
+  /**
+   * Feature catalog from api/roles.js pages + permissions.
+   * Used by Roles UI when granting a custom role access to this plugin.
+   */
+  featureCatalog?: {
+    pages: Array<{
+      id: string;
+      label: string;
+      features: Array<{ id: string; label: string }>;
+    }>;
+    permissions: Array<{ id: string; label: string }>;
+  };
   blockEntry?: string;
   customElement?: string;
   styles?: string[];
@@ -495,6 +531,8 @@ export interface IPlugin {
   serverEntry?: string;
   apiPrefix?: string;
   permissions?: string[];
+  /** Backend migration directories from manifest.json (used on first enable). */
+  migrations?: string[];
   dependencies?: string[];
   installHook?: string;
   uninstallHook?: string;
@@ -626,6 +664,8 @@ export interface Page {
   isHome?: boolean;
   isGlobal?: boolean;
   isPublished?: boolean;
+  /** Theme Engine template key from the active theme. */
+  themeTemplate?: string;
   component?: unknown[];
   createdAt?: string;
   updatedAt?: string;

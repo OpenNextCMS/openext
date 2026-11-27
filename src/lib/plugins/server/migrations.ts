@@ -6,6 +6,7 @@ import { loadCjsModule } from '@/lib/plugins/server/loadCjsModule';
 import { createCmsSdk, type CmsSdk } from '@/lib/plugins/server/sdk';
 import { resolveBackendModulePath } from '@/lib/plugins/server/validation';
 import { getBackendPluginDirectory } from '@/lib/plugins/server/storage';
+import { getDbType } from '@/lib/db/config';
 import type { PluginMigrationModule } from '@/lib/plugins/server/types';
 
 function isMigrationFile(fileName: string): boolean {
@@ -53,6 +54,7 @@ export async function runPluginMigrations(
   const pluginDir = getBackendPluginDirectory(pluginId);
   const cms = createCmsSdk(pluginId, permissions, null);
   await cms.database.user();
+  const dbType = getDbType();
 
   const executed: string[] = [];
 
@@ -67,16 +69,25 @@ export async function runPluginMigrations(
 
       const absolutePath = path.join(absoluteDir, fileName);
       const migration = loadMigrationModule(absolutePath);
+      const label = migration.name || migrationName;
 
-      await migration.up(cms);
+      try {
+        await migration.up(cms);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        throw new Error(
+          `Plugin "${pluginId}" migration "${label}" failed on ${dbType}: ${message}`,
+          { cause: error }
+        );
+      }
 
       await MigrationModel.create({
         plugin: pluginId,
-        migration: migration.name || migrationName,
+        migration: label,
         executedAt: new Date(),
       });
 
-      executed.push(migration.name || migrationName);
+      executed.push(label);
     }
   }
 

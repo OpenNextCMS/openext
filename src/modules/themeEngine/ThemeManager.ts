@@ -6,7 +6,9 @@ import { themeInstaller, type ThemeInstaller } from './ThemeInstaller';
 import { themeRegistry, type ThemeRegistry } from './ThemeRegistry';
 import { themeRenderer, type ThemeRenderer } from './ThemeRenderer';
 import { themePreviewService, type ThemePreviewService } from './ThemePreviewService';
-import { DEFAULT_THEME_SLUG, DEFAULT_THEME_SOURCE_DIR, THEMES_ROOT, COMPILED_ROOT } from './config';
+import { themeCustomizationRepository } from './repositories/ThemeCustomizationRepository';
+import { flattenSettingsSchema, defaultsFromSettingsSchema } from './settingsSchema';
+import { DEFAULT_THEME_SLUG, DEFAULT_THEME_SOURCE_DIR, MANIFEST_FILENAME, THEMES_ROOT, COMPILED_ROOT } from './config';
 import type { IThemeEngineThemeDocument } from './models/Theme';
 import type { RenderInput, RenderResult, ThemePreviewTicket } from './types';
 import { ThemeEngineError, ThemeNotFoundError } from './errors';
@@ -50,6 +52,15 @@ export class ThemeManager {
     await this.registry.activate(slug, userId);
   }
 
+  /** Restore the theme that was active before the most recent activation. */
+  async rollback(userId: Types.ObjectId | string): Promise<string> {
+    return this.registry.rollback(userId);
+  }
+
+  async getBySlug(slug: string): Promise<IThemeEngineThemeDocument | null> {
+    return this.registry.getBySlug(slug);
+  }
+
   /**
    * Remove an installed theme from the registry and delete its on-disk package
    * + compiled cache. Refuses the active theme and the built-in default theme.
@@ -81,7 +92,46 @@ export class ThemeManager {
     return this.preview.startPreview(slug, userId);
   }
 
+  async exitPreview(token: string): Promise<void> {
+    return this.preview.endPreview(token);
+  }
+
+  async getCustomization(slug: string): Promise<Record<string, unknown>> {
+    return themeCustomizationRepository.get(slug);
+  }
+
+  async saveCustomization(
+    slug: string,
+    values: Record<string, unknown>,
+    userId: Types.ObjectId | string
+  ): Promise<void> {
+    await themeCustomizationRepository.save(slug, values, userId);
+  }
+
+  async getCustomizerSchema(slug: string) {
+    const theme = await this.registry.getBySlug(slug);
+    if (!theme) throw new ThemeNotFoundError(slug);
+    return {
+      schema: flattenSettingsSchema(theme.manifest),
+      defaults: defaultsFromSettingsSchema(theme.manifest),
+    };
+  }
+
+  async getTemplates(slug: string) {
+    return this.registry.getTemplates(slug);
+  }
+
+  async getBlocks(slug: string) {
+    return this.registry.getBlocks(slug);
+  }
+
+  async getPartials(slug: string) {
+    return this.registry.getPartials(slug);
+  }
+
   async renderPage(input: RenderInput): Promise<RenderResult> {
+    await this.ensureDefaultThemeInstalled();
+
     try {
       return await this.renderer.render(input);
     } catch (primaryError) {
@@ -101,13 +151,46 @@ export class ThemeManager {
     }
   }
 
-  /** Idempotent — installs the shipped-in-repo default theme on first need, via the real install pipeline (spec §4.3), not a shortcut. */
+  /** Ensures the built-in default theme exists on disk (safe to call from instrumentation). */
+  async ensureDefaultThemeReady(): Promise<void> {
+    await this.ensureDefaultThemeInstalled();
+  }
+
+  /** Idempotent — installs the shipped-in-repo default theme on first need, via the real install pipeline (spec §4.3), not a shortcut. Replaces when the shipped source version is newer. */
   private async ensureDefaultThemeInstalled(): Promise<void> {
     const existing = await this.registry.getBySlug(DEFAULT_THEME_SLUG);
-    if (existing?.status === 'installed') return;
+    const onDisk = await this.defaultThemeFilesPresent();
+    const sourceVersion = await this.readDefaultThemeSourceVersion();
+
+    if (
+      existing?.status === 'installed' &&
+      onDisk &&
+      (!sourceVersion || existing.version === sourceVersion)
+    ) {
+      return;
+    }
 
     const zip = await buildZipFromDirectory(DEFAULT_THEME_SOURCE_DIR);
     await this.installer.install(zip, { installedBy: SYSTEM_USER_ID, replace: true });
+  }
+
+  private async readDefaultThemeSourceVersion(): Promise<string | null> {
+    try {
+      const raw = await fs.readFile(path.join(DEFAULT_THEME_SOURCE_DIR, MANIFEST_FILENAME), 'utf8');
+      const json = JSON.parse(raw) as { version?: string };
+      return typeof json.version === 'string' ? json.version : null;
+    } catch {
+      return null;
+    }
+  }
+
+  private async defaultThemeFilesPresent(): Promise<boolean> {
+    try {
+      await fs.access(path.join(THEMES_ROOT, DEFAULT_THEME_SLUG, MANIFEST_FILENAME));
+      return true;
+    } catch {
+      return false;
+    }
   }
 }
 

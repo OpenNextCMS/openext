@@ -3,7 +3,8 @@ import { getAuthUser } from '@/lib/api/auth';
 import { resolveSiteSettings } from './bridges/settingsBridge';
 import { resolveSiteMenu } from './bridges/menuBridge';
 import { toCmsPage, toCmsBlocks } from './bridges/pageBridge';
-import type { RenderInput } from './types';
+import { getSiteLanguageConfig } from '@/lib/i18n/siteLocale';
+import type { PageContentType, RenderInput } from './types';
 
 /** Mirrors the seeded numeric Role values (`src/models/Role.ts`) — avoids an extra Mongo round trip just for a display label. */
 const ROLE_LABELS: Record<string, string> = { '0': 'SuperAdmin', '1': 'Admin', '2': 'Editor', '3': 'Author' };
@@ -11,27 +12,28 @@ const ROLE_LABELS: Record<string, string> = { '0': 'SuperAdmin', '1': 'Admin', '
 /**
  * Assembles a `RenderInput` for one page request — the ONE place that fans
  * out to every bridge (settings/menu/page/user) and hands the engine a
- * fully-formed, opaque input. `ThemeManager`/`ThemeRenderer`/`ThemeAPI` never
- * query Mongo themselves (spec §0) — this is where those reads actually
- * happen, all BEFORE `ThemeManager.renderPage()` is ever called.
- *
- * Returns `null` when there is no CMS page at this slug at all (a 404,
- * unrelated to theming) — matches `getPageDataForSlug`'s own contract.
- *
- * NOTE (flagged, not silently dropped): only navigation LINKS from the
- * header page's nav-bar block flow through (`menuBridge`). Any other
- * admin-built header/footer block content (a promo banner, a custom logo
- * block, etc.) does not — the active theme's own Header/Footer partials own
- * that chrome now. This is the deliberate, spec-driven design (confirmed
- * during the wiring step), not an oversight.
+ * fully-formed, opaque input.
  */
-export async function buildRenderInput(slug: string, previewThemeSlug?: string): Promise<RenderInput | null> {
-  const pageData = await getPageDataForSlug(slug);
+export async function buildRenderInput(
+  slug: string,
+  previewThemeSlug?: string,
+  locale?: string,
+  options?: {
+    strictLocale?: boolean;
+    /** Skip a second DB load when the caller already fetched page data. */
+    pageData?: Awaited<ReturnType<typeof getPageDataForSlug>>;
+  }
+): Promise<RenderInput | null> {
+  const pageData =
+    options?.pageData ?? (await getPageDataForSlug(slug, locale, options));
   if (!pageData) return null;
+
+  const langConfig = await getSiteLanguageConfig();
+  const activeLocale = locale || langConfig.defaultLanguage;
 
   const [settings, menuItems, authUser] = await Promise.all([
     resolveSiteSettings(),
-    resolveSiteMenu(),
+    resolveSiteMenu(activeLocale, langConfig.defaultLanguage),
     getAuthUser(),
   ]);
 
@@ -47,22 +49,61 @@ export async function buildRenderInput(slug: string, previewThemeSlug?: string):
   };
 }
 
+/** Map a template key/type to a page content type for gallery previews. */
+function pageTypeForTemplate(templateKey?: string, templateType?: string): PageContentType {
+  if (templateType === 'home' || templateKey === 'home') return 'home';
+  if (templateType === 'search' || templateKey === 'search') return 'search';
+  if (templateType === 'error' || templateKey === '404') return 'error';
+  if (templateType === 'single' || templateKey === 'product' || templateKey === 'blogPost') return 'product';
+  if (templateType === 'archive' || templateKey === 'products' || templateKey === 'blog' || templateKey === 'category')
+    return 'archive';
+  return 'page';
+}
+
+export interface CardPreviewOptions {
+  templateKey?: string;
+  templateType?: string;
+  title?: string;
+}
+
 /**
  * Build a RenderInput forced onto a specific theme for admin card / gallery
  * previews. Empty CMS blocks so ONLY the uploaded theme templates/partials
  * render — site settings + menu still feed the theme Header/Footer chrome.
  */
-export async function buildCardPreviewInput(themeSlug: string): Promise<RenderInput> {
+export async function buildCardPreviewInput(
+  themeSlug: string,
+  options: CardPreviewOptions = {}
+): Promise<RenderInput> {
   const [settings, menuItems] = await Promise.all([
     resolveSiteSettings(),
     resolveSiteMenu(),
   ]);
+  const templateKey = options.templateKey?.trim() || undefined;
+  const pageType = pageTypeForTemplate(templateKey, options.templateType);
+  const title = options.title ?? (templateKey ? templateKey : 'Home');
+
   return {
-    page: { id: 'card-preview', slug: 'home', title: 'Home', type: 'home' },
+    page: {
+      id: 'card-preview',
+      slug: templateKey ?? 'home',
+      title,
+      type: pageType,
+      templateKey,
+    },
     blocks: [],
     menus: [{ key: 'primary', items: menuItems }],
     settings,
     previewThemeSlug: themeSlug,
     currentUser: null,
+    allowSectionDefaults: !templateKey || templateKey === 'home' || templateKey === 'index',
   };
+}
+
+/**
+ * RenderInput for external marketplace / disk-only theme previews.
+ * Uses the same empty-block preview shape as admin card previews.
+ */
+export async function buildMarketplacePreviewInput(themeSlug: string): Promise<RenderInput> {
+  return buildCardPreviewInput(themeSlug);
 }

@@ -8,6 +8,8 @@ Dashboard → Plugins → Upload Plugin
 
 Plugins are installed from a single ZIP and can include:
 
+> **Extension packages are different.** A package with `"type": "plugin-extension"` extends an installed plugin. Upload it from **Dashboard → Extensions**. The plugin uploader rejects that type before it writes any files. See [Extension Management](./extension-management.md).
+
 1. **Frontend only** — static browser assets (block, system, or hybrid plugins).
 2. **Full-stack** — frontend assets plus optional backend server code (`server/`), REST APIs, database models, and migrations.
 
@@ -33,10 +35,10 @@ For backend APIs, migrations, lifecycle hooks, and the CMS SDK, see [Plugin Back
 
 | Content | Install path | Publicly served? |
 |---------|--------------|------------------|
-| Frontend assets (`admin/`, `block/`, `assets/`) | `public/plugins/{pluginId}/` | Yes |
-| Backend code (`server/`, `package.json`) | `plugins/{pluginId}/` | **Never** |
+| Frontend (`ui/`, `admin/`, `block/`, `assets/`) | `src/plugins/{pluginId}/{pluginId}/` | Via `/plugins/{pluginId}/...` route — **not** static `public/` files |
+| Backend (`api/`, legacy `server/`, `package.json`) | `src/app/api/plugins/[pluginId]/{pluginId}/` | **Never** |
 
-Backend code is loaded by the CMS at startup and on enable. It is never executed from `public/`.
+Backend code is loaded by the CMS at startup and on enable. Upload paths must not resolve under `public/`.
 
 ---
 
@@ -46,9 +48,9 @@ Backend code is loaded by the CMS at startup and on enable. It is never executed
 
 Supported:
 
-- Compiled HTML, CSS, and browser JavaScript.
+- Compiled CSS and browser JavaScript (ESM).
 - Images, fonts, icons, and JSON assets.
-- Dashboard applications rendered in a sandboxed iframe.
+- Dashboard applications mounted into a CMS `<div>` via `adminMount` (no iframe).
 - Page-editor blocks mounted through JavaScript.
 - Authenticated JSON storage through the CMS [plugin-data API](#6-plugin-data-api).
 
@@ -131,86 +133,165 @@ crm-plugin.zip
   "kind": "system",
   "type": "crm",
   "icon": "👥",
-  "adminEntry": "admin/index.html",
-  "styles": []
+  "adminMount": "ui/admin/mount.js",
+  "styles": ["ui/admin/style.css"]
 }
 ```
 
-If `adminEntry` is omitted, the installer looks for:
+If `adminMount` is omitted, the installer looks for:
 
 ```text
-admin/index.html
-dashboard/index.html
+ui/admin/mount.js
+ui/admin/mount.mjs
+ui/admin/mount.ts
+admin/mount.js
 ```
 
-The dashboard opens the admin entry inside a same-origin iframe with:
+The dashboard keeps the CMS sidebar and mounts your ESM module into `#plugin-root` (**no iframe**). The module must export `mount` (and optionally `unmount`).
 
-```text
-allow-scripts allow-same-origin allow-forms allow-popups
-```
-
-### Minimal `admin/index.html`
-
-```html
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CRM</title>
-    <link rel="stylesheet" href="./style.css" />
-  </head>
-  <body>
-    <main id="app">
-      <h1>CRM</h1>
-      <p id="status">Loading contacts…</p>
-      <ul id="contacts"></ul>
-    </main>
-    <script src="./app.js"></script>
-  </body>
-</html>
-```
-
-### Minimal `admin/app.js`
+### Minimal `ui/admin/mount.js`
 
 ```js
-const pluginId = 'crm-plugin';
-
-async function loadContacts() {
-  const response = await fetch(`/api/plugins/${pluginId}/data/contacts`, {
-    credentials: 'include'
-  });
-
-  if (response.status === 404) {
-    document.querySelector('#status').textContent = 'No contacts yet.';
-    return;
-  }
-
-  if (!response.ok) {
-    throw new Error(`Unable to load contacts (${response.status})`);
-  }
-
-  const payload = await response.json();
-  const contacts = payload.data?.data || [];
-
-  document.querySelector('#status').textContent = `${contacts.length} contacts`;
-  document.querySelector('#contacts').innerHTML = contacts
-    .map((contact) => `<li>${escapeHtml(contact.name)} — ${escapeHtml(contact.email)}</li>`)
-    .join('');
-}
-
 function escapeHtml(value) {
   const element = document.createElement('div');
   element.textContent = String(value || '');
   return element.innerHTML;
 }
 
-loadContacts().catch((error) => {
-  document.querySelector('#status').textContent = error.message;
-});
+export async function mount(el, ctx) {
+  el.innerHTML = `
+    <main>
+      <h1>CRM</h1>
+      <p id="status">Loading contacts…</p>
+      <ul id="contacts"></ul>
+    </main>
+  `;
+
+  const status = el.querySelector('#status');
+  const list = el.querySelector('#contacts');
+
+  try {
+    const response = await fetch(`${ctx.apiBase}data/contacts`, { credentials: 'include' });
+    if (response.status === 404) {
+      status.textContent = 'No contacts yet.';
+      return { unmount() { el.replaceChildren(); } };
+    }
+    if (!response.ok) throw new Error(`Unable to load contacts (${response.status})`);
+    const payload = await response.json();
+    const contacts = payload.data?.data || [];
+    status.textContent = `${contacts.length} contacts`;
+    list.innerHTML = contacts
+      .map((contact) => `<li>${escapeHtml(contact.name)} — ${escapeHtml(contact.email)}</li>`)
+      .join('');
+  } catch (error) {
+    status.textContent = error instanceof Error ? error.message : 'Load failed';
+  }
+
+  return {
+    unmount() {
+      el.replaceChildren();
+    },
+  };
+}
 ```
 
-Never interpolate untrusted text into HTML without escaping or sanitizing it.
+Mount context includes `pluginId`, `pageId`, `roleId`, `features`, `assetBase`, and `apiBase`. Never interpolate untrusted text into HTML without escaping or sanitizing it.
+
+### Multi-page system plugins
+
+If your system plugin has more than one dashboard page, declare them in `manifest.json` using `adminNav`. The CMS shows them in the sidebar under the plugin name (same collapsible arrow navigation as built-in plugins such as Menu Redirect and Form Builder).
+
+```json
+{
+  "id": "crm-plugin",
+  "name": "CRM",
+  "version": "1.0.0",
+  "kind": "system",
+  "adminMount": "ui/admin/mount.js",
+  "adminNav": [
+    {
+      "label": "Dashboard",
+      "id": "dashboard",
+      "entry": "ui/admin/mount.js",
+      "icon": "layout-dashboard"
+    },
+    {
+      "label": "Customers",
+      "id": "customers",
+      "entry": "ui/admin/mount.js",
+      "icon": "users"
+    }
+  ]
+}
+```
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `label` | Yes | Text shown in the sidebar below the plugin name. |
+| `entry` | Yes | Mount module path (`.js` / `.mjs` / `.ts`) relative to the package root. Often the same as `adminMount` for a shared SPA. |
+| `id` | No | URL segment for `/dashboard/plugins/runtime/{pluginId}/{id}` (passed as `ctx.pageId`). Auto-generated from `label` when omitted. |
+| `icon` | No | Lucide-style icon name (e.g. `list`, `users`, `settings`, `bar-chart`). Defaults to a puzzle icon. |
+
+Each `adminNav` page remounts (or updates `ctx.pageId`) in the same `#plugin-root` div. Prefer one shared `adminMount` SPA that reads `ctx.pageId`, or separate mount modules per page.
+
+When `adminNav` is omitted, or contains only one page, the CMS sidebar shows the plugin name as a direct link (no arrow, no separate “Open” item). The collapsible arrow appears only when two or more pages are declared.
+
+Prefer one shared mount module and route inside the plugin with `ctx.pageId`:
+
+```json
+"adminMount": "ui/admin/mount.js",
+"adminNav": [
+  { "label": "Home", "id": "home", "entry": "ui/admin/mount.js" },
+  { "label": "Customers", "id": "customers", "entry": "ui/admin/mount.js" },
+  { "label": "Settings", "id": "settings", "entry": "ui/admin/mount.js" }
+]
+```
+
+Backend routes may also use nested folders under `api/routes/` (e.g. `api/routes/customers/list.js`). The CMS auto-loads route modules recursively; URL paths you register inside those files are unchanged. See [Plugin Backend Architecture](./plugin-backend-architecture.md#route-registration).
+
+### Plugin roles (`api/roles.js`) — pages & features
+
+Put roles in `api/roles.js` (not `manifest.userTypes`). Use this to decide **which pages** of a multi-page plugin a role can open, and **which features** on each page.
+
+```js
+module.exports = {
+  pages: [
+    { id: 'dashboard', label: 'Dashboard', features: ['view-stats'] },
+    { id: 'customers', label: 'Customers', features: ['list', 'create', 'edit', 'delete'] },
+  ],
+  roles: [
+    {
+      id: 'crm-viewer',
+      name: 'CRM Viewer',
+      baseRole: 3, // Author (default). Editor = 2.
+      permissions: ['crm.read'],
+      pages: [
+        'dashboard',
+        { id: 'customers', features: ['list'] },
+      ],
+    },
+    {
+      id: 'crm-manager',
+      name: 'CRM Manager',
+      permissions: ['crm.read', 'crm.write'],
+      pages: ['*'],
+    },
+  ],
+};
+```
+
+| Field | Meaning |
+|-------|---------|
+| `pages` (catalog) | Optional list of page ids/features for validation. Prefer matching `adminNav[].id`. |
+| `roles[].permissions` | Must be declared in `manifest.permissions`. |
+| `roles[].pages` | `['*']` = all pages; string = page with all features; `{ id, features }` = limited features. |
+
+On upload, the CMS:
+
+1. Registers roles in Users → role dropdown as `Name (plugin-id)`
+2. Filters sidebar `adminNav` links per role
+3. Blocks unauthorized runtime page URLs
+4. Passes `roleId`, `pageId`, and `features` into the mount `ctx` so your UI can hide buttons
 
 ---
 
@@ -501,6 +582,10 @@ A complete reference implementation lives at [`examples/crm-plugin/`](../example
   "entryPoint": "index.js",
   "adminEntry": "admin/index.html",
   "blockEntry": "block/index.js",
+  "adminNav": [
+    { "label": "Dashboard", "id": "dashboard", "entry": "admin/index.html", "icon": "layout-dashboard" },
+    { "label": "Customers", "id": "customers", "entry": "admin/customers.html", "icon": "users" }
+  ],
   "styles": ["style.css"],
   "customElement": "vendor-plugin-name",
   "serverEntry": "server/index.js",
@@ -524,7 +609,9 @@ A complete reference implementation lives at [`examples/crm-plugin/`](../example
 - `type`: marketplace/category label such as `crm`, `chart`, or `slider`.
 - `icon`: optional emoji or short icon label.
 - `entryPoint`: JavaScript entry for a block plugin.
-- `adminEntry`: HTML entry for a system plugin.
+- `adminMount`: required for system plugins — ESM module exporting `mount` / `unmount` (under `ui/` or `assets/`).
+- `adminEntry`: deprecated for dashboard display (optional static HTML asset only).
+- `adminNav`: optional array of dashboard pages shown in the CMS sidebar under the plugin name (see [Multi-page system plugins](#multi-page-system-plugins)).
 - `blockEntry`: optional block JavaScript for a system plugin.
 - `styles`: array of CSS files loaded for editor blocks.
 - `customElement`: optional web-component tag name.
@@ -639,6 +726,23 @@ For a large CRM or data-heavy plugin, prefer a **full-stack plugin** with dedica
 
 React, Vue, Svelte, or TypeScript plugin source must be compiled before upload.
 
+Simple TypeScript plugin files are also accepted directly by the uploader. Files ending in
+`.ts` or `.tsx` under `api/`, `server/`, `ui/`, `admin/`, `block/`, `assets/`, `fonts/`,
+or `dashboard/` are transpiled to sibling `.js` files during upload. Manifest entry paths
+may point to TypeScript files, for example:
+
+```json
+{
+  "serverEntry": "api/index.ts",
+  "adminEntry": "ui/admin/index.html",
+  "blockEntry": "ui/block/index.ts"
+}
+```
+
+The installed manifest is rewritten to the compiled JavaScript paths. This transpilation is
+not a bundler: plugin files that import npm/browser packages or ship a full React/Vue app
+should still be built before upload with Vite, esbuild, or another bundler.
+
 Source project:
 
 ```text
@@ -730,10 +834,10 @@ Unknown non-blocked files may be served as `application/octet-stream`, but relyi
 
 ## 10. Security and package limits
 
-Default upload limits:
+Upload limits come from **Dashboard → Settings → Config**:
 
-- ZIP size: 25 MB.
-- Files: 200.
+- ZIP size: `maxPluginZipMb` (default 100 MB when unset).
+- Files: `maxPluginFiles` (default 1000 when unset).
 
 Blocked file extensions:
 
@@ -759,8 +863,8 @@ The extractor:
 - Prevents `..` traversal.
 - Rejects unsafe declared entry paths.
 - Requires declared entry and stylesheet files to exist.
-- Writes **frontend** files to `public/plugins/{pluginId}/`.
-- Writes **backend** files (`server/`, `package.json`) to `plugins/{pluginId}/` — never under `public/`.
+- Writes **frontend** files to `src/plugins/{pluginId}/{pluginId}/` — never under `public/`.
+- Writes **backend** files (`api/` or legacy `server/`, `package.json`) to `src/app/api/plugins/[pluginId]/{pluginId}/`.
 - Validates backend manifest paths (`serverEntry`, hooks, migrations) point to files in the package.
 
 Plugin JavaScript runs in the browser and should be treated as trusted code. Backend plugin code runs server-side with CMS SDK access — only install packages from trusted authors.
@@ -773,7 +877,7 @@ Recommended plugin practices:
 - Use `textContent` rather than unsafe `innerHTML`.
 - Use same-origin CMS APIs with `credentials: 'include'`.
 - Avoid external scripts unless they are trusted and protected by an appropriate content-security policy.
-- Do not assume iframe code can access Node.js or the server filesystem.
+- Do not assume mount modules can access Node.js or the server filesystem (browser ESM only).
 
 ---
 
@@ -818,7 +922,7 @@ Confirm that:
 - JSON syntax is valid.
 - `name` and `version` are present.
 - The plugin ID is valid.
-- `adminEntry`, `entryPoint`, `blockEntry`, and styles exist.
+- `adminMount` (system), `entryPoint` / `blockEntry` (block), and styles exist.
 - If using backend: `server/index.js` (or declared `serverEntry`) exists.
 - Built JavaScript uses browser-compatible code in `admin/` and `block/`.
 - Server files use plain JavaScript (compiled/bundled if originally TypeScript).
@@ -834,8 +938,8 @@ Confirm that:
 Upload ZIP
   → Validate size and file count
   → Read and validate manifest.json
-  → Extract frontend → public/plugins/{pluginId}/
-  → Extract backend  → plugins/{pluginId}/     (if server/ present)
+  → Extract frontend → src/plugins/{pluginId}/{pluginId}/
+  → Extract backend  → src/app/api/plugins/[pluginId]/{pluginId}/   (if api/ or server/ present)
   → Run pending database migrations            (if backend)
   → Run install hook                           (if backend)
   → Register manifest permissions              (if backend)
@@ -859,8 +963,8 @@ On failure, extracted files and partial database rows are rolled back.
 
 | Asset | Path |
 |-------|------|
-| Frontend files | `public/plugins/{pluginId}/` |
-| Backend files | `plugins/{pluginId}/` |
+| Frontend files | `src/plugins/{pluginId}/{pluginId}/` |
+| Backend files | `src/app/api/plugins/[pluginId]/{pluginId}/` |
 | Plugin metadata | MongoDB `Plugin` collection |
 | Plugin JSON data | MongoDB `PluginData` collection (plugin-data API) |
 | Migration history | MongoDB `plugin_migrations` collection (backend plugins) |
@@ -880,8 +984,8 @@ Removing a plugin from **Dashboard → Plugins**:
 
 1. Runs the uninstall hook (if declared).
 2. Unloads backend routes.
-3. Removes frontend files from `public/plugins/{pluginId}/`.
-4. Removes backend files from `plugins/{pluginId}/`.
+3. Removes frontend files from `src/plugins/{pluginId}/`.
+4. Removes backend files from `src/app/api/plugins/[pluginId]/{pluginId}/`.
 5. Deletes plugin metadata and plugin-data records.
 
 Migration history is kept by default so reinstalling does not re-run migrations. Hooks may optionally clean up plugin-owned collections.
@@ -938,13 +1042,13 @@ Add:
 }
 ```
 
-### `System plugin requires admin/index.html`
+### `System plugin requires adminMount`
 
-Add `admin/index.html`, `dashboard/index.html`, or explicitly set:
+Add `ui/admin/mount.js` (ESM exporting `mount` / `unmount`), or set:
 
 ```json
 {
-  "adminEntry": "admin/index.html"
+  "adminMount": "ui/admin/mount.js"
 }
 ```
 
@@ -958,9 +1062,9 @@ Add the declared JavaScript file:
 }
 ```
 
-### `Plugin package exceeds the 25MB limit`
+### `Plugin package exceeds the …MB limit`
 
-Remove source maps, development assets, `node_modules`, videos, and unused images. Optimize media before rebuilding the ZIP.
+The limit is the `maxPluginZipMb` value under Dashboard → Settings. Remove source maps, development assets, `node_modules`, videos, and unused images, or raise the setting if the larger package is intentional.
 
 ### `Plugin is already installed`
 
@@ -1034,7 +1138,7 @@ Fix:
 
 - Enable the plugin in **Dashboard → Plugins**.
 - Check server logs for load errors (`loadError` on the plugin record).
-- Restart the CMS dev server after manual changes to `plugins/{pluginId}/`.
+- Restart the CMS dev server after manual changes under `src/plugins/` or `src/app/api/plugins/`.
 
 ### Migration or install hook failed during upload
 

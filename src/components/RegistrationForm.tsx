@@ -12,6 +12,7 @@ import { translations } from '../../public/locales/translations';
 import Cookies from 'js-cookie';
 import defaultData from '@/app/themes/openNextDefault/public/data/default.json';
 import { safeStorageClear, safeStorageGet } from '@/utils/safeStorage';
+import { DEFAULT_MYSQL_DATABASE_NAME, DEFAULT_POSTGRES_DATABASE_NAME } from '@/lib/db/constants';
 
 
 const NewRegisterForm = () => {
@@ -25,6 +26,28 @@ const NewRegisterForm = () => {
     const langFromCookie = Cookies.get('selectedLanguage') || 'en';
     setT(translations[langFromCookie as keyof typeof translations] as typeof translations.en);
     setT(translations[langFromCookie as keyof typeof translations] as typeof translations.en);
+
+    const dbType = safeStorageGet('DB_TYPE');
+    const dbInfo = ['USER_DB_NAME', 'PAGE_DB_NAME'];
+    const missingDbInfo = dbInfo.some((key) => !safeStorageGet(key));
+
+    if (dbType === 'mysql') {
+      const mysqlCredentials = ['MYSQL_HOST', 'MYSQL_PORT', 'MYSQL_USER'];
+      const missingMysql = mysqlCredentials.some((key) => !safeStorageGet(key));
+      if (missingMysql || missingDbInfo) {
+        router.push('/mysql-setup');
+      }
+      return;
+    }
+
+    if (dbType === 'postgres') {
+      const postgresCredentials = ['POSTGRES_HOST', 'POSTGRES_PORT', 'POSTGRES_USER'];
+      const missingPostgres = postgresCredentials.some((key) => !safeStorageGet(key));
+      if (missingPostgres || missingDbInfo) {
+        router.push('/postgres-setup');
+      }
+      return;
+    }
 
     const mongoDB = safeStorageGet('MONGODB');
     let missingCredentials = false;
@@ -51,13 +74,12 @@ const NewRegisterForm = () => {
     } else if (mongoDB === 'uri') {
       const uriCredentials = ['MONGODB_URI', 'MONGODB'];
       missingCredentials = uriCredentials.some((key) => !safeStorageGet(key));
+    } else {
+      missingCredentials = true;
     }
 
-    const dbInfo = ['USER_DB_NAME', 'PAGE_DB_NAME'];
-    const missingDbInfo = dbInfo.some((key) => !safeStorageGet(key));
-
-    if (missingCredentials || missingDbInfo) {
-      router.push('/mongodb-setup');
+    if (missingCredentials || missingDbInfo || dbType !== 'mongodb') {
+      router.push(dbType === 'mongodb' ? '/mongodb-setup' : '/database-choice');
     }
   }, [router]);
 
@@ -79,7 +101,11 @@ const NewRegisterForm = () => {
     try {
       registerSchema.parse(data);
 
+      const storedDbType = safeStorageGet('DB_TYPE');
+      const dbType =
+        storedDbType === 'mysql' || storedDbType === 'postgres' ? storedDbType : 'mongodb';
       const mongodbCredentials = (() => {
+        if (dbType !== 'mongodb') return {};
         const mongoDB = safeStorageGet('MONGODB');
         if (mongoDB === 'atlas') {
           return {
@@ -107,13 +133,42 @@ const NewRegisterForm = () => {
         return {};
       })();
 
+      const mysqlCredentials =
+        dbType === 'mysql'
+          ? {
+              host: safeStorageGet('MYSQL_HOST'),
+              port: Number(safeStorageGet('MYSQL_PORT') || 3306),
+              user: safeStorageGet('MYSQL_USER'),
+              password: safeStorageGet('MYSQL_PASSWORD') || '',
+              database: safeStorageGet('MYSQL_DATABASE') || DEFAULT_MYSQL_DATABASE_NAME,
+            }
+          : undefined;
+
+      const postgresCredentials =
+        dbType === 'postgres'
+          ? {
+              host: safeStorageGet('POSTGRES_HOST'),
+              port: Number(safeStorageGet('POSTGRES_PORT') || 5432),
+              user: safeStorageGet('POSTGRES_USER'),
+              password: safeStorageGet('POSTGRES_PASSWORD') || '',
+              database: safeStorageGet('POSTGRES_DATABASE') || DEFAULT_POSTGRES_DATABASE_NAME,
+            }
+          : undefined;
+
       const userDbName = safeStorageGet('USER_DB_NAME');
       const pageDbName = safeStorageGet('PAGE_DB_NAME');
 
       const setupResponse = await fetch(apiUrl(`/api/auth/setup-databases`), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userDbName, pageDbName, mongodbCredentials }),
+        body: JSON.stringify({
+          dbType,
+          userDbName,
+          pageDbName,
+          mongodbCredentials,
+          mysqlCredentials,
+          postgresCredentials,
+        }),
       });
 
       const setupData = await setupResponse.json();
@@ -127,10 +182,14 @@ const NewRegisterForm = () => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             ...data,
+            dbType,
             userDbName,
             pageDbName,
             mongodbCredentials,
-            defaultData
+            mysqlCredentials,
+            postgresCredentials,
+            // Page.component is BlockData[]; wrap the single root from default.json
+            defaultData: Array.isArray(defaultData) ? defaultData : [defaultData],
           }),
         })
           .then((response) => response.json())

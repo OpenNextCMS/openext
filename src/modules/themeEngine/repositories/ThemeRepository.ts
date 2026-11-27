@@ -1,8 +1,10 @@
 import type { ClientSession, Types } from 'mongoose';
+import { UPLOADED_THEMES_REL } from '@/lib/dynamicContent';
 import { getPageDbConnection } from '@/utils/db';
 import { getEngineThemeModel, type IThemeEngineThemeDocument } from '../models/Theme';
 import { getEngineThemeSettingsModel, SINGLETON_ID, type IThemeEngineSettingsDocument } from '../models/ThemeSettings';
-import type { ThemeInstallLogEntry, ThemeManifest, ThemeStatus } from '../types';
+import type { ThemeInstallLogEntry, ThemeManifest, ThemeStatus, ThemeTemplateMeta } from '../types';
+import { extractTemplateMetadata } from '../templateMetadata';
 
 /**
  * ThemeRepository — the ONLY place that talks to Mongoose for `themes` /
@@ -23,8 +25,8 @@ export interface RegisterInstalledInput {
   checksum: string;
   installedBy: Types.ObjectId | string;
   installLog: ThemeInstallLogEntry[];
-  /** Computed once at install time by ThemeInstaller (spec §4.9). */
   assetHashes?: { stylesheet?: string; script?: string };
+  assetPaths?: { stylesheet?: string; script?: string };
 }
 
 export const themeRepository = {
@@ -42,6 +44,11 @@ export const themeRepository = {
   async upsertInstalled(input: RegisterInstalledInput): Promise<IThemeEngineThemeDocument> {
     const { ThemeModel } = await models();
     const { manifest } = input;
+    const templatesMeta = extractTemplateMetadata(manifest);
+    const partials: Record<string, string> = {};
+    for (const [key, value] of Object.entries(manifest.partials ?? {})) {
+      if (typeof value === 'string') partials[key] = value;
+    }
     const doc = await ThemeModel.findOneAndUpdate(
       { slug: manifest.slug },
       {
@@ -60,6 +67,13 @@ export const themeRepository = {
           installedBy: input.installedBy,
           installLog: input.installLog,
           assetHashes: input.assetHashes ?? {},
+          assetPaths: input.assetPaths ?? {},
+          templates: templatesMeta,
+          partials,
+          assets: {
+            css: input.assetPaths?.stylesheet ?? 'assets/style.css',
+            js: input.assetPaths?.script ?? 'assets/theme.js',
+          },
         },
       },
       { upsert: true, new: true }
@@ -98,7 +112,7 @@ export const themeRepository = {
         themeSettings: [],
         supportedFeatures: [],
       },
-      installPath: `themes/${input.slug}`,
+      installPath: `${UPLOADED_THEMES_REL}/${input.slug}`,
       checksum: input.checksum,
       installedAt: new Date(),
       installedBy: input.installedBy,
@@ -169,6 +183,42 @@ export const themeRepository = {
         },
       },
       { session }
+    ).exec();
+  },
+
+  /** Roll back to the previous active theme slug (stored during last activation). */
+  async rollbackToPrevious(activatedBy: Types.ObjectId | string, session: ClientSession): Promise<string> {
+    const { SettingsModel } = await models();
+    const current = await this.getSettings(session);
+    const previous = current.previousThemeSlug;
+    if (!previous) {
+      throw new Error('No previous theme available for rollback.');
+    }
+    const theme = await this.findBySlug(previous, session);
+    if (!theme || theme.status !== 'installed') {
+      throw new Error(`Previous theme "${previous}" is not available for rollback.`);
+    }
+    await SettingsModel.updateOne(
+      { _id: SINGLETON_ID },
+      {
+        $set: {
+          activeThemeSlug: previous,
+          previousThemeSlug: current.activeThemeSlug,
+          activatedAt: new Date(),
+          activatedBy,
+        },
+      },
+      { session }
+    ).exec();
+    return previous;
+  },
+
+  async setHomepageTemplateKey(key: string | null): Promise<void> {
+    const { SettingsModel } = await models();
+    await SettingsModel.updateOne(
+      { _id: SINGLETON_ID },
+      { $set: { homepageTemplateKey: key } },
+      { upsert: true }
     ).exec();
   },
 };

@@ -24,6 +24,14 @@ import {
   normalizeV2Document,
   extractPrimitiveComponents,
 } from './v2';
+import { buildResearchBrief } from '@/lib/ai/research/live-research';
+import type { ResearchBrief } from '@/lib/ai/research/types';
+import {
+  assessSiteStructureLocally,
+  buildCompactSiteReviewPrompt,
+  buildCompactSiteSystemPrompt,
+  formatResearchBriefCompact,
+} from '@/lib/ai/research/site-prompt-compact';
 
 export const runtime = 'nodejs';
 
@@ -87,10 +95,17 @@ const getAiRuntimeConfig = async () => {
   }
 
   const getConfigValue = (dbKey: string, envKey: string, fallback = '') => {
-    const dbValue = aiConfig[dbKey];
-    return typeof dbValue === 'string' && dbValue.trim()
-      ? dbValue.trim()
-      : env[envKey] || fallback;
+    const envValue = typeof env[envKey] === 'string' ? env[envKey]!.trim() : '';
+    const dbValue = typeof aiConfig[dbKey] === 'string' ? String(aiConfig[dbKey]).trim() : '';
+
+    // Prefer a real OpenRouter key from either source. Env wins when both are set
+    // so local .env fixes are not blocked by a stale/empty Dashboard value.
+    const looksLikeOpenRouter = (v: string) => /^sk-or-/i.test(v);
+    if (looksLikeOpenRouter(envValue)) return envValue;
+    if (looksLikeOpenRouter(dbValue)) return dbValue;
+    if (envValue) return envValue;
+    if (dbValue) return dbValue;
+    return fallback;
   };
 
   return {
@@ -118,6 +133,27 @@ const getAiRuntimeConfig = async () => {
 type AiRuntimeConfig = Awaited<ReturnType<typeof getAiRuntimeConfig>>;
 
 const getOpenRouterApiKey = (config: AiRuntimeConfig) => config.openrouterApiKey.trim();
+
+/** Reject OpenAI / empty keys early — OpenRouter only accepts sk-or-… keys. */
+const assertOpenRouterApiKey = (apiKey: string): string => {
+  const key = apiKey.trim();
+  if (!key) {
+    throw new Error(
+      'Missing OpenRouter API key. Add OPENROUTER_API_KEY=sk-or-v1-... in .env (or Dashboard → AI Settings), then restart the server.'
+    );
+  }
+  if (/^sk-proj-/i.test(key) || (/^sk-/i.test(key) && !/^sk-or-/i.test(key))) {
+    throw new Error(
+      'OPENROUTER_API_KEY looks like an OpenAI key (sk-proj-… / sk-…). This app calls OpenRouter — create a key at https://openrouter.ai/keys (must start with sk-or-v1-) and put that in .env or AI Settings.'
+    );
+  }
+  if (!/^sk-or-/i.test(key)) {
+    throw new Error(
+      'OPENROUTER_API_KEY format looks wrong. OpenRouter keys start with sk-or-v1-. Get one at https://openrouter.ai/keys'
+    );
+  }
+  return key;
+};
 
 const safeString = (value: unknown, fallback = '') => {
   if (typeof value === 'string') return value;
@@ -2044,376 +2080,7 @@ const getOpenRouterMessageContent = (payload: Record<string, unknown>) => {
   return firstChoice.message.content;
 };
 
-const AI_WEBSITE_BUILDER_PROMPT = `You are an AI Website Builder Engine integrated into a drag-and-drop website editor.
-
-Your task is to generate complete website pages using reusable blocks.
-
-The user will describe the website they want in natural language (or attach a reference image).
-
-You must analyze the request and generate a professional website layout using:
-1. Existing predefined blocks from the editor block library
-2. OR create custom blocks if required blocks are not available
-
-You must return ONLY valid JSON.
-
-DO NOT return markdown.
-DO NOT return explanations.
-DO NOT return HTML unless explicitly required inside a custom block.
-DO NOT return text outside JSON.
-
-==================================================
-PRIMARY GOAL
-==================================================
-
-Generate modern, professional, responsive website pages that:
-- look production-ready
-- follow modern UI/UX practices
-- use proper section hierarchy
-- include realistic content
-- include relevant images
-- are conversion-focused
-- are visually balanced
-
-==================================================
-WEBSITE GENERATION FLOW
-==================================================
-
-1. Understand the user's business type
-2. Detect website category
-3. Detect user intent
-4. Detect preferred style
-5. Select appropriate blocks
-6. Arrange sections logically
-7. Generate relevant content
-8. Add relevant images
-9. Return clean JSON structure
-
-==================================================
-VERY IMPORTANT RULES
-==================================================
-
-FIRST PRIORITY:
-Always use predefined reusable blocks from the existing editor block library.
-
-SECOND PRIORITY:
-If a required section does not exist in the block library,
-then create a custom block.
-
-The AI is allowed to generate custom blocks ONLY when:
-- no suitable predefined block exists
-- the user's request requires a unique section
-- a niche-specific layout is needed
-
-==================================================
-AVAILABLE PREDEFINED BLOCKS
-==================================================
-
-Available reusable blocks (use the exact "type" string):
-
-- navbar
-- hero
-- heroSplit
-- heroCentered
-- services
-- features
-- featureGrid
-- about
-- stats
-- cta
-- testimonials
-- team
-- pricing
-- portfolio
-- faq
-- blog
-- contact
-- footer
-- gallery
-- process
-- trustedBy
-- newsletter
-- dashboardPreview
-
-Always try to use these first.
-
-==================================================
-CUSTOM BLOCK RULES
-==================================================
-
-If no matching predefined block exists, generate a custom block.
-
-Custom block requirements:
-- modern layout
-- responsive structure
-- reusable structure
-- clean content schema
-- professional design logic
-
-Custom block format:
-
-{
-  "id": "custom-block-1",
-  "type": "custom",
-  "customType": "timelineSection",
-  "order": 5,
-  "content": {},
-  "images": {},
-  "styles": {},
-  "layout": {}
-}
-
-Examples where custom blocks may be needed:
-- AI chatbot showcase
-- Interactive timeline
-- Crypto token metrics
-- NFT showcase
-- Advanced comparison table
-- Startup roadmap
-- Mobile app showcase
-- Bento grid layout
-- Before/After comparison
-- Industry-specific layouts
-
-==================================================
-BLOCK SELECTION RULES
-==================================================
-
-IT company website:
-  navbar, heroSplit, services, features, stats, about, testimonials, cta, contact, footer
-
-SaaS website:
-  navbar, heroCentered, trustedBy, dashboardPreview, features, pricing, faq, cta, footer
-
-Portfolio website:
-  navbar, hero, about, portfolio, testimonials, contact, footer
-
-Agency website:
-  navbar, heroSplit, services, process, portfolio, testimonials, cta, footer
-
-E-commerce website:
-  navbar, hero, gallery, featureGrid, testimonials, faq, newsletter, footer
-
-==================================================
-SECTION ORDER RULES
-==================================================
-
-Always maintain proper website structure.
-
-Correct homepage flow:
-  1. navbar
-  2. hero (or heroSplit / heroCentered)
-  3. trustedBy
-  4. services
-  5. features
-  6. stats
-  7. testimonials
-  8. pricing
-  9. faq
-  10. cta
-  11. contact
-  12. footer
-
-Never:
-- place footer in middle
-- place CTA before hero
-- place testimonials before hero
-- overcrowd sections
-
-==================================================
-CONTENT GENERATION RULES
-==================================================
-
-Generate realistic and niche-specific content.
-
-DO NOT use lorem ipsum.
-DO NOT write "Your headline here", "Sample text", or generic filler.
-
-Generate authentic, plausible:
-- professional headlines
-- subheadings
-- CTA buttons
-- feature descriptions
-- service descriptions
-- statistics (e.g. "200+ projects delivered", "98% client retention")
-- testimonials with believable name + role + company
-- FAQs
-- company descriptions
-- contact information
-
-==================================================
-COPYWRITING RULES
-==================================================
-
-Use modern startup-style copywriting.
-
-GOOD: "Scale Your Business with Smart IT Solutions"
-BAD:  "Welcome To Our Website"
-
-Text limits:
-- heading max 10 words
-- subheading max 30 words
-- feature text max 20 words
-
-Use concise, engaging, conversion-focused content.
-
-==================================================
-IMAGE RULES
-==================================================
-
-Use relevant royalty-free image URLs from Unsplash, Pexels, or Pixabay.
-
-Image selection must match the business niche.
-
-Examples:
-- IT company: developers, coding screens, cloud infrastructure, office collaboration
-- Restaurant: food, chefs, interiors
-- Fitness: gym, trainers, workout scenes
-- Fashion: models, clothing, lifestyle photography
-
-Hero images should feel premium.
-
-==================================================
-THEME RULES
-==================================================
-
-Automatically generate themes based on niche.
-
-Examples:
-- IT:     blue / dark navy / white
-- Luxury: black / gold
-- Eco:    green / earthy tones
-
-Always set:
-- primaryColor (hex)
-- secondaryColor (hex)
-- backgroundColor (hex)
-- textColor (hex)
-- fontFamily (CSS stack)
-- buttonStyle ("filled" | "outlined" | "rounded")
-- borderRadius (px)
-
-==================================================
-RESPONSIVE DESIGN RULES
-==================================================
-
-Ensure:
-- spacing consistency
-- proper visual hierarchy
-- responsive layout structure
-- balanced content distribution
-
-==================================================
-JSON OUTPUT STRUCTURE
-==================================================
-
-Return ONLY valid JSON. The top-level shape MUST be:
-
-{
-  "page": {
-    "title": "",
-    "description": "",
-    "theme": {
-      "primaryColor": "",
-      "secondaryColor": "",
-      "backgroundColor": "",
-      "textColor": "",
-      "fontFamily": "",
-      "buttonStyle": "",
-      "borderRadius": ""
-    },
-    "blocks": []
-  }
-}
-
-==================================================
-BLOCK STRUCTURE
-==================================================
-
-Each block:
-
-{
-  "id": "",
-  "type": "",
-  "order": 1,
-  "content": {},
-  "images": {},
-  "styles": {}
-}
-
-==================================================
-PREDEFINED BLOCK EXAMPLE
-==================================================
-
-{
-  "id": "hero-1",
-  "type": "heroSplit",
-  "order": 1,
-  "content": {
-    "headline": "Transform Your Business with Smart IT Solutions",
-    "subheadline": "Helping startups and enterprises scale with secure cloud technologies.",
-    "primaryButton": "Get Started",
-    "secondaryButton": "Book Demo"
-  },
-  "images": {
-    "heroImage": "https://images.unsplash.com/..."
-  },
-  "styles": {
-    "theme": "dark",
-    "alignment": "split"
-  }
-}
-
-==================================================
-CUSTOM BLOCK EXAMPLE
-==================================================
-
-{
-  "id": "custom-block-2",
-  "type": "custom",
-  "customType": "bentoGridFeatures",
-  "order": 4,
-  "content": {
-    "title": "Why Choose Us",
-    "items": [
-      {"title": "AI Automation", "description": "Automate workflows using modern AI solutions."},
-      {"title": "Cloud Infrastructure", "description": "Scalable cloud systems for fast-growing businesses."}
-    ]
-  },
-  "images": { "backgroundImage": "https://images.unsplash.com/..." },
-  "styles": { "columns": 4, "theme": "light" },
-  "layout": { "desktop": "grid", "tablet": "2-column", "mobile": "1-column" }
-}
-
-==================================================
-TESTIMONIAL ITEM EXAMPLE
-==================================================
-
-{ "name": "Michael Carter", "role": "CTO", "company": "TechNova", "feedback": "Their solutions completely transformed our infrastructure." }
-
-==================================================
-FAQ ITEM EXAMPLE
-==================================================
-
-{ "question": "What IT services do you provide?", "answer": "We deliver cloud migration, managed services, and security consulting." }
-
-==================================================
-FINAL OUTPUT RULES
-==================================================
-
-1. Return ONLY JSON
-2. No markdown
-3. No explanations
-4. No comments
-5. Valid syntax
-6. Proper block order
-7. Realistic content (no lorem ipsum)
-8. Relevant images (Unsplash / Pexels / Pixabay URLs)
-9. Modern layout structure
-10. Use predefined blocks whenever possible
-11. Create custom blocks only if necessary
-12. Responsive-friendly structure
-13. Visual consistency
-14. Production-ready output`;
+/** Site-mode prompts: src/lib/ai/research/site-prompt-compact.ts (token-optimized). */
 
 /**
  * TWO-STAGE PIPELINE HOOK POINT.
@@ -2486,6 +2153,11 @@ const detectSiteMode = (prompt: string): boolean => {
     return true;
   }
   return false;
+};
+
+const parseSiteModeFlag = (raw: unknown): boolean => {
+  const value = safeString(raw).toLowerCase();
+  return value === 'true' || value === '1' || value === 'yes' || value === 'on';
 };
 
 type SitePage = {
@@ -2771,181 +2443,38 @@ const buildSiteFooterBlocks = (brand: string, copyrightLine: string): BlockData[
 const buildSitePromptContent = ({
   prompt,
   hasImage,
+  researchBrief,
 }: {
   prompt: string;
   hasImage: boolean;
+  researchBrief?: ResearchBrief | null;
 }): GroqContentPart[] => [
   {
     type: 'text',
-    text: `${AI_WEBSITE_BUILDER_PROMPT}
-
-==================================================
-SITE-MODE OVERRIDE
-==================================================
-
-You are generating an ENTIRE WEBSITE — not a single page.
-
-Output MUST contain:
-- one shared theme used by every page
-- one header (with a navbar block) reused across all pages
-- one footer reused across all pages
-- N body pages, where N is appropriate to the business (typically 4-7)
-
-How to pick N and which pages:
-- If the user said "X pages" or named specific pages, use exactly that.
-- Otherwise pick the right pages for the industry:
-  * IT services / agency: Home, About, Services, Process, Portfolio, Contact
-  * SaaS: Home, Features, Pricing, Docs, Changelog, Contact
-  * Portfolio: Home, About, Work, Contact
-  * Restaurant: Home, Menu, About, Reservations, Contact
-  * E-commerce: Home, Shop, Categories, About, Contact
-  * Default: Home, About, Services, Contact
-
-The HEADER navigation links MUST point to the slugs of pages you actually create (e.g. href:"/about", href:"/services"). The first page MUST be Home (slug:"home", isHome:true).
-
-Each page should use a DIFFERENT mix of semantic blocks — do NOT repeat the same hero on every page:
-- Home: heroSplit or heroCentered, trustedBy, services, features, stats, testimonials, cta
-- About: hero (simpler), about, stats, team, cta
-- Services: hero, services, process, faq, cta
-- Pricing: hero, pricing, faq, cta
-- Portfolio/Work: hero, portfolio, testimonials, cta
-- Contact: hero (short), contact
-
-==================================================
-SITE OUTPUT STRUCTURE
-==================================================
-
-Return ONLY this JSON shape (top-level key "site"):
-
-{
-  "site": {
-    "brand": "Acme Cloud",
-    "title": "Acme Cloud — Smart IT Solutions",
-    "description": "One-line meta description.",
-    "theme": {
-      "primaryColor": "#2563EB",
-      "secondaryColor": "#0F172A",
-      "backgroundColor": "#FFFFFF",
-      "textColor": "#0F172A",
-      "fontFamily": "Inter, system-ui, sans-serif",
-      "buttonStyle": "filled",
-      "borderRadius": "10px"
-    },
-    "header": {
-      "blocks": [
-        {
-          "id": "site-nav",
-          "type": "navbar",
-          "order": 1,
-          "content": {
-            "logo": "Acme Cloud",
-            "links": [
-              {"label":"Home","href":"/home"},
-              {"label":"About","href":"/about"},
-              {"label":"Services","href":"/services"},
-              {"label":"Contact","href":"/contact"}
-            ],
-            "cta": {"label":"Get a quote","href":"/contact"}
-          }
-        }
-      ]
-    },
-    "footer": {
-      "blocks": [
-        {
-          "id": "site-footer",
-          "type": "footer",
-          "order": 1,
-          "content": {
-            "brand": "Acme Cloud",
-            "copyright": "© 2026 Acme Cloud. All rights reserved.",
-            "columns": [
-              {"title":"Product","links":[{"label":"Features","href":"/services"},{"label":"Pricing","href":"/pricing"}]},
-              {"title":"Company","links":[{"label":"About","href":"/about"},{"label":"Contact","href":"/contact"}]}
-            ]
-          }
-        }
-      ]
-    },
-    "pages": [
-      {
-        "slug": "home",
-        "title": "Home",
-        "pageName": "Home",
-        "isHome": true,
-        "blocks": [ /* semantic blocks for the home page */ ]
-      },
-      {
-        "slug": "about",
-        "title": "About",
-        "pageName": "About Us",
-        "isHome": false,
-        "blocks": [ /* semantic blocks for the about page */ ]
-      }
-    ]
-  }
-}
-
-Site-mode rules:
-- Slugs are kebab-case, no leading slash (just "about", not "/about").
-- Header/footer blocks live in site.header.blocks and site.footer.blocks — NOT in any page.blocks.
-- Page blocks reuse the predefined block list. Use custom blocks only when necessary.
-- Same brand name and theme are consistent across every page.
-- Navbar links use the slugs of pages you actually generated.
-- No lorem ipsum. Realistic content tailored to the industry.
-
-${hasImage ? 'A reference image has been attached — use it as the visual reference for theme and home page layout. Other pages should follow the same visual style.' : ''}
-
-USER BRIEF: ${prompt || 'Generate a complete multi-page website for the described business.'}
-
-Return ONLY the JSON object with top-level key "site". No markdown, no explanations.`,
+    text: buildCompactSiteSystemPrompt({
+      prompt,
+      hasImage,
+      researchText: researchBrief ? formatResearchBriefCompact(researchBrief) : '',
+    }),
   },
 ];
 
 const buildSiteReviewContent = ({
   prompt,
   visibleSite,
+  researchBrief,
 }: {
   prompt: string;
   visibleSite: unknown;
+  researchBrief?: ResearchBrief | null;
 }): GroqContentPart[] => [
   {
     type: 'text',
-    text: `You are the quality reviewer for an AI Website Builder in SITE mode.
-
-Validate and repair a multi-page site JSON. Return a corrected version with a qualityScore from 0 to 100.
-
-ALLOWED PREDEFINED BLOCK TYPES:
-navbar, hero, heroSplit, heroCentered, services, features, featureGrid, about, stats, cta, testimonials, team, pricing, portfolio, faq, blog, contact, footer, gallery, process, trustedBy, newsletter, dashboardPreview
-
-Anything else MUST use type:"custom" with a descriptive customType.
-
-CURRENT SITE JSON:
-${JSON.stringify(visibleSite, null, 2)}
-
-USER BRIEF: ${prompt || 'Generate a complete website.'}
-
-REVIEW CHECKLIST:
-1. site.header.blocks contains exactly one navbar block; no body content.
-2. site.footer.blocks contains exactly one footer block.
-3. site.pages has at least 2 pages. Exactly one page has isHome:true and slug:"home".
-4. Every page.slug is unique, kebab-case, no leading slash.
-5. Header navbar links point only to slugs that appear in site.pages.
-6. Each page has its own appropriate hero. Vary the hero variant per page.
-7. No lorem ipsum, no "Your headline here" placeholders. Rewrite generic copy.
-8. site.theme has valid 6-digit hex codes for primaryColor/secondaryColor/backgroundColor/textColor and a real CSS fontFamily stack.
-9. Brand name is consistent across header logo, footer brand, and content references.
-10. Every page.block.type is in the allowed list or is "custom" with a customType.
-11. Pages contain realistic content; testimonials have name+role+company+feedback; pricing has price+features+buttonText.
-
-RETURN ONLY this JSON (no markdown):
-{
-  "qualityScore": 0,
-  "qualityNotes": ["short repair note"],
-  "site": { /* repaired site object matching the input structure */ }
-}
-
-qualityScore below 80 only if the site is structurally unrecoverable.`,
+    text: buildCompactSiteReviewPrompt({
+      prompt,
+      siteJsonCompact: JSON.stringify(visibleSite),
+      researchText: researchBrief ? formatResearchBriefCompact(researchBrief) : '',
+    }),
   },
 ];
 
@@ -3220,6 +2749,17 @@ export async function POST(request: NextRequest) {
 
   const aiConfig = await getAiRuntimeConfig();
 
+  try {
+    assertOpenRouterApiKey(getOpenRouterApiKey(aiConfig));
+  } catch (err) {
+    return NextResponse.json(
+      {
+        message: err instanceof Error ? err.message : 'Invalid OpenRouter API key',
+      },
+      { status: 500 }
+    );
+  }
+
   if (!getOpenRouterApiKey(aiConfig)) {
     return NextResponse.json(
       {
@@ -3257,9 +2797,38 @@ export async function POST(request: NextRequest) {
       imageDataUrl = `data:${image.type};base64,${buffer.toString('base64')}`;
     }
 
-    if (detectSiteMode(prompt)) {
+    const forceSiteMode = parseSiteModeFlag(formData.get('siteMode'));
+    const wantsSiteMode = forceSiteMode || detectSiteMode(prompt);
+
+    if (wantsSiteMode && (pageType === 'header' || pageType === 'footer')) {
+      return NextResponse.json(
+        {
+          message:
+            'Full website generation is only available when editing a normal page, not header or footer.',
+        },
+        { status: 400 }
+      );
+    }
+
+    if (wantsSiteMode) {
       const apiKey = getOpenRouterApiKey(aiConfig);
-      const sitePromptParts = buildSitePromptContent({ prompt, hasImage });
+
+      let researchBrief: ResearchBrief | null = null;
+      try {
+        researchBrief = await buildResearchBrief({
+          prompt,
+          apiKey,
+          model: aiConfig.openrouterModel,
+        });
+      } catch (err) {
+        console.warn('[AI] research stage failed, continuing without live research:', err);
+      }
+
+      const sitePromptParts = buildSitePromptContent({
+        prompt,
+        hasImage,
+        researchBrief,
+      });
       const sitePromptContent = hasImage
         ? [...sitePromptParts, { type: 'image_url' as const, image_url: { url: imageDataUrl } }]
         : sitePromptParts;
@@ -3267,22 +2836,46 @@ export async function POST(request: NextRequest) {
       const sitePayload = await callOpenRouterJson(apiKey, {
         model: aiConfig.openrouterModel,
         messages: [{ role: 'user', content: sitePromptContent }],
-        max_completion_tokens: 12288,
+        max_completion_tokens: 8192,
       });
       const initialSite = parseModelJson(getOpenRouterMessageContent(sitePayload));
 
       let reviewedSite: unknown = initialSite;
       let siteReviewPayload: Record<string, unknown> | null = null;
-      try {
-        const reviewContent = buildSiteReviewContent({ prompt, visibleSite: initialSite });
-        siteReviewPayload = await callOpenRouterJson(apiKey, {
-          model: aiConfig.openrouterReviewModel,
-          messages: [{ role: 'user', content: reviewContent }],
-          max_completion_tokens: 12288,
-        });
-        reviewedSite = parseModelJson(getOpenRouterMessageContent(siteReviewPayload));
-      } catch (err) {
-        console.warn('[AI] site review failed, using initial site:', err);
+      const localAssessment = assessSiteStructureLocally(initialSite);
+      const shouldRunSiteReview = !aiConfig.skipReview && !localAssessment.ok;
+
+      if (shouldRunSiteReview) {
+        try {
+          const reviewContent = buildSiteReviewContent({
+            prompt,
+            visibleSite: initialSite,
+            researchBrief,
+          });
+          siteReviewPayload = await callOpenRouterJson(apiKey, {
+            model: aiConfig.openrouterReviewModel,
+            messages: [{ role: 'user', content: reviewContent }],
+            max_completion_tokens: 8192,
+          });
+          reviewedSite = parseModelJson(getOpenRouterMessageContent(siteReviewPayload));
+        } catch (err) {
+          console.warn('[AI] site review failed, using initial site:', err);
+        }
+      } else if (!aiConfig.skipReview && localAssessment.ok && isRecord(reviewedSite)) {
+        reviewedSite = {
+          ...reviewedSite,
+          qualityScore: Math.max(localAssessment.score, aiConfig.minQualityScore),
+          qualityNotes: [
+            'Local structure check passed — LLM review skipped to save tokens',
+            ...localAssessment.notes,
+          ],
+        };
+      } else if (aiConfig.skipReview && isRecord(reviewedSite)) {
+        reviewedSite = {
+          ...reviewedSite,
+          qualityScore: localAssessment.score,
+          qualityNotes: ['Review skipped (AI_SKIP_REVIEW)', ...localAssessment.notes],
+        };
       }
 
       const siteQualityScore = getSiteQualityScore(reviewedSite);
@@ -3295,6 +2888,20 @@ export async function POST(request: NextRequest) {
               'Site quality check failed. Try a clearer prompt or a more specific business description.',
             qualityScore: siteQualityScore,
             qualityNotes: siteQualityNotes,
+            research: researchBrief
+              ? {
+                  niche: researchBrief.niche,
+                  playbookId: researchBrief.playbookId,
+                  source: researchBrief.source,
+                  references: researchBrief.references.map((r) => ({
+                    hostname: r.hostname,
+                    url: r.url,
+                    title: r.title,
+                  })),
+                  palette: researchBrief.palette,
+                  insights: researchBrief.insights,
+                }
+              : undefined,
           },
           { status: 422 }
         );
@@ -3307,6 +2914,20 @@ export async function POST(request: NextRequest) {
           { message: 'AI returned site JSON but no pages were defined.' },
           { status: 422 }
         );
+      }
+
+      if (researchBrief?.palette) {
+        plan.site.theme = {
+          ...(plan.site.theme || {}),
+          primaryColor: researchBrief.palette.primaryColor,
+          secondaryColor: researchBrief.palette.secondaryColor,
+          backgroundColor: researchBrief.palette.backgroundColor,
+          textColor: researchBrief.palette.textColor,
+          fontFamily:
+            researchBrief.palette.fontFamily ||
+            plan.site.theme?.fontFamily ||
+            'Inter, system-ui, sans-serif',
+        };
       }
 
       const decoded = jwtDecode<{ userId: string }>(token);
@@ -3346,9 +2967,68 @@ export async function POST(request: NextRequest) {
         }
       };
 
-      const ts = Date.now();
-      const uniqueSlug = (base: string, suffix: string) =>
-        `${kebabify(base) || suffix}-${ts}`;
+      // Slug index is global (and legacy DBs may still have unique slug_1 alone),
+      // so collision checks must include every page — not only this user's.
+      const existingSlugs = new Set(
+        ((await PageDoc.distinct('slug').exec()) as unknown[])
+          .map((value) => kebabify(typeof value === 'string' ? value : ''))
+          .filter(Boolean)
+      );
+
+      const allocateSlug = (base: string, fallback: string): string => {
+        const root = kebabify(base) || kebabify(fallback) || 'page';
+        if (!existingSlugs.has(root)) {
+          existingSlugs.add(root);
+          return root;
+        }
+        for (let i = 2; i < 200; i += 1) {
+          const candidate = `${root}-${i}`;
+          if (!existingSlugs.has(candidate)) {
+            existingSlugs.add(candidate);
+            return candidate;
+          }
+        }
+        const lastResort = `${root}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+        existingSlugs.add(lastResort);
+        return lastResort;
+      };
+
+      const isSlugDuplicateError = (error: unknown): boolean => {
+        const err = error as { code?: number; keyPattern?: Record<string, unknown> };
+        return Boolean(err.code === 11000 && err.keyPattern && 'slug' in err.keyPattern);
+      };
+
+      /** Create a page, retrying with a fresh slug if Mongo reports a duplicate. */
+      const createWithUniqueSlug = async (
+        fields: Record<string, unknown>,
+        preferredSlug: string
+      ): Promise<{ _id: unknown; pageName: string; slug: string }> => {
+        const base = kebabify(preferredSlug) || 'page';
+        // preferredSlug is usually already reserved in existingSlugs via allocateSlug —
+        // still try it first; only allocate a new one after a real Mongo duplicate.
+        let lastError: unknown;
+        for (let attempt = 0; attempt < 50; attempt++) {
+          const slug =
+            attempt === 0
+              ? kebabify(preferredSlug) || allocateSlug(base, 'page')
+              : allocateSlug(base, 'page');
+          existingSlugs.add(slug);
+          try {
+            const created = await PageDoc.create({ ...fields, slug });
+            return {
+              _id: created._id,
+              pageName: created.pageName,
+              slug: created.slug,
+            };
+          } catch (error) {
+            if (!isSlugDuplicateError(error)) throw error;
+            lastError = error;
+          }
+        }
+        throw lastError instanceof Error
+          ? lastError
+          : new Error(`Could not allocate a unique slug for "${base}"`);
+      };
 
       const brand = plan.site.brand || 'Site';
 
@@ -3362,7 +3042,7 @@ export async function POST(request: NextRequest) {
         (a, b) => (a.isHome ? -1 : 0) - (b.isHome ? -1 : 0)
       );
       const pageSlugs: string[] = sortedPages.map((p) =>
-        uniqueSlug(p.slug || p.title || p.pageName || 'page', 'site-page')
+        allocateSlug(p.slug || p.title || p.pageName || 'page', 'page')
       );
 
       // Build map: intendedSlug → actualSlug, so AI links like "/about" can be
@@ -3407,16 +3087,18 @@ export async function POST(request: NextRequest) {
           { pageType: 'header', isGlobal: true, createdBy: userId },
           { $set: { isGlobal: false } }
         );
-        const created = await PageDoc.create({
-          pageName: `${headerBrand} Header`,
-          slug: uniqueSlug(`${headerBrand}-header`, 'site-header'),
-          pageType: 'header',
-          isPublished: true,
-          isGlobal: true,
-          component: headerComponents,
-          createdBy: userId,
-          modifications: [{ modifiedBy: userId, modifiedAt: new Date() }],
-        });
+        const created = await createWithUniqueSlug(
+          {
+            pageName: `${headerBrand} Header`,
+            pageType: 'header',
+            isPublished: true,
+            isGlobal: true,
+            component: headerComponents,
+            createdBy: userId,
+            modifications: [{ modifiedBy: userId, modifiedAt: new Date() }],
+          },
+          allocateSlug(`${headerBrand}-header`, 'site-header')
+        );
         createdPages.push({
           _id: String(created._id),
           pageName: created.pageName,
@@ -3437,16 +3119,18 @@ export async function POST(request: NextRequest) {
           { pageType: 'footer', isGlobal: true, createdBy: userId },
           { $set: { isGlobal: false } }
         );
-        const created = await PageDoc.create({
-          pageName: `${footerBrand} Footer`,
-          slug: uniqueSlug(`${footerBrand}-footer`, 'site-footer'),
-          pageType: 'footer',
-          isPublished: true,
-          isGlobal: true,
-          component: footerComponents,
-          createdBy: userId,
-          modifications: [{ modifiedBy: userId, modifiedAt: new Date() }],
-        });
+        const created = await createWithUniqueSlug(
+          {
+            pageName: `${footerBrand} Footer`,
+            pageType: 'footer',
+            isPublished: true,
+            isGlobal: true,
+            component: footerComponents,
+            createdBy: userId,
+            modifications: [{ modifiedBy: userId, modifiedAt: new Date() }],
+          },
+          allocateSlug(`${footerBrand}-footer`, 'site-footer')
+        );
         createdPages.push({
           _id: String(created._id),
           pageName: created.pageName,
@@ -3479,22 +3163,35 @@ export async function POST(request: NextRequest) {
         );
         if (!components.length) continue;
 
-        const slug = pageSlugs[idx];
+        const preferredSlug = pageSlugs[idx];
         const pageName = page.pageName || page.title || 'Untitled';
         const isHomePage: boolean = Boolean(page.isHome) || home === null;
 
-        const created: { _id: unknown; pageName: string; slug: string } = await PageDoc.create({
-          pageName,
-          description: page.description || undefined,
-          slug,
-          pageType: 'page',
-          isPublished: true,
-          isHome: isHomePage,
-          isGlobal: false,
-          component: components,
-          createdBy: userId,
-          modifications: [{ modifiedBy: userId, modifiedAt: new Date() }],
-        });
+        const created = await createWithUniqueSlug(
+          {
+            pageName,
+            description: page.description || undefined,
+            pageType: 'page',
+            isPublished: true,
+            isHome: isHomePage,
+            isGlobal: false,
+            component: components,
+            createdBy: userId,
+            modifications: [{ modifiedBy: userId, modifiedAt: new Date() }],
+          },
+          preferredSlug
+        );
+
+        // Keep nav map accurate if Mongo forced a different slug.
+        if (created.slug !== preferredSlug) {
+          const intended = kebabify(page.slug || page.title || page.pageName || '');
+          if (intended) slugMap[intended] = created.slug;
+          pageSlugs[idx] = created.slug;
+          if (isHomePage) {
+            slugMap.home = created.slug;
+            slugMap[HOME_KEY] = created.slug;
+          }
+        }
 
         createdPages.push({
           _id: String(created._id),
@@ -3535,6 +3232,21 @@ export async function POST(request: NextRequest) {
         },
         qualityScore: siteQualityScore,
         qualityNotes: siteQualityNotes,
+        research: researchBrief
+          ? {
+              niche: researchBrief.niche,
+              playbookId: researchBrief.playbookId,
+              source: researchBrief.source,
+              references: researchBrief.references.map((r) => ({
+                hostname: r.hostname,
+                url: r.url,
+                title: r.title,
+              })),
+              palette: researchBrief.palette,
+              recommendedPages: researchBrief.recommendedPages,
+              insights: researchBrief.insights,
+            }
+          : undefined,
         usage: {
           generation: sitePayload?.usage,
           review: siteReviewPayload?.usage,
@@ -3749,12 +3461,31 @@ const callOpenRouterApi = async (
   const payload = await response.json().catch(() => null);
 
   if (!response.ok) {
+    const openRouterMsg =
+      (payload &&
+        typeof payload === 'object' &&
+        payload.error &&
+        typeof payload.error === 'object' &&
+        typeof (payload.error as { message?: unknown }).message === 'string' &&
+        (payload.error as { message: string }).message) ||
+      '';
     console.error(
       '[OpenRouter error]',
       response.status,
-      JSON.stringify(payload?.error ?? payload, null, 2)
+      JSON.stringify(payload?.error ?? payload, null, 2),
+      `| keyPrefix=${apiKey.slice(0, 6)}… len=${apiKey.length}`
     );
-    throw new Error(payload?.error?.message || `OpenRouter API error ${response.status}`);
+    if (
+      response.status === 401 ||
+      /missing authentication header|unauthorized|user not found|invalid api key/i.test(
+        openRouterMsg
+      )
+    ) {
+      throw new Error(
+        `${openRouterMsg || 'OpenRouter authentication failed'}. Use an OpenRouter key (sk-or-v1-…) from https://openrouter.ai/keys in OPENROUTER_API_KEY / AI Settings, then restart the server.`
+      );
+    }
+    throw new Error(openRouterMsg || `OpenRouter API error ${response.status}`);
   }
 
   return payload;

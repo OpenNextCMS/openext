@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { getPageDbConnection, getTagModel } from '@/utils/db';
-import { requireAuth } from '@/lib/api/auth';
+import { requireCapability } from '@/lib/rbac';
 import { apiOk, handleApiError } from '@/lib/api/response';
 import { generateUniqueSlug } from '@/lib/api/slug';
 import { createTagSchema } from '@/lib/validation/taxonomy';
@@ -20,7 +20,7 @@ export async function GET() {
 /** POST /api/tags — create (admin). */
 export async function POST(req: NextRequest) {
   try {
-    await requireAuth();
+    await requireCapability('taxonomies.manage');
     const body = createTagSchema.parse(await req.json());
     const pageDb = await getPageDbConnection();
     const Tag = getTagModel(pageDb);
